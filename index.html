@@ -1,0 +1,242 @@
+
+    <!DOCTYPE html>
+<html>
+  <center>
+    <header>
+        <ul>
+         <li><a class="links" href="#user"><button class="signbutton" type="button">Sign in</button></a></li>
+           <li><a href="#grid"><img class="grid" src="https://cdn3.iconfinder.com/data/icons/navigation-and-settings/24/Material_icons-01-11-512.png" title="Google apps"></a></li>
+       
+          </ul>  
+    </header>
+    <div class="logo">
+      <img alt="Google" src="https://od.lk/s/NDBfMTMxMDc0MDA3Xw/pngtree-an-illustration-of-a-strawberry-in-a-circle-with-a-long-vector-png-image_7248318.png">
+    </div>
+
+      
+    <div id="bb" class="bar" >
+      <input id="ff" class="searchbar" type="search" name="q" title="Search">
+
+ 
+      
+
+        
+      <a href="https://chatbotchatapp.com/"> <img class="voice" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Google_mic.svg/716px-Google_mic.svg.png" title="Chat by AI"></a>
+    </div>
+    <a href="https://www.google.com/search?q=" + ff> <div id="micButton" class="buttons"></a>
+      <button id="kk" class="button" type="button">Strawberry Search</button>
+        <a href="https://www.rijksmuseum.nl/en/johannes-vermeer"><button class="button" type="button">I'm Feeling Lucky</button>
+
+            
+     </div>
+   
+
+            
+  </body>
+
+
+
+<script>
+this.addEventListener("DOMContentLoaded", setupEvents, true);
+ 
+function setupEvents(e)
+{
+var yesButton = document.getElementById("bb");
+var noButton = document.getElementById("noButton");
+var v = yesButton.value;
+yesButton.addEventListener('keypress', yesFunction, false);
+noButton.addEventListener('click', noFunction, false);
+}
+ 
+ 
+function yesFunction(e)
+{
+    var ff = document.getElementById("ff").value;
+window.location = "https://www.google.com/search?q=" + ff ;
+
+    
+
+
+
+}
+
+
+
+    
+function noFunction(e)
+{
+window.location = "http://failblog.org/";
+}
+
+
+
+    const searchInput = document.getElementById('ff');
+const micButton = document.getElementById('micButton');
+const statusMessage = document.getElementById('statusMessage');
+
+// Check for browser support for Web Speech API
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false; // Set to true for continuous recognition
+    recognition.interimResults = false; // Set to true to get interim results
+    recognition.lang = 'en-US'; // Set the language for recognition
+
+    micButton.addEventListener('click', () => {
+        recognition.start();
+        statusMessage.textContent = 'Listening...';
+    });
+
+    recognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const transcript = event.results[last][0].transcript;
+        searchInput.value = transcript;
+        statusMessage.textContent = `You said: "${transcript}"`;
+        // You can now submit the search query or perform other actions
+
+
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+        statusMessage.textContent = 'Speech ended.';
+               
+
+    };
+
+    recognition.onerror = (event) => {
+        statusMessage.textContent = `Error: ${event.error}`;
+    };
+} else {
+    statusMessage.textContent = 'Speech recognition not supported in this browser.';
+    micButton.disabled = true;
+}
+
+</script>
+      
+
+      <style>
+
+
+          body{
+
+
+             
+
+              
+          }
+          
+       ul {
+  list-style-type: none;
+  overflow: hidden;
+}
+
+li {
+  float: right;
+}
+
+li a {
+  color: #000;
+  display: block;
+  text-align: center;
+  padding: 10px 10px;
+  text-decoration: none;
+  font-size:14px;
+}
+li a:hover {
+  text-decoration: underline;
+}
+.grid{
+  height:23px;
+  position:relative;
+  bottom:4px;
+}
+.signbutton{
+  background-color: #4885ed;
+  color: #fff;
+  border:none;
+  border-radius:3px;
+  padding:7px 10px;
+  position:relative;
+  bottom:7px;
+  font-weight:bold;
+}
+.logo{
+  margin-top:200px;
+  margin-bottom:20px;
+}
+.bar{
+  margin:0 auto;
+  width:575px;
+  border-radius:30px;
+  border:1px solid #dcdcdc;
+}
+.bar:hover{
+  box-shadow: 1px 1px 8px 1px #dcdcdc;
+}
+.bar:focus-within{
+  box-shadow: 1px 1px 8px 1px #dcdcdc;
+  outline:none;
+}
+.searchbar{
+  height:45px;
+  border:none;
+  width:500px;
+  font-size:16px;
+  outline: none;
+  
+}
+.voice{
+  height:20px;
+  position:relative;
+  top:5px;
+  left:10px;
+}
+.buttons{
+  margin-top:30px;
+}
+.button{
+  background-color: #f5f5f5;
+  border:none;
+  color:#707070;
+  font-size:15px;
+  padding: 10px 20px;
+  margin:5px;
+  border-radius:4px;
+  outline:none;
+}
+.button:hover{
+  border: 1px solid #c8c8c8;
+  padding: 9px 19px;
+  color:#808080;
+}
+.button:focus{
+  border:1px solid #4885ed;
+  padding: 9px 19px;
+}
+
+
+
+      
+
+
+          </style>
+
+
+
+            
+
+                <style>
+
+body{
+
+     
+}
+                    </style>
+
+        
+
+            
+
+   
