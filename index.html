@@ -4,7 +4,7 @@
   <center>
     <header>
         <ul>
-         <li><a class="links" href="#user"><button class="signbutton" type="button">Sign in</button></a></li>
+         <li><a class="links" href="https://accounts.google.com/v3/signin/identifier?dsh=S1812573153%3A1655944654029516&flowEntry=ServiceLogin&flowName=WebLiteSignIn&ifkv=AX3vH39E0iYVTmn-NoMNM_C35EPrno8LWsRx2Qhr0HApkVLZ-Zc_Vql8ouaSQOiXzEmthrpOPAV5"><button class="signbutton" type="button">Sign in</button></a></li>
            <li><a href="#grid"><img class="grid" src="https://cdn3.iconfinder.com/data/icons/navigation-and-settings/24/Material_icons-01-11-512.png" title="Google apps"></a></li>
        
           </ul>  
@@ -44,18 +44,21 @@ function setupEvents(e)
 var yesButton = document.getElementById("bb");
 var noButton = document.getElementById("noButton");
 var v = yesButton.value;
-yesButton.addEventListener('keypress', yesFunction, false);
+yesButton.addEventListener('keyup', yesFunction, false);
 noButton.addEventListener('click', noFunction, false);
 }
  
- 
 function yesFunction(e)
 {
+
+if (event.keyCode === 13){
+
+    
     var ff = document.getElementById("ff").value;
 window.location = "https://www.google.com/search?q=" + ff ;
 
     
-
+}
 
 
 }
