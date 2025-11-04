@@ -84,7 +84,7 @@ if (SpeechRecognition) {
     const recognition = new SpeechRecognition();
     recognition.continuous = false; // Set to true for continuous recognition
     recognition.interimResults = false; // Set to true to get interim results
-    recognition.lang = 'en-US'; // Set the language for recognition
+    recognition.lang = 'zh-CN'; // Set the language for recognition
 
     micButton.addEventListener('click', () => {
         recognition.start();
