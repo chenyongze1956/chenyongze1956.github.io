@@ -15,7 +15,7 @@
 
       
     <div id="bb" class="bar" >
-      <input id="ff" class="searchbar" type="search" name="q" title="Search">
+      <input id="ff" class="searchbar" type="search" name="q" title="Search" placeholder=">_">
 
  
       
@@ -139,7 +139,9 @@ if (SpeechRecognition) {
 color:red;
     
 }
-          
+#ff::placeholder {
+      color:red; /* Or any other color like 'red', 'blue', 'rgb(0, 128, 0)', etc. */
+    }          
 li {
   float: right;
 }
