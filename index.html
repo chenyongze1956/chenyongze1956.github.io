@@ -1,4 +1,5 @@
 
+
     <!DOCTYPE html>
 <html>
   <center>
@@ -49,7 +50,92 @@
      </div>
    
 
+            
+  </body>
 
+
+
+<script>
+this.addEventListener("DOMContentLoaded", setupEvents, true);
+ 
+function setupEvents(e)
+{
+var yesButton = document.getElementById("bb");
+var noButton = document.getElementById("noButton");
+var v = yesButton.value;
+yesButton.addEventListener('keyup', yesFunction, false);
+noButton.addEventListener('click', noFunction, false);
+}
+ 
+function yesFunction(e)
+{
+
+if (event.keyCode === 13){
+
+    
+    var ff = document.getElementById("ff").value;
+window.location = "https://www.google.com/search?q=" + ff ;
+
+    
+}
+
+
+}
+
+
+
+    
+function noFunction(e)
+{
+window.location = "http://failblog.org/";
+}
+
+
+
+    const searchInput = document.getElementById('ff');
+const micButton = document.getElementById('micButton');
+const statusMessage = document.getElementById('statusMessage');
+
+// Check for browser support for Web Speech API
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false; // Set to true for continuous recognition
+    recognition.interimResults = false; // Set to true to get interim results
+    recognition.lang = 'zh-CN'; // Set the language for recognition
+
+    micButton.addEventListener('click', () => {
+        recognition.start();
+        statusMessage.textContent = 'Listening...';
+    });
+
+    recognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const transcript = event.results[last][0].transcript;
+        searchInput.value = transcript;
+        statusMessage.textContent = `You said: "${transcript}"`;
+        // You can now submit the search query or perform other actions
+
+
+    };
+
+    recognition.onspeechend = () => {
+        recognition.stop();
+        statusMessage.textContent = 'Speech ended.';
+               
+
+    };
+
+    recognition.onerror = (event) => {
+        statusMessage.textContent = `Error: ${event.error}`;
+    };
+} else {
+    statusMessage.textContent = 'Speech recognition not supported in this browser.';
+    micButton.disabled = true;
+}
+
+</script>
       
 
       <style>
@@ -421,5 +507,15 @@ body {
     
     
     </style>
+
+
+      
+           
+
+
+
+            
+
+
 
     
