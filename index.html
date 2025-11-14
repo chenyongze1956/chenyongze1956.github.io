@@ -3,6 +3,7 @@
 
 
 
+
     <!DOCTYPE html>
 <html>
   <center>
@@ -16,7 +17,7 @@
       <li><a href="https://brushworkvr.com/paint">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMxODM4NTE2Xw/chemistry.png">&nbsp;</a></li>
         
               <li><a href="https://trace.moe/">Images</a></li>
-          <li><a href="https://mail.google.com/mail/u/0/">Gmail</a></li>
+          <li id="vvv"><a href="https://mail.google.com/mail/u/0/">Gmail</a></li>
           </ul>  
     </header>
        
@@ -47,7 +48,7 @@
     </div>
     <a href="https://www.google.com/search?q=" + ff> <div id="micButton" class="buttons"></a>
       <button id="kk" class="button" type="button">Strawberry Search</button>
-        <a href="https://www.rijksmuseum.nl/en/johannes-vermeer"><button class="button" type="button">I'm Feeling Lucky</button>
+        <a href="https://www.rijksmuseum.nl/en/johannes-vermeer"><button id="vvv" class="button" type="button">I'm Feeling Lucky</button>
 
             
      </div>
@@ -143,8 +144,18 @@ if (SpeechRecognition) {
 
       <style>
 
+#vvv{
 
-      
+  color:linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+    
+}
+          
+#kk{
+
+  color:;
+    
+}
           
        ul {
   list-style-type: none;
@@ -153,24 +164,37 @@ if (SpeechRecognition) {
 
           #bb{
 
+     font-family: Comic Sans MS, cursive, sans-serif;
 
-                  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                   -webkit-text-stroke-width: 1px;
+    -webkit-text-fill-color: transparent;
+            
+ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+              animation: rainbow-color-change 3s linear infinite alternate;
 
               
           }
 #ff{
-    background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
 
 color:red;
 
-    
+         font-family: Comic Sans MS, cursive, sans-serif;
+     -webkit-text-stroke-width: 1px;
+    -webkit-text-fill-color: transparent;
+
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                  animation: rainbow-color-change 3s linear infinite alternate;
+
 }
 
 
 
 #ff::placeholder {
       color:black; /* Or any other color like 'red', 'blue', 'rgb(0, 128, 0)', etc. */
-    
+     font-family: Comic Sans MS, cursive, sans-serif;
+
+              animation: rainbow-color-change 3s linear infinite alternate;
+
     }
           
           
@@ -407,6 +431,7 @@ li a:hover {
 
 body {
 
+              
 }
 
 #cat {
@@ -418,7 +443,7 @@ body {
     left:84%;
     top:80%;
 
-
+        
 -webkit-animation: haha-face  2s linear infinite;
           animation: haha-face  2s linear infinite;
   
@@ -457,6 +482,17 @@ body {
   }
 }  
 
+
+@keyframes rainbow-color-change {
+    0%, 100% { color: #ff0000; } /* Red */
+    14% { color: #ff8b00; } /* Orange */
+    28% { color: #e8ff00; } /* Yellow */
+    42% { color: #5dff00; } /* Green */
+    56% { color: #00b9ff; } /* Blue */
+    70% { color: #5d00ff; } /* Indigo */
+    84% { color: #e800ff; } /* Violet */
+}
+        
 @keyframes haha-face {
   10% {
     transform: translateY(25px);
@@ -567,8 +603,9 @@ body {
 body{
 
 
-
+                   
 }
+                     
 /* customizable snowflake styling */
 .snowflake {
   color: #fff;
@@ -593,16 +630,5 @@ color: #000;
 }
 
                 </style>
-
-
-
-
-			<style>
-body{
-
-	
-}
-
-				</style>
 
       
