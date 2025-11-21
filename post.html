@@ -1,0 +1,3374 @@
+<!--
+ *
+ * Title:       Twitter Clone
+ * Version:     1.0.0
+ * Author:      Paulo Muniz
+ * GitHub:      https://github.com/paulomunizdev/twitter-clone
+ * 
+ * Description: A responsive Twitter clone built with HTML, CSS and JavaScript.
+ *              Features include real-time interactions, VIP system, post boosting,
+ *              user profiles, notifications and Bitcoin integration.
+ * 
+ * License:     MIT License
+ * Copyright:   (c) 2025 Paulo Muniz
+ * 
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tweet • Post</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="../assets/css/post.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <!-- Logo Section -->
+                <a href="/" class="brand">
+                    <svg class="nav-logo" viewBox="0 0 4160 4160" xmlns="http://www.w3.org/2000/svg">
+                        <path transform="translate(4160, 4160) rotate(180)" d="M180 4161 c0 -51 68 -277 110 -363 25 -52 25 -53 -5 -146 -13 -42
+        -29 -106 -35 -142 -15 -96 -12 -292 6 -394 l15 -88 -59 -62 c-32 -33 -72 -86
+        -89 -116 -125 -219 -148 -644 -58 -1049 44 -201 79 -309 225 -711 59 -162 142
+        -398 184 -524 82 -247 174 -452 226 -504 44 -45 74 -42 125 11 47 50 128 170
+        201 299 27 49 53 88 57 88 5 0 8 -44 7 -97 -2 -128 -2 -123 14 -123 40 0 191
+        208 316 435 252 460 447 983 505 1360 25 158 30 373 12 490 -31 201 -91 334
+        -200 448 l-58 61 10 79 c28 210 3 454 -60 579 l-28 56 34 75 c56 122 97 329
+        63 314 -7 -3 -54 -24 -105 -47 -104 -46 -244 -84 -365 -100 -183 -23 -580 -7
+        -720 29 -74 19 -184 68 -280 125 -27 15 -48 23 -48 17z m399 -587 c39 -34 40
+        -37 26 -57 -52 -74 42 -159 104 -93 l22 24 52 -21 c29 -12 54 -23 56 -24 9 -6
+        -36 -46 -71 -64 -42 -21 -130 -25 -175 -8 -73 27 -123 117 -123 220 0 36 3 68
+        6 72 11 10 61 -14 103 -49z m882 24 c5 -93 -10 -155 -49 -207 -66 -89 -222
+        -93 -301 -8 -23 25 -23 27 -5 32 10 4 37 13 58 21 37 13 40 13 64 -11 60 -61
+        143 3 106 81 -20 41 -13 52 55 96 58 36 71 36 72 -4z m-440 -327 c27 -26 49
+        -57 49 -67 0 -21 -100 -204 -112 -204 -9 0 -108 186 -108 204 0 20 91 116 110
+        116 7 0 35 -22 61 -49z" />
+                    </svg>
+                </a>
+
+                <!-- Search Section -->
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="search" class="search-input" placeholder="Search">
+                    <div class="search-suggestions">
+                        <div class="suggestion-item">
+                            <i class="fas fa-history"></i>
+                            <span>Recent search 1</span>
+                        </div>
+                        <div class="suggestion-item">
+                            <i class="fas fa-history"></i>
+                            <span>Recent search 2</span>
+                        </div>
+                        <div class="suggestion-item">
+                            <i class="fas fa-trending-up"></i>
+                            <span>Trending: Technology</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Items -->
+                <div class="nav-items">
+                    <!-- Notifications -->
+                    <div class="notification-item">
+                        <div class="notification-container">
+                            <input type="checkbox" id="notification-toggle" class="notification-toggle">
+                            <label for="notification-toggle" class="notification-link">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge">3</span>
+                            </label>
+                            <div class="notification-menu">
+                                <div class="notification-header">
+                                    <i class="fas fa-bell"></i>
+                                    <span>My Notifications</span>
+                                    <button class="mark-all-read" title="Mark all as read">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                </div>
+                                <div class="notification-list">
+                                    <a href="#" class="notification-option new">
+                                        <div class="notification-icon">
+                                            <i class="fas fa-gift"></i>
+                                        </div>
+                                        <div class="notification-text">
+                                            <p class="notification-title">Special Promotion</p>
+                                            <p class="notification-description">Get 20% off on selected products</p>
+                                            <span class="notification-time">2 min ago</span>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="notification-option">
+                                        <div class="notification-icon warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="notification-text">
+                                            <p class="notification-title">Storage Alert</p>
+                                            <p class="notification-description">Your storage is almost full</p>
+                                            <span class="notification-time">1 hour ago</span>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="notification-option">
+                                        <div class="notification-icon danger">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </div>
+                                        <div class="notification-text">
+                                            <p class="notification-title">Security</p>
+                                            <p class="notification-description">New login detected on your device</p>
+                                            <span class="notification-time">2 hours ago</span>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="notification-footer">
+                                    <a href="/notifications">See all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="nav-item user-menu">
+                        <input type="checkbox" id="user-menu-toggle" class="menu-toggle">
+                        <label for="user-menu-toggle" class="user-menu-button">
+                            <img src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Avatar" class="user-avatar">
+                            <span class="user-name">CC</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </label>
+
+                        <div class="dropdown-menu">
+                            <div class="menu-header">
+                                <img src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Mario" alt="Avatar" class="menu-avatar">
+                                <div class="menu-user-info">
+                                    <span class="menu-name">Mario Bros</span>
+                                    <span class="menu-handle">@mario</span>
+                                </div>
+                            </div>
+
+                            <div class="menu-items">
+                                <a href="profile.html" class="menu-item">
+                                    <i class="fas fa-user"></i>
+                                    <span>Profile</span>
+                                </a>
+                                <a href="vip.html" class="menu-item">
+                                    <i class="fas fa-crown"></i>
+                                    <span>VIP</span>
+                                    <span class="badge-new">New</span>
+                                </a>
+                                <a href="settings.html" class="menu-item">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <a href="notifications.html" class="menu-item">
+                                    <i class="fas fa-bell"></i>
+                                    <span>Notifications</span>
+                                </a>
+                                <a href="privacy.html" class="menu-item">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Privacy</span>
+                                </a>
+                                <a href="balance.html" class="menu-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>Balance</span>
+                                </a>
+                                <div class="menu-divider"></div>
+                                <a href="#" class="menu-item">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span>Help</span>
+                                </a>
+                                <a href="#" class="menu-item text-danger">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="layout">
+                <!-- Left Sidebar -->
+                <aside class="sidebar">
+                    <nav class="sidebar-nav">
+                        <a href="/" class="sidebar-link">
+                            
+                        </a>
+                        <a href="/explore" class="sidebar-link">
+                           
+                        </a>
+                        <a href="/notifications" class="sidebar-link">
+                          
+                        </a>
+                        <a href="/profile" class="sidebar-link">
+                          
+                        </a>
+                        
+                        </button>
+                    </nav>
+                </aside>
+
+                <!-- Main Content -->
+                <main class="main-content">
+                    <!-- Header -->
+                    <div class="post-header">
+                        <a href="https://chenyongze1956.github.io/Boogle.html" class="back-button">
+                         <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <h2>Post</h2>
+                    </div>
+
+                    <!-- Original Post -->
+                    <article class="tweet reply">
+                        <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach"
+                            alt="Princess Peach">
+                        <div class="tweet-content">
+                            <div class="tweet-header">
+                                <span class="tweet-name">CC </span>
+                                <i class="fas fa-check-circle verified-badge-vip"></i>
+                                <span class="vip-badge">
+                                    <i class="fas fa-crown"></i>
+                                    VIP
+                                </span>
+                                <span class="tweet-username">@peach</span>
+                                <span class="tweet-time">· 4h</span>
+                            </div>
+                            <p>hello every one</p>
+                            <div class="post-media">
+                                <img src="https://od.lk/s/NDBfMTMyMTY3NTEyXw/gettyimages-185304274-612x612.jpg"
+                                    alt="Post image" class="post-image">
+                            </div>
+                            <div class="tweet-actions-list">
+                                <button class="tweet-action-button">
+                                    <i class="far fa-comment"></i>
+                                    <span>445</span>
+                                </button>
+                                <button class="tweet-action-button">
+                                    <i class="fas fa-retweet"></i>
+                                    <span>678</span>
+                                </button>
+                                <button class="tweet-action-button"
+                                    onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas');">
+                                    <i class="far fa-heart"></i>
+                                    <span>100</span>
+                                </button>
+                                <button class="tweet-action-button">
+                                    <i class="fas fa-rocket"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Main Reply Form -->
+                    <div class="reply-form-container">
+                            <div class="form-actions">
+                                <div class="form-tools">
+                                    </button>
+                                    </button>
+                                    </button>
+                                </div>
+                                <div class="form-submit">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Replies Section -->
+                    <div class="replies-section">
+                        <div id="repliesList">
+                            <!-- VIP Reply -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach"
+                                    alt="Luigi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-vip"></i>
+                                            <span class="vip-badge">
+                                                <i class="fas fa-crown"></i>
+                                                VIP
+                                            </span>
+                                            <span class="tweet-username">@luigi</span>
+                                            <span class="tweet-time">· 2h</span>
+                                        </div>
+                                    </div>
+                                    <div class="replied-to">
+                                        Replying to <a href="/peach">@peach</a>
+                                    </div>
+                                    <p>my first tweat 👻</p>
+                                    <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>2</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>1</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- Regular Reply -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach"
+                                    alt="Toad">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@toad</span>
+                                            <span class="tweet-time">· 30m</span>
+                                        </div>
+                                    </div>
+                                    <div class="replied-to">
+                                        Replying to <a href="/peach">@peach</a>
+                                    </div>
+                                    <p>finished🎂✨</p>
+                                    <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>1</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                    <div class="tweet reply">
+                                        Replying to <a href="/toad">@toad</a>
+                                    </div>
+                                    <p>hi 🍉</p>
+                                    <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>1</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+                              <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                    <div class="tweet reply">
+                                        Replying to <a href="/toad">@toad</a>
+                                    </div>
+                                    <p>hello 🍉</p>
+                                    <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- Another VIP Reply -->
+                               <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                    <div class="tweet reply">
+                                        Replying to <a href="/toad">@toad</a>
+                                    </div>
+                                    <p>good night🍉</p>
+                                    <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <!-- Show More Button -->
+                           
+                            </button>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Right Sidebar -->
+               
+                    <!-- Who to Follow -->
+                        
+                        </div>
+                        <div class="follow-card">
+                            <div class="follow-info">
+                              
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <!-- Trending Topics -->
+                   
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div>
+                                
+                            </div>
+                            <div>
+                           
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/js/btn-post.js"></script>
+    <script src="../assets/js/btnFollow.js"></script>
+    <script src="../assets/js/navbar.js"></script>
+    <script src="../assets/js/post.js"></script>
+</body>
+
+</html>
+
+
+<style>
+
+/* post.css */
+
+/* Post Layout */
+.post-header {
+    padding: 0 1rem;
+    height: 53px;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 1px solid var(--twitter-border);
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+.post-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: rgb(15, 20, 25);
+}
+
+.back-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--twitter-text);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: rgba(15, 25, 35, 0.1);
+}
+
+
+/* Customizações específicas de Tweet */
+.tweet:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.tweet.vip {
+    background: linear-gradient(to right, rgba(255, 215, 0, 0.05), white);
+    border-left: 3px solid var(--vip-gold);
+}
+
+.tweet.vip:hover {
+    background: linear-gradient(to right, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.8));
+}
+
+.tweet:hover .avatar {
+    transform: scale(1.05);
+}
+
+.tweet.vip .avatar {
+    border: 2px solid var(--vip-gold);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+}
+
+/* Replying comments */
+.replying-to-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+.replying-to-container button {
+    background: none;
+    border: none;
+    color: var(--twitter-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.replying-to-container button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--twitter-text);
+}
+
+/* VIP Elements */
+.verified-badge-blue {
+    color: rgb(29, 155, 240);
+    margin-left: 2px;
+}
+
+.verified-badge-vip {
+    color: var(--vip-gold);
+    margin-left: 2px;
+    text-shadow: 0 2px 4px rgba(218,165,32,0.3);
+}
+
+.vip-badge {
+    background: var(--vip-gradient);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+    box-shadow: 0 2px 4px rgba(218, 165, 32, 0.2);
+}
+
+/* Tweet Metadata and Stats */
+.tweet-metadata {
+    color: rgb(83, 100, 113);
+    font-size: 0.938rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--twitter-border);
+}
+
+.tweet-stats {
+    display: flex;
+    gap: 20px;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--twitter-border);
+    color: rgb(83, 100, 113);
+    font-size: 0.938rem;
+}
+
+.tweet-stats strong {
+    color: rgb(15, 20, 25);
+    font-weight: 500;
+}
+
+.tweet-stats-separator {
+    color: rgb(83, 100, 113);
+}
+
+/* Reply Form */
+.reply-form-container {
+    display: flex;
+    gap: 12px;
+    padding: 1rem;
+    border-bottom: 1px solid var(--twitter-border);
+    position: relative;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+.reply-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.reply-form textarea {
+    width: 100%;
+    min-height: 108px;
+    padding: 12px 0;
+    border: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1.25rem;
+    outline: none;
+    background: transparent;
+}
+
+.reply-form textarea::placeholder {
+    color: rgb(83, 100, 113);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--twitter-border);
+}
+
+.form-tools {
+    display: flex;
+    gap: 4px;
+}
+
+.tool-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--twitter-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+}
+
+.tool-button:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+    transform: scale(1.1);
+}
+
+/* Avatar */
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.tweet.vip .avatar {
+    border: 2px solid var(--vip-gold);
+    box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+}
+
+/* Tweet Actions */
+.tweet-actions-list {
+    display: flex;
+    justify-content: space-between;
+    max-width: 425px;
+    margin-top: 12px;
+}
+
+.tweet-action-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgb(83, 100, 113);
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Action button hover states */
+.tweet-action-button:hover i {
+    transform: scale(1.1);
+}
+
+.tweet-action-button:has(i.fa-comment):hover {
+    color: var(--twitter-blue);
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+.tweet-action-button:has(i.fa-retweet):hover {
+    color: rgb(0, 186, 124);
+    background-color: rgba(0, 186, 124, 0.1);
+}
+
+.tweet-action-button:has(i.fa-heart):hover,
+.tweet-action-button.liked {
+    color: rgb(249, 24, 128);
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+.tweet-action-button:has(i.fa-rocket):hover {
+    color: var(--vip-gold);
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Tweet Reply Section */
+.replies-section {
+    border-top: 8px solid rgb(239, 243, 244);
+
+}
+
+
+.reply {
+    padding: 1rem;
+    border-bottom: 1px solid var(--twitter-border);
+    transition: background-color 0.2s;
+}
+
+.reply:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.replied-to {
+    color: rgb(83, 100, 113);
+    font-size: 0.938rem;
+    margin: 2px 0 4px;
+}
+
+.replied-to a {
+    color: var(--twitter-blue);
+    text-decoration: none;
+}
+
+.replied-to a:hover {
+    text-decoration: underline;
+}
+
+/* Show More Button */
+.show-more {
+    width: 100%;
+    padding: 16px;
+    color: var(--twitter-blue);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.938rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.show-more:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+.show-more i {
+    transition: transform 0.2s;
+}
+
+.show-more:hover i {
+    transform: translateY(2px);
+}
+
+/* Text Counter */
+.text-counter {
+    color: rgb(83, 100, 113);
+    font-size: 0.813rem;
+    min-width: 20px;
+    text-align: right;
+}
+
+/* Form Submit */
+.form-submit {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-cancel {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--twitter-text);
+    cursor: pointer;
+    border-radius: 9999px;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: rgba(15, 20, 25, 0.1);
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-tools {
+        display: none;
+    }
+
+    .tweet-stats {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .reply-form textarea {
+        min-height: 80px;
+        font-size: 1.125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tweet-action-button span {
+        display: none;
+    }
+
+    .tweet-action-button {
+        padding: 6px;
+    }
+
+    .post-header {
+        padding: 0 0.75rem;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tweet-content p {
+        font-size: 1rem;
+    }
+}
+
+.reply-box {
+    animation: slideDown 0.3s ease-out;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--twitter-border);
+}
+
+.reply-box .reply-form {
+    flex: 1;
+}
+
+.reply-box textarea {
+    width: 100%;
+    min-height: 108px;
+    padding: 12px 0;
+    border: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1.25rem;
+    outline: none;
+    background: transparent;
+}
+
+.reply-box .btn-cancel {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 9999px;
+}
+
+.reply-box .btn-cancel:hover {
+    background-color: rgba(15, 20, 25, 0.1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+    </style>
+
+
+
+
+<style>
+
+:root {
+    --twitter-blue: #1DA1F2;
+    --twitter-blue-hover: #1a91da;
+    --twitter-background: #F7F9FA;
+    --twitter-border: #EFF3F4;
+    --twitter-text: #0F1419;
+    --twitter-secondary: #536471;
+    --twitter-hover: rgba(29, 161, 242, 0.1);
+    --twitter-danger: rgb(244, 33, 46);
+    --twitter-danger-hover: rgba(244, 33, 46, 0.1);
+    --vip-gold: #FFD700;
+    --vip-gold-dark: #DAA520;
+    --vip-gradient: linear-gradient(135deg, #FFD700, #FFA500);
+    --box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--twitter-background);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.4;
+    color: var(--twitter-text);
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 1265px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Layout Structure */
+.layout {
+    display: grid;
+    grid-template-columns: 300px 1fr 350px;
+    gap: 2rem;
+    padding-top: 1rem;
+    min-height: calc(100vh - 64px);
+}
+
+/* Sidebar */
+.sidebar {
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    padding-right: 1rem;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.875rem 1.25rem;
+    text-decoration: none;
+    color: var(--twitter-text);
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+    font-size: 1.25rem;
+    font-weight: 400;
+}
+
+.sidebar-link span {
+    font-size: 1.1rem;
+}
+
+/* Main Content */
+.main-content {
+    border-left: 1px solid var(--twitter-border);
+    border-right: 1px solid var(--twitter-border);
+    background: white;
+    min-height: 100%;
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+}
+
+/* Profile Header */
+.profile-header {
+    border-bottom: 1px solid var(--twitter-border);
+    position: relative;
+}
+
+.profile-banner {
+    height: 200px;
+}
+
+.profile-info {
+    padding: 1.5rem;
+    position: relative;
+}
+
+.profile-avatar {
+    width: 134px;
+    height: 134px;
+    border-radius: 50%;
+    border: 4px solid white;
+    position: absolute;
+    top: -67px;
+    background-color: white;
+}
+
+/* Profile Actions */
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+
+/* Follow Button */
+.follower-action {
+    flex-shrink: 0;
+}
+
+.follow-toggle {
+    display: none;
+}
+
+.follow-btn {
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background-color: var(--twitter-text);
+    color: white;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.follow-btn:hover {
+    background-color: rgba(15, 20, 25, 0.85);
+}
+
+.follow-toggle:checked + .follow-btn {
+    background-color: transparent;
+    color: var(--twitter-text);
+    border-color: var(--twitter-border);
+}
+
+.follow-toggle:checked + .follow-btn:hover {
+    border-color: var(--twitter-danger);
+    color: var(--twitter-danger);
+    background-color: var(--twitter-danger-hover);
+}
+
+/* Follow Button States */
+.follow-toggle + .follow-btn::before {
+    content: "Follow";
+}
+
+.follow-toggle:checked + .follow-btn::before {
+    content: "Following";
+}
+
+.follow-toggle:checked + .follow-btn:hover::before {
+    content: "Unfollow";
+}
+
+
+/* Options Menu */
+.options-container {
+    position: relative;
+}
+
+.options-btn {
+    padding: 8px;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.options-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 120%;
+    background: white;
+    border-radius: 12px;
+    min-width: 200px;
+    z-index: 100;
+}
+
+.options-toggle {
+    display: none;
+}
+
+.options-toggle:checked ~ .options-menu {
+    display: block;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.option-item i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Profile Stats */
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.stat-link {
+    color: var(--twitter-secondary);
+    text-decoration: none;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.stat-link .fw-bold {
+    color: var(--twitter-text);
+    font-weight: 700;
+}
+
+/* Tweet */
+.tweet {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--twitter-border);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.tweet-header {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.tweet-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.tweet-username,
+.tweet-time {
+    color: var(--twitter-secondary);
+    font-size: 0.95rem;
+}
+
+.tweet-content p {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+
+
+/* Right Sidebar */
+.right-sidebar {
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    
+}
+
+/* Search */
+.search-container-page {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--twitter-secondary);
+}
+
+/* Who to Follow */
+.who-to-follow {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+}
+
+.who-to-follow h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.follow-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--twitter-border);
+}
+
+.follow-card:last-child {
+    border-bottom: none;
+}
+
+.follow-info {
+    flex: 1;
+    margin: 0 1rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.75rem;
+    border-radius: 9999px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-tweet {
+    width: 90%;
+    margin: 1rem auto;
+}
+
+/* Responsiveness */
+@media (max-width: 1200px) {
+    .layout {
+        grid-template-columns: 88px 1fr 350px;
+    }
+
+    .sidebar-link span {
+        display: none;
+    }
+
+    .btn-tweet span {
+        display: none;
+    }
+
+    .btn-tweet {
+        width: auto;
+        padding: 1rem;
+    }
+
+    .btn-tweet::before {
+        content: '\f099';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+    }
+}
+
+@media (max-width: 991px) {
+    .layout {
+        grid-template-columns: 88px 1fr;
+    }
+
+    .right-sidebar {
+        display: none;
+    }
+
+    .main-content {
+        border-right: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding: 0;
+    }
+
+    .layout {
+        grid-template-columns: 1fr;
+        padding-top: 0;
+    }
+
+    .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        height: auto;
+        background: white;
+        border-top: 1px solid var(--twitter-border);
+        padding: 0.75rem;
+        z-index: 1000;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .sidebar-link {
+        padding: 0.75rem;
+    }
+
+    .btn-tweet {
+        display: none;
+    }
+
+    .main-content {
+        margin-bottom: 4.5rem;
+        border-left: none;
+    }
+
+    .profile-banner {
+        height: 150px;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        top: -50px;
+    }
+
+    .profile-info {
+        padding: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-stats {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .tweet-actions-list {
+        gap: 0.5rem;
+    }
+
+    .tweet-action-button {
+        padding: 0.5rem;
+    }
+
+    .tweet-action-button span {
+        display: none;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        top: -40px;
+        border-width: 4px;
+    }
+
+    .profile-banner {
+        height: 120px;
+    }
+
+    .tweet-name {
+        font-size: 1rem;
+    }
+
+    .tweet-username,
+    .tweet-time {
+        font-size: 0.85rem;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .follow-btn {
+        padding: 6px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Form Elements Base */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--twitter-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    border-color: var(--twitter-blue);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
+}
+
+.form-helper {
+    font-size: 0.85rem;
+    color: var(--twitter-secondary);
+    margin-top: 4px;
+}
+
+/* Button Variants */
+.btn-primary {
+    background-color: var(--twitter-blue);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--twitter-blue-hover);
+}
+
+.btn-outline {
+    border: 1px solid var(--twitter-border);
+    background: transparent;
+    color: var(--twitter-text);
+}
+
+.btn-outline:hover {
+    background-color: var(--twitter-hover);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+
+/* Layout Section Base */
+.settings-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+
+.verified-badge-blue {
+    color: var(--twitter-blue);
+    font-size: 1rem;
+    margin-left: 2px;
+}
+
+.verified-badge-vip {
+    color: var(--vip-gold);
+    margin-left: 4px;
+    font-size: 18px;
+    text-shadow: 0 2px 4px rgba(218,165,32,0.3);
+}
+
+.vip-badge {
+    background: var(--vip-gradient);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+    box-shadow: 0 2px 4px rgba(218, 165, 32, 0.2);
+}
+
+
+/* Show More Button */
+.show-more {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    color: var(--twitter-blue);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.show-more:hover {
+    background-color: var(--twitter-hover);
+}
+
+.post-media {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.post-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+
+
+/* Área de preview de imagem */
+.image-preview-container {
+    margin: 16px 0;
+    border: 1px solid var(--twitter-border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.03);
+    max-height: 400px;
+}
+
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    max-height: 400px;
+    display: block;
+}
+
+/* Botão de remover imagem */
+.remove-image-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: rgba(0, 0, 0, 0.75);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    transition: background-color 0.2s;
+}
+
+.remove-image-btn:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Input de arquivo */
+.file-input {
+    display: none;
+}
+
+.image-upload-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+/* Scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+
+
+
+
+
+
+
+
+
+/* Tweet actions customization */
+/* Tweet Actions */
+.tweet-actions-list {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    max-width: 425px;
+}
+
+.tweet-action-button {
+    background: none;
+    border: none;
+    color: var(--twitter-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+}
+
+/* Like button states */
+.tweet-action-button:hover i.fa-heart {
+    color: #E0245E;
+}
+
+.tweet-action-button:hover:has(i.fa-heart) {
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+/* Estado curtido */
+.tweet-action-button.liked i.fa-heart,
+.tweet-action-button.liked span {
+    color: #E0245E;
+}
+
+.tweet-action-button.liked {
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+
+
+
+
+
+/* Container do Tweet */
+.retweet-article {
+    padding: 16px;
+    border-bottom: 1px solid var(--tweet-border);
+    position: relative;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+.retweet-article:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+}
+
+/* Indicador de Retweet */
+.retweet-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--tweet-secondary);
+    font-size: 13px;
+    padding-left: 24px;
+    margin-bottom: 12px;
+}
+
+.retweet-indicator i {
+    font-size: 14px;
+}
+
+/* Tweet Retweetado */
+/* Tweet Retweetado */
+.retweeted-content {
+    border: 1px solid var(--twitter-border);
+    border-radius: 16px;
+    padding: 12px;
+}
+
+/* Cabeçalho do Autor */
+.tweet-header {
+    display: flex;
+    gap: 12px;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+.tweet-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Informações do Autor */
+.tweet-author-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.author-details {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.author-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--tweet-text);
+}
+
+.author-verify {
+    color: var(--tweet-blue);
+    font-size: 15px;
+}
+
+.author-username,
+.tweet-time {
+    color: var(--tweet-secondary);
+    font-size: 15px;
+}
+
+/* Conteúdo do Tweet */
+.tweet-body {
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: 20px;
+}
+
+.tweet-image {
+    margin-top: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--tweet-border);
+}
+
+.tweet-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Métricas */
+.tweet-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 12px;
+    color: var(--tweet-secondary);
+    font-size: 13px;
+}
+
+.tweet-stats strong {
+    color: var(--tweet-text);
+}
+
+/* Ações */
+.tweet-actions {
+    display: flex;
+    justify-content: space-between;
+    max-width: 425px;
+    margin-top: 12px;
+}
+
+.tweet-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    color: var(--tweet-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.tweet-action i {
+    font-size: 16px;
+}
+
+.tweet-action span {
+    font-size: 13px;
+}
+
+/* Estados Hover */
+.tweet-action.comment:hover {
+    color: var(--tweet-blue);
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+.tweet-action.retweet:hover {
+    color: var(--tweet-green);
+    background-color: rgba(0, 186, 124, 0.1);
+}
+
+.tweet-action.like:hover {
+    color: var(--tweet-red);
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+/* Estados Ativos */
+.tweet-action.retweet.active {
+    color: var(--tweet-green);
+}
+
+.tweet-action.like.active {
+    color: var(--tweet-red);
+}
+
+
+/* Tweet Actions List e Botões de Ação */
+.tweet-actions-list {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    max-width: 425px;
+}
+
+.tweet-action-button {
+    background: none;
+    border: none;
+    color: var(--twitter-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Comment Button */
+.tweet-action-button:hover i.fa-comment {
+    color: var(--twitter-blue);
+}
+
+.tweet-action-button:hover:has(i.fa-comment) {
+    background-color: rgba(29, 155, 240, 0.1);
+}
+
+/* Retweet Button */
+.tweet-action-button:hover i.fa-retweet {
+    color: var(--tweet-green);
+}
+
+.tweet-action-button:hover:has(i.fa-retweet) {
+    background-color: rgba(0, 186, 124, 0.1);
+}
+
+/* Like Button System */
+.like-toggle {
+    display: none;
+}
+
+.like-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--twitter-secondary);
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.like-btn:hover {
+    background-color: rgba(249, 24, 128, 0.1);
+}
+
+.like-btn:hover i {
+    color: #E0245E;
+}
+
+.like-btn i {
+    transition: all 0.2s ease;
+}
+
+/* Estado curtido */
+.like-toggle:checked + .like-btn {
+    color: #E0245E;
+}
+
+.like-toggle:checked + .like-btn i {
+    color: #E0245E;
+    transform: scale(1.2);
+    animation: heartPop 0.45s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+
+/* Troca de ícones */
+.like-btn .fa-heart-solid {
+    display: none;
+}
+
+.like-toggle:checked + .like-btn .fa-heart {
+    display: none;
+}
+
+.like-toggle:checked + .like-btn .fa-heart-solid {
+    display: inline-block;
+    color: #E0245E;
+}
+
+/* Bolinha de fundo quando curtido */
+.like-toggle:checked + .like-btn::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(249, 24, 128, 0.1);
+    border-radius: 9999px;
+    left: 0;
+    top: 0;
+}
+
+/* Animações */
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+/* Botão de Tweet */
+.btn-tweet {
+    background-color: var(--twitter-blue);
+    color: white;
+    width: 90%;
+    margin: 1rem auto;
+}
+
+.btn-tweet:hover {
+    background-color: var(--twitter-blue-hover);
+}
+    </style>
+
+
+<style>
+
+/* Variáveis CSS */
+:root {
+    --primary-color: #1a91da;
+    --primary-hover: #1a85c4;
+    --danger-color: #e0245e;
+    --warning-color: #ffa200;
+    --success-color: #17bf63;
+    --text-primary: #0f1419;
+    --text-secondary: #536471;
+    --border-color: #eff3f4;
+    --background-light: #f7f9f9;
+    --background-hover: #0f14191a;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+    --transition: all 0.2s ease;
+    --navbar-height: 64px;
+}
+
+/* Reset e estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    line-height: 1.5;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+}
+
+/* Navbar Principal */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    gap: 1.5rem;
+    height: var(--navbar-height);
+}
+
+/* Logo */
+.brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.nav-logo {
+    height: 2.5rem;
+    width: auto;
+    transition: var(--transition);
+}
+
+.nav-logo path {
+    fill: var(--primary-color);
+}
+
+/* Botão Menu Mobile */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+.bar {
+    display: block;
+    width: 24px;
+    height: 2px;
+    margin: 5px 0;
+    background: var(--text-primary);
+    transition: var(--transition);
+}
+
+/* Busca */
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 600px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 9999px;
+    background: var(--background-light);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    background: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.search-suggestions {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0;
+    z-index: 9998;
+}
+
+.search-input:focus + .search-suggestions {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.suggestion-item:hover {
+    background: var(--background-light);
+}
+
+/* Itens de Navegação */
+.nav-items {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Notificações */
+.notification-item {
+    position: relative;
+}
+
+.notification-toggle {
+    display: none;
+}
+
+.notification-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-primary);
+}
+
+.notification-link:hover {
+    background: var(--background-hover);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--danger-color);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    border: 2px solid white;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: -0.5rem;
+    width: 360px;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    z-index: 9998;
+}
+
+.notification-toggle:checked + .notification-link + .notification-menu {
+    display: block;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background: white;
+    border-radius: 1rem 1rem 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.notification-header span {
+    font-weight: 600;
+}
+
+.mark-all-read {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.mark-all-read:hover {
+    background: var(--background-hover);
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+.notification-option {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+    border-left: 3px solid transparent;
+}
+
+.notification-option.new {
+    background: var(--background-light);
+    border-left-color: var(--primary-color);
+}
+
+.notification-option:hover {
+    background: var(--background-hover);
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    background: var(--primary-color);
+    color: white;
+}
+
+.notification-icon.warning {
+    background: var(--warning-color);
+}
+
+.notification-icon.danger {
+    background: var(--danger-color);
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.notification-description {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.notification-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.notification-footer {
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.notification-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.notification-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Menu Usuário */
+.user-menu {
+    position: relative;
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.user-menu-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.user-menu-button:hover {
+    background: var(--background-hover);
+}
+
+.user-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+}
+
+.user-name {
+    font-weight: 600;
+    display: none;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 300px;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    z-index: 9998;
+}
+
+.menu-toggle:checked ~ .dropdown-menu {
+    display: block;
+}
+
+.menu-header {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+}
+
+.menu-user-info {
+    flex: 1;
+}
+
+.menu-name {
+    font-weight: 600;
+}
+
+.menu-handle {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.menu-items {
+    padding: 0.5rem 0;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.menu-item:hover {
+    background: var(--background-hover);
+}
+
+.menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.badge-new {
+    background: var(--primary-color);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    margin-left: auto;
+}
+
+.menu-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 0.5rem 0;
+}
+
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.text-danger:hover {
+    background: rgba(224, 36, 94, 0.1) !important;
+}
+
+/* Overlay Mobile */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsividade */
+@media (min-width: 768px) {
+    .user-name {
+        display: block;
+    }
+}
+
+@media (max-width: 768px) {
+    body.menu-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+
+    .nav-content {
+        padding: 0.5rem 0;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+        order: 1;
+    }
+
+    .mobile-menu-btn.active .bar:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-btn.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-btn.active .bar:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .brand {
+        order: 2;
+    }
+
+    .search-container {
+        order: 4;
+        position: fixed;
+        top: var(--navbar-height);
+        left: 0;
+        right: 0;
+        padding: 0.75rem 1rem;
+        background: white;
+        border-bottom: 1px solid var(--border-color);
+        display: none;
+        z-index: 9997;
+    }
+
+    .search-container.active {
+        display: block;
+    }
+
+    .nav-items {
+        order: 3;
+    }
+
+    .notification-menu,
+    .dropdown-menu {
+        position: fixed;
+        top: var(--navbar-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: calc(100vh - var(--navbar-height));
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        background: white;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(100%);
+        transition: transform 0.3s ease, visibility 0.3s ease, opacity 0.3s ease;
+        display: block;
+        z-index: 9999;
+    }
+
+    .notification-toggle:checked + .notification-link + .notification-menu,
+    .menu-toggle:checked ~ .dropdown-menu {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .notification-list,
+    .menu-items {
+        height: auto;
+        max-height: none;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
+    }
+
+    .notification-header,
+    .menu-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 2;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .menu-item,
+    .notification-option {
+        padding: 1rem;
+        min-height: 3.5rem;
+    }
+
+    .menu-item:active,
+    .notification-option:active {
+        background: var(--background-hover);
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+
+    .notification-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1rem;
+    }
+
+    .notification-title {
+        font-size: 0.9375rem;
+    }
+
+    .notification-description {
+        font-size: 0.8125rem;
+    }
+
+    .menu-item {
+        font-size: 0.9375rem;
+    }
+
+    .user-avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+}
+
+    
+
+/* Suporte para tema escuro */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #ffffff;
+        --text-secondary: #8899a6;
+        --border-color: #38444d;
+        --background-light: rgba(255, 255, 255, 0.1);
+        --background-hover: rgba(255, 255, 255, 0.1);
+    }
+
+    .navbar,
+    .dropdown-menu,
+    .notification-menu,
+    .search-container,
+    .menu-header,
+    .notification-header,
+    .notification-footer {
+        background-color: rgba(21, 32, 43, 0.98);
+    }
+
+    .search-input {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .search-input:focus {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .bar {
+        background: var(--text-primary);
+    }
+}
+
+/* Suporte iOS */
+@supports (-webkit-touch-callout: none) {
+    .notification-menu,
+    .dropdown-menu {
+        height: calc(100vh - var(--navbar-height) - env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Animações */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Utilitários */
+.no-scroll {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Foco e Hover */
+@media (hover: hover) {
+    .menu-item:hover,
+    .notification-option:hover,
+    .notification-link:hover,
+    .user-menu-button:hover {
+        background: var(--background-hover);
+    }
+}
+
+/* Suporte Touch */
+@media (hover: none) {
+    .menu-item:active,
+    .notification-option:active,
+    .notification-link:active,
+    .user-menu-button:active {
+        background: var(--background-hover);
+    }
+}
+    </style>
+
+
+    <script>
+
+
+// post.js
+let activeReplyBox = null;
+
+function handleReply(button) {
+    // Remove qualquer caixa de resposta existente
+    if (activeReplyBox) {
+        activeReplyBox.remove();
+    }
+
+    // Encontra o tweet pai
+    const tweet = button.closest('.tweet');
+    
+    // Cria a caixa de resposta
+    const replyBox = document.createElement('div');
+    replyBox.className = 'reply-form-container';
+    
+    // Pega o username do tweet original
+    const username = tweet.querySelector('.tweet-username').textContent;
+    const name = tweet.querySelector('.tweet-name').textContent;
+    const isReplyToReply = tweet.classList.contains('reply');
+    
+    // Adiciona margin-left se for resposta a uma resposta
+    if (isReplyToReply) {
+        replyBox.style.marginLeft = '40px';
+    }
+    
+    replyBox.innerHTML = `
+        <img src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=User" alt="Your avatar" class="avatar">
+        <form class="reply-form" onsubmit="handleReplySubmit(event, this, '${username}', '${name}', ${isReplyToReply})">
+            <div style="color: var(--twitter-secondary); margin-bottom: 8px;">
+                Replying to ${username}
+            </div>
+            <textarea 
+                placeholder="Tweet your reply"
+                maxlength="280"
+                oninput="updateCounter(this)"></textarea>
+            <div class="form-actions">
+                <div class="form-tools">
+                    <button type="button" class="tool-button">
+                        <i class="far fa-image"></i>
+                    </button>
+                    <button type="button" class="tool-button">
+                        <i class="far fa-smile"></i>
+                    </button>
+                </div>
+                <div class="form-submit">
+                    <button type="button" class="btn-cancel" onclick="cancelReply(this)">Cancel</button>
+                    <span class="text-counter">280</span>
+                    <button type="submit" class="btn btn-tweet" disabled>Reply</button>
+                </div>
+            </div>
+        </form>
+    `;
+
+    // Adiciona a caixa de resposta após o tweet
+    tweet.insertAdjacentElement('afterend', replyBox);
+    activeReplyBox = replyBox;
+
+    // Foca no textarea
+    replyBox.querySelector('textarea').focus();
+}
+
+function updateCounter(textarea) {
+    const form = textarea.closest('form');
+    const counter = form.querySelector('.text-counter');
+    const submitBtn = form.querySelector('.btn-tweet');
+    
+    const remaining = 280 - textarea.value.length;
+    counter.textContent = remaining;
+    
+    submitBtn.disabled = textarea.value.trim().length === 0;
+}
+
+function cancelReply(button) {
+    const replyBox = button.closest('.reply-form-container');
+    replyBox.remove();
+    activeReplyBox = null;
+}
+
+function handleReplySubmit(event, form, replyingToUsername, replyingToName, isReplyToReply) {
+    event.preventDefault();
+    
+    const textarea = form.querySelector('textarea');
+    const text = textarea.value.trim();
+    
+    if (text) {
+        // Cria o novo tweet de resposta
+        const newReply = document.createElement('article');
+        newReply.className = 'tweet reply';
+        
+        // Adiciona margin-left se for resposta a uma resposta
+        if (isReplyToReply) {
+            newReply.style.marginLeft = '40px';
+        }
+        
+        newReply.innerHTML = `
+            <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=User" alt="User avatar">
+            <div class="tweet-content">
+                <div class="tweet-header">
+                    <div class="tweet-author-info">
+                        <span class="tweet-name">User</span>
+                        <span class="tweet-username">@user</span>
+                        <span class="tweet-time">· just now</span>
+                    </div>
+                </div>
+                <div class="replied-to">
+                    Replying to <a href="/${replyingToUsername.replace('@', '')}">${replyingToUsername}</a>
+                </div>
+                <p>${text}</p>
+                <div class="tweet-actions-list">
+                    <button class="tweet-action-button" onclick="handleReply(this)">
+                        <i class="far fa-comment"></i>
+                        <span>0</span>
+                    </button>
+                    <button class="tweet-action-button">
+                        <i class="fas fa-retweet"></i>
+                        <span>0</span>
+                    </button>
+                    <button class="tweet-action-button">
+                        <i class="far fa-heart"></i>
+                        <span>0</span>
+                    </button>
+                    <button class="tweet-action-button">
+                        <i class="fas fa-rocket"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Adiciona o novo tweet após o tweet original
+        const replyBox = form.closest('.reply-form-container');
+        replyBox.insertAdjacentElement('afterend', newReply);
+        
+        // Remove a caixa de resposta
+        replyBox.remove();
+        activeReplyBox = null;
+    }
+}
+
+// Inicialização do contador no formulário principal
+document.addEventListener('DOMContentLoaded', function() {
+    const mainForm = document.getElementById('mainReplyForm');
+    if (mainForm) {
+        const textarea = mainForm.querySelector('textarea');
+        const counter = mainForm.querySelector('.text-counter');
+        const submitButton = mainForm.querySelector('.btn-tweet');
+
+        textarea.addEventListener('input', function() {
+            updateCounter(textarea);
+        });
+    }
+});
+        </script>
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tweetButtons = document.querySelectorAll('.btn-tweet');
+
+    tweetButtons.forEach(button => {
+        // Create ripple effect container
+        const rippleContainer = document.createElement('div');
+        rippleContainer.className = 'ripple-container';
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(rippleContainer);
+
+        // Add hover animation
+        button.addEventListener('mouseenter', () => {
+            button.style.transform = 'scale(1.02)';
+            button.style.transition = 'all 0.2s ease';
+            button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        });
+
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'scale(1)';
+            button.style.boxShadow = 'none';
+        });
+
+        // Add click effects
+        button.addEventListener('click', (e) => {
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+
+            rippleContainer.appendChild(ripple);
+
+            // Add click animation
+            button.style.transform = 'scale(0.95)';
+            
+            // Create and append the success checkmark
+            const checkmark = document.createElement('i');
+            checkmark.className = 'fas fa-check success-check';
+            checkmark.style.position = 'absolute';
+            checkmark.style.opacity = '0';
+            checkmark.style.transform = 'scale(0)';
+            button.appendChild(checkmark);
+
+            // Animate the checkmark
+            setTimeout(() => {
+                checkmark.style.transition = 'all 0.3s ease';
+                checkmark.style.opacity = '1';
+                checkmark.style.transform = 'scale(1)';
+            }, 100);
+
+            // Cleanup
+            setTimeout(() => {
+                ripple.remove();
+                button.style.transform = 'scale(1)';
+                checkmark.style.opacity = '0';
+                setTimeout(() => checkmark.remove(), 300);
+            }, 600);
+        });
+
+        // Add focus states for accessibility
+        button.addEventListener('focus', () => {
+            button.style.boxShadow = '0 0 0 3px rgba(29, 161, 242, 0.3)';
+        });
+
+        button.addEventListener('blur', () => {
+            button.style.boxShadow = 'none';
+        });
+    });
+
+    // Add necessary styles to document
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-tweet {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .ripple-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+
+        .success-check {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            color: white;
+            font-size: 1.2em;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .btn-tweet:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-tweet:not(:disabled):active {
+            transform: scale(0.95);
+        }
+    `;
+
+    document.head.appendChild(style);
+
+    // Function to update button states based on text input
+    function updateTweetButtonStates() {
+        const tweetTextarea = document.querySelector('.tweet-textarea');
+        const tweetButton = document.querySelector('.btn-tweet');
+
+        if (tweetTextarea && tweetButton) {
+            tweetTextarea.addEventListener('input', () => {
+                const isEmpty = tweetTextarea.value.trim() === '';
+                tweetButton.disabled = isEmpty;
+                
+                // Add character count animation if approaching limit
+                const maxLength = 280;
+                const remainingChars = maxLength - tweetTextarea.value.length;
+                
+                if (remainingChars <= 20) {
+                    tweetButton.style.animation = 'pulse 1s infinite';
+                } else {
+                    tweetButton.style.animation = '';
+                }
+            });
+        }
+    }
+
+    // Initialize button states
+    updateTweetButtonStates();
+});
+    </script>
+
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tweetButtons = document.querySelectorAll('.btn-tweet');
+
+    tweetButtons.forEach(button => {
+        // Create ripple effect container
+        const rippleContainer = document.createElement('div');
+        rippleContainer.className = 'ripple-container';
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(rippleContainer);
+
+        // Add hover animation
+        button.addEventListener('mouseenter', () => {
+            button.style.transform = 'scale(1.02)';
+            button.style.transition = 'all 0.2s ease';
+            button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        });
+
+        button.addEventListener('mouseleave', () => {
+            button.style.transform = 'scale(1)';
+            button.style.boxShadow = 'none';
+        });
+
+        // Add click effects
+        button.addEventListener('click', (e) => {
+            // Create ripple effect
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+
+            rippleContainer.appendChild(ripple);
+
+            // Add click animation
+            button.style.transform = 'scale(0.95)';
+            
+            // Create and append the success checkmark
+            const checkmark = document.createElement('i');
+            checkmark.className = 'fas fa-check success-check';
+            checkmark.style.position = 'absolute';
+            checkmark.style.opacity = '0';
+            checkmark.style.transform = 'scale(0)';
+            button.appendChild(checkmark);
+
+            // Animate the checkmark
+            setTimeout(() => {
+                checkmark.style.transition = 'all 0.3s ease';
+                checkmark.style.opacity = '1';
+                checkmark.style.transform = 'scale(1)';
+            }, 100);
+
+            // Cleanup
+            setTimeout(() => {
+                ripple.remove();
+                button.style.transform = 'scale(1)';
+                checkmark.style.opacity = '0';
+                setTimeout(() => checkmark.remove(), 300);
+            }, 600);
+        });
+
+        // Add focus states for accessibility
+        button.addEventListener('focus', () => {
+            button.style.boxShadow = '0 0 0 3px rgba(29, 161, 242, 0.3)';
+        });
+
+        button.addEventListener('blur', () => {
+            button.style.boxShadow = 'none';
+        });
+    });
+
+    // Add necessary styles to document
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn-tweet {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .ripple-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+
+        .success-check {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            color: white;
+            font-size: 1.2em;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .btn-tweet:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-tweet:not(:disabled):active {
+            transform: scale(0.95);
+        }
+    `;
+
+    document.head.appendChild(style);
+
+    // Function to update button states based on text input
+    function updateTweetButtonStates() {
+        const tweetTextarea = document.querySelector('.tweet-textarea');
+        const tweetButton = document.querySelector('.btn-tweet');
+
+        if (tweetTextarea && tweetButton) {
+            tweetTextarea.addEventListener('input', () => {
+                const isEmpty = tweetTextarea.value.trim() === '';
+                tweetButton.disabled = isEmpty;
+                
+                // Add character count animation if approaching limit
+                const maxLength = 280;
+                const remainingChars = maxLength - tweetTextarea.value.length;
+                
+                if (remainingChars <= 20) {
+                    tweetButton.style.animation = 'pulse 1s infinite';
+                } else {
+                    tweetButton.style.animation = '';
+                }
+            });
+        }
+    }
+
+    // Initialize button states
+    updateTweetButtonStates();
+});
+        </script>
+
+
+        <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos
+    const body = document.body;
+    const mobileOverlay = document.createElement('div');
+    mobileOverlay.className = 'mobile-overlay';
+    body.appendChild(mobileOverlay);
+
+    const notificationToggle = document.querySelector('.notification-toggle');
+    const userMenuToggle = document.querySelector('.menu-toggle');
+    const notificationMenu = document.querySelector('.notification-menu');
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    
+    // Função para fechar todos os menus
+    function closeAllMenus() {
+        if (notificationToggle) notificationToggle.checked = false;
+        if (userMenuToggle) userMenuToggle.checked = false;
+        mobileOverlay.classList.remove('active');
+        body.classList.remove('menu-open');
+    }
+
+    // Função para fechar menu específico
+    function closeMenu(toggle) {
+        if (toggle) toggle.checked = false;
+        handleMenuState(false);
+    }
+
+    // Gerenciar estado dos menus
+    function handleMenuState(isOpen) {
+        if (window.innerWidth <= 768) {
+            if (isOpen) {
+                mobileOverlay.classList.add('active');
+                body.classList.add('menu-open');
+            } else {
+                mobileOverlay.classList.remove('active');
+                body.classList.remove('menu-open');
+            }
+        }
+    }
+
+    // Event listeners para os toggles com comportamento mutuamente exclusivo
+    if (notificationToggle) {
+        notificationToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Se as notificações estão sendo abertas, fecha o menu do usuário
+                closeMenu(userMenuToggle);
+            }
+            handleMenuState(this.checked);
+        });
+    }
+
+    if (userMenuToggle) {
+        userMenuToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // Se o menu do usuário está sendo aberto, fecha as notificações
+                closeMenu(notificationToggle);
+            }
+            handleMenuState(this.checked);
+        });
+    }
+
+    // Fechar ao clicar no overlay
+    mobileOverlay.addEventListener('click', closeAllMenus);
+
+    // Fechar ao pressionar ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeAllMenus();
+    });
+
+    // Detectar mudanças de orientação
+    window.addEventListener('orientationchange', closeAllMenus);
+
+    // Ajustar com base no tamanho da tela
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            if (window.innerWidth > 768) {
+                closeAllMenus();
+            }
+        }, 250);
+    });
+
+    // Fechar ao rolar a página
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', function() {
+        const st = window.pageYOffset || document.documentElement.scrollTop;
+        if (Math.abs(lastScrollTop - st) > 50) {
+            closeAllMenus();
+        }
+        lastScrollTop = st;
+    }, false);
+
+    // Prevenir scroll quando menu está aberto
+    document.addEventListener('touchmove', function(e) {
+        if (body.classList.contains('menu-open')) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+});
+            </script>
