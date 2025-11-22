@@ -1,3 +1,4 @@
+
 <!--
  *
  * Title:       Twitter Clone
@@ -140,10 +141,10 @@
 
                         <div class="dropdown-menu">
                             <div class="menu-header">
-                                <img src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Mario" alt="Avatar" class="menu-avatar">
+                                <img src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Avatar" class="menu-avatar">
                                 <div class="menu-user-info">
-                                    <span class="menu-name">Mario Bros</span>
-                                    <span class="menu-handle">@mario</span>
+                                    <span class="menu-name">CC</span>
+                                    <span class="menu-handle">@CC</span>
                                 </div>
                             </div>
 
@@ -228,15 +229,12 @@
                         <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach"
                             alt="Princess Peach">
                         <div class="tweet-content">
-                            <div class="tweet-header">
-                                <span class="tweet-name">CC </span>
-                                <i class="fas fa-check-circle verified-badge-vip"></i>
-                                <span class="vip-badge">
-                                    <i class="fas fa-crown"></i>
-                                    VIP
-                                </span>
-                                <span class="tweet-username">@peach</span>
-                                <span class="tweet-time">· 4h</span>
+                            <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                              <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            </span>
+                                            <span class="tweet-username">@luigi</span>
+                                            <span class="tweet-time">· 2h</span>
                             </div>
                             <p>hello every one</p>
                             <div class="post-media">
@@ -289,10 +287,7 @@
                                     <div class="tweet-header">
                                         <div class="tweet-author-info">
                                             <span class="tweet-name">CC</span>
-                                            <i class="fas fa-check-circle verified-badge-vip"></i>
-                                            <span class="vip-badge">
-                                                <i class="fas fa-crown"></i>
-                                                VIP
+                                              <i class="fas fa-check-circle verified-badge-blue"></i>
                                             </span>
                                             <span class="tweet-username">@luigi</span>
                                             <span class="tweet-time">· 2h</span>
@@ -371,8 +366,8 @@
                                             <span class="tweet-time">· 15m</span>
                                         </div>
                                     </div>
-                                    <div class="tweet reply">
-                                        Replying to <a href="/toad">@toad</a>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
                                     </div>
                                     <p>hi 🍉</p>
                                     <div class="tweet-actions-list">
@@ -407,8 +402,8 @@
                                             <span class="tweet-time">· 15m</span>
                                         </div>
                                     </div>
-                                    <div class="tweet reply">
-                                        Replying to <a href="/toad">@toad</a>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
                                     </div>
                                     <p>hello 🍉</p>
                                     <div class="tweet-actions-list">
@@ -444,8 +439,8 @@
                                             <span class="tweet-time">· 15m</span>
                                         </div>
                                     </div>
-                                    <div class="tweet reply">
-                                        Replying to <a href="/toad">@toad</a>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
                                     </div>
                                     <p>good night🍉</p>
                                     <div class="tweet-actions-list">
@@ -513,6 +508,37 @@
 
 <style>
 
+
+
+    @keyframes rainbow-color-change {
+    0%, 100% { color: #ff0000; } /* Red */
+    14% { color: #ff8b00; } /* Orange */
+    28% { color: #e8ff00; } /* Yellow */
+    42% { color: #5dff00; } /* Green */
+    56% { color: #00b9ff; } /* Blue */
+    70% { color: #5d00ff; } /* Indigo */
+    84% { color: #e800ff; } /* Violet */
+}
+
+
+body{
+
+
+
+     font-family: Comic Sans MS, cursive, sans-serif;
+
+    
+}
+
+  p{
+
+
+        font-family: Comic Sans MS, cursive, sans-serif;
+                    animation: rainbow-color-change 3s linear infinite alternate;
+
+      
+  }  
+    
 /* post.css */
 
 /* Post Layout */
@@ -529,6 +555,10 @@
     backdrop-filter: blur(12px);
     z-index: 100;
      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+         font-family: Comic Sans MS, cursive, sans-serif;
+              animation: rainbow-color-change 3s linear infinite alternate;
+
 
 }
 
@@ -588,6 +618,8 @@
     border-radius: 8px;
     margin-bottom: 8px;
      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+         font-family: Comic Sans MS, cursive, sans-serif;
+              animation: rainbow-color-change 3s linear infinite alternate;
 
 }
 
@@ -1773,6 +1805,10 @@ html {
 .tweet-author-info {
     flex: 1;
     min-width: 0;
+    background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+       
+
+
 }
 
 .author-details {
