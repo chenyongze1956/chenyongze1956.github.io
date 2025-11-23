@@ -1,3 +1,4 @@
+
 <div class="all-wrap">  
   <div class="all">
     <div class="yarn"></div>
@@ -126,6 +127,10 @@
 
 <style>
 
+
+
+    
+
 .all-wrap {
   -webkit-animation: bob 7s cubic-bezier(0.5, 0, 0.5, 1) infinite both;
           animation: bob 7s cubic-bezier(0.5, 0, 0.5, 1) infinite both;
@@ -158,6 +163,10 @@
   border-radius: 50%;
   background-image: radial-gradient(circle at top left, #e97c7f, #DB242A 50%, #af1d22);
   z-index: 1;
+
+
+    
+
 }
 .yarn:before, .yarn:after {
   position: absolute;
@@ -328,6 +337,8 @@
           animation: face 7s cubic-bezier(0.5, 0, 0.5, 1) infinite both;
   transform-style: preserve-3d;
   perspective: 100px;
+
+    
 }
 
 .cat-ears {
@@ -893,12 +904,25 @@
     transform: scaleY(0.1);
   }
 }
+
+
+@keyframes rainbow-color-change {
+    0%, 100% { background: #ff0000; } /* Red */
+    14% {  background: #ff8b00; } /* Orange */
+    28% {  background: #e8ff00; } /* Yellow */
+    42% {  background: #5dff00; } /* Green */
+    56% { background: #00b9ff; } /* Blue */
+    70% { background: #5d00ff; } /* Indigo */
+    84% {  background: #e800ff; } /* Violet */
+}
+    
 body, html {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+              animation: rainbow-color-change 3s linear infinite alternate;
 
   overflow: hidden;
 }
