@@ -688,73 +688,76 @@ body {
 
 <br></br>
 
-<script type="text/javascript">
-var caution=false
-function setCookie(name,value,expires,path,domain,secure) 
-{
- var curCookie=name+"="+escape(value) +
- ((expires)?";expires="+expires.toGMTString() : "") +
- ((path)?"; path=" + path : "") +
- ((domain)? "; domain=" + domain : "") +
- ((secure)?";secure" : "")
- if(!caution||(name + "=" + escape(value)).length <= 4000)
- {
- document.cookie = curCookie
- }
- else if(confirm("Cookie exceeds 4KB and will be cut!"))
- {
- document.cookie = curCookie
- }
+<div id="counterVisitor">
+  <span class="counter-item">0</span>
+  <span class="counter-item">0</span>
+  <span class="counter-item">0</span>
+  <span class="counter-item">0</span>
+  <span class="counter-item">0</span>
+  <span class="counter-item">0</span>
+</div>
+
+<button id="incrementCounter">Increase Count</button>
+
+<style>
+/*
+Source - https://stackoverflow.com/a
+Posted by gurvinder372, modified by community. See post 'Timeline' for change history
+Retrieved 2025-11-24, License - CC BY-SA 3.0
+*/
+
+.counter-item {
+  background-color: #ccc;
+  padding: 5px;
 }
-function getCookie(name) 
-{
- var prefix = name + "="
- var cookieStartIndex = document.cookie.indexOf(prefix)
- if (cookieStartIndex == -1)
- {
- return null
- } 
- var cookieEndIndex=document.cookie.indexOf(";",cookieStartIndex+prefix.length)
- if(cookieEndIndex == -1)
- {
- cookieEndIndex = document.cookie.length
- }
- return unescape(document.cookie.substring(cookieStartIndex+prefix.length,cookieEndIndex))
+
+#incrementCounter {
+  margin-top: 20px;
 }
-function deleteCookie(name, path, domain) 
-{
- if(getCookie(name)) 
- {
- document.cookie = name + "=" + 
- ((path) ? "; path=" + path : "") +
- ((domain) ? "; domain=" + domain : "") +
- "; expires=Thu, 01-Jan-70 00:00:01 GMT"
- }
+
+</style>
+
+<script>
+
+// Source - https://stackoverflow.com/a
+// Posted by gurvinder372, modified by community. See post 'Timeline' for change history
+// Retrieved 2025-11-24, License - CC BY-SA 3.0
+
+incrementAndShowValue();
+
+function incrementAndShowValue() {
+  var value = getCookie("visitcounter") || 0;
+  var newValue = ("00000" + (Number(value) + 1)).slice(-6);
+  var container = document.getElementById("counterVisitor");
+  String(newValue).split("").forEach(function(item, index) {
+    container.children[index].innerHTML = item;
+  });
+  counter++;
+  setCookie("visitcounter", counter);
 }
-function fixDate(date) 
-{
- var base=new Date(0)
- var skew=base.getTime()
- if(skew>0)
- {
- date.setTime(date.getTime()-skew)
- } 
+
+function setCookie(name, value, days) {
+  var expires = "";
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = "; expires=" + date.toUTCString();
+  }
+  document.cookie = name + "=" + value + expires + "; path=https://stacksnippets.net/js";
 }
-var now=new Date()
-fixDate(now)
-now.setTime(now.getTime()+365 * 24 * 60 * 60 * 1000)
-var visits = getCookie("counter")
-if(!visits)
-{
- visits=1;
-} 
-else
-{
- visits=parseInt(visits)+1;
-} 
-setCookie("counter", visits, now)
-document.write("您是到访的第" + visits + "位用户！")
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
 </script>
+
 
 
 
