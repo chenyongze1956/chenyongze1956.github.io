@@ -657,30 +657,6 @@ body {
 
 
 
-<script>
-        const themeToggler = document.querySelector('.button');
-        const body = document.body;
-
-        themeToggler.addEventListener('click', () => {
-            let currentTheme = body.getAttribute('data-theme');
-            let nextTheme = currentTheme == "light" ? "dark" : "light";
-            //set theme in localstorage
-            localStorage.setItem('theme',nextTheme);
-            body.setAttribute('data-theme',nextTheme);
-            updateButtonText(currentTheme == "light");
-        });
-
-        function updateButtonText(flg){
-            themeToggler.innerText = flg ? "☀️ Boogle Light Mode" :"🌙 Boogle Dark Mode";
-          
-        }
-        function initTheme(){
-            body.setAttribute('data-theme',localStorage.getItem('theme'));
-        }
-        //initialize theme
-        initTheme();
-    </script>
-
 
 
 
