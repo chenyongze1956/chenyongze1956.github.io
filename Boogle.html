@@ -4,6 +4,8 @@
 
 
 
+
+
 <link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>  
 
 
@@ -59,7 +61,7 @@
     </div>
     <a href="https://www.google.com/search?q=" + ff> <div id="micButton" class="buttons"></a>
       <button id="kk" class="button" type="button">Boogle Search</button>
-        <a href="https://www.rijksmuseum.nl/en/johannes-vermeer"><button id="vvv" class="button" type="button">I'm Feeling Lucky</button>
+        <button id="vvv" class="button" type="button" onclick="window.location.href='https://www.rijksmuseum.nl/en/johannes-vermeer'">I'm Feeling Lucky</button>
 
             
      </div>
@@ -684,4 +686,27 @@ body {
 
 
 
-  
+<br></br>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+    var pgcount = localStorage.getItem("page_view_pgcount");
+    if (!pgcount) {
+        pgcount = 0;
+    }
+    pgcount++;
+    localStorage.setItem("page_view_pgcount", pgcount);
+     document.write("您是到访的第：" + pgcount+"位用户");
+
+</script>
+</body>
+</html>
+
+
+
