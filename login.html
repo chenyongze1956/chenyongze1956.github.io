@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows XP 登录界面</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'xp-blue': '#005EBB',
+                        'xp-dark-blue': '#003399',
+                        'xp-light-blue': '#1084D0',
+                        'xp-gray': '#E0E0E0',
+                        'xp-dark-gray': '#A0A0A0',
+                        'xp-text': '#333333',
+                        'xp-button-blue': '#1E90FF',
+                        'xp-button-blue-hover': '#4169E1',
+                    },
+                    fontFamily: {
+                        sans: ['Tahoma', 'Arial', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'xp': '0 0 0 1px #FFFFFF inset, 0 0 0 2px #808080 inset, 0 2px 3px rgba(0, 0, 0, 0.2)',
+                        'xp-button': '0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2)',
+                        'xp-button-pressed': '0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .xp-gradient {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            }
+            .xp-button-gradient {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            }
+            .xp-button-gradient-hover {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            }
+            .xp-panel {
+                box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 2px #808080 inset, 0 2px 3px rgba(0, 0, 0, 0.2);
+            }
+            .xp-button {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            }
+            .xp-button-pressed {
+                box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset;
+            }
+            .user-card {
+                transition: all 0.2s ease;
+            }
+            .user-card:hover {
+                transform: scale(1.05);
+            }
+            .user-card.active {
+                border: 2px solid #1E90FF;
+                box-shadow: 0 0 10px rgba(30, 144, 255, 0.8);
+            }
+        }
+    </style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Tahoma', Arial, sans-serif;
+            background-color: #000;
+            overflow: hidden;
+        }
+        
+        .xp-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #005EBB, #1084D0);
+            z-index: -1;
+        }
+        
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+        
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+        }
+        
+        .welcome-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .users-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            max-width: 800px;
+        }
+        
+        .user-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+        
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .user-name {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .buttons-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            border-top: 1px solid #FFFFFF;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        
+        .xp-button {
+            padding: 8px 20px;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .xp-button:hover {
+            background: linear-gradient(to bottom, #4169E1, #1E90FF);
+            color: white;
+        }
+        
+        .xp-button:active {
+            box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset;
+            background: linear-gradient(to bottom, #1E90FF, #4169E1);
+        }
+        
+        .password-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #F0F0F0;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 100;
+            width: 350px;
+            max-width: 90%;
+        }
+        
+        .password-prompt h3 {
+            margin-top: 0;
+            color: #333333;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .password-input-container {
+            margin: 20px 0;
+        }
+        
+        .password-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #CCCCCC;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+        
+        .password-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 99;
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        
+        .loading-logo {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 30px;
+        }
+        
+        .loading-progress {
+            width: 300px;
+            height: 20px;
+            background-color: #E0E0E0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #1E90FF, #4169E1);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 经典模式样式 */
+        .classic-login {
+            display: none;
+            background-color: #F0F0F0;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .classic-login h2 {
+            margin-top: 0;
+            color: #333333;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .login-field {
+            margin-bottom: 15px;
+        }
+        
+        .login-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333333;
+            font-weight: bold;
+        }
+        
+        .login-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #CCCCCC;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+        
+        .classic-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .welcome-text {
+                font-size: 20px;
+            }
+            
+            .user-avatar {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .users-container {
+                gap: 20px;
+            }
+            
+            .buttons-bar {
+                flex-wrap: wrap;
+            }
+        }
+
+
+ body{
+
+
+        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+     
+ }
+        
+    </style>
+</head>
+<body>
+    <div class="xp-background"></div>
+    <div class="blur-overlay"></div>
+    
+    <div class="login-container">
+        
+        
+        <div class="users-container">
+            <div class="user-card active" data-username="Administrator">
+                <div class="user-avatar">
+                    <img src="https://od.lk/s/NDBfMTMyMjg4NTAwXw/944af8ac6f4c4d7a8b25da93313fd947~tplv-a9rns2rl98-image.jpeg" alt="Administrator">
+                </div>
+                <div class="user-name">Administrator</div>
+            </div>
+            
+            <div class="user-card" data-username="User">
+            
+        </div>
+        
+        <div class="buttons-bar">
+           
+            <div class="xp-button" id="logon">
+                <i class="fa fa-sign-in"></i> 登录
+            </div>
+        </div>
+    </div>
+    
+    <!-- 经典登录模式 -->
+    <div class="classic-login" id="classic-login">
+        <h2>Windows XP 登录</h2>
+        <div class="login-field">
+            <label for="classic-username">用户名</label>
+            <input type="text" id="classic-username" value="Administrator">
+        </div>
+        <div class="login-field">
+            <label for="classic-password">密码</label>
+            <input type="password" id="classic-password">
+        </div>
+        <div class="classic-buttons">
+            <div class="xp-button" id="back-to-welcome">
+                <i class="fa fa-arrow-left"></i> 返回
+            </div>
+            <div class="xp-button" id="classic-logon">
+                <i class="fa fa-sign-in"></i> 确定
+            </div>
+        </div>
+    </div>
+    
+    <!-- 密码提示框 -->
+    <div class="overlay" id="overlay"></div>
+    <div class="password-prompt" id="password-prompt">
+        <h3>输入密码</h3>
+        <div class="password-input-container">
+            <input type="password" class="password-input" id="password-input" placeholder="请输入密码">
+        </div>
+        <div class="password-buttons">
+            <div class="xp-button" id="cancel-password">取消</div>
+            <div class="xp-button" id="confirm-password">确定</div>
+        </div>
+    </div>
+    
+    <!-- 加载屏幕 -->
+    <div class="loading-screen" id="loading-screen">
+      
+        <div class="loading-progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="loading-text" id="loading-text">正在加载个人设置...</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const userCards = document.querySelectorAll('.user-card');
+            const logonButton = document.getElementById('logon');
+            const switchModeButton = document.getElementById('switch-mode');
+            const shutdownButton = document.getElementById('shutdown');
+            const restartButton = document.getElementById('restart');
+            const passwordPrompt = document.getElementById('password-prompt');
+            const overlay = document.getElementById('overlay');
+            const passwordInput = document.getElementById('password-input');
+            const confirmPasswordButton = document.getElementById('confirm-password');
+            const cancelPasswordButton = document.getElementById('cancel-password');
+            const loadingScreen = document.getElementById('loading-screen');
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            const classicLogin = document.getElementById('classic-login');
+            const backToWelcomeButton = document.getElementById('back-to-welcome');
+            const classicLogonButton = document.getElementById('classic-logon');
+            const classicUsername = document.getElementById('classic-username');
+            const classicPassword = document.getElementById('classic-password');
+            
+            let selectedUser = 'Administrator';
+            
+            // 用户卡片点击事件
+            userCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // 移除所有卡片的active类
+                    userCards.forEach(c => c.classList.remove('active'));
+                    // 为当前点击的卡片添加active类
+                    this.classList.add('active');
+                    // 更新选中的用户
+                    selectedUser = this.dataset.username;
+                });
+            });
+            
+            // 登录按钮点击事件
+            logonButton.addEventListener('click', function() {
+                // 显示密码提示框
+                passwordPrompt.style.display = 'block';
+                overlay.style.display = 'block';
+                passwordInput.focus();
+            });
+            
+            // 确认密码按钮点击事件
+            confirmPasswordButton.addEventListener('click', function() {
+                // 获取输入的密码
+                const password = passwordInput.value;
+                
+                // 隐藏密码提示框
+                passwordPrompt.style.display = 'none';
+                overlay.style.display = 'none';
+                
+                // 显示加载屏幕
+                loadingScreen.style.display = 'flex';
+                
+                // 模拟加载进度
+                let progress = 0;
+                const loadingMessages = [
+                    '正在加载个人设置...',
+                    '正在更新系统配置...',
+                    '正在准备桌面...',
+                    '欢迎使用 Boogle XP'
+                ];
+                
+                const interval = setInterval(() => {
+                    progress += 5;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    // 更新加载文本
+                    const messageIndex = Math.floor(progress / 25);
+                    if (messageIndex < loadingMessages.length) {
+                        loadingText.textContent = loadingMessages[messageIndex];
+                    }
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        // 模拟加载完成后跳转到指定网站
+                        setTimeout(() => {
+                            // 检查是否是Administrator用户
+                            if (selectedUser === 'Administrator') {
+                                // 跳转到指定网站
+                                window.location.href = 'https://chenyongze1956.github.io/Boogle.html';
+                            } else {
+                                alert(`欢迎回来，${selectedUser}！\n\nWindows XP 登录界面模拟完成。`);
+                                loadingScreen.style.display = 'none';
+                            }
+                        }, 1000);
+                    }
+                }, 100);
+            });
+            
+            // 取消密码按钮点击事件
+            cancelPasswordButton.addEventListener('click', function() {
+                passwordPrompt.style.display = 'none';
+                overlay.style.display = 'none';
+            });
+            
+            // 切换到经典模式按钮点击事件
+            switchModeButton.addEventListener('click', function() {
+                document.querySelector('.welcome-text').style.display = 'none';
+                document.querySelector('.users-container').style.display = 'none';
+                document.querySelector('.buttons-bar').style.display = 'none';
+                classicLogin.style.display = 'block';
+            });
+            
+            // 返回欢迎屏幕按钮点击事件
+            backToWelcomeButton.addEventListener('click', function() {
+                document.querySelector('.welcome-text').style.display = 'block';
+                document.querySelector('.users-container').style.display = 'flex';
+                document.querySelector('.buttons-bar').style.display = 'flex';
+                classicLogin.style.display = 'none';
+            });
+            
+            // 经典模式登录按钮点击事件
+            classicLogonButton.addEventListener('click', function() {
+                const username = classicUsername.value;
+                const password = classicPassword.value;
+                
+                if (!username) {
+                    alert('请输入用户名');
+                    return;
+                }
+                
+                // 显示加载屏幕
+                loadingScreen.style.display = 'flex';
+                
+                // 模拟加载进度
+                let progress = 0;
+                const loadingMessages = [
+                    '正在验证用户名和密码...',
+                    '正在加载个人设置...',
+                    '正在准备桌面...',
+                    '欢迎使用 Windows XP'
+                ];
+                
+                const interval = setInterval(() => {
+                    progress += 5;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    // 更新加载文本
+                    const messageIndex = Math.floor(progress / 25);
+                    if (messageIndex < loadingMessages.length) {
+                        loadingText.textContent = loadingMessages[messageIndex];
+                    }
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        // 模拟加载完成后跳转到指定网站
+                        setTimeout(() => {
+                            // 检查是否是Administrator用户
+                            if (username === 'Administrator') {
+                                // 跳转到指定网站
+                                window.location.href = 'https://chenyongze1956.github.io/Boogle.html';
+                            } else {
+                                alert(`欢迎回来，${username}！\n\nWindows XP 登录界面模拟完成。`);
+                                loadingScreen.style.display = 'none';
+                            }
+                        }, 1000);
+                    }
+                }, 100);
+            });
+            
+            // 关闭计算机按钮点击事件
+            shutdownButton.addEventListener('click', function() {
+                if (confirm('确定要关闭计算机吗？')) {
+                    alert('正在关闭计算机...');
+                    // 在实际应用中，这里可以添加关闭动画
+                }
+            });
+            
+            // 重新启动按钮点击事件
+            restartButton.addEventListener('click', function() {
+                if (confirm('确定要重新启动计算机吗？')) {
+                    alert('正在重新启动计算机...');
+                    // 在实际应用中，这里可以添加重启动画
+                }
+            });
+            
+            // 键盘事件处理
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    confirmPasswordButton.click();
+                }
+            });
+            
+            classicPassword.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    classicLogonButton.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
