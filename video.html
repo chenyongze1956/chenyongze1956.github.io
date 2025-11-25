@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title></title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '', // 蓝色作为主色调
+            secondary: '', // 绿色作为辅助色
+            dark: '#111827', // 深色背景
+            light: '#F3F4F6', // 浅色文本
+            'primary-dark': '#2563EB', // 深色主色调
+            'primary-light': '#60A5FA', // 浅色主色调
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'fade-out': 'fadeOut 0.3s ease-in-out',
+            'scale-in': 'scaleIn 0.3s ease-in-out',
+            'scale-out': 'scaleOut 0.3s ease-in-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            fadeOut: {
+              '0%': { opacity: '1' },
+              '100%': { opacity: '0' },
+            },
+            scaleIn: {
+              '0%': { transform: 'scale(0.95)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            scaleOut: {
+              '0%': { transform: 'scale(1)', opacity: '1' },
+              '100%': { transform: 'scale(0.95)', opacity: '0' },
+            },
+          },
+          boxShadow: {
+            'glow': '0 0 15px rgba(59, 130, 246, 0.5)',
+            'glow-lg': '0 0 25px rgba(59, 130, 246, 0.7)',
+          },
+          backdropBlur: {
+            xs: '2px',
+          },
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      .glass-effect {
+        @apply bg-white bg-opacity-10 backdrop-blur-md border border-white border-opacity-20;
+      }
+      .glass-effect-dark {
+        @apply bg-dark bg-opacity-70 backdrop-blur-md border border-white border-opacity-10;
+      }
+      .btn-3d {
+        @apply relative px-4 py-2 rounded-lg font-medium transform transition-all duration-150 overflow-hidden;
+      }
+      .btn-3d-primary {
+        @apply bg-primary text-white shadow-[0_4px_0_0_#2563EB] active:translate-y-1 active:shadow-[0_2px_0_0_#2563EB] hover:brightness-105;
+      }
+      .btn-3d-secondary {
+        @apply bg-secondary text-white shadow-[0_4px_0_0_#059669] active:translate-y-1 active:shadow-[0_2px_0_0_#059669] hover:brightness-105;
+      }
+      .btn-icon {
+        @apply flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 hover:bg-white hover:bg-opacity-20;
+      }
+      .progress-track {
+        @apply h-1 bg-gray-600 rounded-full overflow-hidden cursor-pointer;
+      }
+      .progress-fill {
+        @apply h-full bg-primary rounded-full transition-all duration-150;
+      }
+      .progress-buffer {
+        @apply h-full bg-gray-500 bg-opacity-50 rounded-full absolute top-0 left-0;
+      }
+      .progress-handle {
+        @apply w-3 h-3 bg-white rounded-full absolute top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-glow;
+      }
+      .volume-slider {
+        @apply w-0 opacity-0 absolute bottom-full mb-2 transition-all duration-300 bg-dark bg-opacity-90 rounded-lg p-2 shadow-lg;
+      }
+      .volume-control:hover .volume-slider {
+        @apply w-24 opacity-100;
+      }
+      .video-controls {
+        @apply absolute bottom-0 left-0 right-0 p-4 transform translate-y-1/2 opacity-0 transition-all duration-300;
+      }
+      .video-container:hover .video-controls {
+        @apply translate-y-0 opacity-100;
+      }
+      .playback-rate-menu {
+        @apply absolute bottom-full mb-2 right-0 w-32 bg-dark bg-opacity-90 rounded-lg shadow-lg overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-200;
+      }
+      .playback-rate-control:hover .playback-rate-menu {
+        @apply scale-100 opacity-100 pointer-events-auto;
+      }
+      .quality-menu {
+        @apply absolute bottom-full mb-2 right-0 w-32 bg-dark bg-opacity-90 rounded-lg shadow-lg overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-200;
+      }
+      .quality-control:hover .quality-menu {
+        @apply scale-100 opacity-100 pointer-events-auto;
+      }
+      .menu-item {
+        @apply px-4 py-2 text-sm hover:bg-primary hover:bg-opacity-20 transition-colors duration-150 cursor-pointer;
+      }
+      .menu-item.active {
+        @apply bg-primary bg-opacity-20 text-primary;
+      }
+      .tooltip {
+        @apply absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-dark bg-opacity-90 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity duration-200 whitespace-nowrap;
+      }
+      .has-tooltip:hover .tooltip {
+        @apply opacity-100;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-light min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="max-w-6xl w-full mx-auto">
+    <!-- 页面标题 -->
+    
+    <!-- 视频播放器容器 -->
+    <div class="relative aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
+      <!-- 视频元素 -->
+      <video 
+        id="video" 
+        class="w-full h-full object-contain"
+        poster="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/44b1d4e844ee4a55bf4c2799fc058269~tplv-a9rns2rl98-image.image?rcl=20251125141303E41CF0E53651978B0292&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1766643252&x-signature=9zDf2%2B7ozQLqAzi9wJJHLmHGsRw%3D"
+        preload="metadata"
+        playsinline
+        webkit-playsinline
+        x-webkit-airplay="allow"
+      >
+        <!-- 视频源 - 使用示例视频 -->
+        <source src="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVLnk3yi_CUpAiQZJOX3EOEm6yjbN-I2pg_cnoHs_AmgI.mp4" type="video/mp4">
+        <!-- 降级内容 -->
+        <div class="flex flex-col items-center justify-center h-full p-4">
+          <p class="text-lg mb-4">您的浏览器不支持HTML5视频播放。</p>
+          <p class="text-sm text-gray-400 mb-6">请升级您的浏览器或使用其他浏览器尝试。</p>
+          <a href="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" class="btn-3d btn-3d-primary">
+            <i class="fa fa-download mr-2"></i>下载视频
+          </a>
+        </div>
+      </video>
+      
+      <!-- 视频播放器容器 -->
+      <div id="video-container" class="absolute inset-0 flex flex-col items-center justify-center video-container">
+        <!-- 播放/暂停大按钮 -->
+        <button id="big-play-button" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-300">
+          <div class="w-20 h-20 rounded-full bg-primary bg-opacity-80 flex items-center justify-center shadow-glow-lg hover:shadow-glow transition-all duration-300 transform hover:scale-105">
+          
+          </div>
+        </button>
+        
+        <!-- 加载指示器 -->
+        <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hidden">
+          <div class="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        
+        <!-- 视频控制栏 -->
+        <div class="video-controls glass-effect-dark rounded-t-lg">
+          <!-- 进度条 -->
+          <div class="relative mb-4 group">
+            <div id="progress-container" class="progress-track">
+              <div id="buffer-progress" class="progress-buffer w-0"></div>
+              <div id="progress-bar" class="progress-fill w-0"></div>
+              <div id="progress-handle" class="progress-handle" style="left: 0%"></div>
+            </div>
+          </div>
+          
+          <!-- 控制按钮 -->
+          <div class="flex items-center justify-between">
+            <!-- 左侧控制按钮 -->
+            <div class="flex items-center space-x-3">
+              <!-- 播放/暂停按钮 -->
+              <button id="play-pause-btn" class="btn-icon">
+                <img id="play-icon" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/cac65c748618488db0694be89da4388a~tplv-a9rns2rl98-image.image?rcl=20251125141303E41CF0E53651978B0292&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1766643227&x-signature=u3O0lqWPssyMUKjh8g9QAlBYozU%3D" alt="播放" class="w-6 h-6 object-contain">
+                <img id="pause-icon" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/557ab87f3fa44cbbb636518491970c83~tplv-a9rns2rl98-image.image?rcl=20251125141303E41CF0E53651978B0292&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1766643215&x-signature=7EPkBjfJleuLAuLqlXrO%2Biuv%2Fj8%3D" alt="暂停" class="w-6 h-6 object-contain hidden">
+              </button>
+              
+              <!-- 音量控制 -->
+              <div class="volume-control relative has-tooltip">
+                <button id="volume-btn" class="btn-icon">
+                  <img id="volume-up-icon" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/9711cab981de48ba92e73fe51ebbef73~tplv-a9rns2rl98-image.image?rcl=20251125141303E41CF0E53651978B0292&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1766643215&x-signature=%2FKfB%2Bw%2Fy3gnZ3YgTTbH%2FnOzHWac%3D" alt="音量" class="w-6 h-6 object-contain">
+                  <img id="volume-mute-icon" src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/9711cab981de48ba92e73fe51ebbef73~tplv-a9rns2rl98-image.image?rcl=20251125141303E41CF0E53651978B0292&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1766643215&x-signature=%2FKfB%2Bw%2Fy3gnZ3YgTTbH%2FnOzHWac%3D" alt="静音" class="w-6 h-6 object-contain hidden">
+                </button>
+                <div class="tooltip">音量控制</div>
+                
+                <!-- 音量滑块 -->
+                <div class="volume-slider">
+                  <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="1" class="w-full h-1 bg-gray-600 rounded-full appearance-none cursor-pointer">
+                </div>
+              </div>
+              
+              <!-- 时间显示 -->
+              <div class="text-sm">
+                <span id="current-time">00:00</span>
+                <span class="text-gray-400"> / </span>
+                <span id="duration">00:00</span>
+              </div>
+            </div>
+            
+            <!-- 右侧控制按钮 -->
+            <div class="flex items-center space-x-3">
+              <!-- 播放速度控制 -->
+              <div class="playback-rate-control relative has-tooltip">
+                <button id="playback-rate-btn" class="btn-icon">
+                  <span class="text-sm font-medium">1.0x</span>
+                </button>
+                <div class="tooltip">播放速度</div>
+                
+                <!-- 播放速度菜单 -->
+                <div class="playback-rate-menu">
+                  <div class="menu-item active" data-rate="0.5">0.5x</div>
+                  <div class="menu-item" data-rate="0.75">0.75x</div>
+                  <div class="menu-item" data-rate="1.0">1.0x</div>
+                  <div class="menu-item" data-rate="1.25">1.25x</div>
+                  <div class="menu-item" data-rate="1.5">1.5x</div>
+                  <div class="menu-item" data-rate="2.0">2.0x</div>
+                </div>
+              </div>
+              
+              <!-- 画质控制 -->
+              <div class="quality-control relative has-tooltip">
+                <button id="quality-btn" class="btn-icon">
+                  <i class="fa fa-cog text-lg"></i>
+                </button>
+                <div class="tooltip">视频设置</div>
+                
+                <!-- 画质菜单 -->
+                <div class="quality-menu">
+                  <div class="menu-item active" data-quality="auto">自动</div>
+                  <div class="menu-item" data-quality="720p">720p</div>
+                  <div class="menu-item" data-quality="480p">480p</div>
+                  <div class="menu-item" data-quality="360p">360p</div>
+                </div>
+              </div>
+              
+              <!-- 全屏按钮 -->
+              <button id="fullscreen-btn" class="btn-icon has-tooltip">
+                <i class="fa fa-expand text-lg"></i>
+                <div class="tooltip">全屏</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 视频信息 -->
+  
+     
+  <script>
+    // 视频播放器类
+    class VideoPlayer {
+      constructor() {
+        // DOM元素
+        this.elements = {
+          video: document.getElementById('video'),
+          videoContainer: document.getElementById('video-container'),
+          bigPlayButton: document.getElementById('big-play-button'),
+          loadingIndicator: document.getElementById('loading-indicator'),
+          playPauseBtn: document.getElementById('play-pause-btn'),
+          playIcon: document.getElementById('play-icon'),
+          pauseIcon: document.getElementById('pause-icon'),
+          volumeBtn: document.getElementById('volume-btn'),
+          volumeUpIcon: document.getElementById('volume-up-icon'),
+          volumeMuteIcon: document.getElementById('volume-mute-icon'),
+          volumeSlider: document.getElementById('volume-slider'),
+          progressContainer: document.getElementById('progress-container'),
+          progressBar: document.getElementById('progress-bar'),
+          bufferProgress: document.getElementById('buffer-progress'),
+          progressHandle: document.getElementById('progress-handle'),
+          currentTime: document.getElementById('current-time'),
+          duration: document.getElementById('duration'),
+          playbackRateBtn: document.getElementById('playback-rate-btn'),
+          playbackRateMenu: document.querySelector('.playback-rate-menu'),
+          playbackRateItems: document.querySelectorAll('.playback-rate-menu .menu-item'),
+          qualityBtn: document.getElementById('quality-btn'),
+          qualityMenu: document.querySelector('.quality-menu'),
+          qualityItems: document.querySelectorAll('.quality-menu .menu-item'),
+          fullscreenBtn: document.getElementById('fullscreen-btn'),
+        };
+        
+        // 初始化播放器
+        this.initialize();
+      }
+      
+      // 初始化播放器
+      initialize() {
+        // 设置事件监听
+        this.setupEventListeners();
+        
+        // 初始化UI
+        this.updateVolumeIcon();
+      }
+      
+      // 设置事件监听
+      setupEventListeners() {
+        // 视频事件
+        this.elements.video.addEventListener('timeupdate', () => this.updateProgress());
+        this.elements.video.addEventListener('progress', () => this.updateBufferProgress());
+        this.elements.video.addEventListener('loadedmetadata', () => this.updateDuration());
+        this.elements.video.addEventListener('waiting', () => this.showLoading());
+        this.elements.video.addEventListener('playing', () => this.hideLoading());
+        this.elements.video.addEventListener('play', () => this.updatePlayPauseIcon());
+        this.elements.video.addEventListener('pause', () => this.updatePlayPauseIcon());
+        this.elements.video.addEventListener('volumechange', () => this.updateVolumeIcon());
+        
+        // 播放/暂停大按钮
+        this.elements.bigPlayButton.addEventListener('click', () => this.togglePlay());
+        
+        // 播放/暂停按钮
+        this.elements.playPauseBtn.addEventListener('click', () => this.togglePlay());
+        
+        // 音量控制
+        this.elements.volumeBtn.addEventListener('click', () => this.toggleMute());
+        this.elements.volumeSlider.addEventListener('input', () => this.setVolume());
+        
+        // 进度条控制
+        this.elements.progressContainer.addEventListener('click', (e) => this.seek(e));
+        this.elements.progressContainer.addEventListener('mousedown', () => this.isDragging = true);
+        document.addEventListener('mousemove', (e) => this.handleDrag(e));
+        document.addEventListener('mouseup', () => this.isDragging = false);
+        
+        // 播放速度控制
+        this.elements.playbackRateBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.togglePlaybackRateMenu();
+        });
+        
+        // 播放速度菜单项
+        this.elements.playbackRateItems.forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const rate = parseFloat(item.dataset.rate);
+            this.setPlaybackRate(rate);
+            this.hidePlaybackRateMenu();
+          });
+        });
+        
+        // 画质控制
+        this.elements.qualityBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleQualityMenu();
+        });
+        
+        // 画质菜单项
+        this.elements.qualityItems.forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const quality = item.dataset.quality;
+            this.setQuality(quality);
+            this.hideQualityMenu();
+          });
+        });
+        
+        // 全屏按钮
+        this.elements.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        
+        // 点击外部关闭菜单
+        document.addEventListener('click', () => {
+          this.hidePlaybackRateMenu();
+          this.hideQualityMenu();
+        });
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+      }
+      
+      // 切换播放/暂停
+      togglePlay() {
+        if (this.elements.video.paused) {
+          this.elements.video.play();
+          this.elements.bigPlayButton.classList.add('hidden');
+        } else {
+          this.elements.video.pause();
+          this.elements.bigPlayButton.classList.remove('hidden');
+        }
+      }
+      
+      // 显示加载指示器
+      showLoading() {
+        this.elements.loadingIndicator.classList.remove('hidden');
+      }
+      
+      // 隐藏加载指示器
+      hideLoading() {
+        this.elements.loadingIndicator.classList.add('hidden');
+      }
+      
+      // 更新播放/暂停图标
+      updatePlayPauseIcon() {
+        if (this.elements.video.paused) {
+          this.elements.playIcon.classList.remove('hidden');
+          this.elements.pauseIcon.classList.add('hidden');
+          this.elements.bigPlayButton.classList.remove('hidden');
+        } else {
+          this.elements.playIcon.classList.add('hidden');
+          this.elements.pauseIcon.classList.remove('hidden');
+          this.elements.bigPlayButton.classList.add('hidden');
+        }
+      }
+      
+      // 切换静音
+      toggleMute() {
+        this.elements.video.muted = !this.elements.video.muted;
+        this.elements.volumeSlider.value = this.elements.video.muted ? 0 : this.elements.video.volume;
+      }
+      
+      // 设置音量
+      setVolume() {
+        this.elements.video.volume = this.elements.volumeSlider.value;
+        this.elements.video.muted = this.elements.volumeSlider.value === 0;
+      }
+      
+      // 更新音量图标
+      updateVolumeIcon() {
+        if (this.elements.video.muted || this.elements.video.volume === 0) {
+          this.elements.volumeUpIcon.classList.add('hidden');
+          this.elements.volumeMuteIcon.classList.remove('hidden');
+          this.elements.volumeSlider.value = 0;
+        } else {
+          this.elements.volumeUpIcon.classList.remove('hidden');
+          this.elements.volumeMuteIcon.classList.add('hidden');
+          this.elements.volumeSlider.value = this.elements.video.volume;
+        }
+      }
+      
+      // 更新进度条
+      updateProgress() {
+        const percent = (this.elements.video.currentTime / this.elements.video.duration) * 100;
+        this.elements.progressBar.style.width = `${percent}%`;
+        this.elements.progressHandle.style.left = `${percent}%`;
+        this.updateCurrentTime();
+      }
+      
+      // 更新缓冲进度
+      updateBufferProgress() {
+        if (this.elements.video.buffered.length > 0) {
+          const bufferedEnd = this.elements.video.buffered.end(this.elements.video.buffered.length - 1);
+          const duration = this.elements.video.duration;
+          const loadedPercent = (bufferedEnd / duration) * 100;
+          this.elements.bufferProgress.style.width = `${loadedPercent}%`;
+        }
+      }
+      
+      // 更新当前时间
+      updateCurrentTime() {
+        this.elements.currentTime.textContent = this.formatTime(this.elements.video.currentTime);
+      }
+      
+      // 更新总时长
+      updateDuration() {
+        this.elements.duration.textContent = this.formatTime(this.elements.video.duration);
+      }
+      
+      // 格式化时间
+      formatTime(seconds) {
+        if (isNaN(seconds)) return '00:00';
+        
+        const minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      // 跳转到指定位置
+      seek(e) {
+        const rect = this.elements.progressContainer.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        this.elements.video.currentTime = pos * this.elements.video.duration;
+      }
+      
+      // 处理拖动进度条
+      handleDrag(e) {
+        if (!this.isDragging) return;
+        
+        const rect = this.elements.progressContainer.getBoundingClientRect();
+        let pos = (e.clientX - rect.left) / rect.width;
+        pos = Math.max(0, Math.min(1, pos));
+        
+        this.elements.progressBar.style.width = `${pos * 100}%`;
+        this.elements.progressHandle.style.left = `${pos * 100}%`;
+        
+        // 如果鼠标松开，跳转到指定位置
+        if (e.type === 'mouseup') {
+          this.elements.video.currentTime = pos * this.elements.video.duration;
+          this.isDragging = false;
+        }
+      }
+      
+      // 切换播放速度菜单
+      togglePlaybackRateMenu() {
+        this.elements.playbackRateMenu.classList.toggle('opacity-0');
+        this.elements.playbackRateMenu.classList.toggle('scale-95');
+        this.elements.playbackRateMenu.classList.toggle('opacity-100');
+        this.elements.playbackRateMenu.classList.toggle('scale-100');
+        this.elements.playbackRateMenu.classList.toggle('pointer-events-none');
+        
+        // 隐藏画质菜单
+        this.hideQualityMenu();
+      }
+      
+      // 隐藏播放速度菜单
+      hidePlaybackRateMenu() {
+        this.elements.playbackRateMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+        this.elements.playbackRateMenu.classList.remove('opacity-100', 'scale-100');
+      }
+      
+      // 设置播放速度
+      setPlaybackRate(rate) {
+        this.elements.video.playbackRate = rate;
+        this.elements.playbackRateBtn.querySelector('span').textContent = `${rate.toFixed(1)}x`;
+        
+        // 更新菜单项选中状态
+        this.elements.playbackRateItems.forEach(item => {
+          if (parseFloat(item.dataset.rate) === rate) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      }
+      
+      // 切换画质菜单
+      toggleQualityMenu() {
+        this.elements.qualityMenu.classList.toggle('opacity-0');
+        this.elements.qualityMenu.classList.toggle('scale-95');
+        this.elements.qualityMenu.classList.toggle('opacity-100');
+        this.elements.qualityMenu.classList.toggle('scale-100');
+        this.elements.qualityMenu.classList.toggle('pointer-events-none');
+        
+        // 隐藏播放速度菜单
+        this.hidePlaybackRateMenu();
+      }
+      
+      // 隐藏画质菜单
+      hideQualityMenu() {
+        this.elements.qualityMenu.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+        this.elements.qualityMenu.classList.remove('opacity-100', 'scale-100');
+      }
+      
+      // 设置视频画质
+      setQuality(quality) {
+        // 在实际应用中，这里会切换视频源
+        // 这里仅做UI更新
+        
+        // 更新菜单项选中状态
+        this.elements.qualityItems.forEach(item => {
+          if (item.dataset.quality === quality) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        
+        // 显示加载指示器
+        this.showLoading();
+        
+        // 模拟切换画质延迟
+        setTimeout(() => {
+          // 如果视频正在播放，继续播放
+          const wasPlaying = !this.elements.video.paused;
+          if (wasPlaying) {
+            this.elements.video.play();
+          }
+          
+          // 隐藏加载指示器
+          this.hideLoading();
+        }, 1000);
+      }
+      
+      // 切换全屏
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          // 进入全屏
+          if (this.elements.videoContainer.requestFullscreen) {
+            this.elements.videoContainer.requestFullscreen();
+          } else if (this.elements.videoContainer.mozRequestFullScreen) {
+            this.elements.videoContainer.mozRequestFullScreen();
+          } else if (this.elements.videoContainer.webkitRequestFullscreen) {
+            this.elements.videoContainer.webkitRequestFullscreen();
+          } else if (this.elements.videoContainer.msRequestFullscreen) {
+            this.elements.videoContainer.msRequestFullscreen();
+          }
+          
+          // 更新全屏按钮图标
+          this.elements.fullscreenBtn.innerHTML = '<i class="fa fa-compress text-lg"></i><div class="tooltip">退出全屏</div>';
+        } else {
+          // 退出全屏
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+          
+          // 更新全屏按钮图标
+          this.elements.fullscreenBtn.innerHTML = '<i class="fa fa-expand text-lg"></i><div class="tooltip">全屏</div>';
+        }
+      }
+      
+      // 处理键盘快捷键
+      handleKeyboard(e) {
+        // 如果焦点在输入框中，不处理快捷键
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        switch (e.key.toLowerCase()) {
+          case ' ': // 空格键
+            e.preventDefault();
+            this.togglePlay();
+            break;
+          case 'arrowup': // 上箭头
+            e.preventDefault();
+            this.increaseVolume();
+            break;
+          case 'arrowdown': // 下箭头
+            e.preventDefault();
+            this.decreaseVolume();
+            break;
+          case 'arrowright': // 右箭头
+            e.preventDefault();
+            this.skipForward();
+            break;
+          case 'arrowleft': // 左箭头
+            e.preventDefault();
+            this.skipBackward();
+            break;
+          case 'f': // F键
+            e.preventDefault();
+            this.toggleFullscreen();
+            break;
+          case 'm': // M键
+            e.preventDefault();
+            this.toggleMute();
+            break;
+        }
+      }
+      
+      // 增加音量
+      increaseVolume() {
+        this.elements.video.volume = Math.min(1, this.elements.video.volume + 0.1);
+        this.elements.volumeSlider.value = this.elements.video.volume;
+      }
+      
+      // 减少音量
+      decreaseVolume() {
+        this.elements.video.volume = Math.max(0, this.elements.video.volume - 0.1);
+        this.elements.volumeSlider.value = this.elements.video.volume;
+      }
+      
+      // 快进10秒
+      skipForward() {
+        this.elements.video.currentTime = Math.min(this.elements.video.duration, this.elements.video.currentTime + 10);
+      }
+      
+      // 后退10秒
+      skipBackward() {
+        this.elements.video.currentTime = Math.max(0, this.elements.video.currentTime - 10);
+      }
+    }
+    
+    // 初始化视频播放器
+    document.addEventListener('DOMContentLoaded', () => {
+      const player = new VideoPlayer();
+    });
+  </script>
+</body>
+</html>
+
+
+<style>
+
+body{
+
+  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+
+
+    
+}
+
+    </style>
