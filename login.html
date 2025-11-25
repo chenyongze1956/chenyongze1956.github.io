@@ -516,7 +516,12 @@
                             // 检查是否是Administrator用户
                             if (selectedUser === 'Administrator') {
                                 // 跳转到指定网站
+                              if (password === 'password') {
+
+                                
                                 window.location.href = 'https://chenyongze1956.github.io/Boogle.html';
+
+                               }   
                             } else {
                                 alert(`欢迎回来，${selectedUser}！\n\nWindows XP 登录界面模拟完成。`);
                                 loadingScreen.style.display = 'none';
