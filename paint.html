@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Drawing App</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a56db',
+                        secondary: '#e2e8f0',
+                        accent: '#3b82f6',
+                        dark: '#1e293b',
+                        light: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'tool': '0 2px 10px rgba(0, 0, 0, 0.1)',
+                        'canvas': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .tool-active {
+                @apply bg-primary text-white;
+            }
+            .tool-icon {
+                @apply w-6 h-6 mr-2;
+            }
+            .color-swatch {
+                @apply w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110;
+            }
+            .slider-thumb {
+                @apply appearance-none w-4 h-4 rounded-full bg-primary cursor-pointer;
+            }
+            .slider-track {
+                @apply appearance-none h-2 rounded-lg bg-gray-200;
+            }
+        }
+
+        /* Custom styles */
+        body {
+            @apply bg-gray-50 font-sans;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-container {
+            @apply flex flex-col h-screen w-screen;
+        }
+
+        .toolbar {
+            @apply bg-white shadow-tool p-2 transition-all duration-300;
+            z-index: 10;
+        }
+
+        .toolbar-desktop {
+            @apply w-16 md:w-48 flex flex-col items-center md:items-start absolute top-0 left-0 m-2 rounded-lg;
+        }
+
+        .toolbar-mobile {
+            @apply w-full flex flex-row justify-between items-center absolute bottom-0 left-0 m-2 rounded-lg;
+            max-width: calc(100% - 16px);
+        }
+
+        .tool-button {
+            @apply flex items-center justify-center md:justify-start w-12 h-12 md:w-full rounded-lg p-2 transition-colors hover:bg-gray-100;
+        }
+
+        .tool-button span {
+            @apply hidden md:inline;
+        }
+
+        .canvas-container {
+            @apply flex-1 relative overflow-hidden;
+        }
+
+        canvas {
+            @apply bg-white shadow-canvas absolute top-0 left-0;
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .color-palette {
+            @apply bg-white shadow-tool p-2 flex justify-between items-center absolute top-0 left-1/2 transform -translate-x-1/2 m-2 rounded-lg;
+            z-index: 10;
+        }
+
+        .brush-size {
+            @apply flex items-center space-x-2 bg-white shadow-tool p-2 absolute top-16 left-1/2 transform -translate-x-1/2 m-2 rounded-lg;
+            z-index: 10;
+        }
+
+        .brush-size input {
+            @apply slider-track w-full;
+        }
+
+        .brush-size input::-webkit-slider-thumb {
+            @apply slider-thumb;
+        }
+
+        .layers-panel {
+            @apply absolute top-2 right-2 bg-white shadow-tool rounded-lg p-2 w-48;
+            z-index: 10;
+        }
+
+        .layer-item {
+            @apply flex items-center justify-between p-2 rounded hover:bg-gray-100 cursor-pointer;
+        }
+
+        .collaborator-cursor {
+            @apply absolute pointer-events-none;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .toolbar-desktop {
+                @apply hidden;
+            }
+            
+            .desktop-only {
+                @apply hidden;
+            }
+            
+            .color-palette {
+                @apply top-auto bottom-16 left-1/2 transform -translate-x-1/2;
+                max-width: calc(100% - 16px);
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding: 2px 8px;
+            }
+            
+            .color-swatch {
+                @apply w-6 h-6 mr-2;
+            }
+            
+            .brush-size {
+                @apply top-auto bottom-28 left-1/2 transform -translate-x-1/2;
+                width: calc(100% - 32px);
+            }
+        }
+
+        @media (min-width: 769px) {
+            .toolbar-mobile {
+                @apply hidden;
+            }
+            
+            .mobile-only {
+                @apply hidden;
+            }
+        }
+
+        /* Animation for tool selection */
+        @keyframes toolSelect {
+            0% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .tool-active {
+            animation: toolSelect 0.2s ease-in-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            @apply w-2 h-2;
+        }
+
+        ::-webkit-scrollbar-track {
+            @apply bg-gray-100 rounded-full;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            @apply bg-gray-300 rounded-full hover:bg-gray-400;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+            
+            <!-- Layers Panel (Hidden by default) -->
+            <div id="layersPanel" class="layers-panel hidden">
+                <h3 class="font-bold text-sm mb-2 flex items-center">
+                    <i class="fa fa-layer-group mr-2"></i> Layers
+                </h3>
+                <div id="layersList" class="max-h-48 overflow-y-auto">
+                    <div class="layer-item" data-layer="0">
+                        <span>Layer 1</span>
+                        <div class="flex items-center">
+                            <i class="fa fa-eye mr-2"></i>
+                            <i class="fa fa-trash-o"></i>
+                        </div>
+                    </div>
+                </div>
+                <button id="addLayer" class="w-full mt-2 p-2 bg-gray-100 rounded hover:bg-gray-200 flex items-center justify-center">
+                    <i class="fa fa-plus mr-2"></i> Add Layer
+                </button>
+            </div>
+        </div>
+
+        <!-- Desktop Toolbar -->
+        <div id="kk" class="toolbar toolbar-desktop">
+            <button class="tool-button tool-active" data-tool="pencil">
+                <i class="fa fa-pencil tool-icon"></i>
+                <span>Pencil</span>
+            </button>
+            <button class="tool-button" data-tool="eraser">
+                <i class="fa fa-eraser tool-icon"></i>
+                <span>Eraser</span>
+            </button>
+            <button class="tool-button" data-tool="brush">
+                <i class="fa fa-paint-brush tool-icon"></i>
+                <span>Brush</span>
+            </button>
+            <button class="tool-button" data-tool="rectangle">
+                <i class="fa fa-square-o tool-icon"></i>
+                <span>Rectangle</span>
+            </button>
+            <button class="tool-button" data-tool="circle">
+                <i class="fa fa-circle-o tool-icon"></i>
+                <span>Circle</span>
+            </button>
+            <button class="tool-button" data-tool="line">
+                <i class="fa fa-minus tool-icon"></i>
+                <span>Line</span>
+            </button>
+            <div class="w-full border-t border-gray-200 my-2"></div>
+            <button class="tool-button" data-action="clear">
+                <i class="fa fa-trash tool-icon"></i>
+                <span>Clear</span>
+            </button>
+            <button class="tool-button" data-action="save">
+                <i class="fa fa-download tool-icon"></i>
+                <span>Save</span>
+            </button>
+            <button class="tool-button" data-action="layers">
+                <i class="fa fa-layer-group tool-icon"></i>
+                <span>Layers</span>
+            </button>
+        </div>
+
+        <!-- Mobile Toolbar -->
+        <div class="toolbar toolbar-mobile mobile-only">
+            <button class="tool-button tool-active" data-tool="pencil">
+                <i class="fa fa-pencil"></i>
+            </button>
+            <button class="tool-button" data-tool="eraser">
+                <i class="fa fa-eraser"></i>
+            </button>
+            <button class="tool-button" data-tool="brush">
+                <i class="fa fa-paint-brush"></i>
+            </button>
+            <button class="tool-button" data-tool="rectangle">
+                <i class="fa fa-square-o"></i>
+            </button>
+            <button class="tool-button" data-tool="circle">
+                <i class="fa fa-circle-o"></i>
+            </button>
+            <button class="tool-button" data-tool="line">
+                <i class="fa fa-minus"></i>
+            </button>
+            <button class="tool-button" data-action="clear">
+                <i class="fa fa-trash"></i>
+            </button>
+            <button class="tool-button" data-action="save">
+                <i class="fa fa-download"></i>
+            </button>
+            <button class="tool-button" data-action="layers">
+                <i class="fa fa-layer-group"></i>
+            </button>
+        </div>
+
+        <!-- Color Palette -->
+        <div class="color-palette">
+            <div class="color-swatch bg-black" data-color="#000000"></div>
+            <div class="color-swatch bg-red-500" data-color="#ef4444"></div>
+            <div class="color-swatch bg-blue-500" data-color="#3b82f6"></div>
+            <div class="color-swatch bg-green-500" data-color="#22c55e"></div>
+            <div class="color-swatch bg-yellow-500" data-color="#eab308"></div>
+            <div class="color-swatch bg-purple-500" data-color="#a855f7"></div>
+            <div class="color-swatch bg-pink-500" data-color="#ec4899"></div>
+            <div class="color-swatch bg-orange-500" data-color="#f97316"></div>
+            <div class="color-swatch bg-white border border-gray-300" data-color="#ffffff"></div>
+        </div>
+
+        <!-- Brush Size Slider (Desktop) -->
+        <div class="brush-size desktop-only">
+            <label for="brushSize" class="text-sm font-medium">Size: <span id="sizeValue">5</span></label>
+            <input type="range" id="brushSize" min="1" max="50" value="5" class="slider-track">
+        </div>
+
+        <!-- Brush Size Slider (Mobile) -->
+        <div class="brush-size mobile-only">
+            <label for="brushSizeMobile" class="text-sm font-medium">Size: <span id="sizeValueMobile">5</span></label>
+            <input type="range" id="brushSizeMobile" min="1" max="50" value="5" class="slider-track">
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let canvas, ctx;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let currentTool = 'pencil';
+        let currentColor = '#000000';
+        let currentSize = 5;
+        let shapes = [];
+        let currentShape = null;
+        let layers = [];
+        let currentLayer = 0;
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+        let isPanning = false;
+        let lastPanX = 0;
+        let lastPanY = 0;
+        
+        // Mock collaborators for demo
+        const collaborators = [
+            { id: 1, color: '#ef4444', x: 0, y: 0, active: true },
+            { id: 2, color: '#3b82f6', x: 0, y: 0, active: true }
+        ];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            // Get canvas and context
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set up canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Initialize layers
+            initLayers();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize mock collaborators
+            initCollaborators();
+            
+            // Start animation loop
+            requestAnimationFrame(animate);
+        }
+
+        function resizeCanvas() {
+            // Set canvas size to match window
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Update layer canvases
+            layers.forEach(layer => {
+                layer.canvas.width = canvas.width;
+                layer.canvas.height = canvas.height;
+            });
+            
+            // Redraw everything
+            redrawCanvas();
+        }
+
+        function initLayers() {
+            // Create initial layer
+            const initialLayer = {
+                canvas: document.createElement('canvas'),
+                ctx: null,
+                visible: true
+            };
+            initialLayer.canvas.width = canvas.width;
+            initialLayer.canvas.height = canvas.height;
+            initialLayer.ctx = initialLayer.canvas.getContext('2d');
+            
+            layers.push(initialLayer);
+            
+            // Update layer UI
+            updateLayersUI();
+        }
+
+        function setupEventListeners() {
+            // Tool selection
+            document.querySelectorAll('[data-tool]').forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active tool
+                    document.querySelectorAll('[data-tool]').forEach(btn => {
+                        btn.classList.remove('tool-active');
+                    });
+                    button.classList.add('tool-active');
+                    
+                    currentTool = button.dataset.tool;
+                });
+            });
+            
+            // Action buttons
+            document.querySelectorAll('[data-action]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const action = button.dataset.action;
+                    
+                    switch(action) {
+                        case 'clear':
+                            clearCanvas();
+                            break;
+                        case 'save':
+                            saveCanvas();
+                            break;
+                        case 'layers':
+                            toggleLayersPanel();
+                            break;
+                    }
+                });
+            });
+            
+            // Color selection
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    currentColor = swatch.dataset.color;
+                    
+                    // Update UI to show selected color
+                    document.querySelectorAll('.color-swatch').forEach(s => {
+                        s.style.border = 'none';
+                    });
+                    swatch.style.border = '2px solid #000';
+                });
+            });
+            
+            // Brush size (Desktop)
+            const brushSizeSlider = document.getElementById('brushSize');
+            const sizeValue = document.getElementById('sizeValue');
+            brushSizeSlider.addEventListener('input', () => {
+                currentSize = parseInt(brushSizeSlider.value);
+                sizeValue.textContent = currentSize;
+                
+                // Sync with mobile slider
+                document.getElementById('brushSizeMobile').value = currentSize;
+                document.getElementById('sizeValueMobile').textContent = currentSize;
+            });
+            
+            // Brush size (Mobile)
+            const brushSizeSliderMobile = document.getElementById('brushSizeMobile');
+            const sizeValueMobile = document.getElementById('sizeValueMobile');
+            brushSizeSliderMobile.addEventListener('input', () => {
+                currentSize = parseInt(brushSizeSliderMobile.value);
+                sizeValueMobile.textContent = currentSize;
+                
+                // Sync with desktop slider
+                document.getElementById('brushSize').value = currentSize;
+                document.getElementById('sizeValue').textContent = currentSize;
+            });
+            
+            // Canvas events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchcancel', handleTouchEnd);
+            
+            // Mouse wheel for zooming
+            canvas.addEventListener('wheel', handleWheel);
+            
+            // Pan with middle mouse button
+            canvas.addEventListener('mousedown', handleMiddleMouseDown);
+            window.addEventListener('mousemove', handleMiddleMouseMove);
+            window.addEventListener('mouseup', handleMiddleMouseUp);
+            
+            // Layers panel
+            document.getElementById('addLayer').addEventListener('click', addLayer);
+            
+            // Close layers panel when clicking outside
+            document.addEventListener('click', (e) => {
+                const layersPanel = document.getElementById('layersPanel');
+                const layersButton = document.querySelector('[data-action="layers"]');
+                
+                if (!layersPanel.contains(e.target) && e.target !== layersButton) {
+                    layersPanel.classList.add('hidden');
+                }
+            });
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            
+            // Get coordinates relative to canvas
+            const pos = getCanvasCoordinates(e);
+            [lastX, lastY] = [pos.x, pos.y];
+            
+            // For shape tools, start a new shape
+            if (['rectangle', 'circle', 'line'].includes(currentTool)) {
+                currentShape = {
+                    type: currentTool,
+                    x1: lastX,
+                    y1: lastY,
+                    x2: lastX,
+                    y2: lastY,
+                    color: currentColor,
+                    size: currentSize
+                };
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            // Get coordinates relative to canvas
+            const pos = getCanvasCoordinates(e);
+            const x = pos.x;
+            const y = pos.y;
+            
+            // For shape tools, update the end point
+            if (['rectangle', 'circle', 'line'].includes(currentTool) && currentShape) {
+                currentShape.x2 = x;
+                currentShape.y2 = y;
+                
+                // Redraw to show shape preview
+                redrawCanvas();
+                drawShape(currentShape, ctx);
+                return;
+            }
+            
+            // Get current layer context
+            const layerCtx = layers[currentLayer].ctx;
+            
+            // Draw on the current layer
+            layerCtx.beginPath();
+            layerCtx.moveTo(lastX, lastY);
+            layerCtx.lineTo(x, y);
+            
+            if (currentTool === 'pencil' || currentTool === 'brush') {
+                layerCtx.strokeStyle = currentColor;
+                layerCtx.lineWidth = currentSize;
+                layerCtx.lineCap = 'round';
+                layerCtx.lineJoin = 'round';
+                layerCtx.stroke();
+            } else if (currentTool === 'eraser') {
+                layerCtx.strokeStyle = '#ffffff';
+                layerCtx.lineWidth = currentSize;
+                layerCtx.lineCap = 'round';
+                layerCtx.lineJoin = 'round';
+                layerCtx.stroke();
+            }
+            
+            [lastX, lastY] = [x, y];
+            
+            // Update main canvas
+            redrawCanvas();
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            
+            isDrawing = false;
+            
+            // For shape tools, save the shape to the current layer
+            if (['rectangle', 'circle', 'line'].includes(currentTool) && currentShape) {
+                const layerCtx = layers[currentLayer].ctx;
+                drawShape(currentShape, layerCtx);
+                currentShape = null;
+                
+                // Update main canvas
+                redrawCanvas();
+            }
+        }
+
+        function drawShape(shape, context) {
+            context.beginPath();
+            context.strokeStyle = shape.color;
+            context.lineWidth = shape.size;
+            context.lineCap = 'round';
+            context.lineJoin = 'round';
+            
+            switch(shape.type) {
+                case 'rectangle':
+                    context.rect(
+                        Math.min(shape.x1, shape.x2),
+                        Math.min(shape.y1, shape.y2),
+                        Math.abs(shape.x2 - shape.x1),
+                        Math.abs(shape.y2 - shape.y1)
+                    );
+                    break;
+                case 'circle':
+                    const radius = Math.sqrt(
+                        Math.pow(shape.x2 - shape.x1, 2) + 
+                        Math.pow(shape.y2 - shape.y1, 2)
+                    );
+                    context.arc(shape.x1, shape.y1, radius, 0, Math.PI * 2);
+                    break;
+                case 'line':
+                    context.moveTo(shape.x1, shape.y1);
+                    context.lineTo(shape.x2, shape.y2);
+                    break;
+            }
+            
+            context.stroke();
+        }
+
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                // Clear all layers
+                layers.forEach(layer => {
+                    const layerCtx = layer.ctx;
+                    layerCtx.clearRect(0, 0, canvas.width, canvas.height);
+                });
+                
+                // Redraw main canvas
+                redrawCanvas();
+            }
+        }
+
+        function saveCanvas() {
+            // Create a temporary canvas to combine all visible layers
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            
+            // Draw all visible layers
+            layers.forEach(layer => {
+                if (layer.visible) {
+                    tempCtx.drawImage(layer.canvas, 0, 0);
+                }
+            });
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function toggleLayersPanel() {
+            const layersPanel = document.getElementById('layersPanel');
+            layersPanel.classList.toggle('hidden');
+        }
+
+        function updateLayersUI() {
+            const layersList = document.getElementById('layersList');
+            layersList.innerHTML = '';
+            
+            layers.forEach((layer, index) => {
+                const layerItem = document.createElement('div');
+                layerItem.className = `layer-item ${currentLayer === index ? 'bg-gray-100' : ''}`;
+                layerItem.dataset.layer = index;
+                
+                const visibilityIcon = layer.visible ? 'fa-eye' : 'fa-eye-slash';
+                
+                layerItem.innerHTML = `
+                    <span>Layer ${index + 1}</span>
+                    <div class="flex items-center">
+                        <i class="fa ${visibilityIcon} mr-2 toggle-visibility" data-layer="${index}"></i>
+                        <i class="fa fa-trash-o delete-layer" data-layer="${index}"></i>
+                    </div>
+                `;
+                
+                layersList.appendChild(layerItem);
+                
+                // Add event listeners
+                layerItem.addEventListener('click', (e) => {
+                    // Don't change layer if clicking on visibility or delete icons
+                    if (!e.target.classList.contains('toggle-visibility') && 
+                        !e.target.classList.contains('delete-layer')) {
+                        currentLayer = index;
+                        updateLayersUI();
+                    }
+                });
+                
+                const visibilityToggle = layerItem.querySelector('.toggle-visibility');
+                visibilityToggle.addEventListener('click', () => {
+                    layer.visible = !layer.visible;
+                    updateLayersUI();
+                    redrawCanvas();
+                });
+                
+                const deleteButton = layerItem.querySelector('.delete-layer');
+                deleteButton.addEventListener('click', () => {
+                    if (layers.length > 1) {
+                        layers.splice(index, 1);
+                        
+                        // If current layer was deleted, select the previous one
+                        if (currentLayer >= index) {
+                            currentLayer = Math.max(0, currentLayer - 1);
+                        }
+                        
+                        updateLayersUI();
+                        redrawCanvas();
+                    } else {
+                        alert('You can\'t delete the last layer!');
+                    }
+                });
+            });
+        }
+
+        function addLayer() {
+            const newLayer = {
+                canvas: document.createElement('canvas'),
+                ctx: null,
+                visible: true
+            };
+            newLayer.canvas.width = canvas.width;
+            newLayer.canvas.height = canvas.height;
+            newLayer.ctx = newLayer.canvas.getContext('2d');
+            
+            layers.push(newLayer);
+            currentLayer = layers.length - 1;
+            
+            updateLayersUI();
+        }
+
+        function redrawCanvas() {
+            // Clear main canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw all visible layers
+            layers.forEach(layer => {
+                if (layer.visible) {
+                    ctx.drawImage(layer.canvas, 0, 0);
+                }
+            });
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            
+            // For touch events, get the first touch point
+            if (e.type.startsWith('touch')) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                return {
+                    x: (touch.clientX - rect.left) / scale - translateX,
+                    y: (touch.clientY - rect.top) / scale - translateY
+                };
+            }
+            
+            // For mouse events
+            return {
+                x: (e.clientX - rect.left) / scale - translateX,
+                y: (e.clientY - rect.top) / scale - translateY
+            };
+        }
+
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                startDrawing(e);
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (e.touches.length === 1) {
+                draw(e);
+            }
+        }
+
+        function handleTouchEnd() {
+            stopDrawing();
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            
+            // Calculate zoom factor
+            const zoomIntensity = 0.1;
+            const zoom = e.deltaY > 0 ? 1 - zoomIntensity : 1 + zoomIntensity;
+            
+            // Get mouse position relative to canvas
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            // Adjust translation to keep the mouse point at the same position
+            translateX = (mouseX / scale + translateX) - (mouseX / (scale * zoom));
+            translateY = (mouseY / scale + translateY) - (mouseY / (scale * zoom));
+            
+            // Apply zoom
+            scale *= zoom;
+            
+            // Redraw canvas
+            redrawCanvas();
+        }
+
+        function handleMiddleMouseDown(e) {
+            if (e.button === 1) { // Middle mouse button
+                isPanning = true;
+                lastPanX = e.clientX;
+                lastPanY = e.clientY;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+
+        function handleMiddleMouseMove(e) {
+            if (!isPanning) return;
+            
+            const deltaX = e.clientX - lastPanX;
+            const deltaY = e.clientY - lastPanY;
+            
+            translateX += deltaX / scale;
+            translateY += deltaY / scale;
+            
+            lastPanX = e.clientX;
+            lastPanY = e.clientY;
+            
+            redrawCanvas();
+        }
+
+        function handleMiddleMouseUp(e) {
+            if (e.button === 1) { // Middle mouse button
+                isPanning = false;
+                canvas.style.cursor = 'default';
+            }
+        }
+
+        function initCollaborators() {
+            // Create cursor elements for each collaborator
+            collaborators.forEach(collaborator => {
+                const cursor = document.createElement('div');
+                cursor.className = 'collaborator-cursor';
+                cursor.id = `collaborator-${collaborator.id}`;
+                cursor.style.left = '0px';
+                cursor.style.top = '0px';
+                cursor.style.color = collaborator.color;
+                
+                // Create cursor indicator (dot)
+                const dot = document.createElement('div');
+                dot.style.width = '10px';
+                dot.style.height = '10px';
+                dot.style.borderRadius = '50%';
+                dot.style.backgroundColor = collaborator.color;
+                dot.style.position = 'absolute';
+                dot.style.top = '0';
+                dot.style.left = '0';
+                
+                // Create cursor name
+                const name = document.createElement('div');
+                name.style.position = 'absolute';
+                name.style.top = '-20px';
+                name.style.left = '0';
+                name.style.fontSize = '12px';
+                name.style.fontWeight = 'bold';
+                name.style.color = collaborator.color;
+                name.textContent = `User ${collaborator.id}`;
+                
+                cursor.appendChild(dot);
+                cursor.appendChild(name);
+                canvas.parentElement.appendChild(cursor);
+            });
+        }
+
+        function updateCollaborators() {
+            // Simulate collaborator movement
+            collaborators.forEach(collaborator => {
+                if (collaborator.active) {
+                    // Random movement within canvas bounds
+                    const rect = canvas.getBoundingClientRect();
+                    const maxX = rect.width;
+                    const maxY = rect.height;
+                    
+                    // Random direction and speed
+                    const dx = (Math.random() - 0.5) * 5;
+                    const dy = (Math.random() - 0.5) * 5;
+                    
+                    // Update position
+                    let newX = parseFloat(document.getElementById(`collaborator-${collaborator.id}`).style.left) + dx;
+                    let newY = parseFloat(document.getElementById(`collaborator-${collaborator.id}`).style.top) + dy;
+                    
+                    // Keep within bounds
+                    newX = Math.max(0, Math.min(newX, maxX));
+                    newY = Math.max(0, Math.min(newY, maxY));
+                    
+                    // Update cursor position
+                    const cursor = document.getElementById(`collaborator-${collaborator.id}`);
+                    cursor.style.left = `${newX}px`;
+                    cursor.style.top = `${newY}px`;
+                    
+                    // Occasionally simulate drawing
+                    if (Math.random() < 0.02 && !isDrawing) {
+                        // Randomly select a tool and color
+                        const tools = ['pencil', 'brush', 'rectangle', 'circle', 'line'];
+                        const colors = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899'];
+                        
+                        const randomTool = tools[Math.floor(Math.random() * tools.length)];
+                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                        const randomSize = Math.floor(Math.random() * 10) + 1;
+                        
+                        // Simulate drawing
+                        if (randomTool === 'pencil' || randomTool === 'brush') {
+                            // Simulate a short line
+                            const startX = newX;
+                            const startY = newY;
+                            const endX = startX + (Math.random() - 0.5) * 50;
+                            const endY = startY + (Math.random() - 0.5) * 50;
+                            
+                            // Draw on a random layer
+                            const randomLayer = Math.floor(Math.random() * layers.length);
+                            const layerCtx = layers[randomLayer].ctx;
+                            
+                            layerCtx.beginPath();
+                            layerCtx.moveTo(startX / scale - translateX, startY / scale - translateY);
+                            layerCtx.lineTo(endX / scale - translateX, endY / scale - translateY);
+                            layerCtx.strokeStyle = randomColor;
+                            layerCtx.lineWidth = randomSize;
+                            layerCtx.lineCap = 'round';
+                            layerCtx.lineJoin = 'round';
+                            layerCtx.stroke();
+                            
+                            // Update main canvas
+                            redrawCanvas();
+                        } else if (['rectangle', 'circle', 'line'].includes(randomTool)) {
+                            // Simulate a shape
+                            const shape = {
+                                type: randomTool,
+                                x1: newX / scale - translateX,
+                                y1: newY / scale - translateY,
+                                x2: newX / scale - translateX + (Math.random() - 0.5) * 100,
+                                y2: newY / scale - translateY + (Math.random() - 0.5) * 100,
+                                color: randomColor,
+                                size: randomSize
+                            };
+                            
+                            // Draw on a random layer
+                            const randomLayer = Math.floor(Math.random() * layers.length);
+                            const layerCtx = layers[randomLayer].ctx;
+                            
+                            drawShape(shape, layerCtx);
+                            
+                            // Update main canvas
+                            redrawCanvas();
+                        }
+                    }
+                }
+            });
+        }
+
+        function animate() {
+            // Update collaborators
+            updateCollaborators();
+            
+            // Continue animation loop
+            requestAnimationFrame(animate);
+        }
+    </script>
+</body>
+</html>
+
+
+<style>
+#drawingCanvas{
+
+
+      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+    
+}
+
+    #kk{
+
+      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+        
+    }
+
+    </style>
