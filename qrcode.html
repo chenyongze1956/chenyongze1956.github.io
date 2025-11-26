@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- QRCode.js -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#60A5FA',
+                        accent: '#2563EB',
+                        neutral: '#F3F4F6',
+                        'neutral-dark': '#E5E7EB',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'custom': '0 4px 20px rgba(0, 0, 0, 0.1)',
+                        'hover': '0 10px 30px rgba(59, 130, 246, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #3B82F6, #60A5FA);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+        }
+    </style>
+    <style>
+        body {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .bg-white{
+
+                               background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+              
+            
+        }
+        #url-input{
+
+
+
+                               background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+            
+        }
+        .qrcode-container {
+            transition: all 0.3s ease;
+        }
+        
+        .qrcode-container:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn {
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .url-input {
+            transition: all 0.3s ease;
+        }
+        
+        .url-input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        
+        .download-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            background-color: #2563EB;
+        }
+        
+        .settings-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .settings-btn:hover {
+            background-color: #E5E7EB;
+        }
+        
+        .settings-panel {
+            transition: all 0.3s ease;
+            transform-origin: top;
+        }
+        
+        .settings-panel.hidden {
+            transform: scaleY(0);
+            opacity: 0;
+        }
+        
+        .settings-panel.visible {
+            transform: scaleY(1);
+            opacity: 1;
+        }
+        
+        .color-option {
+            transition: all 0.2s ease;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border: 2px solid #3B82F6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        
+        .size-slider {
+            transition: all 0.3s ease;
+        }
+        
+        .size-slider::-webkit-slider-thumb {
+            transition: all 0.2s ease;
+        }
+        
+        .size-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        
+        .notification {
+            transition: all 0.3s ease;
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .animate-slideUp {
+            animation: slideUp 0.5s ease forwards;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 640px) {
+            .generator-container {
+                width: 90%;
+            }
+            
+            .qrcode-container {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- 标题 -->
+        <div class="text-center mb-8 animate-fadeIn">
+            
+        </div>
+        
+        <!-- 主容器 -->
+        <div class="bg-white rounded-xl shadow-custom p-6 animate-slideUp">
+            <!-- URL输入框 -->
+            <div class="mb-6">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                        <i class="fa fa-link"></i>
+                    </span>
+                    <input type="text" id="url-input" class="url-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none" placeholder="请输入网址，例如：https://example.com" value="https://chenyongze1956.github.io/">
+                </div>
+            </div>
+            
+            <!-- 二维码容器 -->
+            <div class="flex justify-center mb-6">
+                <div id="qrcode" class="qrcode-container bg-white p-4 rounded-lg shadow-md w-48 h-48"></div>
+            </div>
+            
+            <!-- 控制按钮 -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                <button id="generate-btn" class="btn flex-1 bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fa fa-refresh mr-2"></i> 生成二维码
+                </button>
+                <button id="download-btn" class="download-btn bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center">
+                    <i class="fa fa-download mr-2"></i> 下载
+                </button>
+                
+                </button>
+            </div>
+            
+            <!-- 设置面板 -->
+            <div id="settings-panel" class="settings-panel hidden bg-gray-50 rounded-lg p-4 mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">二维码设置</h3>
+                
+                <!-- 颜色设置 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">前景色</label>
+                    <div class="flex gap-2">
+                        <div class="color-option selected w-6 h-6 rounded-full bg-black cursor-pointer" data-color="#000000"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-red-600 cursor-pointer" data-color="#DC2626"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-blue-600 cursor-pointer" data-color="#2563EB"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-green-600 cursor-pointer" data-color="#16A34A"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-purple-600 cursor-pointer" data-color="#9333EA"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-yellow-500 cursor-pointer" data-color="#EAB308"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">背景色</label>
+                    <div class="flex gap-2">
+                        <div class="color-option selected w-6 h-6 rounded-full bg-white cursor-pointer" data-color="#FFFFFF"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-gray-100 cursor-pointer" data-color="#F3F4F6"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-gray-200 cursor-pointer" data-color="#E5E7EB"></div>
+                        <div class="color-option w-6 h-6 rounded-full bg-gray-300 cursor-pointer" data-color="#D1D5DB"></div>
+                    </div>
+                </div>
+                
+                <!-- 大小设置 -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-gray-700">大小</label>
+                        <span id="size-value" class="text-sm text-gray-600">200px</span>
+                    </div>
+                    <input type="range" id="size-slider" class="size-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" min="128" max="512" step="32" value="200">
+                </div>
+                
+                <!-- 容错级别 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">容错级别</label>
+                    <div class="flex gap-2">
+                        <button class="error-level-btn selected px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800" data-level="L">低</button>
+                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="M">中</button>
+                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="Q">较高</button>
+                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="H">高</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通知 -->
+        <div id="notification" class="notification fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+            <span id="notification-text">操作成功</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const urlInput = document.getElementById('url-input');
+            const generateBtn = document.getElementById('generate-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsPanel = document.getElementById('settings-panel');
+            const qrcodeContainer = document.getElementById('qrcode');
+            const sizeSlider = document.getElementById('size-slider');
+            const sizeValue = document.getElementById('size-value');
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            const colorOptions = document.querySelectorAll('.color-option');
+            const errorLevelBtns = document.querySelectorAll('.error-level-btn');
+            
+            // 二维码配置
+            let qrConfig = {
+                text: urlInput.value,
+                width: 200,
+                height: 200,
+                colorDark: '#000000',
+                colorLight: '#FFFFFF',
+                correctLevel: QRCode.CorrectLevel.L
+            };
+            
+            // 创建二维码实例
+            let qrcode = new QRCode(qrcodeContainer, qrConfig);
+            
+            // 生成二维码
+            function generateQRCode() {
+                // 验证URL
+                const url = urlInput.value.trim();
+                if (!url) {
+                    showNotification('请输入网址', 'error');
+                    return;
+                }
+                
+                // 添加http://前缀（如果没有）
+                let formattedUrl = url;
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    formattedUrl = 'http://' + url;
+                }
+                
+                // 更新配置
+                qrConfig.text = formattedUrl;
+                
+                // 清除旧二维码并生成新的
+                qrcode.clear();
+                qrcode.makeCode(formattedUrl);
+                
+                // 更新容器大小
+                qrcodeContainer.style.width = `${qrConfig.width}px`;
+                qrcodeContainer.style.height = `${qrConfig.height}px`;
+                
+                showNotification('二维码生成成功');
+            }
+            
+            // 下载二维码
+            function downloadQRCode() {
+                // 获取二维码图像
+                const qrImage = qrcodeContainer.querySelector('img');
+                if (!qrImage) {
+                    showNotification('请先生成二维码', 'error');
+                    return;
+                }
+                
+                // 创建下载链接
+                const downloadLink = document.createElement('a');
+                downloadLink.href = qrImage.src;
+                
+                // 生成文件名
+                let url = urlInput.value.trim();
+                if (!url) {
+                    url = 'qrcode';
+                } else {
+                    // 从URL中提取域名作为文件名
+                    try {
+                        const urlObj = new URL(url.startsWith('http') ? url : 'http://' + url);
+                        url = urlObj.hostname.replace(/\./g, '-');
+                    } catch (e) {
+                        url = 'qrcode';
+                    }
+                }
+                
+                downloadLink.download = `${url}-qrcode.png`;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                showNotification('二维码下载成功');
+            }
+            
+            // 显示通知
+            function showNotification(text, type = 'success') {
+                notificationText.textContent = text;
+                
+                // 设置通知类型样式
+                notification.className = 'notification fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50';
+                
+                if (type === 'success') {
+                    notification.classList.add('bg-green-500', 'text-white');
+                } else if (type === 'error') {
+                    notification.classList.add('bg-red-500', 'text-white');
+                } else if (type === 'info') {
+                    notification.classList.add('bg-blue-500', 'text-white');
+                }
+                
+                // 显示通知
+                notification.classList.add('show');
+                
+                // 3秒后隐藏
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // 切换设置面板
+            function toggleSettings() {
+                if (settingsPanel.classList.contains('hidden')) {
+                    settingsPanel.classList.remove('hidden');
+                    settingsPanel.classList.add('visible');
+                } else {
+                    settingsPanel.classList.remove('visible');
+                    settingsPanel.classList.add('hidden');
+                }
+            }
+            
+            // 更新二维码大小
+            function updateSize() {
+                const size = sizeSlider.value;
+                sizeValue.textContent = `${size}px`;
+                
+                qrConfig.width = size;
+                qrConfig.height = size;
+                
+                // 更新二维码
+                qrcode.clear();
+                qrcode.makeCode(qrConfig.text);
+                
+                // 更新容器大小
+                qrcodeContainer.style.width = `${size}px`;
+                qrcodeContainer.style.height = `${size}px`;
+            }
+            
+            // 更新颜色
+            function updateColor(element, type) {
+                // 移除同类型所有选项的选中状态
+                const siblings = Array.from(element.parentElement.children);
+                siblings.forEach(sibling => sibling.classList.remove('selected'));
+                
+                // 添加当前选项的选中状态
+                element.classList.add('selected');
+                
+                // 更新配置
+                const color = element.dataset.color;
+                if (type === 'dark') {
+                    qrConfig.colorDark = color;
+                } else {
+                    qrConfig.colorLight = color;
+                }
+                
+                // 更新二维码
+                qrcode.clear();
+                qrcode.makeCode(qrConfig.text);
+            }
+            
+            // 更新容错级别
+            function updateErrorLevel(element) {
+                // 移除所有按钮的选中状态
+                errorLevelBtns.forEach(btn => {
+                    btn.classList.remove('selected', 'bg-blue-100', 'text-blue-800');
+                    btn.classList.add('bg-gray-100', 'text-gray-800');
+                });
+                
+                // 添加当前按钮的选中状态
+                element.classList.add('selected', 'bg-blue-100', 'text-blue-800');
+                element.classList.remove('bg-gray-100', 'text-gray-800');
+                
+                // 更新配置
+                const level = element.dataset.level;
+                switch (level) {
+                    case 'L':
+                        qrConfig.correctLevel = QRCode.CorrectLevel.L;
+                        break;
+                    case 'M':
+                        qrConfig.correctLevel = QRCode.CorrectLevel.M;
+                        break;
+                    case 'Q':
+                        qrConfig.correctLevel = QRCode.CorrectLevel.Q;
+                        break;
+                    case 'H':
+                        qrConfig.correctLevel = QRCode.CorrectLevel.H;
+                        break;
+                }
+                
+                // 更新二维码
+                qrcode.clear();
+                qrcode.makeCode(qrConfig.text);
+            }
+            
+            // 事件监听
+            generateBtn.addEventListener('click', generateQRCode);
+            downloadBtn.addEventListener('click', downloadQRCode);
+            settingsBtn.addEventListener('click', toggleSettings);
+            sizeSlider.addEventListener('input', updateSize);
+            
+            // 颜色选项点击事件
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 判断是前景色还是背景色
+                    const isForeground = this.parentElement.previousElementSibling.textContent.includes('前景色');
+                    updateColor(this, isForeground ? 'dark' : 'light');
+                });
+            });
+            
+            // 容错级别按钮点击事件
+            errorLevelBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    updateErrorLevel(this);
+                });
+            });
+            
+            // 回车生成二维码
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    generateQRCode();
+                }
+            });
+            
+            // 初始化生成二维码
+            generateQRCode();
+        });
+    </script>
+</body>
+</html>
+
