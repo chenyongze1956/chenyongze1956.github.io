@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>二维码生成器</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -43,70 +44,40 @@
             .text-shadow {
                 text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
+            .qr-container {
+                aspect-ratio: 1/1;
+                width: 100%;
+                max-width: 300px;
+            }
+            .btn-primary {
+                @apply bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-200 hover:translate-y-[-2px] active:translate-y-0;
+            }
+            .btn-secondary {
+                @apply bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-200 hover:bg-gray-200;
+            }
+            .input-field {
+                @apply w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-300;
+            }
         }
     </style>
     <style>
         body {
                  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 10px;
         }
-
-        .bg-white{
-
-                               background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-              
-            
-        }
-        #url-input{
-
-
-
-                               background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
-            
-        }
-        .qrcode-container {
+        
+        .qrcode-image-container {
             transition: all 0.3s ease;
         }
         
-        .qrcode-container:hover {
+        .qrcode-image-container:hover {
             transform: translateY(-5px);
-        }
-        
-        .btn {
-            transition: all 0.2s ease;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .url-input {
-            transition: all 0.3s ease;
-        }
-        
-        .url-input:focus {
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-        }
-        
-        .download-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .download-btn:hover {
-            background-color: #2563EB;
-        }
-        
-        .settings-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .settings-btn:hover {
-            background-color: #E5E7EB;
         }
         
         .settings-panel {
@@ -117,6 +88,10 @@
         .settings-panel.hidden {
             transform: scaleY(0);
             opacity: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
         
         .settings-panel.visible {
@@ -126,6 +101,10 @@
         
         .color-option {
             transition: all 0.2s ease;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
         }
         
         .color-option:hover {
@@ -139,25 +118,73 @@
         
         .size-slider {
             transition: all 0.3s ease;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #E5E7EB;
+            outline: none;
         }
         
         .size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
         
         .size-slider::-webkit-slider-thumb:hover {
             transform: scale(1.2);
+            background: #2563EB;
+        }
+        
+        .size-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3B82F6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .size-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: #2563EB;
+        }
+        
+        .error-level-btn {
+            transition: all 0.2s ease;
         }
         
         .notification {
             transition: all 0.3s ease;
             transform: translateY(-100%);
             opacity: 0;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .notification.show {
-            transform: translateY(0);
+            transform: translate(-50%, 0);
             opacity: 1;
+        }
+        
+        .notification-icon {
+            font-size: 18px;
         }
         
         /* 动画效果 */
@@ -180,106 +207,229 @@
         }
         
         /* 响应式调整 */
-        @media (max-width: 640px) {
-            .generator-container {
-                width: 90%;
+        @media (max-width: 360px) {
+            .title {
+                font-size: 1.75rem;
             }
             
-            .qrcode-container {
-                width: 250px;
-                height: 250px;
+            .subtitle {
+                font-size: 0.875rem;
+            }
+            
+            .btn-text {
+                font-size: 0.875rem;
+            }
+            
+            .btn-icon {
+                font-size: 1rem;
+            }
+            
+            .settings-title {
+                font-size: 1rem;
+            }
+            
+            .color-option {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .size-value {
+                font-size: 0.75rem;
+            }
+            
+            .error-level-text {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+        }
+        
+        @media (min-width: 640px) {
+            body {
+                justify-content: center;
+                padding: 40px 20px;
+            }
+            
+            .container {
+                max-width: 500px;
+            }
+            
+            .title {
+                font-size: 2.25rem;
+            }
+            
+            .qrcode-image-container {
+                max-width: 300px;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                max-width: 600px;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 700px;
+            }
+            
+            .main-content {
+                padding: 3rem;
+            }
+        }
+        
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1F2937;
+            }
+            
+            .card {
+                background-color: #374151;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .title, .subtitle, .settings-title, .label-text, .size-value, .notification-text {
+                color: #F9FAFB;
+            }
+            
+            .input-field {
+                background-color: #4B5563;
+                border-color: #6B7280;
+                color: #F9FAFB;
+            }
+            
+            .input-field::placeholder {
+                color: #9CA3AF;
+            }
+            
+            .btn-secondary {
+                background-color: #4B5563;
+                color: #F9FAFB;
+            }
+            
+            .btn-secondary:hover {
+                background-color: #6B7280;
+            }
+            
+            .settings-panel {
+                background-color: #4B5563;
+            }
+            
+            .color-option-bg-white {
+                border: 1px solid #9CA3AF;
+            }
+            
+            .error-level-btn {
+                background-color: #4B5563;
+                color: #F9FAFB;
+            }
+            
+            .error-level-btn.selected {
+                background-color: #3B82F6;
+                color: white;
             }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-md">
+<body>
+    <div class="w-full max-w-md container animate-fadeIn">
         <!-- 标题 -->
-        <div class="text-center mb-8 animate-fadeIn">
-            
+        <div class="text-center mb-8">
+         
         </div>
         
         <!-- 主容器 -->
-        <div class="bg-white rounded-xl shadow-custom p-6 animate-slideUp">
+        <div id="kkk" class="card bg-white rounded-xl shadow-custom p-6 animate-slideUp" style="animation-delay: 0.1s;">
             <!-- URL输入框 -->
             <div class="mb-6">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
                         <i class="fa fa-link"></i>
                     </span>
-                    <input type="text" id="url-input" class="url-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none" placeholder="请输入网址，例如：https://example.com" value="https://chenyongze1956.github.io/">
+                    <input type="text" id="url-input" class="input-field" placeholder="请输入网址，例如：https://example.com" value="https://chenyongze1956.github.io/">
                 </div>
             </div>
             
             <!-- 二维码容器 -->
-            <div class="flex justify-center mb-6">
-                <div id="qrcode" class="qrcode-container bg-white p-4 rounded-lg shadow-md w-48 h-48"></div>
+            <div class="flex justify-center mb-6" id="kk">
+                <div id="qrcode" class="qrcode-image-container bg-white p-4 rounded-lg shadow-md qr-container"></div>
             </div>
             
             <!-- 控制按钮 -->
             <div class="flex flex-wrap gap-3 mb-6">
-                <button id="generate-btn" class="btn flex-1 bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center">
-                    <i class="fa fa-refresh mr-2"></i> 生成二维码
+                <button id="generate-btn" class="btn-primary flex-1">
+                    <i class="fa fa-refresh mr-2 btn-icon"></i> <span class="btn-text">生成二维码</span>
                 </button>
-                <button id="download-btn" class="download-btn bg-gray-100 text-gray-800 py-3 px-4 rounded-lg font-medium flex items-center justify-center">
-                    <i class="fa fa-download mr-2"></i> 下载
+                <button id="download-btn" class="btn-secondary">
+                    <i class="fa fa-download mr-2 btn-icon"></i> <span class="btn-text">下载</span>
                 </button>
-                
+                <button id="settings-btn" class="btn-secondary w-12 p-3">
+                    <i class="fa fa-cog btn-icon"></i>
                 </button>
             </div>
             
             <!-- 设置面板 -->
             <div id="settings-panel" class="settings-panel hidden bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 class="text-lg font-medium text-gray-800 mb-4">二维码设置</h3>
+                <h3 class="settings-title text-lg font-medium text-gray-800 mb-4">二维码设置</h3>
                 
                 <!-- 颜色设置 -->
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">前景色</label>
-                    <div class="flex gap-2">
-                        <div class="color-option selected w-6 h-6 rounded-full bg-black cursor-pointer" data-color="#000000"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-red-600 cursor-pointer" data-color="#DC2626"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-blue-600 cursor-pointer" data-color="#2563EB"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-green-600 cursor-pointer" data-color="#16A34A"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-purple-600 cursor-pointer" data-color="#9333EA"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-yellow-500 cursor-pointer" data-color="#EAB308"></div>
+                    <label class="block label-text text-sm font-medium text-gray-700 mb-2">前景色</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <div class="color-option selected bg-black" data-color="#000000"></div>
+                        <div class="color-option bg-red-600" data-color="#DC2626"></div>
+                        <div class="color-option bg-blue-600" data-color="#2563EB"></div>
+                        <div class="color-option bg-green-600" data-color="#16A34A"></div>
+                        <div class="color-option bg-purple-600" data-color="#9333EA"></div>
+                        <div class="color-option bg-yellow-500" data-color="#EAB308"></div>
+                        <div class="color-option bg-pink-600" data-color="#DB2777"></div>
+                        <div class="color-option bg-indigo-600" data-color="#4F46E5"></div>
                     </div>
                 </div>
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">背景色</label>
-                    <div class="flex gap-2">
-                        <div class="color-option selected w-6 h-6 rounded-full bg-white cursor-pointer" data-color="#FFFFFF"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-gray-100 cursor-pointer" data-color="#F3F4F6"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-gray-200 cursor-pointer" data-color="#E5E7EB"></div>
-                        <div class="color-option w-6 h-6 rounded-full bg-gray-300 cursor-pointer" data-color="#D1D5DB"></div>
+                    <label class="block label-text text-sm font-medium text-gray-700 mb-2">背景色</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <div class="color-option selected bg-white color-option-bg-white" data-color="#FFFFFF"></div>
+                        <div class="color-option bg-gray-100" data-color="#F3F4F6"></div>
+                        <div class="color-option bg-gray-200" data-color="#E5E7EB"></div>
+                        <div class="color-option bg-gray-300" data-color="#D1D5DB"></div>
+                        <div class="color-option bg-blue-50" data-color="#EFF6FF"></div>
+                        <div class="color-option bg-green-50" data-color="#ECFDF5"></div>
                     </div>
                 </div>
                 
                 <!-- 大小设置 -->
                 <div class="mb-4">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="block text-sm font-medium text-gray-700">大小</label>
-                        <span id="size-value" class="text-sm text-gray-600">200px</span>
+                        <label class="block label-text text-sm font-medium text-gray-700">大小</label>
+                        <span id="size-value" class="size-value text-sm text-gray-600">200px</span>
                     </div>
-                    <input type="range" id="size-slider" class="size-slider w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" min="128" max="512" step="32" value="200">
+                    <input type="range" id="size-slider" class="size-slider" min="128" max="512" step="32" value="200">
                 </div>
                 
                 <!-- 容错级别 -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">容错级别</label>
-                    <div class="flex gap-2">
-                        <button class="error-level-btn selected px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800" data-level="L">低</button>
-                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="M">中</button>
-                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="Q">较高</button>
-                        <button class="error-level-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="H">高</button>
+                    <label class="block label-text text-sm font-medium text-gray-700 mb-2">容错级别</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="error-level-btn selected error-level-text px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-800" data-level="L">低</button>
+                        <button class="error-level-btn error-level-text px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="M">中</button>
+                        <button class="error-level-btn error-level-text px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="Q">较高</button>
+                        <button class="error-level-btn error-level-text px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-800" data-level="H">高</button>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- 通知 -->
-        <div id="notification" class="notification fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-            <span id="notification-text">操作成功</span>
+        <div id="notification" class="notification">
+            <i id="notification-icon" class="notification-icon fa fa-check-circle"></i>
+            <span id="notification-text" class="notification-text">操作成功</span>
         </div>
     </div>
 
@@ -296,6 +446,7 @@
             const sizeValue = document.getElementById('size-value');
             const notification = document.getElementById('notification');
             const notificationText = document.getElementById('notification-text');
+            const notificationIcon = document.getElementById('notification-icon');
             const colorOptions = document.querySelectorAll('.color-option');
             const errorLevelBtns = document.querySelectorAll('.error-level-btn');
             
@@ -311,6 +462,29 @@
             
             // 创建二维码实例
             let qrcode = new QRCode(qrcodeContainer, qrConfig);
+            
+            // 根据屏幕尺寸调整初始大小
+            function adjustInitialSize() {
+                const screenWidth = window.innerWidth;
+                let initialSize = 200;
+                
+                if (screenWidth < 360) {
+                    initialSize = 160;
+                } else if (screenWidth < 640) {
+                    initialSize = 200;
+                } else {
+                    initialSize = 256;
+                }
+                
+                qrConfig.width = initialSize;
+                qrConfig.height = initialSize;
+                sizeSlider.value = initialSize;
+                sizeValue.textContent = `${initialSize}px`;
+                
+                // 更新容器大小
+                qrcodeContainer.style.width = `${initialSize}px`;
+                qrcodeContainer.style.height = `${initialSize}px`;
+            }
             
             // 生成二维码
             function generateQRCode() {
@@ -381,14 +555,17 @@
                 notificationText.textContent = text;
                 
                 // 设置通知类型样式
-                notification.className = 'notification fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50';
+                notification.className = 'notification';
                 
                 if (type === 'success') {
                     notification.classList.add('bg-green-500', 'text-white');
+                    notificationIcon.className = 'notification-icon fa fa-check-circle';
                 } else if (type === 'error') {
                     notification.classList.add('bg-red-500', 'text-white');
+                    notificationIcon.className = 'notification-icon fa fa-exclamation-circle';
                 } else if (type === 'info') {
                     notification.classList.add('bg-blue-500', 'text-white');
+                    notificationIcon.className = 'notification-icon fa fa-info-circle';
                 }
                 
                 // 显示通知
@@ -513,10 +690,44 @@
                 }
             });
             
-            // 初始化生成二维码
+            // 窗口大小改变时调整布局
+            window.addEventListener('resize', function() {
+                adjustInitialSize();
+                // 重新生成二维码以适应新大小
+                qrcode.clear();
+                qrcode.makeCode(qrConfig.text);
+            });
+            
+            // 初始化
+            adjustInitialSize();
             generateQRCode();
         });
     </script>
 </body>
 </html>
 
+
+<style>
+
+#qrcode{
+
+                   background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+    
+}
+    
+#kk{
+
+
+                   background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+    
+}
+
+    #kkk{
+
+                   background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+        
+    }
+
+    </style>
