@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,11 +13,14 @@
         tailwind.config = {
             theme: {
                 extend: {
+
+                         background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#6366F1',
-                        dark: '#1E293B',
-                        light: '#F8FAFC'
+                        primary: '#ff7e5f',
+                        secondary: '#feb47b',
+                        dark: '#ffed86',
+                        light: '#5fbfff'
                     },
                     fontFamily: {
                         sans: ['Inter', 'system-ui', 'sans-serif']
@@ -97,7 +101,6 @@
             <button id="toggle-camera" class="bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-70 transition-all">
                 <i class="fa fa-refresh text-xl"></i>
             </button>
-            
             <button id="toggle-flash" class="bg-black bg-opacity-50 p-2 rounded-full hover:bg-opacity-70 transition-all">
                 <i class="fa fa-lightbulb-o text-xl"></i>
             </button>
@@ -105,12 +108,12 @@
 
         <!-- Capture Button -->
         <div class="absolute bottom-24 left-0 right-0 z-20 flex justify-center">
-            <button id="capture-btn" class="w-20 h-20 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-all">
-                <div class="w-16 h-16 rounded-full bg-gray-800"></div>
+            <button id="capture-btn" class="w-14 h-14 rounded-full bg-white border-3 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-all">
+                <div class="w-11 h-11 rounded-full bg-gray-800"></div>
             </button>
         </div>
 
-     
+      
 
     <!-- Preview Modal -->
     <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center hidden">
@@ -463,3 +466,20 @@
     </script>
 </body>
 </html>
+
+<style>
+
+#shutter-effect{
+
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+
+    
+}
+
+
+    #capture-btn{
+
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+        
+    }
+    </style>
