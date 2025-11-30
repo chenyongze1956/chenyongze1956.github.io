@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal CLI (带 FS, Curl, Touch)</title>
+    <style>
+
+ @keyframes rainbow-color-change {
+    0%, 100% { color: #ff0000; } /* Red */
+    14% { color: #ff8b00; } /* Orange */
+    28% { color: #e8ff00; } /* Yellow */
+    42% { color: #5dff00; } /* Green */
+    56% { color: #00b9ff; } /* Blue */
+    70% { color: #5d00ff; } /* Indigo */
+    84% { color: #e800ff; } /* Violet */
+}
+        
+        /* CSS Reset and Global Styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --terminal-bg: #000000;
+            --terminal-text: #00ff00; /* Bright Green */
+            --prompt-color: #00ffff; /* Cyan for the prompt text */
+            --dir-color: #33ccff; /* Blue for directories */
+            --file-color: #ffffff; /* White for files */
+            --terminal-width-desktop: 800px;
+            --terminal-height-desktop: 600px;
+            --font-size-desktop: 1rem;
+            --font-size-mobile: 0.9rem;
+        }
+
+        body {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+     font-family: Comic Sans MS, cursive, sans-serif;
+            color: var(--terminal-text);
+            font-size: var(--font-size-desktop);
+                                animation: rainbow-color-change 3s linear infinite alternate;
+
+        }
+
+        /* --- 终端容器 --- */
+        #terminal-container {
+            background-color: var(--terminal-bg);
+            width: 100%;
+            max-width: var(--terminal-width-desktop);
+            height: 100vh; /* Mobile height */
+            max-height: var(--terminal-height-desktop); /* Desktop height limit */
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
+
+        /* --- 输出区域 --- */
+        #output {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            line-height: 1.4;
+            white-space: pre-wrap; 
+            word-break: break-all;
+        }
+
+        /* Custom Scrollbar for better retro look */
+        #output::-webkit-scrollbar {
+            width: 8px;
+        }
+        #output::-webkit-scrollbar-track {
+            background: #222;
+        }
+        #output::-webkit-scrollbar-thumb {
+            background: #004d00;
+            border-radius: 4px;
+        }
+        #output::-webkit-scrollbar-thumb:hover {
+            background: var(--terminal-text);
+        }
+        
+        /* --- 输入行 --- */
+        #input-line {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-top: 1px solid #004d00;
+            flex-shrink: 0; 
+        }
+
+        #prompt {
+            color: var(--prompt-color);
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        #commandInput {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--terminal-text);
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            caret-color: var(--terminal-text); 
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* --- 输出行样式 --- */
+        .output-line {
+            margin: 0;
+        }
+
+        .output-line span {
+            color: var(--prompt-color); 
+        }
+
+        .error {
+            color: #ff4500; /* OrangeRed for errors */
+        }
+
+        .welcome {
+            color: #ffff00; /* Yellow for welcome text */
+            margin-bottom: 10px;
+        }
+
+        .dir {
+            color: var(--dir-color);
+            font-weight: bold;
+        }
+        
+        .file {
+            color: var(--file-color);
+        }
+
+        /* --- 移动端优化 --- */
+        @media (max-width: 768px) {
+            body {
+                font-size: var(--font-size-mobile);
+                padding: 0;
+            }
+            #terminal-container {
+                border-radius: 0;
+                height: 100vh; 
+            }
+            #output {
+                padding: 10px;
+            }
+            #input-line {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal-container">
+        <div id="output">
+            </div>
+        
+        <div id="input-line">
+            <span id="prompt">user@web-cli:~$</span>
+            <input type="text" id="commandInput" autofocus>
+        </div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        const input = document.getElementById('commandInput');
+        const promptSpan = document.getElementById('prompt');
+        const initialPromptText = "user@web-cli:";
+        
+        let history = [];
+        let historyIndex = -1;
+        let currentPath = '/home/user'; // 当前工作目录
+        
+        // 模拟文件系统结构
+        const fileSystem = {
+            name: '/',
+            type: 'dir',
+            contents: {
+                'home': {
+                    name: 'home', type: 'dir', contents: {
+                        'user': {
+                            name: 'user', type: 'dir', contents: {
+                                'Documents': { name: 'Documents', type: 'dir', contents: {} },
+                                'Images': { name: 'Images', type: 'dir', contents: {} },
+                                'music.mp3': { name: 'music.mp3', type: 'file' },
+                                'README.txt': { name: 'README.txt', type: 'file' }
+                            }
+                        }
+                    }
+                },
+                'etc': { name: 'etc', type: 'dir', contents: { 'hosts': { name: 'hosts', type: 'file' } } },
+                'bin': { name: 'bin', type: 'dir', contents: {} }
+            }
+        };
+
+        // --- FS 工具函数 ---
+
+        function getDirNode(path) {
+            let parts = path.split('/').filter(p => p.length > 0);
+            let currentNode = fileSystem;
+            
+            for (const part of parts) {
+                if (currentNode.contents && currentNode.contents[part]) {
+                    currentNode = currentNode.contents[part];
+                } else {
+                    return null; 
+                }
+            }
+            return currentNode;
+        }
+
+        function getCurrentDirNode() {
+            return getDirNode(currentPath);
+        }
+
+        function updatePrompt() {
+            promptSpan.innerText = `${initialPromptText}${currentPath}~$`;
+        }
+
+        // --- 核心命令执行 ---
+        
+        const commands = {
+            'help': {
+                description: '显示可用命令列表。',
+                execute: () => {
+                    let helpOutput = '可用命令:\n';
+                    for (const cmd in commands) {
+                        helpOutput += `  ${cmd.padEnd(10)} - ${commands[cmd].description}\n`;
+                    }
+                    writeOutput(helpOutput);
+                }
+            },
+            'clear': {
+                description: '清空终端屏幕。',
+                execute: () => {
+                    output.innerHTML = '';
+                    writeWelcome();
+                }
+            },
+            'echo': {
+                description: '在终端上打印文本。用法: echo <文本>',
+                execute: (args) => {
+                    writeOutput(args.join(' '));
+                }
+            },
+            'date': {
+                description: '显示当前日期和时间。',
+                execute: () => {
+                    writeOutput(new Date().toLocaleString());
+                }
+            },
+            'pwd': {
+                description: '打印当前工作目录。',
+                execute: () => {
+                    writeOutput(currentPath);
+                }
+            },
+            'ls': {
+                description: '列出当前目录内容。',
+                execute: () => {
+                    const node = getCurrentDirNode();
+                    if (!node || node.type !== 'dir') {
+                        writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error');
+                        return;
+                    }
+                    
+                    let contentHTML = '';
+                    const items = Object.values(node.contents).sort((a, b) => {
+                        if (a.type === 'dir' && b.type === 'file') return -1;
+                        if (a.type === 'file' && b.type === 'dir') return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    items.forEach(item => {
+                        const typeClass = item.type === 'dir' ? 'dir' : 'file';
+                        contentHTML += `<span class="${typeClass}">${item.name}</span>&nbsp;&nbsp;&nbsp;`;
+                    });
+                    
+                    const p = document.createElement('p');
+                    p.className = 'output-line';
+                    p.innerHTML = contentHTML;
+                    output.appendChild(p);
+                    scrollToBottom();
+                }
+            },
+            'cd': {
+                description: '切换目录。用法: cd <目录名>',
+                execute: (args) => {
+                    const target = args[0];
+                    if (!target) {
+                        currentPath = '/home/user';
+                        updatePrompt();
+                        return;
+                    }
+
+                    let newPath;
+
+                    if (target === '/') {
+                        newPath = '/';
+                    } else if (target.startsWith('/')) {
+                        newPath = target;
+                    } else if (target === '..') {
+                        if (currentPath === '/') return;
+                        newPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+                        if (newPath === '') newPath = '/'; 
+                    } else {
+                        newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
+                    }
+
+                    const node = getDirNode(newPath);
+
+                    if (!node) {
+                        writeOutput(`cd: 目录不存在: ${target}`, 'error');
+                    } else if (node.type !== 'dir') {
+                        writeOutput(`cd: 不是目录: ${target}`, 'error');
+                    } else {
+                        currentPath = newPath;
+                        updatePrompt();
+                    }
+                }
+            },
+            'touch': {
+                description: '在当前目录创建一个空文件。用法: touch <文件名>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('touch: 缺少文件操作数。', 'error');
+                        return;
+                    }
+
+                    const filename = args[0];
+                    const currentNode = getCurrentDirNode();
+
+                    if (!currentNode || currentNode.type !== 'dir') {
+                        writeOutput(`touch: 无法创建文件: ${currentPath} 不是一个有效目录。`, 'error');
+                        return;
+                    }
+
+                    if (currentNode.contents[filename]) {
+                        writeOutput(`touch: 文件已存在: ${filename}`, 'error');
+                        return;
+                    }
+
+                    // 模拟创建文件
+                    currentNode.contents[filename] = { 
+                        name: filename, 
+                        type: 'file', 
+                        created: new Date().toISOString() 
+                    };
+                    writeOutput(`文件 ${filename} 已创建。`);
+                }
+            },
+            'curl': {
+                description: '模拟 HTTP GET 请求。用法: curl <URL>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('curl: 缺少 URL。', 'error');
+                        writeOutput('用法: curl https://jsonplaceholder.typicode.com/todos/1', 'error');
+                        return;
+                    }
+
+                    const url = args[0];
+                    writeOutput(`正在连接到 ${url}...`);
+
+                    // 禁用输入框并显示加载状态
+                    input.disabled = true;
+                    promptSpan.style.color = 'yellow';
+                    promptSpan.innerText = 'FETCHING...';
+
+                    // 使用 fetch API 发起请求
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP 错误! 状态: ${response.status}`);
+                            }
+                            // 尝试以文本形式读取响应
+                            return response.text(); 
+                        })
+                        .then(data => {
+                            writeOutput(`--- curl 响应 (${url}) ---`);
+                            // 限制输出长度以避免终端溢出
+                            const outputData = data.length > 500 ? data.substring(0, 500) + '... (输出被截断)' : data;
+                            writeOutput(outputData);
+                            writeOutput(`--- 状态: 200 OK ---`);
+                        })
+                        .catch(error => {
+                            // 捕获网络错误和 CORS 错误
+                            writeOutput(`curl: 错误: ${error.message}`, 'error');
+                            writeOutput('注意: 浏览器可能由于 CORS 策略阻止了此请求。请尝试公共 API。', 'error');
+                        })
+                        .finally(() => {
+                            // 恢复输入框和提示符状态
+                            input.disabled = false;
+                            updatePrompt();
+                            input.focus();
+                            scrollToBottom();
+                            promptSpan.style.color = 'var(--prompt-color)';
+                        });
+                }
+            }
+        };
+
+        // --- 终端输入和输出处理 ---
+
+        function writeOutput(text, className = 'output-text') {
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                const p = document.createElement('p');
+                p.className = `output-line ${className}`;
+                p.textContent = line;
+                output.appendChild(p);
+            });
+            scrollToBottom();
+        }
+
+        function writeCommandHistory(commandLine) {
+            const p = document.createElement('p');
+            p.className = 'output-line';
+            p.innerHTML = `<span style="color:var(--prompt-color);">${promptSpan.innerText}</span> ${commandLine}`;
+            output.appendChild(p);
+        }
+
+        function writeWelcome() {
+            writeOutput('', '');
+            writeOutput(' ', '');
+            writeOutput('', '');
+        }
+
+        function handleInput() {
+            const commandLine = input.value.trim();
+            if (commandLine === '') return;
+
+            writeCommandHistory(commandLine);
+            history.push(commandLine);
+            historyIndex = history.length; 
+
+            const parts = commandLine.split(/\s+/);
+            const command = parts[0].toLowerCase();
+            const args = parts.slice(1);
+
+            const cmd = commands[command];
+            if (cmd) {
+                // 异步命令 (如 curl) 需要在执行时禁用输入框，同步命令直接执行
+                if (command === 'curl') {
+                    cmd.execute(args);
+                } else {
+                    // 同步执行命令
+                    cmd.execute(args);
+                    input.value = '';
+                    input.focus();
+                }
+            } else {
+                writeOutput(`命令未找到: ${command}. 输入 'help' 查看命令。`, 'error');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function scrollToBottom() {
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // --- 事件监听 ---
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (input.disabled) return; // 正在执行 curl 时阻止输入
+                handleInput();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    input.value = history[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    input.value = history[historyIndex];
+                } else {
+                    historyIndex = history.length;
+                    input.value = '';
+                }
+            }
+        });
+
+        document.getElementById('terminal-container').addEventListener('click', () => {
+            input.focus();
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePrompt();
+            writeWelcome();
+            input.focus();
+        });
+    </script>
+</body>
+</html>
