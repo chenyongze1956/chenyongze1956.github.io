@@ -1,198 +1,376 @@
+https://www.joy12
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自定义链接音乐播放器</title>
+    <title>90年代磁带播放器 (修正版)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #007bff; /* 蓝色主题 */
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #343a40;
-            --progress-track: #e9ecef;
+            --player-bg-dark: #2a2a2a;
+            --player-bg-light: #4c4c4c;
+            --button-bg-color: #6a6a6a;
+            --button-active-color: #929292;
+            --led-color: #ff4500; /* OrangeRed for LED */
+            --tape-window-bg: #1c1c1c;
+            --tape-reel-color: #333;
+            --tape-label-color: #eee;
+            --tape-tape-color: #000;
+            --accent-color: #007bff; /* Blue for highlights like progress */
+            --font-pixel: 'Press Start 2P', cursive;
+            --font-regular: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* --- 整体布局与卡片样式 --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
+            font-family: var(--font-regular);
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
+            overflow: hidden; 
         }
 
-        .audio-card {
-            background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        .cassette-player {
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), inset 0 -5px 10px rgba(0, 0, 0, 0.6);
             width: 90%;
-            max-width: 450px;
+            max-width: 500px;
             text-align: center;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
+            border: 2px solid #555;
+            position: relative;
+            overflow: hidden; 
         }
 
-        .track-info { margin-bottom: 20px; }
-        .track-info h2 { margin: 0; color: var(--text-color); font-size: 1.25rem; }
+        /* --- 顶部信息和标题 --- */
+        .player-header {
+            margin-bottom: 20px;
+        }
 
-        /* 隐藏原生 audio 元素 */
-        audio { display: none; }
+        .player-header h1 {
+            font-family: var(--font-pixel);
+            color: #eee;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
 
-        /* --- URL 输入区域样式 --- */
+        .track-info h3 {
+            font-family: var(--font-regular);
+            color: #ccc;
+            font-size: 0.9rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- 磁带窗口 --- */
+        .tape-window {
+            background-color: var(--tape-window-bg);
+            border: 2px solid #555;
+            border-radius: 5px;
+            height: 120px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .tape-reel {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--tape-reel-color);
+            border: 2px solid #666;
+            position: relative;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            /* 将动画移到 JS 中控制，避免初始加载时旋转 */
+        }
+
+        .tape-reel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 15px;
+            background-color: #999;
+            border-radius: 50%;
+            border: 1px solid #777;
+        }
+
+        .tape-reel.playing {
+            animation: rotateReel 0.5s linear infinite; 
+        }
+
+        @keyframes rotateReel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .tape-reel-tape {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px; 
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--tape-tape-color);
+            z-index: 1; 
+            overflow: hidden; 
+            transition: width 0.2s, height 0.2s;
+        }
+
+        /* --- 模拟磁带带体 --- */
+        .tape-strip {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; 
+            height: 15px; 
+            background-color: var(--tape-tape-color);
+            border-radius: 3px;
+            z-index: 0; 
+        }
+        
+        .tape-strip::before, .tape-strip::after {
+            content: '';
+            position: absolute;
+            top: -2px; 
+            bottom: -2px;
+            width: 3px;
+            background-color: #666;
+            border-radius: 1px;
+        }
+        .tape-strip::before { left: 0; }
+        .tape-strip::after { right: 0; }
+
+
+        /* --- 时间显示 (LED 风格) --- */
+        #timeDisplay {
+            font-family: var(--font-pixel);
+            color: var(--led-color);
+            background-color: #0d0d0d;
+            border: 2px solid #555;
+            padding: 8px 12px;
+            margin: 0 auto 20px auto;
+            border-radius: 4px;
+            box-shadow: inset 0 0 8px rgba(255, 69, 0, 0.5), 0 0 5px rgba(255, 69, 0, 0.2);
+            font-size: 1.1rem;
+            width: fit-content;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--led-color);
+            display: block; 
+        }
+        
+        /* --- URL 输入区域 --- */
         .url-input-group {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         #audioUrlInput {
             flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        #loadBtn {
             padding: 10px 15px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
+            border: 2px solid #666;
+            border-radius: 8px;
+            background-color: #333;
+            color: #eee;
+            font-size: 0.9rem;
+            outline: none;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.2s;
+        }
+        #audioUrlInput::placeholder {
+            color: #aaa;
+        }
+        #audioUrlInput:focus {
+            border-color: var(--accent-color);
+        }
+
+        #loadBtn {
+            padding: 10px 20px;
+            background: linear-gradient(to bottom, #444, #333);
+            color: #fff;
+            border: 2px solid #666;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 3px 0 #222, inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.1s ease;
             flex-shrink: 0;
         }
-        #loadBtn:hover { background-color: #0056b3; }
+        #loadBtn:active {
+            box-shadow: 0 0 0 #222, inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(3px);
+            background: linear-gradient(to top, #444, #333);
+        }
 
-        /* --- 播放器控件样式 --- */
-        .player-controls {
+        /* --- 播放器按钮组 --- */
+        .player-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .control-btn {
+            background: linear-gradient(to bottom, var(--button-bg-color), darken(var(--button-bg-color), 10%));
+            color: #eee;
+            border: 2px solid #888;
+            border-radius: 8px;
+            padding: 12px 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #444, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.1s ease;
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-top: 15px;
-            padding: 10px;
-            border-top: 1px solid #e9ecef;
+            justify-content: center;
+        }
+        .control-btn:active {
+            box-shadow: 0 0 0 #444, inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(4px);
+            background: linear-gradient(to top, var(--button-bg-color), darken(var(--button-bg-color), 10%));
+        }
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: 0 4px 0 #444; 
+            transform: none; 
         }
 
-        #playPauseBtn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
+        /* Specific button colors/styles */
+        #playBtn { background-color: #28a745; border-color: #38c755; } 
+        #playBtn:active { background-color: #1e7e34; }
+        #playBtn:disabled { background-color: #28a745; opacity: 0.4;}
+
+        #pauseBtn { background-color: #ffc107; border-color: #ffd117; color: #333; } 
+        #pauseBtn:active { background-color: #e0a800; }
+        #pauseBtn:disabled { background-color: #ffc107; opacity: 0.4;}
+
+        #stopBtn { background-color: #dc3545; border-color: #ff4555; } 
+        #stopBtn:active { background-color: #c82333; }
+        #stopBtn:disabled { background-color: #dc3545; opacity: 0.4;}
+
+        /* --- 进度条和音量 --- */
+        .sliders-group {
+            margin-top: 15px;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .slider-wrapper label {
+            color: #ccc;
+            font-size: 0.8rem;
             width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            line-height: 1;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            text-align: right;
             flex-shrink: 0;
         }
-        #playPauseBtn:hover:not(:disabled) { background-color: #0056b3; }
-        #playPauseBtn:disabled { opacity: 0.6; cursor: not-allowed; }
-        
-        .progress-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 5px;
-        }
 
-        /* 进度条样式 */
-        #progressBar {
+        .custom-slider {
             -webkit-appearance: none;
             width: 100%;
-            height: 6px;
-            background: var(--progress-track);
-            border-radius: 3px;
-            cursor: pointer;
-            margin: 0;
+            height: 8px;
+            background: #444;
+            border-radius: 4px;
+            outline: none;
+            transition: background 0.2s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
         }
-        #progressBar::-webkit-slider-thumb {
+        .custom-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 14px;
-            width: 14px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background: var(--primary-color);
+            background: var(--accent-color);
             cursor: pointer;
-            margin-top: -4px; 
+            border: 2px solid #eee;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        .custom-slider:disabled::-webkit-slider-thumb {
+             background: #777;
+             cursor: not-allowed;
         }
 
-        #timeDisplay {
-            font-size: 0.75rem;
-            color: #6c757d;
-            text-align: left;
-        }
-
-        /* --- 音量控制样式 --- */
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            width: 80px; /* 限制音量控制的宽度 */
-            flex-shrink: 0;
+        /* Specific progress bar fill */
+        #progressBar {
+             background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) 0%, #444 0%, #444 100%); 
         }
         #volumeSlider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px; /* 比进度条细 */
-            background: var(--progress-track);
-            border-radius: 2px;
-            cursor: pointer;
-            margin: 0;
-        }
-        #volumeSlider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            cursor: pointer;
-            margin-top: -4px; 
+            background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) 100%, #444 100%, #444 100%); 
         }
 
-        .icon { width: 16px; height: 16px; }
-
-        /* 提示框 (Toast) 样式 */
+        /* Toast notifications */
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1; bottom: 30px; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
         #toast.show { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body>
 
-    <div class="audio-card">
-        <div class="track-info">
-            <h2 id="currentTrackTitle">加载自定义音频链接</h2>
+    <div class="cassette-player">
+        <div class="player-header">
+            <h1>Retro Player</h1>
+            <div class="track-info">
+                <h3 id="currentTrackTitle">加载自定义音乐...</h3>
+            </div>
         </div>
 
+        <div class="tape-window">
+            <div class="tape-reel left">
+                 <div class="tape-reel-tape" id="tapeFillLeft"></div>
+            </div>
+            <div class="tape-strip"></div>
+            <div class="tape-reel right">
+                 <div class="tape-reel-tape" id="tapeFillRight"></div>
+            </div>
+        </div>
+
+        <div id="timeDisplay">00:00 / 00:00</div>
+
         <div class="url-input-group">
-            <input type="url" id="audioUrlInput" placeholder="在此输入音频（MP3/WAV）链接" 
-                   value="">
-            <button id="loadBtn">加载</button>
+            <input type="url" id="audioUrlInput" placeholder="输入音频（MP3/WAV）链接" 
+                   value="https://storage.googleapis.com/codeskulptor-assets/sound900.mp3"> <button id="loadBtn">加载</button>
         </div>
 
         <audio id="audioPlayer"></audio>
 
-        <div class="player-controls">
-            <button id="playPauseBtn" disabled>▶</button> 
-            
-            <div class="progress-container">
-                <input type="range" id="progressBar" value="0" min="0" max="100" disabled>
-                <div id="timeDisplay">0:00 / 0:00</div>
-            </div>
+        <div class="player-buttons">
+            <button id="playBtn" class="control-btn">▶ 播放</button> 
+            <button id="pauseBtn" class="control-btn" disabled>⏸ 暂停</button>
+            <button id="stopBtn" class="control-btn" disabled>■ 停止</button>
+        </div>
 
-            <div class="volume-control">
-                <svg class="icon" id="volumeIcon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464A6 6 0 0118 12.5c0 1.636-.61 3.14-1.618 4.25M12 4v4m0 8v4m-5.464-1.536A6 6 0 006 12.5c0-1.636.61-3.14 1.618-4.25M4 12.5h4m8 0h4m-7 0a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                <input type="range" id="volumeSlider" min="0" max="100" value="100" disabled>
+        <div class="sliders-group">
+            <div class="slider-wrapper">
+                <label for="progressBar">进度</label>
+                <input type="range" id="progressBar" class="custom-slider" value="0" min="0" max="100" disabled>
+            </div>
+            <div class="slider-wrapper">
+                <label for="volumeSlider">音量</label>
+                <input type="range" id="volumeSlider" class="custom-slider" min="0" max="100" value="100" disabled>
             </div>
         </div>
-        </div>
+    </div>
 
     <div id="toast"></div>
 
@@ -201,41 +379,82 @@
         const audio = document.getElementById('audioPlayer');
         const urlInput = document.getElementById('audioUrlInput');
         const loadBtn = document.getElementById('loadBtn');
-        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
         const progressBar = document.getElementById('progressBar');
         const timeDisplay = document.getElementById('timeDisplay');
         const currentTrackTitleEl = document.getElementById('currentTrackTitle');
         const volumeSlider = document.getElementById('volumeSlider');
+        
+        // 磁带转轮元素
+        const tapeReelLeft = document.querySelector('.tape-reel.left');
+        const tapeReelRight = document.querySelector('.tape-reel.right');
+        const tapeFillLeft = document.getElementById('tapeFillLeft');
+        const tapeFillRight = document.getElementById('tapeFillRight');
 
         let currentAudioUrl = '';
+        let isPlaying = false; 
 
         // 启用/禁用所有播放器控制按钮
         function setControlsDisabled(disabled) {
-            playPauseBtn.disabled = disabled;
+            playBtn.disabled = disabled;
+            pauseBtn.disabled = disabled;
+            stopBtn.disabled = disabled;
             progressBar.disabled = disabled;
             volumeSlider.disabled = disabled;
         }
 
         // --- 0. 音量初始化及控制 ---
-        
-        // 尝试从本地存储加载上次设置的音量
         const savedVolume = localStorage.getItem('playerVolume');
         if (savedVolume !== null) {
             const initialVolume = parseFloat(savedVolume);
             audio.volume = initialVolume;
             volumeSlider.value = initialVolume * 100;
         } else {
-            audio.volume = 1.0; // 默认满音量
+            audio.volume = 1.0; 
         }
 
-        // 监听音量滑块变化
         volumeSlider.addEventListener('input', () => {
             const volumeLevel = volumeSlider.value / 100;
             audio.volume = volumeLevel;
-            // 存储音量设置
             localStorage.setItem('playerVolume', volumeLevel);
+
+            // 更新音量滑块的填充颜色
+            const progress = volumeSlider.value;
+            volumeSlider.style.background = `linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) ${progress}%, #444 ${progress}%, #444 100%)`;
         });
-        
+        volumeSlider.dispatchEvent(new Event('input')); 
+
+
+        // --- 磁带转轮动画控制 ---
+        function startTapeAnimation() {
+            tapeReelLeft.classList.add('playing');
+            tapeReelRight.classList.add('playing');
+        }
+
+        function stopTapeAnimation() {
+            tapeReelLeft.classList.remove('playing');
+            tapeReelRight.classList.remove('playing');
+        }
+
+        function updateTapeFill() {
+            if (!audio.duration || isNaN(audio.duration) || audio.duration === Infinity) return;
+
+            const progress = audio.currentTime / audio.duration; // 0 to 1
+            
+            const minSize = 20; 
+            const maxSize = 40; 
+            
+            const leftFillDiameter = maxSize - (progress * (maxSize - minSize));
+            const rightFillDiameter = minSize + (progress * (maxSize - minSize));
+
+            tapeFillLeft.style.width = `${leftFillDiameter}px`;
+            tapeFillLeft.style.height = `${leftFillDiameter}px`;
+            tapeFillRight.style.width = `${rightFillDiameter}px`;
+            tapeFillRight.style.height = `${rightFillDiameter}px`;
+        }
+
         // --- 1. URL 加载逻辑 ---
         function loadAudio() {
             const url = urlInput.value.trim();
@@ -244,85 +463,145 @@
                 return;
             }
 
-            // 重置状态
+            // 1. 清理并重置状态
+            stopAudio(); // 停止当前播放并重置时间
             setControlsDisabled(true);
+
+            // 2. 设置新的源并加载
             audio.src = url;
             audio.load();
             currentAudioUrl = url;
             
             currentTrackTitleEl.textContent = '正在加载元数据...';
             progressBar.value = 0;
-            timeDisplay.textContent = '0:00 / 0:00';
+            timeDisplay.textContent = '00:00 / 00:00';
+            updateTapeFill(); 
 
-            showToast("音频链接已加载，等待元数据。");
+            showToast("音频链接已加载，等待元数据...");
         }
 
-        // --- 2. 播放逻辑 (恢复) ---
-        function togglePlayPause() {
-            if (audio.paused) {
-                audio.play();
-                playPauseBtn.innerHTML = '⏸'; 
+        // --- 2. 播放/暂停/停止逻辑 ---
+        function playAudio() {
+            if (audio.readyState >= 2) { // 检查是否已加载足够数据 (HAVE_CURRENT_DATA)
+                audio.play()
+                    .then(() => {
+                        isPlaying = true;
+                        playBtn.disabled = true;
+                        pauseBtn.disabled = false;
+                        stopBtn.disabled = false;
+                        startTapeAnimation();
+                    })
+                    .catch(e => {
+                        console.error("播放失败 (可能需要用户交互):", e);
+                        showToast("播放失败：浏览器限制或资源错误。请再次点击播放按钮。");
+                        playBtn.disabled = false; // 允许用户再次点击
+                    });
             } else {
-                audio.pause();
-                playPauseBtn.innerHTML = '▶';
+                 showToast("音频文件未准备好，请稍等或检查链接。");
             }
+        }
+
+        function pauseAudio() {
+            if (!audio.paused) {
+                audio.pause();
+                isPlaying = false;
+                playBtn.disabled = false;
+                pauseBtn.disabled = true;
+                stopBtn.disabled = false;
+                stopTapeAnimation();
+            }
+        }
+
+        function stopAudio() {
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            stopBtn.disabled = true;
+            stopTapeAnimation();
+            updateTapeFill(); 
+            progressBar.value = 0;
+            // 只有当 duration 有效时才更新时间显示，否则保持 00:00
+            timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
         }
         
         // --- 3. 时间和进度条同步逻辑 ---
 
         function formatTime(seconds) {
-            if (isNaN(seconds) || seconds < 0) return "0:00";
-            const minutes = Math.floor(seconds / 60);
-            const remainingSeconds = Math.floor(seconds % 60);
-            const paddedSeconds = String(remainingSeconds).padStart(2, '0');
-            return `${minutes}:${paddedSeconds}`;
+            if (isNaN(seconds) || seconds === Infinity || seconds < 0) return "00:00";
+            const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const remainingSeconds = String(Math.floor(seconds % 60)).padStart(2, '0');
+            return `${minutes}:${remainingSeconds}`;
         }
 
-        // 音频元数据加载完成时
+        // 监听音频元数据加载完成
         audio.addEventListener('loadedmetadata', () => {
-            progressBar.max = audio.duration;
-            timeDisplay.textContent = `0:00 / ${formatTime(audio.duration)}`;
-            currentTrackTitleEl.textContent = `加载成功：${formatTime(audio.duration)}`;
-            setControlsDisabled(false); // 加载成功，启用控件
-            playPauseBtn.innerHTML = '▶'; // 确保显示播放图标
+            if (audio.duration && audio.duration !== Infinity) {
+                progressBar.max = audio.duration;
+                timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
+                currentTrackTitleEl.textContent = `已加载 (${formatTime(audio.duration)})`;
+                setControlsDisabled(false); 
+                pauseBtn.disabled = true; 
+                stopBtn.disabled = true; 
+                updateTapeFill(); 
+                showToast("加载完成，可以播放了。");
+            } else {
+                 // 可能是直播流或不完整的元数据
+                currentTrackTitleEl.textContent = `加载成功 (时长未知)`;
+                setControlsDisabled(false); 
+                pauseBtn.disabled = true; 
+                stopBtn.disabled = true; 
+                progressBar.disabled = true; // 无法使用进度条
+                timeDisplay.textContent = `00:00 / --:--`;
+                showToast("音频加载成功，但无法获取时长信息。");
+            }
         });
 
-        // 监听加载错误
+        // **新增**：监听无法获取数据时的错误
         audio.addEventListener('error', (e) => {
-            console.error('音频加载错误:', e);
-            showToast("音频加载失败，请检查 URL 或跨域设置(CORS)。");
+            // e.target.error.code 包含错误类型
+            console.error('音频加载错误:', e.target.error);
+            
+            let errorMessage = "音频加载失败，请检查 URL。";
+            if (e.target.error.code === 4) {
+                 errorMessage = "加载失败：文件不存在或服务器限制 (CORS/404)。";
+            }
+            
+            showToast(errorMessage);
             currentTrackTitleEl.textContent = '加载失败！';
             setControlsDisabled(true);
+            stopTapeAnimation();
         });
 
-        // 音频播放时，实时更新进度条和已播放时间
         audio.addEventListener('timeupdate', () => {
-            progressBar.value = audio.currentTime; 
-            
-            // 进度条填充颜色
-            const progress = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.background = `linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) ${progress}%, var(--progress-track) ${progress}%, var(--progress-track) 100%)`;
-
-            timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+            if (audio.duration && audio.duration !== Infinity) {
+                progressBar.value = audio.currentTime; 
+                
+                // 进度条填充颜色
+                const progressPercentage = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.background = `linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) ${progressPercentage}%, #444 ${progressPercentage}%, #444 100%)`;
+                timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+                updateTapeFill(); 
+            }
         });
 
-        // 音频播放结束
         audio.addEventListener('ended', () => {
-            playPauseBtn.innerHTML = '▶'; 
-            audio.currentTime = 0; 
-            progressBar.value = 0;
+            stopAudio(); 
+            showToast("播放结束。");
         });
 
-        // 用户拖动进度条，实现跳转播放
         progressBar.addEventListener('input', () => {
             audio.currentTime = progressBar.value; 
+            updateTapeFill(); 
         });
 
         // --- 4. 事件绑定及辅助函数 ---
         loadBtn.addEventListener('click', loadAudio);
-        playPauseBtn.addEventListener('click', togglePlayPause); // 重新启用播放按钮监听
+        playBtn.addEventListener('click', playAudio);
+        pauseBtn.addEventListener('click', pauseAudio);
+        stopBtn.addEventListener('click', stopAudio);
         
-        // 允许用户按 Enter 键加载 URL
         urlInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 loadAudio();
@@ -337,7 +616,11 @@
         }
         
         // 页面加载时自动加载默认 URL
-        document.addEventListener('DOMContentLoaded', loadAudio);
+        document.addEventListener('DOMContentLoaded', () => {
+            setControlsDisabled(true); 
+            // 默认URL已更换为一个Google公共资源，希望能解决测试问题
+            loadAudio();
+        });
     </script>
 </body>
-</html>
+</html>7.com/url/136441.mp3
