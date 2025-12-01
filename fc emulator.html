@@ -3,8 +3,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>Web FC 模拟器 (含录像/存档)</title>
     <style>
+        /* --- 基础样式保持不变 --- */
         body {
      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             color: #fff;
@@ -13,11 +14,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px 0;
             user-select: none;
+            box-sizing: border-box;
         }
-        h1 { margin-bottom: 10px; font-weight: 300; letter-spacing: 2px;}
+        h1 { margin: 10px 0; font-weight: 300; letter-spacing: 2px;}
         .screen-container {
             position: relative;
             border: 4px solid #444;
@@ -45,6 +48,67 @@
         }
         .overlay.visible { opacity: 1; }
         
+        /* --- 按钮区域样式优化 --- */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap; /* 保证在小屏幕上不溢出 */
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.2s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #555 !important;
+        }
+        .btn-load { background: #e53935; }
+        .btn-load:hover:not(:disabled) { background: #d32f2f; }
+        
+        /* 存档按钮颜色 */
+        .btn-save { background: #1976D2; } 
+        .btn-save:hover:not(:disabled) { background: #1565C0; }
+
+        /* 读档按钮颜色 */
+        .btn-load-state { background: #0097A7; }
+        .btn-load-state:hover:not(:disabled) { background: #00838F; }
+
+        .btn-record-start { background: #4CAF50; }
+        .btn-record-start:hover:not(:disabled) { background: #45a049; }
+
+        .btn-record-stop { background: #f44336; display: none; }
+        .btn-record-stop:hover:not(:disabled) { background: #d32f2f; }
+
+        .recording-indicator {
+            display: none;
+            align-items: center;
+            color: #f44336;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .recording-indicator::before {
+            content: '';
+            display: inline-block;
+            width: 10px; height: 10px;
+            background: #f44336;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
         .controls {
             margin-top: 20px;
             padding: 15px;
@@ -54,19 +118,6 @@
             color: #ccc;
             font-size: 0.9em;
         }
-        .file-btn {
-            margin-bottom: 15px;
-            padding: 10px 20px;
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background 0.2s;
-        }
-        .file-btn:hover {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
- }
         input[type="file"] { display: none; }
         .key-badge {
             display: inline-block;
@@ -82,16 +133,28 @@
 </head>
 <body>
 
+  
     
-    <input type="file" id="rom-upload" accept=".nes">
-    <button class="file-btn" onclick="document.getElementById('rom-upload').click()">📂 加载游戏 ROM (.nes)</button>
+    <div class="toolbar">
+        <input type="file" id="rom-upload" accept=".nes">
+        <button class="btn btn-load" onclick="document.getElementById('rom-upload').click()">📂 加载游戏</button>
+        
+        <button id="btnSaveState" class="btn btn-save" disabled>💾 保存进度</button>
+        <button id="btnLoadState" class="btn btn-load-state" disabled>📥 载入进度</button>
+
+        <div style="width: 2px; height: 30px; background: #444; margin: 0 10px;"></div>
+        
+        <button id="btnStartRec" class="btn btn-record-start" disabled>🔴 开始录像</button>
+        <button id="btnStopRec" class="btn btn-record-stop">⬜ 停止录像</button>
+        <div id="recIndicator" class="recording-indicator">REC</div>
+    </div>
 
     <div class="screen-container">
         <canvas id="screen" width="256" height="240"></canvas>
         <div id="msg-overlay" class="overlay visible">请加载 ROM 开始游戏</div>
     </div>
 
-   
+  
 
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
 
@@ -104,20 +167,33 @@
         const buf32 = new Uint32Array(imageData.data.buffer);
         const overlay = document.getElementById('msg-overlay');
 
-        // --- 音频处理类 (Ring Buffer) ---
+        // --- 存档功能新增的 DOM 元素 ---
+        const btnSaveState = document.getElementById('btnSaveState');
+        const btnLoadState = document.getElementById('btnLoadState');
+        
+        // --- 录像功能 DOM 元素 ---
+        const btnStartRec = document.getElementById('btnStartRec');
+        const btnStopRec = document.getElementById('btnStopRec');
+        const recIndicator = document.getElementById('recIndicator');
+
+        // --- 存档功能常量 ---
+        const SAVE_STATE_KEY = 'NES_SAVE_STATE';
+        let currentROMName = ''; // 用于区分不同游戏的存档
+
+        // --- 音频处理类 (支持录像流) ---
         class AudioHandler {
             constructor() {
                 this.actx = new (window.AudioContext || window.webkitAudioContext)();
                 this.bufferSize = 4096;
                 this.scriptNode = this.actx.createScriptProcessor(this.bufferSize, 0, 1);
-                
-                // 简单的环形缓冲区
+                this.recordingDest = this.actx.createMediaStreamDestination();
                 this.ringBuffer = new Float32Array(this.bufferSize * 3); 
                 this.writeIndex = 0;
                 this.readIndex = 0;
                 
                 this.scriptNode.onaudioprocess = (e) => this.process(e);
                 this.scriptNode.connect(this.actx.destination);
+                this.scriptNode.connect(this.recordingDest);
             }
 
             resume() {
@@ -125,74 +201,65 @@
                     this.actx.resume();
                 }
             }
-
-            // NES 核心调用此方法写入音频样本
+            getAudioStream() { return this.recordingDest.stream; }
             writeSample(value) {
-                // 简单的音量限制和写入
                 this.ringBuffer[this.writeIndex] = value;
                 this.writeIndex++;
-                if (this.writeIndex >= this.ringBuffer.length) {
-                    this.writeIndex = 0;
-                }
+                if (this.writeIndex >= this.ringBuffer.length) this.writeIndex = 0;
             }
-
-            // WebAudio 调用此方法读取数据
             process(e) {
                 const output = e.outputBuffer.getChannelData(0);
                 for (let i = 0; i < this.bufferSize; i++) {
                     if (this.readIndex === this.writeIndex) {
-                        // 缓冲区空了，输出静音 (防止爆音)
                         output[i] = 0; 
                     } else {
                         output[i] = this.ringBuffer[this.readIndex];
                         this.readIndex++;
-                        if (this.readIndex >= this.ringBuffer.length) {
-                            this.readIndex = 0;
-                        }
+                        if (this.readIndex >= this.ringBuffer.length) this.readIndex = 0;
                     }
                 }
             }
         }
 
         let audioHandler = null;
+        let isFileLoaded = false;
 
-        // --- 初始化 NES ---
+        // --- NES 初始化 ---
         var nes = new jsnes.NES({
             onFrame: function(frameBuffer) {
                 let i = 0;
                 for (let y = 0; y < SCREEN_HEIGHT; ++y) {
                     for (let x = 0; x < SCREEN_WIDTH; ++x) {
                         i = y * SCREEN_WIDTH + x;
-                        buf32[i] = 0xFF000000 | frameBuffer[i]; // 填充 Alpha 通道
+                        buf32[i] = 0xFF000000 | frameBuffer[i]; 
                     }
                 }
                 ctx.putImageData(imageData, 0, 0);
             },
             onAudioSample: function(left, right) {
-                // 将左右声道混合为单声道 (更简单)
                 if (audioHandler) {
                     audioHandler.writeSample(left); 
                 }
             }
         });
 
-        // --- 游戏循环 ---
+        // --- 游戏主循环 ---
         function onAnimationFrame() {
             window.requestAnimationFrame(onAnimationFrame);
             if (isFileLoaded) {
-                // 每次屏幕刷新，运行一帧 NES 逻辑
                 nes.frame();
             }
         }
         window.requestAnimationFrame(onAnimationFrame);
 
         // --- ROM 加载 ---
-        let isFileLoaded = false;
         document.getElementById('rom-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
+            
+            // 提取 ROM 名称用于存档KEY
+            currentROMName = file.name.replace(/\.nes$/i, ''); 
 
-            // 初始化音频 (必须在用户交互后)
             if (!audioHandler) {
                 audioHandler = new AudioHandler();
             }
@@ -205,20 +272,176 @@
                 try {
                     nes.loadROM(e.target.result);
                     isFileLoaded = true;
-                    overlay.classList.remove('visible'); // 隐藏遮罩
-                    console.log("ROM Loaded & Audio Started");
+                    overlay.classList.remove('visible');
+                    // 游戏加载成功后，启用所有功能按钮
+                    btnStartRec.disabled = false;
+                    btnSaveState.disabled = false;
+                    
+                    // 检查是否有该游戏的存档
+                    const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
+                    btnLoadState.disabled = !localStorage.getItem(stateKey);
+                    
+                    console.log(`ROM Loaded: ${currentROMName}`);
                 } catch(err) {
                     alert("加载失败: " + err);
                 }
             };
         });
 
-        // --- 键盘控制 ---
+        // ============================
+        // --- 存档/读档功能实现 (新增) ---
+        // ============================
+
+        function saveGameState() {
+            if (!isFileLoaded || !currentROMName) return;
+            
+            try {
+                // 1. 获取 jsnes 存档数据 (JSON Object)
+                const state = nes.saveState();
+                // 2. 转换为字符串并存入 localStorage，使用 ROM 名称作为 KEY
+                const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
+                localStorage.setItem(stateKey, JSON.stringify(state));
+                
+                btnLoadState.disabled = false; // 存档后，载入按钮启用
+                alert(`存档成功！游戏进度已保存到浏览器。`);
+            } catch (e) {
+                console.error("存档失败:", e);
+                alert("存档失败！");
+            }
+        }
+
+        function loadGameState() {
+            if (!isFileLoaded || !currentROMName) return;
+            
+            const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
+            const savedStateString = localStorage.getItem(stateKey);
+            
+            if (!savedStateString) {
+                alert("没有找到当前游戏的存档！");
+                return;
+            }
+
+            try {
+                // 1. 解析存档字符串
+                const state = JSON.parse(savedStateString);
+                // 2. 载入存档
+                nes.loadState(state);
+                alert(`载入存档成功！`);
+            } catch (e) {
+                console.error("载入存档失败:", e);
+                alert("载入存档失败，可能存档文件损坏。");
+            }
+        }
+
+        // 绑定按钮事件
+        btnSaveState.addEventListener('click', saveGameState);
+        btnLoadState.addEventListener('click', loadGameState);
+
+
+        // ============================
+        // --- 录像功能实现 (保持不变) ---
+        // ============================
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        btnStartRec.addEventListener('click', startRecording);
+        btnStopRec.addEventListener('click', stopRecording);
+
+        function getMimeTypeOptions() {
+            const mp4Mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+            const webmMime = 'video/webm; codecs=vp9,opus';
+            if (MediaRecorder.isTypeSupported(mp4Mime)) { return { mimeType: mp4Mime }; } 
+            if (MediaRecorder.isTypeSupported(webmMime)) { return { mimeType: webmMime }; } 
+            return {};
+        }
+
+        function startRecording() {
+            if (!isFileLoaded || !audioHandler || isRecording) return;
+
+            const canvasStream = canvas.captureStream(60);
+            const audioStream = audioHandler.getAudioStream();
+            const combinedStream = new MediaStream([
+                ...canvasStream.getVideoTracks(),
+                ...audioStream.getAudioTracks()
+            ]);
+
+            const options = getMimeTypeOptions();
+            if (!options.mimeType) { alert("录像功能不可用，浏览器不支持所需的视频编码。"); return; }
+
+            try {
+                mediaRecorder = new MediaRecorder(combinedStream, options);
+            } catch (e) {
+                console.error("初始化 MediaRecorder 失败:", e);
+                alert("初始化录像失败，请检查浏览器是否支持该格式。");
+                return;
+            }
+
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = downloadRecording;
+
+            mediaRecorder.start();
+            isRecording = true;
+            updateRecordUI(true);
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                updateRecordUI(false);
+            }
+        }
+
+        function downloadRecording() {
+            const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            
+            const actualMimeType = mediaRecorder.mimeType.toLowerCase();
+            const fileExt = actualMimeType.includes('mp4') ? 'mp4' : 'webm';
+            
+            const timestamp = new Date().toISOString().slice(0,19).replace(/[-T:]/g, '');
+            a.download = `FC_Gameplay_${timestamp}.${fileExt}`;
+            
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                alert(`录像已完成并开始下载！格式: .${fileExt}`);
+            }, 100);
+        }
+
+        function updateRecordUI(recording) {
+            if (recording) {
+                btnStartRec.style.display = 'none';
+                btnStopRec.style.display = 'flex';
+                recIndicator.style.display = 'flex';
+                document.querySelector('.btn-load').disabled = true;
+                btnSaveState.disabled = true; // 录像时禁用存档，防止数据混乱
+                btnLoadState.disabled = true;
+            } else {
+                btnStartRec.style.display = 'flex';
+                btnStopRec.style.display = 'none';
+                recIndicator.style.display = 'none';
+                document.querySelector('.btn-load').disabled = false;
+                btnSaveState.disabled = false;
+                // 恢复载入状态按钮的可用性检查
+                const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
+                btnLoadState.disabled = !localStorage.getItem(stateKey);
+            }
+        }
+
+        // --- 键盘事件 ---
         const KEYMAP = {
-            88: jsnes.Controller.BUTTON_A,      // X
-            90: jsnes.Controller.BUTTON_B,      // Z
-            17: jsnes.Controller.BUTTON_SELECT, // Ctrl
-            13: jsnes.Controller.BUTTON_START,  // Enter
+            88: jsnes.Controller.BUTTON_A,      
+            90: jsnes.Controller.BUTTON_B,      
+            17: jsnes.Controller.BUTTON_SELECT, 
+            13: jsnes.Controller.BUTTON_START,  
             38: jsnes.Controller.BUTTON_UP,
             40: jsnes.Controller.BUTTON_DOWN,
             37: jsnes.Controller.BUTTON_LEFT,
@@ -228,10 +451,9 @@
         function handleKey(e, type) {
             if (KEYMAP[e.keyCode] !== undefined) {
                 nes[type === 'down' ? 'buttonDown' : 'buttonUp'](1, KEYMAP[e.keyCode]);
-                e.preventDefault(); // 防止按方向键时滚动页面
+                e.preventDefault();
             }
         }
-
         document.addEventListener('keydown', (e) => handleKey(e, 'down'));
         document.addEventListener('keyup', (e) => handleKey(e, 'up'));
 
