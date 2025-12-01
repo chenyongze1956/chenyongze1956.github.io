@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Terminal CLI (带 FS, Curl, Touch)</title>
+    <title>Web Terminal CLI (全功能)</title>
     <style>
 
  @keyframes rainbow-color-change {
@@ -15,6 +16,7 @@
     70% { color: #5d00ff; } /* Indigo */
     84% { color: #e800ff; } /* Violet */
 }
+        
         
         /* CSS Reset and Global Styles */
         * {
@@ -34,7 +36,7 @@
         }
 
         body {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -45,7 +47,6 @@
             color: var(--terminal-text);
             font-size: var(--font-size-desktop);
                                 animation: rainbow-color-change 3s linear infinite alternate;
-
         }
 
         /* --- 终端容器 --- */
@@ -100,6 +101,7 @@
             color: var(--prompt-color);
             margin-right: 8px;
             flex-shrink: 0;
+            transition: color 0.3s;
         }
 
         #commandInput {
@@ -178,6 +180,7 @@
         const input = document.getElementById('commandInput');
         const promptSpan = document.getElementById('prompt');
         const initialPromptText = "user@web-cli:";
+        const CLI_USER = 'web-cli-user';
         
         let history = [];
         let historyIndex = -1;
@@ -228,6 +231,31 @@
         function updatePrompt() {
             promptSpan.innerText = `${initialPromptText}${currentPath}~$`;
         }
+        
+        // 写入新的输出行 (纯文本)
+        function writeOutput(text, className = 'output-text') {
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                const p = document.createElement('p');
+                p.className = `output-line ${className}`;
+                p.textContent = line;
+                output.appendChild(p);
+            });
+            scrollToBottom();
+        }
+
+        // 写入带提示符的命令历史
+        function writeCommandHistory(commandLine) {
+            const p = document.createElement('p');
+            p.className = 'output-line';
+            p.innerHTML = `<span style="color:var(--prompt-color);">${promptSpan.innerText}</span> ${commandLine}`;
+            output.appendChild(p);
+        }
+
+        // 自动滚动到底部
+        function scrollToBottom() {
+            output.scrollTop = output.scrollHeight;
+        }
 
         // --- 核心命令执行 ---
         
@@ -235,7 +263,7 @@
             'help': {
                 description: '显示可用命令列表。',
                 execute: () => {
-                    let helpOutput = '可用命令:\n';
+                    let helpOutput = '可用命令 (总计 ' + Object.keys(commands).length + ' 个):\n';
                     for (const cmd in commands) {
                         helpOutput += `  ${cmd.padEnd(10)} - ${commands[cmd].description}\n`;
                     }
@@ -259,6 +287,20 @@
                 description: '显示当前日期和时间。',
                 execute: () => {
                     writeOutput(new Date().toLocaleString());
+                }
+            },
+            'whoami': {
+                description: '显示当前用户名。',
+                execute: () => {
+                    writeOutput(CLI_USER);
+                }
+            },
+            'who': {
+                description: '显示当前登录的用户。',
+                execute: () => {
+                    const date = new Date().toLocaleDateString('zh-CN', {month: 'numeric', day: 'numeric'});
+                    const time = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+                    writeOutput(`${CLI_USER.padEnd(10)} pts/0        ${date} ${time}`);
                 }
             },
             'pwd': {
@@ -285,13 +327,17 @@
 
                     items.forEach(item => {
                         const typeClass = item.type === 'dir' ? 'dir' : 'file';
-                        contentHTML += `<span class="${typeClass}">${item.name}</span>&nbsp;&nbsp;&nbsp;`;
+                        const name = item.type === 'dir' ? item.name + '/' : item.name;
+                        
+                        const p = document.createElement('span');
+                        p.className = `output-item ${typeClass}`;
+                        p.textContent = name;
+
+                        output.appendChild(p);
+                        output.innerHTML += '&nbsp;&nbsp;&nbsp;'; 
                     });
                     
-                    const p = document.createElement('p');
-                    p.className = 'output-line';
-                    p.innerHTML = contentHTML;
-                    output.appendChild(p);
+                    output.appendChild(document.createElement('br'));
                     scrollToBottom();
                 }
             },
@@ -352,7 +398,6 @@
                         return;
                     }
 
-                    // 模拟创建文件
                     currentNode.contents[filename] = { 
                         name: filename, 
                         type: 'file', 
@@ -361,9 +406,186 @@
                     writeOutput(`文件 ${filename} 已创建。`);
                 }
             },
+            'mkdir': {
+                description: '创建一个新目录。用法: mkdir <目录名>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('mkdir: 缺少目录名。', 'error');
+                        writeOutput('用法: mkdir <目录名>', 'error');
+                        return;
+                    }
+
+                    const dirname = args[0];
+                    const currentNode = getCurrentDirNode();
+
+                    if (dirname.includes('/') || dirname.includes('\\')) {
+                        writeOutput(`mkdir: 目录名不能包含路径分隔符: ${dirname}`, 'error');
+                        return;
+                    }
+                    
+                    if (!currentNode || currentNode.type !== 'dir') {
+                        writeOutput(`mkdir: 内部错误，当前路径无效。`, 'error');
+                        return;
+                    }
+
+                    if (currentNode.contents[dirname]) {
+                        writeOutput(`mkdir: 文件或目录已存在: ${dirname}`, 'error');
+                        return;
+                    }
+
+                    // 创建新目录节点
+                    currentNode.contents[dirname] = { 
+                        name: dirname, 
+                        type: 'dir', 
+                        contents: {} // 必须是空的 contents 对象
+                    };
+                    writeOutput(`目录 ${dirname} 已创建。`);
+                }
+            },
+            'rmdir': {
+                description: '删除空目录。用法: rmdir <目录名>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('rmdir: 缺少操作数。', 'error');
+                        writeOutput('用法: rmdir <目录名>', 'error');
+                        return;
+                    }
+
+                    const target = args[0];
+                    let targetAbsolutePath;
+                    let parentPath;
+                    let targetName;
+
+                    if (target.startsWith('/')) {
+                        targetAbsolutePath = target.replace(/\/$/, '');
+                        parentPath = targetAbsolutePath.substring(0, targetAbsolutePath.lastIndexOf('/'));
+                        if (parentPath === '') parentPath = '/';
+                        targetName = targetAbsolutePath.substring(targetAbsolutePath.lastIndexOf('/') + 1);
+                    } else if (target === '..') {
+                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error');
+                         return;
+                    } else if (target === '.') {
+                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error');
+                         return;
+                    } else {
+                        targetAbsolutePath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
+                        parentPath = currentPath;
+                        targetName = target;
+                    }
+                    
+                    if (targetAbsolutePath === '/') {
+                        writeOutput('rmdir: 无法删除根目录 "/"。', 'error');
+                        return;
+                    }
+
+                    const parentNode = getDirNode(parentPath);
+                    const targetNode = getDirNode(targetAbsolutePath);
+
+                    if (!targetNode) {
+                        writeOutput(`rmdir: 目录不存在: ${target}`, 'error');
+                        return;
+                    }
+
+                    if (targetNode.type !== 'dir') {
+                        writeOutput(`rmdir: 不是目录: ${target}`, 'error');
+                        return;
+                    }
+                    
+                    if (Object.keys(targetNode.contents).length > 0) {
+                        writeOutput(`rmdir: 目录非空: ${target}`, 'error');
+                        return;
+                    }
+                    
+                    if (parentNode && parentNode.contents && parentNode.contents[targetName]) {
+                        delete parentNode.contents[targetName];
+                        writeOutput(`目录 ${targetName} 已删除。`);
+                    } else {
+                        writeOutput(`rmdir: 内部错误，无法删除 ${target}.`, 'error');
+                    }
+                }
+            },
+            'rm': {
+                description: '删除文件或目录(使用 -r 递归删除)。用法: rm [-r] <目标>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('rm: 缺少操作数。', 'error');
+                        writeOutput('用法: rm [-r] <目标>', 'error');
+                        return;
+                    }
+            
+                    const flags = args.filter(arg => arg.startsWith('-'));
+                    const targets = args.filter(arg => !arg.startsWith('-'));
+                    const recursive = flags.includes('-r') || flags.includes('-R');
+            
+                    if (targets.length === 0) {
+                         writeOutput('rm: 缺少操作目标。', 'error');
+                         return;
+                    }
+                    
+                    targets.forEach(target => {
+                        let targetAbsolutePath;
+                        let parentPath;
+                        let targetName;
+
+                        // 路径解析
+                        if (target.startsWith('/')) {
+                            targetAbsolutePath = target.replace(/\/$/, '');
+                            parentPath = targetAbsolutePath.substring(0, targetAbsolutePath.lastIndexOf('/'));
+                            if (parentPath === '') parentPath = '/';
+                            targetName = targetAbsolutePath.substring(targetAbsolutePath.lastIndexOf('/') + 1);
+                        } else {
+                            targetAbsolutePath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
+                            parentPath = currentPath;
+                            targetName = target;
+                        }
+                        
+                        // 安全检查
+                        if (targetAbsolutePath === '/' || targetAbsolutePath === '/home' || targetAbsolutePath === '/home/user') {
+                            writeOutput(`rm: 危险操作，拒绝删除系统关键目录: ${targetAbsolutePath}`, 'error');
+                            return;
+                        }
+                        if (target === '.' || target === '..') {
+                            writeOutput(`rm: 拒绝删除特殊目录: ${target}`, 'error');
+                            return;
+                        }
+
+                        const parentNode = getDirNode(parentPath);
+                        const targetNode = getDirNode(targetAbsolutePath);
+
+                        if (!targetNode) {
+                            writeOutput(`rm: 目标不存在: ${target}`, 'error');
+                            return;
+                        }
+
+                        if (targetNode.type === 'file') {
+                            delete parentNode.contents[targetName];
+                            writeOutput(`文件 ${targetName} 已删除。`);
+                            return;
+                        }
+
+                        if (targetNode.type === 'dir') {
+                            const isNonEmpty = Object.keys(targetNode.contents).length > 0;
+                            
+                            if (!recursive && isNonEmpty) {
+                                writeOutput(`rm: 无法删除目录 '${targetName}': 目录非空。请使用 -r 选项。`, 'error');
+                                return;
+                            }
+                            
+                            delete parentNode.contents[targetName];
+                            
+                            if (recursive) {
+                                writeOutput(`目录及其内容 ${targetName} 已递归删除。`);
+                            } else {
+                                writeOutput(`空目录 ${targetName} 已删除。`);
+                            }
+                            return;
+                        }
+                    });
+                }
+            },
             'curl': {
                 description: '模拟 HTTP GET 请求。用法: curl <URL>',
-                execute: (args) => {
+                execute: async (args) => {
                     if (args.length === 0) {
                         writeOutput('curl: 缺少 URL。', 'error');
                         writeOutput('用法: curl https://jsonplaceholder.typicode.com/todos/1', 'error');
@@ -373,69 +595,92 @@
                     const url = args[0];
                     writeOutput(`正在连接到 ${url}...`);
 
-                    // 禁用输入框并显示加载状态
                     input.disabled = true;
                     promptSpan.style.color = 'yellow';
                     promptSpan.innerText = 'FETCHING...';
 
-                    // 使用 fetch API 发起请求
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP 错误! 状态: ${response.status}`);
-                            }
-                            // 尝试以文本形式读取响应
-                            return response.text(); 
-                        })
-                        .then(data => {
-                            writeOutput(`--- curl 响应 (${url}) ---`);
-                            // 限制输出长度以避免终端溢出
-                            const outputData = data.length > 500 ? data.substring(0, 500) + '... (输出被截断)' : data;
-                            writeOutput(outputData);
-                            writeOutput(`--- 状态: 200 OK ---`);
-                        })
-                        .catch(error => {
-                            // 捕获网络错误和 CORS 错误
-                            writeOutput(`curl: 错误: ${error.message}`, 'error');
-                            writeOutput('注意: 浏览器可能由于 CORS 策略阻止了此请求。请尝试公共 API。', 'error');
-                        })
-                        .finally(() => {
-                            // 恢复输入框和提示符状态
-                            input.disabled = false;
-                            updatePrompt();
-                            input.focus();
-                            scrollToBottom();
-                            promptSpan.style.color = 'var(--prompt-color)';
-                        });
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            throw new Error(`HTTP 错误! 状态: ${response.status} ${response.statusText}`);
+                        }
+                        const data = await response.text(); 
+                        
+                        writeOutput(`--- curl 响应 (${url}) ---`);
+                        const outputData = data.length > 500 ? data.substring(0, 500) + '... (输出被截断)' : data;
+                        writeOutput(outputData);
+                        writeOutput(`--- 状态: ${response.status} OK ---`);
+                    } catch (error) {
+                        writeOutput(`curl: 错误: ${error.message}`, 'error');
+                        writeOutput('注意: 浏览器可能由于 CORS 策略阻止了此请求。', 'error');
+                    } finally {
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        scrollToBottom();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                    }
+                }
+            },
+            'ping': {
+                description: '测试网络连接到主机。用法: ping <URL>',
+                execute: async (args) => {
+                    if (args.length === 0) {
+                        writeOutput('ping: 缺少主机名或 URL。', 'error');
+                        writeOutput('用法: ping https://www.google.com', 'error');
+                        return;
+                    }
+
+                    const target = args[0];
+                    const count = 4;
+                    let successCount = 0;
+
+                    writeOutput(`PING ${target}. 模拟发送 ${count} 个数据包...`);
+                    
+                    input.disabled = true;
+                    promptSpan.style.color = 'yellow';
+                    promptSpan.innerText = 'Pinging...';
+
+                    for (let i = 1; i <= count; i++) {
+                        const startTime = performance.now();
+                        let status = 'Error';
+                        
+                        try {
+                            await fetch(target, { method: 'HEAD', mode: 'no-cors', timeout: 5000 });
+                            status = 'Success';
+                            successCount++;
+                        } catch (error) {
+                            status = `Destination Host Unreachable.`;
+                        }
+                        
+                        const endTime = performance.now();
+                        const latency = (endTime - startTime + Math.random() * 50).toFixed(2);
+                        
+                        let result = '';
+                        if (status === 'Success') {
+                            result = `来自 ${target} 的回复: bytes=32 时间=${latency}ms TTL=${(Math.random() * 100).toFixed(0)}`;
+                        } else {
+                            result = `请求超时或连接失败: ${status}`;
+                        }
+                        writeOutput(result);
+
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                    }
+
+                    const loss = ((count - successCount) / count * 100).toFixed(0);
+                    writeOutput(`\n--- ${target} ping 统计信息 ---`);
+                    writeOutput(`${count} 个数据包已发送, ${successCount} 个已接收, ${count - successCount} 个丢失 (${loss}% 丢失)`);
+                    
+                    input.disabled = false;
+                    updatePrompt();
+                    input.focus();
+                    scrollToBottom();
+                    promptSpan.style.color = 'var(--prompt-color)';
                 }
             }
         };
 
-        // --- 终端输入和输出处理 ---
-
-        function writeOutput(text, className = 'output-text') {
-            const lines = text.split('\n');
-            lines.forEach(line => {
-                const p = document.createElement('p');
-                p.className = `output-line ${className}`;
-                p.textContent = line;
-                output.appendChild(p);
-            });
-            scrollToBottom();
-        }
-
-        function writeCommandHistory(commandLine) {
-            const p = document.createElement('p');
-            p.className = 'output-line';
-            p.innerHTML = `<span style="color:var(--prompt-color);">${promptSpan.innerText}</span> ${commandLine}`;
-            output.appendChild(p);
-        }
-
-        function writeWelcome() {
-            writeOutput('', '');
-            writeOutput(' ', '');
-            writeOutput('', '');
-        }
+        // --- 事件监听和初始化 ---
 
         function handleInput() {
             const commandLine = input.value.trim();
@@ -451,11 +696,9 @@
 
             const cmd = commands[command];
             if (cmd) {
-                // 异步命令 (如 curl) 需要在执行时禁用输入框，同步命令直接执行
-                if (command === 'curl') {
+                if (command === 'curl' || command === 'ping') {
                     cmd.execute(args);
                 } else {
-                    // 同步执行命令
                     cmd.execute(args);
                     input.value = '';
                     input.focus();
@@ -466,16 +709,18 @@
                 input.focus();
             }
         }
-
-        function scrollToBottom() {
-            output.scrollTop = output.scrollHeight;
+        
+        // 欢迎信息
+        function writeWelcome() {
+            writeOutput('', '');
+            writeOutput('', '');
+            writeOutput('', '');
         }
 
-        // --- 事件监听 ---
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                if (input.disabled) return; // 正在执行 curl 时阻止输入
+                if (input.disabled) return; 
                 handleInput();
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
@@ -496,7 +741,9 @@
         });
 
         document.getElementById('terminal-container').addEventListener('click', () => {
-            input.focus();
+            if (!input.disabled) {
+                input.focus();
+            }
         });
 
         // 初始化
