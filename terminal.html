@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,8 +6,7 @@
     <title>Web Terminal CLI (全功能)</title>
     <style>
 
-
- @keyframes rainbow-color-change {
+         @keyframes rainbow-color-change {
     0%, 100% { color: #ff0000; } /* Red */
     14% { color: #ff8b00; } /* Orange */
     28% { color: #e8ff00; } /* Yellow */
@@ -17,7 +15,6 @@
     70% { color: #5d00ff; } /* Indigo */
     84% { color: #e800ff; } /* Violet */
 }
-        
         /* CSS Reset and Global Styles */
         * {
             box-sizing: border-box;
@@ -36,7 +33,7 @@
         }
 
         body {
-           background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -186,6 +183,21 @@
         let historyIndex = -1;
         let currentPath = '/home/user'; // 当前工作目录
         
+        // --- 全局数据 ---
+
+        // 箴言列表
+        const fortunes = [
+            "知者不言，言者不知。",
+            "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
+            "重要的不是你站的位置，而是你朝向的方向。",
+            "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
+            "世上本没有路，走的人多了，也便成了路。",
+            "昨日已逝，明日是迷，唯有今日是天赐的礼物。",
+            "你不能两次踏入同一条河流。",
+            "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
+            "天行健，君子以自强不息；地势坤，君子以厚德载物。"
+        ];
+
         // 模拟文件系统结构
         const fileSystem = {
             name: '/',
@@ -593,6 +605,88 @@
      '---'        CPU: Browser Core (x86_64)
 `;
                     writeOutput(logo, 'welcome');
+                }
+            },
+            'cbonsai': {
+                description: '模拟 cbonsai，使用 -l 查看可用方案。',
+                execute: (args) => {
+                    if (args.includes('-l')) {
+                        const schemes = `
+可用方案列表 (模拟):
+------------------------------------
+  sakura  (樱花粉)
+  bamboo  (竹绿色)
+  ice     (冰蓝色)
+  fire    (火焰红)
+  matrix  (矩阵绿)
+------------------------------------
+使用 cbonsai <方案名> 模拟生成。
+`;
+                        writeOutput(schemes);
+                        return;
+                    }
+
+                    // 简单默认模式：显示一棵树
+                    const tree = `
+     &&&\|\
+
+                                        &&&&|/
+
+                                           \|&
+
+                                            /|\
+
+                                            |/\
+
+                                           /|\\
+
+                                           |//
+
+                                          |/~
+
+                                         |/
+
+                                        |/
+
+                             &         /~\|
+
+                             &&           /~
+
+                         && & &&&&         /~|
+
+                         & & &&&& \__\____\_| /~\
+
+                        & & &&&\&_\          \_~
+
+                            \___             /~/~
+
+                              :___________./~~~\.___________:
+
+                               \                           / 
+
+                                \_________________________/ 
+
+                                (_)                     (_)
+`;
+                    writeOutput(tree);
+                    writeOutput('cbonsai: 模拟盆栽已生长完毕。', 'welcome');
+                }
+            },
+            'fortune': {
+                description: '显示一句随机的箴言或名言。',
+                execute: () => {
+                    if (fortunes.length === 0) {
+                         writeOutput("fortune: 没有找到任何箴言。", 'error');
+                         return;
+                    }
+                    const randomIndex = Math.floor(Math.random() * fortunes.length);
+                    const quote = fortunes[randomIndex];
+                    
+                    // 格式化输出
+                    const line = '='.repeat(quote.length + 4);
+                    writeOutput(`\n${line}`);
+                    writeOutput(`| ${quote} |`);
+                    writeOutput(`${line}\n`);
                 }
             },
             'curl': {
