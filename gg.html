@@ -1,932 +1,315 @@
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>居中跳舞的Trollface | 霓虹主题</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        // 霓虹赛博朋克主题色
-                        neon: {
-                          
-                        },
-                        
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    animation: {
-                        'bounce-slow': 'bounce 2s ease-in-out infinite',
-                        'wiggle': 'wiggle 1s ease-in-out infinite',
-                        'shake': 'shake 0.5s ease-in-out infinite',
-                        'spin-slow': 'spin 3s linear infinite',
-                        'float': 'float 3s ease-in-out infinite',
-                        'pulse-neon': 'pulse 1.5s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate'
-                    },
-                    keyframes: {
-                        wiggle: {
-                            '0%, 100%': { transform: 'rotate(-3deg)' },
-                            '50%': { transform: 'rotate(3deg)' },
-                        },
-                        shake: {
-                            '0%, 100%': { transform: 'translateX(0)' },
-                            '25%': { transform: 'translateX(-5px)' },
-                            '50%': { transform: 'translateX(0)' },
-                            '75%': { transform: 'translateX(5px)' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        glow: {
-                            '0%': { filter: 'drop-shadow(0 0 5px rgba(0, 243, 255, 0.5))' },
-                            '100%': { filter: 'drop-shadow(0 0 20px rgba(0, 243, 255, 0.8))' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .text-shadow-neon {
-            }
-            .bg-gradient-neon {
-            }
-            .border-glow {
-            }
-            .spotlight-neon {
-              
-                   
-            }
-            .music-note {
-                position: absolute;
-                opacity: 0;
-                z-index: 10;
-                pointer-events: none;
-            }
-        }
-        
-        /* 基础样式重置 */
-        * {
-            border: 0;
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        /* 页面主体样式 - 霓虹主题 */
-        body {
-            font-size: calc(16px + (20 - 16)*(100vw - 320px)/(1024 - 320));
-            transition: all 1s ease-in-out;
-            font-family: 'Inter', system-ui, sans-serif;
-            min-height: 100vh;
-            position: relative;
-            overflow: hidden;
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+    <title></title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* -------------------------------------- */
+        /* CSS 样式部分 (已优化排版并添加魔法符号) */
+        /* -------------------------------------- */
+
+        /* 奇幻背景和基础设置 */
+        body {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            color: #e0e0f0; /* 柔和的亮色文字 */
+            font-family: 'Georgia', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* 隐藏滚动条 */
         }
-        
-        body.light-mode {
+
+        /* 标题字体样式 (Cinzel) */
+        .cover h1, .front h2, .front h3 {
+            font-family: 'Cinzel', serif; /* 应用 Cinzel 字体 */
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.7); /* 金色光晕效果 */
         }
-        
-        /* Trollface动画容器 - 居中+60%尺寸 */
-        .troll-container {
+
+        /* 书籍容器 */
+        .book-container {
+            perspective: 2000px; /* 3D 景深效果 */
+            position: relative;
+        }
+
+        /* 书籍主体 */
+        .book {
+            width: 300px; /* 书的宽度 */
+            height: 450px; /* 书的高度 */
+            position: relative;
+            transform-style: preserve-3d; /* 启用 3D 转换 */
+            transition: transform 1s;
+        }
+
+        /* 单个页面 */
+        .page {
+            width: 100%;
+            height: 100%;
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.6);
-            z-index: 10;
+            transform-origin: left; /* 翻页的轴心在左侧 */
+            transition: transform 0.8s ease-in-out; /* 翻页动画速度 */
+            backface-visibility: hidden; 
+            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.5);
+            border: 1px solid #6a5acd; /* 奇幻边框 */
+            border-radius: 4px;
+        }
+
+        /* 页面内容：正面和背面 */
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            padding: 25px; /* 增加内边距，留白更多 */
+            box-sizing: border-box;
+            background-color: #f7f7e8; /* 浅色纸张 */
+            color: #333;
+            border-radius: 4px;
+            overflow: auto; 
+            line-height: 1.7; /* 增加行高，提升阅读舒适度和古籍感 */
+            letter-spacing: 0.5px; /* 微微增加字间距 */
+            text-indent: 2em; /* 首行缩进 */
+            
+            /* 纸张内凹阴影效果，模拟羊皮纸纹理 */
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1), 
+                        inset 0 0 20px rgba(255, 255, 255, 0.5); 
+            
+            position: relative; /* 允许伪元素定位 */
+        }
+
+        .back {
+            transform: rotateY(180deg);
+            backface-visibility: hidden;
+            background-color: #f0f0d0; /* 背面略微深一点 */
+        }
+        
+        /* 标题排版优化 */
+        .front h2, .front h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center; /* 标题居中 */
+            text-indent: 0; /* 标题取消缩进 */
+            color: #4b0082; /* 紫色标题，更显神秘 */
+        }
+
+        /* 封面特殊样式 */
+        .cover .front {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            color: #fff;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
-            animation: glow 2s ease-in-out infinite alternate;
+            font-size: 1.2em;
+            text-align: center;
+            box-shadow: none; 
         }
-        
-        /* 核心动画元素样式 */
-        .troll {
-            font-size: 0.625em;
-            margin: auto;
-            overflow: hidden;
-            position: relative;
-            width: 22em;
-            height: 39em;
+
+        /* 翻页效果的关键类 (由 JS 添加/移除) */
+        .flipped {
+            transform: rotateY(-180deg); 
         }
-        
-        .troll div {
-            animation-duration: 0.75s;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
+
+        /* ---------------------------- */
+        /* 魔法符号装饰 */
+        /* ---------------------------- */
+        .front::before, .front::after, .back::before, .back::after {
+            content: ''; /* 伪元素必须有 content 属性 */
             position: absolute;
+            font-size: 1.2em;
+            color: rgba(106, 90, 205, 0.6); /* 紫罗兰色，半透明 */
+            text-shadow: 0 0 5px rgba(106, 90, 205, 0.4); /* 微微发光 */
+            z-index: 1; /* 确保在文字下面 */
+            pointer-events: none; /* 不会影响鼠标事件 */
         }
-        
-        /* 头部样式 - 霓虹配色 */
-        .troll__head {
-            animation-name: head;
-            top: 2.5em;
-            left: 8em;
-            width: 14em;
-            height: 11.5em;
+
+        /* 正面左上角符号 */
+        .front::before {
+            content: '🜁'; /* 炼金术符号：空气 */
+            top: 5px;
+            left: 5px;
+            transform: rotate(-15deg);
         }
-        
-        /* 身体部件颜色 - 霓虹紫 */
-        .troll__head div {
-            background: #9D00FF;
-            border-radius: 0.5em;
-            transform-origin: 0.5em 0.5em;
-            width: 1em;
-            z-index: -1;
-            box-shadow: 0 0 3px #9D00FF, 0 0 6px #9D00FF;
+
+        /* 正面右下角符号 */
+        .front::after {
+            content: '✨'; /* 星星闪烁 */
+            bottom: 5px;
+            right: 5px;
+            transform: rotate(15deg);
         }
-        
-        body.light-mode .troll__head div {
-            background: #00F3FF;
-            box-shadow: 0 0 3px #00F3FF, 0 0 6px #00F3FF;
+
+        /* 背面右上角符号 */
+        .back::before {
+            content: '⁂'; /* 星号 */
+            top: 5px;
+            right: 5px;
+            transform: rotate(15deg);
         }
-        
-        .troll__face {
-            width: 100%;
-            height: auto;
-            filter: drop-shadow(0 0 5px #FF2E9F);
+
+        /* 背面左下角符号 */
+        .back::after {
+            content: '🜄'; /* 炼金术符号：水 */
+            bottom: 5px;
+            left: 5px;
+            transform: rotate(-15deg);
         }
-        
-        body.light-mode .troll__face {
-            filter: drop-shadow(0 0 5px #00F3FF);
+
+        /* 特殊页面的符号覆盖（例如封面或某些需要不同符号的页） */
+        .cover .front::before,
+        .cover .front::after,
+        .cover .back::before,
+        .cover .back::after {
+            content: none; /* 封面不显示这些通用符号 */
         }
-        
-        /* 聚光灯效果 - 霓虹渐变 */
-        .spotlight {
+        /* 如果你希望封面有特殊符号，可以单独为 .cover .front 定义 ::before/::after */
+
+        /* 导航按钮 (样式不变) */
+        .nav-btn {
             position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 400px;
-            background: radial-gradient(circle at center, 
-                rgba(255, 46, 159, 0.4), 
-                rgba(0, 243, 255, 0.3), 
-                transparent 70%);
-            z-index: 0;
-            filter: blur(20px);
-            animation: float 4s ease-in-out infinite;
-        }
-        
-        body.light-mode .spotlight {
-            background: radial-gradient(circle at center, 
-                rgba(157, 0, 255, 0.2), 
-                rgba(0, 255, 156, 0.15), 
-                transparent 70%);
-        }
-        
-        /* 信息面板样式 */
-        .dance-info {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(10, 10, 22, 0.8);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 14px;
-            color: #00F3FF;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            text-align: center;
-        }
-        
-        body.light-mode .dance-info {
-            background-color: rgba(248, 249, 250, 0.9);
-            color: #9D00FF;
-            box-shadow: 0 0 10px rgba(157, 0, 255, 0.2);
-            border: 1px solid rgba(157, 0, 255, 0.2);
-        }
-        
-        .dance-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            background: linear-gradient(90deg, #FF2E9F, #00F3FF, #9D00FF);
-            background-size: 200% auto;
-            animation: gradient-anim 3s linear infinite;
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-        
-        .dance-style {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: center;
-        }
-        
-        .style-indicator {
-            width: 10px;
-            height: 10px;
-            background-color: #00FF9C;
-            border-radius: 50%;
-            animation: pulse-neon 1.5s ease-in-out infinite;
-            box-shadow: 0 0 5px #00FF9C, 0 0 10px #00FF9C;
-        }
-        
-        body.light-mode .style-indicator {
-            background-color: #FF2E9F;
-            box-shadow: 0 0 5px #FF2E9F, 0 0 10px #FF2E9F;
-        }
-        
-        @keyframes gradient-anim {
-            to {
-                background-position: 200% center;
-            }
-        }
-        
-        /* 控制按钮样式 - 霓虹风格 */
-        .controls {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            z-index: 100;
-        }
-        
-        .control-button {
-            background-color: rgba(10, 10, 22, 0.8);
-            border: 1px solid rgba(0, 243, 255, 0.4);
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transform: translateY(-50%);
+            padding: 10px 15px;
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            border: 1px solid #fff;
+            color: #fff;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 243, 255, 0.3);
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-            color: #00F3FF;
-            font-size: 18px;
+            z-index: 20;
+            font-size: 1.1em;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
-        
-        body.light-mode .control-button {
-            background-color: rgba(248, 249, 250, 0.9);
-            border: 1px solid rgba(157, 0, 255, 0.3);
-            color: #9D00FF;
-            box-shadow: 0 0 8px rgba(157, 0, 255, 0.2);
+
+        .nav-btn:hover {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
         }
-        
-        .control-button:hover {
-            transform: scale(1.15);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.6);
-            border-color: #00F3FF;
-        }
-        
-        body.light-mode .control-button:hover {
-            box-shadow: 0 0 15px rgba(157, 0, 255, 0.5);
-            border-color: #9D00FF;
-        }
-        
-        .control-button.active {
-            background-color: rgba(0, 243, 255, 0.2);
-            box-shadow: 0 0 12px rgba(0, 243, 255, 0.5);
-        }
-        
-        body.light-mode .control-button.active {
-            background-color: rgba(157, 0, 255, 0.2);
-            box-shadow: 0 0 12px rgba(157, 0, 255, 0.4);
-        }
-        
-        /* 音乐音符动画 */
-        .music-note {
-            font-size: 24px;
-            background: linear-gradient(90deg, #FF2E9F, #00F3FF);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 5px rgba(255, 46, 159, 0.5);
-        }
-        
-        /* 动画关键帧定义 */
-        @keyframes head {
-            from, to { transform: translate(0,0) rotate(0) }
-            10% { transform: translate(-0.25em,0.25em) rotate(0) }
-            20% { transform: translate(-1.25em,1.5em) rotate(-4deg) }
-            30% { transform: translate(-2.75em,3em) rotate(-8deg) }
-            40% { transform: translate(-5.25em,1.5em) rotate(-16deg) }
-            50% { transform: translate(-6.25em,-0.5em) rotate(-24deg) }
-            60% { transform: translate(-6.25em,-0.75em) rotate(-20deg) }
-            70% { transform: translate(-4.25em,1.25em) rotate(-18deg) }
-            80% { transform: translate(-2.25em,4.25em) rotate(0) }
-            90% { transform: translate(-0.75em,3.75em) rotate(0) }
-        }
-        
-        @keyframes rightArm {
-            from, to { height: 11em; transform: rotate(85deg) }
-            10% { height: 10.5em; transform: rotate(80deg) }
-            20% { height: 9.5em; transform: rotate(70deg) }
-            30% { height: 8em; transform: rotate(60deg) }
-            40% { height: 7em; transform: rotate(45deg) }
-            50% { height: 8.75em; transform: rotate(36deg) }
-            60% { height: 9.25em; transform: rotate(27deg) }
-            70% { height: 8.25em; transform: rotate(35deg) }
-            80% { height: 6.5em; transform: rotate(40deg) }
-            90% { height: 7.5em; transform: rotate(56deg) }
-        }
-        
-        @keyframes leftArm {
-            from, to { height: 10em; transform: rotate(-12deg) }
-            10% { height: 9em; transform: rotate(-20deg) }
-            20% { height: 9em; transform: rotate(-27deg) }
-            30% { height: 8.5em; transform: rotate(-35deg) }
-            40% { height: 10em; transform: rotate(-87deg) }
-            50% { height: 9.75em; transform: rotate(-70deg) }
-            60% { height: 9.25em; transform: rotate(-80deg) }
-            70% { height: 8.25em; transform: rotate(-80deg) }
-            80% { height: 8.75em; transform: rotate(-65deg) }
-            90% { height: 9em; transform: rotate(-43deg) }
-        }
-        
-        @keyframes rightLowerArm {
-            from, to { height: 4em; transform: rotate(-145deg) }
-            10% { height: 3.5em; transform: rotate(-150deg) }
-            20% { height: 4em; transform: rotate(-130deg) }
-            30% { height: 4em; transform: rotate(-95deg) }
-            40% { height: 6em; transform: rotate(-148deg) }
-            50% { height: 5.75em; transform: rotate(-145deg) }
-            60% { height: 5.5em; transform: rotate(-150deg) }
-            70% { height: 4em; transform: rotate(-150deg) }
-            80% { height: 3.25em; transform: rotate(-100deg) }
-            90% { height: 4.5em; transform: rotate(-105deg) }
-        }
-        
-        @keyframes leftLowerArm {
-            from, to { height: 7em; transform: rotate(143deg) }
-            10% { height: 7em; transform: rotate(140deg) }
-            20% { height: 5em; transform: rotate(110deg) }
-            30% { height: 3em; transform: rotate(95deg) }
-            40% { height: 4em; transform: rotate(147deg) }
-            50% { height: 3.25em; transform: rotate(130deg) }
-            60% { height: 4.5em; transform: rotate(120deg) }
-            70% { height: 4.5em; transform: rotate(120deg) }
-            80% { height: 4.25em; transform: rotate(143deg) }
-            90% { height: 4.25em; transform: rotate(125deg) }
-        }
-        
-        @keyframes rightHand {
-            from, to { transform: rotate(-30deg) }
-            10% { transform: rotate(-30deg) }
-            20% { transform: rotate(-100deg) }
-            30% { transform: rotate(-45deg) }
-            40% { transform: rotate(-65deg) }
-            50% { transform: rotate(-75deg) }
-            60% { transform: rotate(-60deg) }
-            70% { transform: rotate(-30deg) }
-            80% { transform: rotate(-60deg) }
-            90% { transform: rotate(-30deg) }
-        }
-        
-        @keyframes leftHand {
-            from, to { transform: rotate(90deg) }
-            10% { transform: rotate(90deg) }
-            20% { transform: rotate(90deg) }
-            30% { transform: rotate(30deg) }
-            40% { transform: rotate(90deg) }
-            50% { transform: rotate(0deg) }
-            60% { transform: rotate(90deg) }
-            70% { transform: rotate(45deg) }
-            80% { transform: rotate(-90deg) }
-            90% { transform: rotate(60deg) }
-        }
-        
-        @keyframes upperBody {
-            from, to { transform: rotate(-5deg) }
-            10% { transform: rotate(5deg) }
-            20% { transform: rotate(12deg) }
-            30% { transform: rotate(15deg) }
-            40% { transform: rotate(24deg) }
-            50% { transform: rotate(30deg) }
-            60% { transform: rotate(16deg) }
-            70% { transform: rotate(11deg) }
-            80% { transform: rotate(-10deg) }
-            90% { transform: rotate(-8deg) }
-        }
-        
-        @keyframes lowerBody {
-            from, to { height: 8em; transform: rotate(18deg) }
-            10% { height: 8.5em; transform: rotate(-2deg) }
-            20% { height: 8em; transform: rotate(-10deg) }
-            30% { height: 6.75em; transform: rotate(-18deg) }
-            40% { height: 7em; transform: rotate(-24deg) }
-            50% { height: 8.75em; transform: rotate(-20deg) }
-            60% { height: 10.25em; transform: rotate(-5deg) }
-            70% { height: 8em; transform: rotate(6deg) }
-            80% { height: 5.75em; transform: rotate(18deg) }
-            90% { height: 5.75em; transform: rotate(25deg) }
-        }
-        
-        @keyframes rightThigh {
-            from, to { height: 9.25em; transform: rotate(100deg) }
-            10% { height: 8.75em; transform: rotate(110deg) }
-            20% { height: 9.25em; transform: rotate(50deg) }
-            30% { height: 9.75em; transform: rotate(53deg) }
-            40% { height: 8.75em; transform: rotate(53deg) }
-            50% { height: 9.25em; transform: rotate(45deg) }
-            60% { height: 8.5em; transform: rotate(46deg) }
-            70% { height: 8.25em; transform: rotate(38deg) }
-            80% { height: 8.5em; transform: rotate(38deg) }
-            90% { height: 7.75em; transform: rotate(65deg) }
-        }
-        
-        @keyframes leftThigh {
-            from, to { height: 6.25em; transform: rotate(-25deg) }
-            10% { height: 7em; transform: rotate(-23deg) }
-            20% { height: 8.75em; transform: rotate(-29deg) }
-            30% { height: 10.5em; transform: rotate(-78deg) }
-            40% { height: 10em; transform: rotate(-88deg) }
-            50% { height: 10em; transform: rotate(-87deg) }
-            60% { height: 9em; transform: rotate(-95deg) }
-            70% { height: 8em; transform: rotate(-64deg) }
-            80% { height: 5.5em; transform: rotate(-45deg) }
-            90% { height: 5.75em; transform: rotate(-42deg) }
-        }
-        
-        @keyframes rightLowerLeg {
-            from, to { height: 4.5em; transform: rotate(-120deg) }
-            10% { height: 5em; transform: rotate(-115deg) }
-            20% { height: 7em; transform: rotate(-90deg) }
-            30% { height: 5.25em; transform: rotate(-85deg) }
-            40% { height: 5em; transform: rotate(-80deg) }
-            50% { height: 5.25em; transform: rotate(-70deg) }
-            60% { height: 5.5em; transform: rotate(-70deg) }
-            70% { height: 6em; transform: rotate(-50deg) }
-            80% { height: 5.5em; transform: rotate(-70deg) }
-            90% { height: 6.5em; transform: rotate(-95deg) }
-        }
-        
-        @keyframes leftLowerLeg {
-            from, to { height: 6.75em; transform: rotate(24deg) }
-            10% { height: 6em; transform: rotate(45deg) }
-            20% { height: 4.75em; transform: rotate(85deg) }
-            30% { height: 6.75em; transform: rotate(135deg) }
-            40% { height: 6.25em; transform: rotate(132deg) }
-            50% { height: 6.25em; transform: rotate(125deg) }
-            60% { height: 5.75em; transform: rotate(110deg) }
-            70% { height: 5.75em; transform: rotate(88deg) }
-            80% { height: 6.75em; transform: rotate(45deg) }
-            90% { height: 6em; transform: rotate(35deg) }
-        }
-        
-        @keyframes rightFoot {
-            from, to { transform: rotate(95deg) }
-            10% { transform: rotate(150deg) }
-            20% { transform: rotate(130deg) }
-            30% { transform: rotate(95deg) }
-            40% { transform: rotate(100deg) }
-            50% { transform: rotate(110deg) }
-            60% { transform: rotate(103deg) }
-            70% { transform: rotate(70deg) }
-            80% { transform: rotate(65deg) }
-            90% { transform: rotate(80deg) }
-        }
-        
-        @keyframes leftFoot {
-            from, to { transform: rotate(-90deg) }
-            10% { transform: rotate(-105deg) }
-            20% { transform: rotate(-90deg) }
-            30% { transform: rotate(-70deg) }
-            40% { transform: rotate(-85deg) }
-            50% { transform: rotate(-85deg) }
-            60% { transform: rotate(-70deg) }
-            70% { transform: rotate(-90deg) }
-            80% { transform: rotate(-70deg) }
-            90% { transform: rotate(-60deg) }
-        }
-        
-        /* 响应式适配 */
-        @media (max-width: 768px) {
-            .troll-container {
-                transform: translate(-50%, -50%) scale(0.48);
-            }
-            
-            .spotlight {
-                width: 250px;
-                height: 350px;
-            }
-            
-            .control-button {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
-            }
-        }
-        
-        @media (max-width: 640px) {
-            .troll-container {
-                transform: translate(-50%, -50%) scale(0.36);
-            }
-            
-            .spotlight {
-                width: 200px;
-                height: 300px;
-            }
-            
-            .dance-info {
-                font-size: 12px;
-                padding: 8px 16px;
-                width: 85%;
-                max-width: 280px;
-            }
-            
-            .dance-title {
-                font-size: 18px;
-            }
-            
-            .controls {
-                bottom: 25px;
-                gap: 12px;
-            }
-            
-            .control-button {
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
-            }
+
+        .prev-btn { left: -80px; }
+        .next-btn { right: -80px; }
+
+        .nav-btn:disabled {
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-    <!-- 霓虹聚光灯效果 -->
-    <div class="spotlight"></div>
-    
-    <!-- Trollface动画容器 -->
-    <div class="troll-container">
-        <div class="troll">
-            <div class="troll__head">
-                <img class="troll__face" src="https://assets.codepen.io/416221/trollface.png" 
-                     srcset="https://assets.codepen.io/416221/trollface.png 1x, https://assets.codepen.io/416221/trollface@2x.png 2x" 
-                     alt="Trollface" width="140" height="115">
-                
-                <!-- 右臂 -->
-                <div class="troll__right-arm">
-                    <div class="troll__right-lower-arm">
-                        <div class="troll__right-hand"></div>
-                    </div>
+
+    <div class="book-container">
+        <div id="book" class="book">
+
+            <div class="page cover" id="page-1">
+                <div class="front">
+                    <h1>🌌 幻境之书 🌌</h1>
+                    <p>—— 尘封的预言与失落的星图 ——</p>
                 </div>
-                
-                <!-- 左臂 -->
-                <div class="troll__left-arm">
-                    <div class="troll__left-lower-arm">
-                        <div class="troll__left-hand"></div>
-                    </div>
-                </div>
-                
-                <!-- 身体 -->
-                <div class="troll__upper-body">
-                    <div class="troll__lower-body">
-                        <!-- 右腿 -->
-                        <div class="troll__right-thigh">
-                            <div class="troll__right-lower-leg">
-                                <div class="troll__right-foot"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- 左腿 -->
-                        <div class="troll__left-thigh">
-                            <div class="troll__left-lower-leg">
-                                <div class="troll__left-foot"></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="back">
+                    <p style="text-align: center; font-style: italic; color: #6a5acd; text-indent: 0;">
+                        “当你打开此页，世界便会倾听。”
+                    </p>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- 信息面板 -->
-        <div class="dance-title"></div>
-        <div class="dance-style">
+
+            <div class="page" id="page-2">
+                <div class="front">
+                    <h2>✨ 第一章：星辰的低语</h2>
+                    <p>在永恒之夜的第三个钟声响起时，古老的预言被夜风吹散，只剩下闪烁的尘埃。</p>
+                    <p>传说中的生物在月光下起舞，它们不是血肉之躯，而是由纯粹的奥术光芒编织而成。它们等待着，等待一个被遗忘已久的名字再次被呼唤。</p>
+                </div>
+                <div class="back">
+                    <h3 style="color: #4b0082;">🗝️ 失落的语言</h3>
+                    <p>真正的魔法并非咒语，而是理解星辰运行的规律。每一个字句，都需用灵魂深处的火焰去点燃。只有当凡人的心跳与宇宙的脉动同步时，那扇通往异界的大门才会微微颤动。</p>
+                </div>
+            </div>
+
+            <div class="page" id="page-3">
+                <div class="front">
+                    <h2>🔮 卷轴与秘法</h2>
+                    <p>这份残缺的羊皮纸，是在“哭泣之湖”底部的琥珀矿脉中发现的。它记载了九环法术中，第八环的核心——**虚空穿梭**的法阵绘制方法。</p>
+                    <p>但请注意，每一次绘制都需要献祭等量的**月光石**。**凡人切勿尝试。**</p>
+                </div>
+                <div class="back">
+                    <h3 style="color: #4b0082;">📍 旅途的起点</h3>
+                    <p style="text-indent: 0;">地图的起点总是隐藏在最不起眼的地方。寻找三颗连成一线的古老橡树，它们是通往**迷雾之塔**的指引。那里，守卫着第一块“时间碎片”。</p>
+                    <p style="text-align: right; margin-top: 20px; text-indent: 0; font-style: italic;">—— 艾尔维斯 · 编年史官</p>
+                </div>
+            </div>
             
+            <div class="page" id="page-4">
+                <div class="front">
+                    <h2>🦄 幻彩与驯服</h2>
+                    <p>世人皆知独角兽象征纯洁，但只有真正的术士才明白，它们的角中蕴含着净化灵魂的**虹光魔力**。</p>
+                    <p>驯服它们的方法，不是武力，而是无声的承诺：**永远守护森林之心。**</p>
+                </div>
+                <div class="back">
+                    <p style="font-size: 0.9em; font-style: italic; color: #555; text-indent: 0; text-align: center;">(本页空白。留待未来的探险者记录所见证的奇迹。)</p>
+                </div>
+            </div>
+
         </div>
+
+        <button id="prev-btn" class="nav-btn prev-btn">← 上一页</button>
+        <button id="next-btn" class="nav-btn next-btn">下一页 →</button>
     </div>
-    
-    <!-- 控制按钮 -->
-    <div class="controls">
-        <button class="control-button" id="toggleMusic" title="切换音乐 (空格)">
-            <i class="fa fa-music"></i>
-        </button>
-        <button class="control-button" id="toggleSpeed" title="切换速度 (S)">
-            <i class="fa fa-tachometer"></i>
-        </button>
-        <button class="control-button" id="toggleMode" title="切换明暗模式 (M)">
-            <i class="fa fa-moon-o"></i>
-        </button>
-    </div>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // === 全局变量 ===
-            const trollContainer = document.querySelector('.troll-container');
-            const toggleMusicBtn = document.getElementById('toggleMusic');
-            const toggleSpeedBtn = document.getElementById('toggleSpeed');
-            const toggleModeBtn = document.getElementById('toggleMode');
-            const currentStyleDisplay = document.getElementById('currentStyle');
-            const styleIndicator = document.querySelector('.style-indicator');
-            const body = document.body;
-            
-            // === 状态管理 ===
-            let isMusicPlaying = false;    // 音乐播放状态
-            let isDarkMode = true;         // 明暗模式 (默认暗色霓虹)
-            let currentSpeedIndex = 1;     // 舞蹈速度 (默认正常)
-            let isDancing = true;          // 舞蹈状态
-            
-            // === 配置项 ===
-            // 舞蹈速度配置
-            const danceSpeeds = [
-                { name: '慢速', duration: '1.5s' },
-                { name: '正常', duration: '0.75s' },
-                { name: '快速', duration: '0.5s' },
-                { name: '疯狂', duration: '0.3s' }
-            ];
-            
-            // 霓虹主题舞蹈风格
-            const danceStyles = [
-                { name: '霓虹滑稽舞', color: '#00FF9C' },
-                { name: '赛博摇摆舞', color: '#FFEE00' },
-                { name: '像素机械舞', color: '#00F3FF' },
-                { name: '迷幻迪斯科', color: '#FF2E9F' }
-            ];
-            
-            // 创建音乐音符容器
-            const musicNotesContainer = document.createElement('div');
-            musicNotesContainer.style.position = 'fixed';
-            musicNotesContainer.style.top = '0';
-            musicNotesContainer.style.left = '0';
-            musicNotesContainer.style.width = '100%';
-            musicNotesContainer.style.height = '100%';
-            musicNotesContainer.style.pointerEvents = 'none';
-            musicNotesContainer.style.zIndex = '10';
-            document.body.appendChild(musicNotesContainer);
-            
-            // === 核心功能函数 ===
-            // 初始化
-            function init() {
-                setupEventListeners();
-                updateSpeed(); // 初始化速度
-                
-                // 自动切换舞蹈风格 (10秒一次)
-                setInterval(function() {
-                    if (isDancing) {
-                        nextStyle();
-                    }
-                }, 10000);
-            }
-            
-            // 切换音乐
-            function toggleMusic() {
-                isMusicPlaying = !isMusicPlaying;
-                
-                if (isMusicPlaying) {
-                    toggleMusicBtn.classList.add('active');
-                    createMusicNotes(); // 创建音乐音符动画
-                } else {
-                    toggleMusicBtn.classList.remove('active');
-                    clearMusicNotes();  // 清除音符
-                }
-            }
-            
-            // 切换舞蹈速度
-            function toggleSpeed() {
-                currentSpeedIndex = (currentSpeedIndex + 1) % danceSpeeds.length;
-                updateSpeed();
-            }
-            
-            // 更新舞蹈速度
-            function updateSpeed() {
-                const speed = danceSpeeds[currentSpeedIndex];
-                const trollDivs = document.querySelectorAll('.troll div');
-                
-                // 应用新速度到所有动画元素
-                trollDivs.forEach(div => {
-                    div.style.animationDuration = speed.duration;
-                });
-                
-                // 更新显示文本
-                const style = danceStyles[currentSpeedIndex % danceStyles.length];
-                currentStyleDisplay.textContent = `${style.name} (${speed.name})`;
-            }
-            
-            // 切换下一个舞蹈风格
-            function nextStyle() {
-                const style = danceStyles[currentSpeedIndex % danceStyles.length];
-                
-                // 更新指示器颜色
-                styleIndicator.style.backgroundColor = style.color;
-                styleIndicator.style.boxShadow = `0 0 5px ${style.color}, 0 0 10px ${style.color}`;
-                
-                // 更新显示文本
-                currentStyleDisplay.textContent = `${style.name} (${danceSpeeds[currentSpeedIndex].name})`;
-            }
-            
-            // 切换明暗模式
-            function toggleMode() {
-                isDarkMode = !isDarkMode;
-                
-                if (isDarkMode) {
-                    body.classList.remove('light-mode');
-                    toggleModeBtn.innerHTML = '<i class="fa fa-moon-o"></i>';
-                } else {
-                    body.classList.add('light-mode');
-                    toggleModeBtn.innerHTML = '<i class="fa fa-sun-o"></i>';
-                }
-            }
-            
-            // 创建音乐音符动画
-            function createMusicNotes() {
-                if (!isMusicPlaying) return;
-                
-                const noteCount = 6; // 每次创建6个音符
-                
-                for (let i = 0; i < noteCount; i++) {
-                    const note = document.createElement('div');
-                    note.classList.add('music-note');
-                    
-                    // 随机音符图标
-                    const noteIcons = ['♪', '♫', '♩', '♬'];
-                    note.innerHTML = noteIcons[Math.floor(Math.random() * noteIcons.length)];
-                    
-                    // 随机大小 (16-24px)
-                    const size = Math.random() * 8 + 16;
-                    note.style.fontSize = `${size}px`;
-                    
-                    // 随机位置 (舞者周围)
-                    const trollRect = trollContainer.getBoundingClientRect();
-                    const startX = trollRect.left + Math.random() * trollRect.width;
-                    const startY = trollRect.top + Math.random() * trollRect.height;
-                    note.style.left = `${startX}px`;
-                    note.style.top = `${startY}px`;
-                    
-                    // 随机动画时长
-                    const floatDuration = Math.random() * 4 + 2;  // 2-6秒
-                    const fadeDuration = Math.random() * 1 + 0.5; // 0.5-1.5秒
-                    
-                    // 应用动画
-                    note.style.animation = `
-                        float ${floatDuration}s ease-in-out infinite,
-                        fade-out ${fadeDuration}s ease-in-out forwards
-                    `;
-                    
-                    // 添加到容器
-                    musicNotesContainer.appendChild(note);
-                    
-                    // 定时移除 (防止内存泄漏)
-                    setTimeout(() => {
-                        if (note.parentNode === musicNotesContainer) {
-                            musicNotesContainer.removeChild(note);
-                        }
-                    }, (floatDuration + fadeDuration) * 1000);
-                }
-                
-                // 添加淡出动画关键帧 (确保存在)
-                addFadeOutKeyframe();
-                
-                // 循环创建音符
-                if (isMusicPlaying) {
-                    setTimeout(createMusicNotes, 800);
-                }
-            }
-            
-            // 添加淡出动画关键帧
-            function addFadeOutKeyframe() {
-                const styleSheet = document.styleSheets[0];
-                let hasFadeOut = false;
-                
-                // 检查是否已存在
-                for (let i = 0; i < styleSheet.cssRules.length; i++) {
-                    if (styleSheet.cssRules[i].name === 'fade-out') {
-                        hasFadeOut = true;
-                        break;
-                    }
-                }
-                
-                // 不存在则添加
-                if (!hasFadeOut) {
-                    styleSheet.insertRule(`
-                        @keyframes fade-out {
-                            0% { opacity: 1; transform: translateY(0); }
-                            100% { opacity: 0; transform: translateY(-30px); }
-                        }
-                    `, styleSheet.cssRules.length);
-                }
-            }
-            
-            // 清除所有音乐音符
-            function clearMusicNotes() {
-                while (musicNotesContainer.firstChild) {
-                    musicNotesContainer.removeChild(musicNotesContainer.firstChild);
-                }
-            }
-            
-            // 暂停/继续舞蹈
-            function toggleDance() {
-                isDancing = !isDancing;
-                const trollDivs = document.querySelectorAll('.troll div');
-                
-                if (isDancing) {
-                    // 恢复舞蹈
-                    trollDivs.forEach(div => {
-                        const animationName = div.style.animationName || getComputedStyle(div).animationName;
-                        if (animationName && animationName !== 'none') {
-                            div.style.animation = '';
-                            div.offsetHeight; // 触发重排
-                            div.style.animation = `${animationName} ${danceSpeeds[currentSpeedIndex].duration} linear infinite`;
-                        }
-                    });
-                    
-                    // 恢复指示器动画
-                    styleIndicator.style.animation = 'pulse-neon 1.5s ease-in-out infinite';
-                    nextStyle(); // 更新风格显示
-                    
-                    // 恢复音乐音符
-                    if (isMusicPlaying) {
-                        createMusicNotes();
-                    }
-                } else {
-                    // 暂停舞蹈
-                    trollDivs.forEach(div => {
-                        const computedStyle = window.getComputedStyle(div);
-                        const animationName = computedStyle.animationName;
-                        
-                        if (animationName && animationName !== 'none') {
-                            div.style.animationPlayState = 'paused';
-                        }
-                    });
-                    
-                    // 暂停指示器动画
-                    styleIndicator.style.animation = 'none';
-                    currentStyleDisplay.textContent = '舞蹈暂停';
-                    
-                    // 清除音符
-                    clearMusicNotes();
-                }
-            }
-            
-            // === 事件监听 ===
-            function setupEventListeners() {
-                // 音乐按钮
-                toggleMusicBtn.addEventListener('click', toggleMusic);
-                
-                // 速度按钮
-                toggleSpeedBtn.addEventListener('click', toggleSpeed);
-                
-                // 模式按钮
-                toggleModeBtn.addEventListener('click', toggleMode);
-                
-                // 点击舞者暂停/继续
-                trollContainer.addEventListener('click', toggleDance);
-                
-                // 键盘快捷键
-                document.addEventListener('keydown', function(e) {
-                    switch(e.key.toLowerCase()) {
-                        case ' ': // 空格 - 音乐
-                            e.preventDefault();
-                            toggleMusic();
-                            break;
-                        case 's': // S - 速度
-                            toggleSpeed();
-                            break;
-                        case 'm': // M - 模式
-                            toggleMode();
-                            break;
-                        case 'p': // P - 暂停/继续
-                            toggleDance();
-                            break;
+        // --------------------------------------
+        // JavaScript 交互部分 (不变)
+        // --------------------------------------
+        document.addEventListener('DOMContentLoaded', () => {
+            const pages = document.querySelectorAll('.page');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+
+            let currentPageIndex = 0;
+            const maxPageIndex = pages.length - 1;
+
+            // 初始化：更新书本状态
+            updateBookState();
+
+            function updateBookState() {
+                // 遍历所有页面
+                pages.forEach((page, index) => {
+                    if (index < currentPageIndex) {
+                        // 当前页之前的页面，视为已翻转 (flipped)
+                        page.classList.add('flipped');
+                        page.style.zIndex = index + 1; // 确保翻转的页面按顺序堆叠
+                    } else {
+                        // 当前页及之后的页面，视为未翻转
+                        page.classList.remove('flipped');
+                        // 未翻转的页面 z-index 倒序，确保最上面的页先翻
+                        page.style.zIndex = maxPageIndex - index + 1;
                     }
                 });
-                
-                // 窗口大小变化时保持居中
-                window.addEventListener('resize', function() {
-                    trollContainer.style.top = '50%';
-                    trollContainer.style.left = '50%';
-                    trollContainer.style.transform = `translate(-50%, -50%) scale(${isDancing ? 0.6 : 0.65})`;
-                });
+
+                // 更新按钮状态
+                prevBtn.disabled = currentPageIndex === 0;
+                nextBtn.disabled = currentPageIndex === maxPageIndex;
             }
-            
-            // 初始化应用
-            init();
+
+            // “下一页”按钮逻辑
+            nextBtn.addEventListener('click', () => {
+                if (currentPageIndex < maxPageIndex) {
+                    currentPageIndex++;
+                    updateBookState();
+                }
+            });
+
+            // “上一页”按钮逻辑
+            prevBtn.addEventListener('click', () => {
+                if (currentPageIndex > 0) {
+                    currentPageIndex--;
+                    updateBookState();
+                }
+            });
         });
     </script>
 </body>
