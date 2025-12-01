@@ -7,6 +7,7 @@
     <title>Web Terminal CLI (全功能)</title>
     <style>
 
+
  @keyframes rainbow-color-change {
     0%, 100% { color: #ff0000; } /* Red */
     14% { color: #ff8b00; } /* Orange */
@@ -16,7 +17,6 @@
     70% { color: #5d00ff; } /* Indigo */
     84% { color: #e800ff; } /* Violet */
 }
-        
         
         /* CSS Reset and Global Styles */
         * {
@@ -36,7 +36,7 @@
         }
 
         body {
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+           background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -265,7 +265,7 @@
                 execute: () => {
                     let helpOutput = '可用命令 (总计 ' + Object.keys(commands).length + ' 个):\n';
                     for (const cmd in commands) {
-                        helpOutput += `  ${cmd.padEnd(10)} - ${commands[cmd].description}\n`;
+                        helpOutput += `  ${cmd.padEnd(12)} - ${commands[cmd].description}\n`;
                     }
                     writeOutput(helpOutput);
                 }
@@ -433,11 +433,10 @@
                         return;
                     }
 
-                    // 创建新目录节点
                     currentNode.contents[dirname] = { 
                         name: dirname, 
                         type: 'dir', 
-                        contents: {} // 必须是空的 contents 对象
+                        contents: {}
                     };
                     writeOutput(`目录 ${dirname} 已创建。`);
                 }
@@ -581,6 +580,19 @@
                             return;
                         }
                     });
+                }
+            },
+            'linuxlogo': {
+                description: '显示 logo 和系统信息。',
+                execute: () => {
+                    const logo = `
+      /\\ /\\         OS: Web-CLI FunOS (Simulated)
+     ( ◕ ◕ )        Kernel: 5.15.0-js-web
+   <  / ^ \\  >      Uptime: 1 day, 5 hours
+    \\ \\_/ /       User: ${CLI_USER}
+     '---'        CPU: Browser Core (x86_64)
+`;
+                    writeOutput(logo, 'welcome');
                 }
             },
             'curl': {
