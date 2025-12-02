@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Web FC 模拟器 (含录像/存档)</title>
+    <title>Web FC 模拟器 (含截图/分享)</title>
     <style>
         /* --- 基础样式保持不变 --- */
         body {
@@ -54,7 +54,7 @@
             gap: 10px;
             margin-bottom: 15px;
             align-items: center;
-            flex-wrap: wrap; /* 保证在小屏幕上不溢出 */
+            flex-wrap: wrap;
             justify-content: center;
         }
 
@@ -77,13 +77,13 @@
         .btn-load { background: #e53935; }
         .btn-load:hover:not(:disabled) { background: #d32f2f; }
         
-        /* 存档按钮颜色 */
-        .btn-save { background: #1976D2; } 
-        .btn-save:hover:not(:disabled) { background: #1565C0; }
+        /* 截图按钮颜色 (替换存档按钮颜色) */
+        .btn-screenshot { background: #795548; } 
+        .btn-screenshot:hover:not(:disabled) { background: #6D4C41; }
 
-        /* 读档按钮颜色 */
-        .btn-load-state { background: #0097A7; }
-        .btn-load-state:hover:not(:disabled) { background: #00838F; }
+        /* 分享按钮颜色 (替换载入按钮颜色) */
+        .btn-share { background: #00BCD4; }
+        .btn-share:hover:not(:disabled) { background: #00ACC1; }
 
         .btn-record-start { background: #4CAF50; }
         .btn-record-start:hover:not(:disabled) { background: #45a049; }
@@ -133,14 +133,13 @@
 </head>
 <body>
 
-  
     
     <div class="toolbar">
         <input type="file" id="rom-upload" accept=".nes">
         <button class="btn btn-load" onclick="document.getElementById('rom-upload').click()">📂 加载游戏</button>
         
-        <button id="btnSaveState" class="btn btn-save" disabled>💾 保存进度</button>
-        <button id="btnLoadState" class="btn btn-load-state" disabled>📥 载入进度</button>
+        <button id="btnScreenshot" class="btn btn-screenshot" disabled>📷 截图</button>
+        <button id="btnShare" class="btn btn-share" disabled>🔗 分享</button>
 
         <div style="width: 2px; height: 30px; background: #444; margin: 0 10px;"></div>
         
@@ -167,21 +166,22 @@
         const buf32 = new Uint32Array(imageData.data.buffer);
         const overlay = document.getElementById('msg-overlay');
 
-        // --- 存档功能新增的 DOM 元素 ---
-        const btnSaveState = document.getElementById('btnSaveState');
-        const btnLoadState = document.getElementById('btnLoadState');
+        // --- 截图/分享功能新增的 DOM 元素 ---
+        const btnScreenshot = document.getElementById('btnScreenshot');
+        const btnShare = document.getElementById('btnShare');
         
         // --- 录像功能 DOM 元素 ---
         const btnStartRec = document.getElementById('btnStartRec');
         const btnStopRec = document.getElementById('btnStopRec');
         const recIndicator = document.getElementById('recIndicator');
 
-        // --- 存档功能常量 ---
-        const SAVE_STATE_KEY = 'NES_SAVE_STATE';
-        let currentROMName = ''; // 用于区分不同游戏的存档
+        let audioHandler = null;
+        let isFileLoaded = false;
+        let lastScreenshotBlob = null; // 用于存储最后一次截图的 Blob
 
         // --- 音频处理类 (支持录像流) ---
         class AudioHandler {
+            // ... (AudioHandler logic remains unchanged)
             constructor() {
                 this.actx = new (window.AudioContext || window.webkitAudioContext)();
                 this.bufferSize = 4096;
@@ -221,9 +221,6 @@
             }
         }
 
-        let audioHandler = null;
-        let isFileLoaded = false;
-
         // --- NES 初始化 ---
         var nes = new jsnes.NES({
             onFrame: function(frameBuffer) {
@@ -256,9 +253,6 @@
         document.getElementById('rom-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
-            // 提取 ROM 名称用于存档KEY
-            currentROMName = file.name.replace(/\.nes$/i, ''); 
 
             if (!audioHandler) {
                 audioHandler = new AudioHandler();
@@ -273,15 +267,13 @@
                     nes.loadROM(e.target.result);
                     isFileLoaded = true;
                     overlay.classList.remove('visible');
+                    
                     // 游戏加载成功后，启用所有功能按钮
                     btnStartRec.disabled = false;
-                    btnSaveState.disabled = false;
+                    btnScreenshot.disabled = false;
+                    btnShare.disabled = true; // 默认禁用分享，直到有截图
                     
-                    // 检查是否有该游戏的存档
-                    const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
-                    btnLoadState.disabled = !localStorage.getItem(stateKey);
-                    
-                    console.log(`ROM Loaded: ${currentROMName}`);
+                    console.log("ROM Loaded OK");
                 } catch(err) {
                     alert("加载失败: " + err);
                 }
@@ -289,53 +281,79 @@
         });
 
         // ============================
-        // --- 存档/读档功能实现 (新增) ---
+        // --- 截图与分享功能实现 (新增) ---
         // ============================
 
-        function saveGameState() {
-            if (!isFileLoaded || !currentROMName) return;
-            
-            try {
-                // 1. 获取 jsnes 存档数据 (JSON Object)
-                const state = nes.saveState();
-                // 2. 转换为字符串并存入 localStorage，使用 ROM 名称作为 KEY
-                const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
-                localStorage.setItem(stateKey, JSON.stringify(state));
-                
-                btnLoadState.disabled = false; // 存档后，载入按钮启用
-                alert(`存档成功！游戏进度已保存到浏览器。`);
-            } catch (e) {
-                console.error("存档失败:", e);
-                alert("存档失败！");
+        // 辅助函数：将 Data URL 转换为 Blob 对象，用于分享
+        function dataURLtoBlob(dataurl) {
+            const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
             }
+            return new Blob([u8arr], {type:mime});
         }
 
-        function loadGameState() {
-            if (!isFileLoaded || !currentROMName) return;
+        function takeScreenshot() {
+            if (!isFileLoaded) return;
+
+            // 1. 从 Canvas 获取 Base64 格式的 PNG 数据
+            const dataURL = canvas.toDataURL('image/png');
             
-            const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
-            const savedStateString = localStorage.getItem(stateKey);
+            // 2. 将 Data URL 转换为 Blob
+            const imageBlob = dataURLtoBlob(dataURL);
+            lastScreenshotBlob = imageBlob;
             
-            if (!savedStateString) {
-                alert("没有找到当前游戏的存档！");
+            // 3. 启用分享按钮
+            btnShare.disabled = false;
+
+            // 4. 立即触发下载 (作为截图操作的默认结果)
+            const a = document.createElement('a');
+            a.href = dataURL;
+            const timestamp = new Date().toISOString().slice(0,19).replace(/[-T:]/g, '');
+            a.download = `NES_Screenshot_${timestamp}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            alert("截图已下载！现在可以点击分享按钮。");
+        }
+        
+        async function shareScreenshot() {
+            if (!lastScreenshotBlob) {
+                alert("请先点击 '截图' 按钮！");
                 return;
             }
 
-            try {
-                // 1. 解析存档字符串
-                const state = JSON.parse(savedStateString);
-                // 2. 载入存档
-                nes.loadState(state);
-                alert(`载入存档成功！`);
-            } catch (e) {
-                console.error("载入存档失败:", e);
-                alert("载入存档失败，可能存档文件损坏。");
+            // 检查浏览器是否支持 Web Share API (Level 2 允许分享文件)
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([lastScreenshotBlob], 'screenshot.png', {type: 'image/png'})] })) {
+                try {
+                    // 使用 Web Share API 分享截图
+                    await navigator.share({
+                        files: [new File([lastScreenshotBlob], 'screenshot.png', {type: 'image/png'})],
+                        title: '我的 FC 游戏截图',
+                        text: '快来看我的游戏进度！ #NES #FC模拟器',
+                        // url: window.location.href // 如果部署在公网，可以分享当前链接
+                    });
+                    console.log('截图分享成功');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('分享失败:', error);
+                        alert('分享失败，请重试或手动下载截图。');
+                    }
+                }
+            } else {
+                // 不支持 Web Share API 的备选方案
+                alert("抱歉，您的浏览器不支持高级分享功能。截图已下载，请手动分享。");
+                // 此时截图已在 takeScreenshot 中下载，无需额外操作
             }
         }
 
         // 绑定按钮事件
-        btnSaveState.addEventListener('click', saveGameState);
-        btnLoadState.addEventListener('click', loadGameState);
+        btnScreenshot.addEventListener('click', takeScreenshot);
+        btnShare.addEventListener('click', shareScreenshot);
 
 
         // ============================
@@ -369,13 +387,8 @@
             const options = getMimeTypeOptions();
             if (!options.mimeType) { alert("录像功能不可用，浏览器不支持所需的视频编码。"); return; }
 
-            try {
-                mediaRecorder = new MediaRecorder(combinedStream, options);
-            } catch (e) {
-                console.error("初始化 MediaRecorder 失败:", e);
-                alert("初始化录像失败，请检查浏览器是否支持该格式。");
-                return;
-            }
+            try { mediaRecorder = new MediaRecorder(combinedStream, options); } 
+            catch (e) { console.error("初始化 MediaRecorder 失败:", e); alert("初始化录像失败。"); return; }
 
             recordedChunks = [];
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -422,22 +435,21 @@
                 btnStopRec.style.display = 'flex';
                 recIndicator.style.display = 'flex';
                 document.querySelector('.btn-load').disabled = true;
-                btnSaveState.disabled = true; // 录像时禁用存档，防止数据混乱
-                btnLoadState.disabled = true;
+                btnScreenshot.disabled = true; // 录像时禁用截图，避免影响性能
+                btnShare.disabled = true;
             } else {
                 btnStartRec.style.display = 'flex';
                 btnStopRec.style.display = 'none';
                 recIndicator.style.display = 'none';
                 document.querySelector('.btn-load').disabled = false;
-                btnSaveState.disabled = false;
-                // 恢复载入状态按钮的可用性检查
-                const stateKey = SAVE_STATE_KEY + '_' + currentROMName;
-                btnLoadState.disabled = !localStorage.getItem(stateKey);
+                btnScreenshot.disabled = false;
+                // 分享按钮保持禁用，直到再次截图
+                btnShare.disabled = (lastScreenshotBlob === null); 
             }
         }
 
         // --- 键盘事件 ---
-        const KEYMAP = {
+        const KEYMAP = { /* ... (Keymap logic remains unchanged) */
             88: jsnes.Controller.BUTTON_A,      
             90: jsnes.Controller.BUTTON_B,      
             17: jsnes.Controller.BUTTON_SELECT, 
