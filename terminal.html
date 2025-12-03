@@ -1,25 +1,24 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Terminal CLI (全功能)</title>
+    <title></title>
     <style>
-
          @keyframes rainbow-color-change {
-    0%, 100% { color: #ff0000; } /* Red */
-    14% { color: #ff8b00; } /* Orange */
-    28% { color: #e8ff00; } /* Yellow */
-    42% { color: #5dff00; } /* Green */
-    56% { color: #00b9ff; } /* Blue */
-    70% { color: #5d00ff; } /* Indigo */
-    84% { color: #e800ff; } /* Violet */
-}
+            0%, 100% { color: #ff0000; } /* Red */
+            14% { color: #ff8b00; } /* Orange */
+            28% { color: #e8ff00; } /* Yellow */
+            42% { color: #5dff00; } /* Green */
+            56% { color: #00b9ff; } /* Blue */
+            70% { color: #5d00ff; } /* Indigo */
+            84% { color: #e800ff; } /* Violet */
+        }
         /* CSS Reset and Global Styles */
         * {
             box-sizing: border-box;
         }
-
         :root {
             --terminal-bg: #000000;
             --terminal-text: #00ff00; /* Bright Green */
@@ -31,7 +30,6 @@
             --font-size-desktop: 1rem;
             --font-size-mobile: 0.9rem;
         }
-
         body {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex;
@@ -40,12 +38,11 @@
             min-height: 100vh;
             margin: 0;
             padding: 10px;
-        font-family: Comic Sans MS, cursive, sans-serif;
+            font-family: Comic Sans MS, cursive, sans-serif;
             color: var(--terminal-text);
             font-size: var(--font-size-desktop);
-                                animation: rainbow-color-change 3s linear infinite alternate;
+            animation: rainbow-color-change 3s linear infinite alternate;
         }
-
         /* --- 终端容器 --- */
         #terminal-container {
             background-color: var(--terminal-bg);
@@ -57,9 +54,8 @@
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
             display: flex;
             flex-direction: column;
-            overflow: hidden; 
-        }
-
+            overflow: hidden;
+         }
         /* --- 输出区域 --- */
         #output {
             flex-grow: 1;
@@ -69,7 +65,6 @@
             white-space: pre-wrap; 
             word-break: break-all;
         }
-
         /* Custom Scrollbar for better retro look */
         #output::-webkit-scrollbar {
             width: 8px;
@@ -83,8 +78,7 @@
         }
         #output::-webkit-scrollbar-thumb:hover {
             background: var(--terminal-text);
-        }
-        
+        }                
         /* --- 输入行 --- */
         #input-line {
             display: flex;
@@ -93,14 +87,12 @@
             border-top: 1px solid #004d00;
             flex-shrink: 0; 
         }
-
         #prompt {
             color: var(--prompt-color);
             margin-right: 8px;
             flex-shrink: 0;
             transition: color 0.3s;
         }
-
         #commandInput {
             flex-grow: 1;
             background: transparent;
@@ -112,35 +104,38 @@
             caret-color: var(--terminal-text); 
             padding: 0;
             margin: 0;
-        }
-        
+        }                
         /* --- 输出行样式 --- */
         .output-line {
             margin: 0;
         }
-
         .output-line span {
             color: var(--prompt-color); 
         }
-
         .error {
             color: #ff4500; /* OrangeRed for errors */
         }
-
         .welcome {
             color: #ffff00; /* Yellow for welcome text */
             margin-bottom: 10px;
         }
-
         .dir {
             color: var(--dir-color);
             font-weight: bold;
-        }
-        
+        }                
         .file {
             color: var(--file-color);
         }
 
+        /* 专门用于 display 命令的图像样式 */
+        .output-line img {
+            max-width: 100%; 
+            height: auto; 
+            margin-top: 10px; 
+            border: 1px solid #00ff00; 
+            display: block; /* 确保图片独占一行 */
+        }
+        
         /* --- 移动端优化 --- */
         @media (max-width: 768px) {
             body {
@@ -161,31 +156,27 @@
     </style>
 </head>
 <body>
-
     <div id="terminal-container">
         <div id="output">
-            </div>
-        
+        </div>
         <div id="input-line">
             <span id="prompt">user@web-cli:~$</span>
             <input type="text" id="commandInput" autofocus>
         </div>
     </div>
-
     <script>
         const output = document.getElementById('output');
         const input = document.getElementById('commandInput');
         const promptSpan = document.getElementById('prompt');
         const initialPromptText = "user@web-cli:";
         const CLI_USER = 'web-cli-user';
-        
+                
         let history = [];
         let historyIndex = -1;
         let currentPath = '/home/user'; // 当前工作目录
-        
+                
         // --- 全局数据 ---
-
-        // 箴言列表
+        // 箴言列表        
         const fortunes = [
             "知者不言，言者不知。",
             "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
@@ -197,7 +188,6 @@
             "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
             "天行健，君子以自强不息；地势坤，君子以厚德载物。"
         ];
-
         // 模拟文件系统结构
         const fileSystem = {
             name: '/',
@@ -219,18 +209,17 @@
                 'bin': { name: 'bin', type: 'dir', contents: {} }
             }
         };
-
+        
         // --- FS 工具函数 ---
-
         function getDirNode(path) {
             let parts = path.split('/').filter(p => p.length > 0);
-            let currentNode = fileSystem;
-            
+            let currentNode = fileSystem;                        
+
             for (const part of parts) {
                 if (currentNode.contents && currentNode.contents[part]) {
                     currentNode = currentNode.contents[part];
                 } else {
-                    return null; 
+                    return null;                 
                 }
             }
             return currentNode;
@@ -242,8 +231,8 @@
 
         function updatePrompt() {
             promptSpan.innerText = `${initialPromptText}${currentPath}~$`;
-        }
-        
+        }                
+
         // 写入新的输出行 (纯文本)
         function writeOutput(text, className = 'output-text') {
             const lines = text.split('\n');
@@ -253,6 +242,15 @@
                 p.textContent = line;
                 output.appendChild(p);
             });
+            scrollToBottom();
+        }
+        
+        // 写入带 HTML 的输出行 (用于 display 命令)
+        function writeHtmlOutput(htmlContent) {
+            const p = document.createElement('p');
+            p.className = 'output-line';
+            p.innerHTML = htmlContent;
+            output.appendChild(p);
             scrollToBottom();
         }
 
@@ -269,8 +267,7 @@
             output.scrollTop = output.scrollHeight;
         }
 
-        // --- 核心命令执行 ---
-        
+        // --- 核心命令执行 ---                
         const commands = {
             'help': {
                 description: '显示可用命令列表。',
@@ -329,7 +326,7 @@
                         writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error');
                         return;
                     }
-                    
+                                        
                     let contentHTML = '';
                     const items = Object.values(node.contents).sort((a, b) => {
                         if (a.type === 'dir' && b.type === 'file') return -1;
@@ -340,7 +337,7 @@
                     items.forEach(item => {
                         const typeClass = item.type === 'dir' ? 'dir' : 'file';
                         const name = item.type === 'dir' ? item.name + '/' : item.name;
-                        
+                                                
                         const p = document.createElement('span');
                         p.className = `output-item ${typeClass}`;
                         p.textContent = name;
@@ -348,7 +345,7 @@
                         output.appendChild(p);
                         output.innerHTML += '&nbsp;&nbsp;&nbsp;'; 
                     });
-                    
+                                        
                     output.appendChild(document.createElement('br'));
                     scrollToBottom();
                 }
@@ -411,9 +408,9 @@
                     }
 
                     currentNode.contents[filename] = { 
-                        name: filename, 
-                        type: 'file', 
-                        created: new Date().toISOString() 
+                         name: filename, 
+                         type: 'file', 
+                         created: new Date().toISOString() 
                     };
                     writeOutput(`文件 ${filename} 已创建。`);
                 }
@@ -433,8 +430,7 @@
                     if (dirname.includes('/') || dirname.includes('\\')) {
                         writeOutput(`mkdir: 目录名不能包含路径分隔符: ${dirname}`, 'error');
                         return;
-                    }
-                    
+                    }                                        
                     if (!currentNode || currentNode.type !== 'dir') {
                         writeOutput(`mkdir: 内部错误，当前路径无效。`, 'error');
                         return;
@@ -446,9 +442,9 @@
                     }
 
                     currentNode.contents[dirname] = { 
-                        name: dirname, 
-                        type: 'dir', 
-                        contents: {}
+                         name: dirname, 
+                         type: 'dir', 
+                         contents: {}
                     };
                     writeOutput(`目录 ${dirname} 已创建。`);
                 }
@@ -472,18 +468,17 @@
                         parentPath = targetAbsolutePath.substring(0, targetAbsolutePath.lastIndexOf('/'));
                         if (parentPath === '') parentPath = '/';
                         targetName = targetAbsolutePath.substring(targetAbsolutePath.lastIndexOf('/') + 1);
-                    } else if (target === '..') {
-                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error');
+                    } else if (target === '..') { 
+                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error'); 
                          return;
-                    } else if (target === '.') {
-                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error');
+                    } else if (target === '.') { 
+                         writeOutput("rmdir: '.' and '..' are not allowed.", 'error'); 
                          return;
                     } else {
                         targetAbsolutePath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
                         parentPath = currentPath;
                         targetName = target;
-                    }
-                    
+                    }                                        
                     if (targetAbsolutePath === '/') {
                         writeOutput('rmdir: 无法删除根目录 "/"。', 'error');
                         return;
@@ -500,13 +495,11 @@
                     if (targetNode.type !== 'dir') {
                         writeOutput(`rmdir: 不是目录: ${target}`, 'error');
                         return;
-                    }
-                    
+                    }                                        
                     if (Object.keys(targetNode.contents).length > 0) {
                         writeOutput(`rmdir: 目录非空: ${target}`, 'error');
                         return;
-                    }
-                    
+                    }                                        
                     if (parentNode && parentNode.contents && parentNode.contents[targetName]) {
                         delete parentNode.contents[targetName];
                         writeOutput(`目录 ${targetName} 已删除。`);
@@ -522,17 +515,15 @@
                         writeOutput('rm: 缺少操作数。', 'error');
                         writeOutput('用法: rm [-r] <目标>', 'error');
                         return;
-                    }
-            
+                    }                                
                     const flags = args.filter(arg => arg.startsWith('-'));
                     const targets = args.filter(arg => !arg.startsWith('-'));
-                    const recursive = flags.includes('-r') || flags.includes('-R');
-            
-                    if (targets.length === 0) {
-                         writeOutput('rm: 缺少操作目标。', 'error');
+                    const recursive = flags.includes('-r') || flags.includes('-R');                                
+
+                    if (targets.length === 0) { 
+                         writeOutput('rm: 缺少操作目标。', 'error'); 
                          return;
-                    }
-                    
+                    }                                        
                     targets.forEach(target => {
                         let targetAbsolutePath;
                         let parentPath;
@@ -548,8 +539,7 @@
                             targetAbsolutePath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
                             parentPath = currentPath;
                             targetName = target;
-                        }
-                        
+                        }                                                
                         // 安全检查
                         if (targetAbsolutePath === '/' || targetAbsolutePath === '/home' || targetAbsolutePath === '/home/user') {
                             writeOutput(`rm: 危险操作，拒绝删除系统关键目录: ${targetAbsolutePath}`, 'error');
@@ -576,14 +566,12 @@
 
                         if (targetNode.type === 'dir') {
                             const isNonEmpty = Object.keys(targetNode.contents).length > 0;
-                            
+                                                        
                             if (!recursive && isNonEmpty) {
                                 writeOutput(`rm: 无法删除目录 '${targetName}': 目录非空。请使用 -r 选项。`, 'error');
                                 return;
-                            }
-                            
-                            delete parentNode.contents[targetName];
-                            
+                            }                                                        
+                            delete parentNode.contents[targetName];                                                        
                             if (recursive) {
                                 writeOutput(`目录及其内容 ${targetName} 已递归删除。`);
                             } else {
@@ -597,13 +585,11 @@
             'linuxlogo': {
                 description: '显示 logo 和系统信息。',
                 execute: () => {
-                    const logo = `
-      /\\ /\\         OS: Web-CLI FunOS (Simulated)
+                    const logo = `      /\\ /\\         OS: Web-CLI FunOS (Simulated)
      ( ◕ ◕ )        Kernel: 5.15.0-js-web
    <  / ^ \\  >      Uptime: 1 day, 5 hours
     \\ \\_/ /       User: ${CLI_USER}
-     '---'        CPU: Browser Core (x86_64)
-`;
+     '---'        CPU: Browser Core (x86_64)`;
                     writeOutput(logo, 'welcome');
                 }
             },
@@ -611,8 +597,7 @@
                 description: '模拟 cbonsai，使用 -l 查看可用方案。',
                 execute: (args) => {
                     if (args.includes('-l')) {
-                        const schemes = `
-可用方案列表 (模拟):
+                        const schemes = `可用方案列表 (模拟):
 ------------------------------------
   sakura  (樱花粉)
   bamboo  (竹绿色)
@@ -620,54 +605,31 @@
   fire    (火焰红)
   matrix  (矩阵绿)
 ------------------------------------
-使用 cbonsai <方案名> 模拟生成。
-`;
+使用 cbonsai <方案名> 模拟生成。`;
                         writeOutput(schemes);
                         return;
                     }
-
                     // 简单默认模式：显示一棵树
-                    const tree = `
-     &&&\|\
-
+                    const tree = `     &&&|\\
                                         &&&&|/
-
-                                           \|&
-
-                                            /|\
-
-                                            |/\
-
-                                           /|\\
-
+                                           \\|&
+                                            /|\\
+                                            |/\\
+                                           /|\\\\
                                            |//
-
                                           |/~
-
                                          |/
-
                                         |/
-
-                             &         /~\|
-
+                             &         /~\\|
                              &&           /~
-
                          && & &&&&         /~|
-
-                         & & &&&& \__\____\_| /~\
-
-                        & & &&&\&_\          \_~
-
-                            \___             /~/~
-
+                         & & &&&& \\__\\____\\_| /~\\
+                        & & &&&\\&_\\          \\_~
+                            \\___             /~/~
                               :___________./~~~\.___________:
-
-                               \                           / 
-
-                                \_________________________/ 
-
-                                (_)                     (_)
-`;
+                               \\                           / 
+                                \\_________________________/ 
+                                (_)                     (_)`;
                     writeOutput(tree);
                     writeOutput('cbonsai: 模拟盆栽已生长完毕。', 'welcome');
                 }
@@ -675,13 +637,12 @@
             'fortune': {
                 description: '显示一句随机的箴言或名言。',
                 execute: () => {
-                    if (fortunes.length === 0) {
-                         writeOutput("fortune: 没有找到任何箴言。", 'error');
+                    if (fortunes.length === 0) { 
+                         writeOutput("fortune: 没有找到任何箴言。", 'error'); 
                          return;
                     }
                     const randomIndex = Math.floor(Math.random() * fortunes.length);
-                    const quote = fortunes[randomIndex];
-                    
+                    const quote = fortunes[randomIndex];                                        
                     // 格式化输出
                     const line = '='.repeat(quote.length + 4);
                     writeOutput(`\n${line}`);
@@ -710,8 +671,8 @@
                         if (!response.ok) {
                             throw new Error(`HTTP 错误! 状态: ${response.status} ${response.statusText}`);
                         }
-                        const data = await response.text(); 
-                        
+                        const data = await response.text();                                                 
+
                         writeOutput(`--- curl 响应 (${url}) ---`);
                         const outputData = data.length > 500 ? data.substring(0, 500) + '... (输出被截断)' : data;
                         writeOutput(outputData);
@@ -741,27 +702,28 @@
                     const count = 4;
                     let successCount = 0;
 
-                    writeOutput(`PING ${target}. 模拟发送 ${count} 个数据包...`);
-                    
+                    writeOutput(`PING ${target}. 模拟发送 ${count} 个数据包...`);                                        
                     input.disabled = true;
                     promptSpan.style.color = 'yellow';
                     promptSpan.innerText = 'Pinging...';
 
                     for (let i = 1; i <= count; i++) {
                         const startTime = performance.now();
-                        let status = 'Error';
-                        
+                        let status = 'Error';                                                
+
                         try {
-                            await fetch(target, { method: 'HEAD', mode: 'no-cors', timeout: 5000 });
+                            // 使用 HEAD/no-cors 模拟网络尝试
+                            await fetch(target, { method: 'HEAD', mode: 'no-cors' }); 
                             status = 'Success';
                             successCount++;
                         } catch (error) {
                             status = `Destination Host Unreachable.`;
-                        }
-                        
+                        }                                                
+
                         const endTime = performance.now();
-                        const latency = (endTime - startTime + Math.random() * 50).toFixed(2);
-                        
+                        // 模拟随机延迟
+                        const latency = (endTime - startTime + Math.random() * 50).toFixed(2); 
+
                         let result = '';
                         if (status === 'Success') {
                             result = `来自 ${target} 的回复: bytes=32 时间=${latency}ms TTL=${(Math.random() * 100).toFixed(0)}`;
@@ -775,19 +737,105 @@
 
                     const loss = ((count - successCount) / count * 100).toFixed(0);
                     writeOutput(`\n--- ${target} ping 统计信息 ---`);
-                    writeOutput(`${count} 个数据包已发送, ${successCount} 个已接收, ${count - successCount} 个丢失 (${loss}% 丢失)`);
-                    
+                    writeOutput(`${count} 个数据包已发送, ${successCount} 个已接收, ${count - successCount} 个丢失 (${loss}% 丢失)`);                                        
+
                     input.disabled = false;
                     updatePrompt();
                     input.focus();
                     scrollToBottom();
                     promptSpan.style.color = 'var(--prompt-color)';
                 }
+            },
+
+            // 新增 NCAT 命令
+            'ncat': {
+                description: '模拟网络连接和端口扫描。用法: ncat <host> <port>',
+                execute: async (args) => {
+                    if (args.length < 2) {
+                        writeOutput('ncat: 缺少主机和端口。', 'error');
+                        writeOutput('用法: ncat example.com 80', 'error');
+                        return;
+                    }
+
+                    const host = args[0];
+                    const port = parseInt(args[1]);
+
+                    writeOutput(`Ncat: 正在连接 ${host}:${port}...`);
+                    input.disabled = true;
+                    promptSpan.style.color = 'yellow';
+                    promptSpan.innerText = 'CONNECTING...';
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟延迟
+
+                    let result = '';
+                    
+                    if (port === 80 || port === 443 || port === 22) {
+                        // 模拟标准服务连接成功
+                        result = `Ncat: Connection successful to ${host}:${port}.\n`;
+                        if (port === 80) result += 'GET / HTTP/1.1\nHost: example.com\n\n';
+                        if (port === 443) result += 'Encrypted tunnel established (Simulated TLS).\n';
+                        if (port === 22) result += 'SSH-2.0-OpenSSH_9.0p1 Debian-1:9.0p1-1 (Simulated banner)\n';
+
+                        writeOutput(result, 'welcome');
+                        writeOutput('模拟连接已建立。按 Ctrl+C 退出 (在实际终端中)。');
+                        
+                    } else if (port >= 1 && port <= 65535 && (Math.random() < 0.2 || port === 23)) {
+                        // 模拟一些随机开放的端口 (20% 概率) 或 Telnet (23)
+                        writeOutput(`Ncat: Connected to ${host}:${port}. Port appears open.`, 'welcome');
+                        if (port === 23) writeOutput('Trying to escape Telnet... (Simulated Telnet session)');
+                    } else {
+                        // 模拟连接失败/拒绝
+                        writeOutput(`Ncat: Connection refused to ${host}:${port}.`, 'error');
+                    }
+
+                    input.disabled = false;
+                    updatePrompt();
+                    input.focus();
+                    scrollToBottom();
+                    promptSpan.style.color = 'var(--prompt-color)';
+                }
+            },
+            
+            // 新增 DISPLAY 命令
+            'display': {
+                description: '在浏览器中显示图像。用法: display <URL>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('display: 缺少图像源。', 'error');
+                        writeOutput('用法: display https://example.com/image.jpg', 'error');
+                        return;
+                    }
+
+                    const source = args[0];
+                    
+                    if (source.startsWith('http://') || source.startsWith('https://')) {
+                        // 尝试显示外部 URL
+                        writeOutput(`display: 尝试加载远程图像 ${source}...`, 'welcome');
+                        
+                        const imageHtml = `
+                            <p>图像预览 (通过浏览器加载):</p>
+                            <a href="${source}" target="_blank" style="color:var(--dir-color);">点击在新标签页打开图像</a>
+                            <img src="${source}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'100\\'><rect width=\\'200\\' height=\\'100\\' fill=\\'#333\\'/><text x=\\'100\\' y=\\'55\\' font-family=\\'monospace\\' font-size=\\'12\\' fill=\\'#ff0000\\' text-anchor=\\'middle\\'>加载失败或URL无效</text></svg>';" alt="Displayed Image"/>
+                        `;
+                        writeHtmlOutput(imageHtml);
+
+                    } else if (source.startsWith('/')) {
+                        // 模拟本地文件查找
+                        const node = getDirNode(source);
+                        if (node && node.type === 'file' && (node.name.endsWith('.png') || node.name.endsWith('.jpg') || node.name.endsWith('.mp3'))) { // 允许模拟查找
+                            writeOutput(`display: 找到本地文件 ${source}。`, 'welcome');
+                            writeOutput('提示: 模拟终端无法直接访问并显示本地文件内容。', 'error');
+                        } else {
+                            writeOutput(`display: 文件不存在或不是支持的图像格式: ${source}`, 'error');
+                        }
+                    } else {
+                         writeOutput(`display: 不支持的图像源格式。请使用完整的 URL。`, 'error');
+                    }
+                }
             }
         };
 
         // --- 事件监听和初始化 ---
-
         function handleInput() {
             const commandLine = input.value.trim();
             if (commandLine === '') return;
@@ -802,7 +850,8 @@
 
             const cmd = commands[command];
             if (cmd) {
-                if (command === 'curl' || command === 'ping') {
+                // 异步命令 (curl, ping, ncat) 在内部清空输入并处理焦点
+                if (command === 'curl' || command === 'ping' || command === 'ncat') {
                     cmd.execute(args);
                 } else {
                     cmd.execute(args);
@@ -814,15 +863,14 @@
                 input.value = '';
                 input.focus();
             }
-        }
-        
+        }                
+
         // 欢迎信息
         function writeWelcome() {
             writeOutput('', '');
             writeOutput('', '');
             writeOutput('', '');
         }
-
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
