@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 单文件版</title>
+    <title>URL 视频播放器 - 更新目录版</title>
     
     <style>
+        /* CSS 样式：定义界面布局和外观 */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -14,14 +15,14 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
         }
 
         .video-container {
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* 略微加深阴影 */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 800px;
         }
@@ -32,13 +33,30 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             margin-bottom: 15px;
-            /* 确保视频内容可见 */
             display: block; 
         }
 
         .controls-panel {
             display: flex;
             gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .playlist-panel {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #videoPlaylist {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            background-color: #fff;
+            cursor: pointer;
         }
 
         #videoUrlInput {
@@ -51,14 +69,14 @@
 
         button {
             padding: 10px 15px;
-            background-color: #28a745; /* 使用绿色作为加载按钮 */
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
-            white-space: nowrap; /* 防止按钮文本换行 */
+            white-space: nowrap;
         }
 
         button:hover {
@@ -73,45 +91,89 @@
             您的浏览器不支持 HTML5 video 标签。
         </video>
 
+        <div class="playlist-panel">
+            <label for="videoPlaylist">选择视频:</label>
+            <select id="videoPlaylist" onchange="loadSelectedVideo()">
+                <option value="">-- 选择一个视频 --</option>
+                
+                <option value="https://pouch.jumpshare.com/preview/c8-Vzue6uhyAGOTjVN13sK3VGwLTVhvo47gVw_jg1oHkeL4kgJVR4V_-5AdVETkHfNMgk5AjmpGA6vsqqtra_nTEi1R__0vM1cgbzHXXN7c37z8GQUibLSX2PlwG-eJH5nkZEfOulSH7asfSBx6avW6yjbN-I2pg_cnoHs_AmgI.mp4">
+                    Jumpshare 视频源 1
+                </option>
+                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVwFdTZ1Z-GLMOntjOpy-Gum6yjbN-I2pg_cnoHs_AmgI.mp4">
+                    Jumpshare 视频源 2
+                </option>
+                <option value="https://pouch.jumpshare.com/preview/pqjQjxXGPmSd2MV52rAIURiLSmnOYwnfrNbLgvR-Cq51FP73NT-w7S-lpj5PHTSZmekodL9th95IkjQD0DVw0z2ZMDNnxfm3RDdD6GApJcA1ch-GkybdOX3YmuDGii0-wFdTZ1Z-GLMOntjOpy-Gum6yjbN-I2pg_cnoHs_AmgI.mp4">
+                    Jumpshare 视频源 3
+                </option>
+                </select>
+        </div>
+
         <div class="controls-panel">
             <input type="text" id="videoUrlInput" 
-                   placeholder="在此输入视频 URL (例如: .mp4, .webm)">
+                   placeholder="或者在此输入自定义视频 URL (例如: .mp4, .webm)">
             <button onclick="loadVideo()">加载并播放</button>
         </div>
     </div>
 
     <script>
+        // JavaScript 逻辑：处理视频加载和播放
+
         /**
-         * 加载并播放视频的函数
+         * 核心加载函数：根据传入的 URL 加载视频并尝试播放
+         */
+        function playVideo(url) {
+            const videoPlayer = document.getElementById('myVideoPlayer');
+            
+            if (url === "") {
+                videoPlayer.src = "";
+                videoPlayer.load();
+                return;
+            }
+
+            videoPlayer.src = url;
+            videoPlayer.load(); 
+
+            videoPlayer.play()
+                .then(() => {
+                    console.log(`视频加载成功并开始播放: ${url}`);
+                })
+                .catch(error => {
+                    console.error("尝试播放视频时发生错误，可能需要用户交互：", error);
+                });
+        }
+        
+        /**
+         * 处理目录选择变化事件
+         */
+        function loadSelectedVideo() {
+            const playlist = document.getElementById('videoPlaylist');
+            const selectedUrl = playlist.value;
+            
+            // 每次从目录选择时，清空手动输入框
+            document.getElementById('videoUrlInput').value = ""; 
+            
+            playVideo(selectedUrl);
+        }
+
+        /**
+         * 处理手动输入 URL 加载事件
          */
         function loadVideo() {
-            // 1. 获取元素和URL
-            const videoPlayer = document.getElementById('myVideoPlayer');
             const urlInput = document.getElementById('videoUrlInput');
             const videoUrl = urlInput.value.trim();
 
-            // 2. 检查URL
             if (videoUrl === "") {
                 alert("请输入一个有效的视频 URL！");
                 return;
             }
-
-            // 3. 更新视频源并加载
-            videoPlayer.src = videoUrl;
-            videoPlayer.load(); 
-
-            // 4. 尝试播放
-            videoPlayer.play()
-                .then(() => {
-                    console.log("视频加载成功并开始播放。");
-                })
-                .catch(error => {
-                    console.error("尝试播放视频时发生错误，可能需要用户交互：", error);
-                    // 视频已加载，但用户必须手动点击播放按钮
-                });
+            
+            // 每次手动加载时，将目录选择重置到默认
+            document.getElementById('videoPlaylist').value = "";
+            
+            playVideo(videoUrl);
         }
 
-        // 额外的：允许用户在输入框按 Enter 键触发加载
+        // 允许用户在输入框按 Enter 键触发加载
         document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 loadVideo();
