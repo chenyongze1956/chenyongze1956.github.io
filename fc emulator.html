@@ -3,11 +3,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>Web FC 模拟器 (紧凑按钮版)</title>
     <style>
         /* --- 基础样式保持不变 --- */
         body {
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -51,49 +51,54 @@
         /* --- 按钮区域样式优化 --- */
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px; /* 略微减小间距 */
             margin-bottom: 15px;
             align-items: center;
             flex-wrap: wrap;
             justify-content: center;
         }
 
-        /* 统一按钮尺寸的核心修改 */
+        /* 统一按钮尺寸的核心修改：更紧凑 */
         .btn {
-            width: 110px; /* 统一宽度 */
-            height: 40px; /* 统一高度 */
-            padding: 0; /* 移除内边距，统一尺寸 */
+            width: 90px;  /* 统一宽度调整为 90px */
+            height: 35px; /* 统一高度调整为 35px */
+            padding: 0; 
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.85em; /* 字体略微调小 */
             transition: background 0.2s, opacity 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center; /* 内容居中 */
+            justify-content: center;
         }
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             background: #555 !important;
         }
+        /* 按钮颜色 */
         .btn-load { background: #e53935; }
         .btn-load:hover:not(:disabled) { background: #d32f2f; }
-                /* 截图按钮颜色 */
         .btn-screenshot { background: #795548; } 
         .btn-screenshot:hover:not(:disabled) { background: #6D4C41; }
-        
-        /* 分享按钮颜色 */
         .btn-share { background: #00BCD4; }
         .btn-share:hover:not(:disabled) { background: #00ACC1; }
-        
         .btn-record-start { background: #4CAF50; }
         .btn-record-start:hover:not(:disabled) { background: #45a049; }
-        
-        .btn-record-stop { background: #f44336; display: none; }
+        .btn-record-stop { 
+            width: 90px; /* 确保停止按钮也统一尺寸 */
+            height: 35px; 
+            background: #f44336; 
+            display: none; 
+        }
         .btn-record-stop:hover:not(:disabled) { background: #d32f2f; }
         
+        /* 静音按钮样式 */
+        .btn-mute { background: #5D4037; }
+        .btn-mute:hover:not(:disabled) { background: #4E342E; }
+
         .recording-indicator {
             display: none;
             align-items: center;
@@ -134,19 +139,18 @@
     </style>
 </head>
 <body>
- 
     
     <div class="toolbar">
         <input type="file" id="rom-upload" accept=".nes">
         <button class="btn btn-load" onclick="document.getElementById('rom-upload').click()">📂 加载游戏</button>
         
         <button id="btnScreenshot" class="btn btn-screenshot" disabled>📷 截图</button>
+        <button id="btnMute" class="btn btn-mute" disabled>🔊 静音</button>
         <button id="btnShare" class="btn btn-share" disabled>🔗 分享</button>
 
         <div style="width: 2px; height: 30px; background: #444; margin: 0 10px;"></div>
         
-        <button id="btnStartRec" class="btn btn-record-start" disabled>🔴 开始录像</button>
-        <button id="btnStopRec" class="btn btn-record-stop">⬜ 停止录像</button>
+        <button id="btnStartRec" class="btn btn-record-start" disabled>🔴 录像</button> <button id="btnStopRec" class="btn btn-record-stop">⬜ 停止</button>
         <div id="recIndicator" class="recording-indicator">REC</div>
     </div>
     
@@ -155,7 +159,7 @@
         <div id="msg-overlay" class="overlay visible">请加载 ROM 开始游戏</div>
     </div>
     
-  
+    
     
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
     
@@ -168,24 +172,24 @@
         const buf32 = new Uint32Array(imageData.data.buffer);
         const overlay = document.getElementById('msg-overlay');
 
-        // --- 截图/分享功能新增的 DOM 元素 ---
+        // --- DOM 元素引用 ---
         const btnScreenshot = document.getElementById('btnScreenshot');
         const btnShare = document.getElementById('btnShare');
-        
-        // --- 录像功能 DOM 元素 ---
         const btnStartRec = document.getElementById('btnStartRec');
         const btnStopRec = document.getElementById('btnStopRec');
         const recIndicator = document.getElementById('recIndicator');
+        const btnMute = document.getElementById('btnMute'); 
 
         let audioHandler = null;
         let isFileLoaded = false;
-        let lastScreenshotBlob = null; // 用于存储最后一次截图的 Blob
-
-        // --- 音频处理类 (支持录像流) ---        
+        let lastScreenshotBlob = null; 
+        
+        // --- 音频处理类 ---        
         class AudioHandler {
             constructor() {
                 this.actx = new (window.AudioContext || window.webkitAudioContext)();
                 this.bufferSize = 4096;
+                // ⚠️ [Deprecation] 此处使用 ScriptProcessorNode，在生产环境中建议替换为 AudioWorkletNode
                 this.scriptNode = this.actx.createScriptProcessor(this.bufferSize, 0, 1);
                 this.recordingDest = this.actx.createMediaStreamDestination();
                 this.ringBuffer = new Float32Array(this.bufferSize * 3); 
@@ -197,9 +201,17 @@
                 this.scriptNode.connect(this.recordingDest);
             }
 
+            // 恢复播放
             resume() {
-                if (this.actx.state === 'suspended') {
+                if (this.actx.state === 'suspended' || this.actx.state === 'closed') {
                     this.actx.resume();
+                }
+            }
+
+            // 暂停播放 (静音功能的核心)
+            pause() {
+                if (this.actx.state === 'running') {
+                    this.actx.suspend();
                 }
             }
 
@@ -261,7 +273,7 @@
             if (!audioHandler) {
                 audioHandler = new AudioHandler();
             }
-            audioHandler.resume();
+            audioHandler.resume(); 
 
             const reader = new FileReader();
             reader.readAsBinaryString(file);
@@ -275,20 +287,35 @@
                     // 游戏加载成功后，启用所有功能按钮
                     btnStartRec.disabled = false;
                     btnScreenshot.disabled = false;
-                    btnShare.disabled = true; // 默认禁用分享，直到有截图
-                                        
+                    btnShare.disabled = true;
+                    btnMute.disabled = false; 
+                    
                     console.log("ROM Loaded OK");
                 } catch(err) {
                     alert("加载失败: " + err);
                 }
             };
         });
+        
+        // --- 静音功能实现 ---
+        btnMute.addEventListener('click', function() {
+            if (!audioHandler) return;
+
+            if (audioHandler.actx.state === 'running') {
+                audioHandler.pause();
+                btnMute.innerHTML = '🔇 取消静音';
+                console.log("Audio Paused (Muted)");
+            } else if (audioHandler.actx.state === 'suspended') {
+                audioHandler.resume();
+                btnMute.innerHTML = '🔊 静音';
+                console.log("Audio Resumed (Unmuted)");
+            }
+        });
+
 
         // ============================        
         // --- 截图与分享功能实现 ---        
         // ============================
-        
-        // 辅助函数：将 Data URL 转换为 Blob 对象，用于分享        
         function dataURLtoBlob(dataurl) {
             const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1];
             const bstr = atob(arr[1]);
@@ -302,18 +329,10 @@
 
         function takeScreenshot() {
             if (!isFileLoaded) return;
-
-            // 1. 从 Canvas 获取 Base64 格式的 PNG 数据            
             const dataURL = canvas.toDataURL('image/png');
-                        
-            // 2. 将 Data URL 转换为 Blob            
             const imageBlob = dataURLtoBlob(dataURL);
             lastScreenshotBlob = imageBlob;
-                        
-            // 3. 启用分享按钮            
             btnShare.disabled = false;
-
-            // 4. 立即触发下载 (作为截图操作的默认结果)            
             const a = document.createElement('a');
             a.href = dataURL;
             const timestamp = new Date().toISOString().slice(0,19).replace(/[-T:]/g, '');
@@ -321,7 +340,6 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-
             alert("截图已下载！现在可以点击分享按钮。");
         }
                 
@@ -330,11 +348,8 @@
                 alert("请先点击 '截图' 按钮！");
                 return;
             }
-
-            // 检查浏览器是否支持 Web Share API (Level 2 允许分享文件)
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([lastScreenshotBlob], 'screenshot.png', {type: 'image/png'})] })) {
                 try {
-                    // 使用 Web Share API 分享截图
                     await navigator.share({
                         files: [new File([lastScreenshotBlob], 'screenshot.png', {type: 'image/png'})],
                         title: '我的 FC 游戏截图',
@@ -348,12 +363,10 @@
                     }
                 }
             } else {
-                // 不支持 Web Share API 的备选方案
                 alert("抱歉，您的浏览器不支持高级分享功能。截图已下载，请手动分享。");
             }
         }
 
-        // 绑定按钮事件        
         btnScreenshot.addEventListener('click', takeScreenshot);
         btnShare.addEventListener('click', shareScreenshot);
 
@@ -377,6 +390,11 @@
 
         function startRecording() {
             if (!isFileLoaded || !audioHandler || isRecording) return;
+            // 录像时强制取消静音，否则视频没有声音
+            if (audioHandler.actx.state === 'suspended') {
+                 audioHandler.resume();
+                 btnMute.innerHTML = '🔊 静音'; // 恢复图标
+            }
 
             const canvasStream = canvas.captureStream(60);
             const audioStream = audioHandler.getAudioStream();
@@ -436,16 +454,17 @@
                 btnStopRec.style.display = 'flex';
                 recIndicator.style.display = 'flex';
                 document.querySelector('.btn-load').disabled = true;
-                btnScreenshot.disabled = true; // 录像时禁用截图，避免影响性能
+                btnScreenshot.disabled = true;
                 btnShare.disabled = true;
+                btnMute.disabled = true; // 录像时禁用静音
             } else {
                 btnStartRec.style.display = 'flex';
                 btnStopRec.style.display = 'none';
                 recIndicator.style.display = 'none';
                 document.querySelector('.btn-load').disabled = false;
                 btnScreenshot.disabled = false;
-                // 分享按钮保持禁用，直到再次截图
-                btnShare.disabled = (lastScreenshotBlob === null); 
+                btnShare.disabled = (lastScreenshotBlob === null);
+                btnMute.disabled = false; // 恢复静音按钮
              }
         }
 
