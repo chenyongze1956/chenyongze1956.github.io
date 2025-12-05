@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>優化星空背景模擬：半人馬射手座</title>
+    <style>
+        /* 基礎樣式與先前保持一致 */
+        body {
+            margin: 0;
+            overflow: hidden;
+  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+            color: white;
+            position: relative;
+        }
+
+        #starfield {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5; 
+        }
+
+        .star {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 70%;
+            opacity: ;
+            width: 10px; 
+            height: 10px;
+            box-shadow: 0 0 4px 1px rgba(255, 255, 255, 0.7); 
+            animation: twinkle 1.5s infinite alternate;
+            transform: translate(-50%, -50%); /* 中心對齊 */
+        }
+        
+        /* 突出顯示星座連線上的星星 */
+        .constellation-star {
+            background-color: #fff; 
+            box-shadow: #fff;
+            z-index: 6; 
+            width: 6px; 
+            height: 6px; 
+            cursor: help; /* 鼠標懸停提示 */
+             animation: twinkle 1.5s infinite alternate;
+
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        #constellation-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4; 
+        
+        }
+        
+        .sagittarius-line {
+            stroke: #Fff;
+            stroke-width: 2.5;
+            opacity: 0.8;
+            animation: line-pulse 4s infinite alternate; 
+        }
+        
+        @keyframes line-pulse {
+            0% { opacity: 0.5; }
+            100% { opacity: 0.9; }
+        }
+
+        .content {
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="starfield"></div>
+    
+    <svg id="constellation-lines"></svg>
+
+      
+    </div>
+
+    <script>
+        const starfield = document.getElementById('starfield');
+        const linesSvg = document.getElementById('constellation-lines');
+        const numBackgroundStars = 200; 
+        const constellationOffsetX = 60; // 將星座向右移動
+        const constellationOffsetY = 45; // 稍微向下移動
+        const scaleFactor = 40; // 放大圖案，使其更清晰
+
+        // 1. **射手座主要恆星的固定相對座標 (0-100)**
+        // 座標調整為更接近人馬拉弓的姿態
+        // [名稱, X_Offset, Y_Offset, 註釋]
+        const SAGITTARIUS_STARS = [
+            // 人類軀幹與弓箭 (茶壺部分)
+            ['Head', 10, 30, '頭部 (Kaus Borealis)'],     
+            ['Shoulder', 0, 15, '肩膀'],         
+            ['Hip', -10, 0, '臀部 (Kaus Australis)'],    
+            ['Hand_Draw_Bow', -25, 30, '拉弓的手 (Nunki)'],  
+            ['Hand_Hold_Bow', 15, -15, '持弓的手 (Ascella)'],  
+            ['Arrow_Tip', 40, 25, '箭頭'],        
+            ['Bow_Top', 30, -20, '弓臂頂端'],
+            ['Bow_Bottom', 0, -35, '弓臂底端'],
+            
+            // 馬匹軀幹與腿
+            ['Back', -20, -10, '馬背'],           
+            ['Front_Hip', -35, -20, '馬前髖'],
+            ['Front_Knee', -50, -15, '馬前膝'],
+            ['Front_Hoof', -60, -25, '馬前蹄'],
+            ['Back_Knee', -55, 5, '馬後膝'],
+            ['Back_Hoof', -65, -5, '馬後蹄'],
+        ];
+
+        // 2. **射手座連線順序 (連線名稱)**
+        const SAGITTARIUS_CONNECTIONS = [
+            // 軀幹
+            ['Head', 'Shoulder'],
+            ['Shoulder', 'Hip'],
+            ['Hip', 'Back'],
+            ['Back', 'Front_Hip'],
+
+            // 弓箭
+            ['Hand_Draw_Bow', 'Arrow_Tip'], // 箭
+            ['Hand_Draw_Bow', 'Hand_Hold_Bow'], // 弓弦
+            ['Hand_Hold_Bow', 'Bow_Top'],
+            ['Hand_Hold_Bow', 'Bow_Bottom'],
+            
+            // 前腿
+            ['Front_Hip', 'Front_Knee'],
+            ['Front_Knee', 'Front_Hoof'],
+
+            // 後腿
+            ['Hip', 'Back_Knee'],
+            ['Back_Knee', 'Back_Hoof'],
+        ];
+
+        const constellationStarCoords = {};
+
+        function getScreenCoords(xOffset, yOffset) {
+            // 縮放並居中星座圖案
+            const x = constellationOffsetX + (xOffset * scaleFactor / 100);
+            const y = constellationOffsetY + (yOffset * scaleFactor / 100);
+            return { x, y };
+        }
+
+
+        // 1. 生成背景隨機星星
+        for (let i = 0; i < numBackgroundStars; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            star.style.left = `${x}vw`;
+            star.style.top = `${y}vh`;
+
+            const size = Math.random() * 2.5 + 0.5; 
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+
+            star.style.animationDelay = `${Math.random() * 1.5}s`;
+
+            starfield.appendChild(star);
+        }
+
+        // 2. 生成射手座固定星星
+        SAGITTARIUS_STARS.forEach(([name, xOffset, yOffset, note]) => {
+            const star = document.createElement('div');
+            star.classList.add('star', 'constellation-star');
+            star.id = `star-${name}`;
+            star.title = note; // 添加標題，鼠標懸停時顯示註釋
+
+            const { x, y } = getScreenCoords(xOffset, yOffset);
+            
+            star.style.left = `${x}vw`;
+            star.style.top = `${y}vh`;
+
+            constellationStarCoords[name] = { x: x, y: y };
+
+            starfield.appendChild(star);
+        });
+
+        // 3. 繪製星座連線
+        function drawConstellationLines() {
+            linesSvg.innerHTML = ''; 
+            
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            
+            linesSvg.setAttribute('width', vw);
+            linesSvg.setAttribute('height', vh);
+            linesSvg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+
+            SAGITTARIUS_CONNECTIONS.forEach(connection => {
+                const [name1, name2] = connection;
+                const coord1 = constellationStarCoords[name1];
+                const coord2 = constellationStarCoords[name2];
+
+                if (coord1 && coord2) {
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    
+                    // 將百分比 (vw/vh) 座標轉換為像素座標
+                    line.setAttribute('x1', coord1.x * vw / 100);
+                    line.setAttribute('y1', coord1.y * vh / 100);
+                    line.setAttribute('x2', coord2.x * vw / 100);
+                    line.setAttribute('y2', coord2.y * vh / 100);
+                    
+                    line.classList.add('sagittarius-line');
+                    
+                    linesSvg.appendChild(line);
+                }
+            });
+        }
+        
+        drawConstellationLines();
+        
+        // 確保在視窗大小改變時重新繪製線條
+        window.addEventListener('resize', drawConstellationLines);
+
+    </script>
+</body>
+</html>
