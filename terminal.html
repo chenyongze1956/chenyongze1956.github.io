@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Terminal CLI (全功能)</title>
     <style>
          @keyframes rainbow-color-change {
             0%, 100% { color: #ff0000; } /* Red */
@@ -133,7 +132,12 @@
             margin-top: 10px; 
             border: 1px solid #00ff00; 
             display: block; /* 确保图片独占一行 */
-        }                
+        }
+        /* 确保动画元素不被换行 */
+        #sl-train-animation, #gifwrap-animation, #gkrellm-monitor {
+            white-space: pre;
+            font-family: monospace; /* 确保 ASCII 艺术的对齐 */
+        }
         /* --- 移动端优化 --- */
         @media (max-width: 768px) {
             body {
@@ -174,6 +178,7 @@
         let currentPath = '/home/user'; // 当前工作目录
         let gkrellmIntervalId = null; // 用于存储 gkrellm 的定时器ID
         let gifwrapIntervalId = null; // 用于存储 gifwrap 的定时器ID
+        let slIntervalId = null; // 用于存储 sl 的定时器ID
                         
         // --- 全局数据 ---        
         // 箴言列表                
@@ -183,7 +188,7 @@
             "重要的不是你站的位置，而是你朝向的方向。",
             "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
             "衡量一个人幸福与否的标准，不是他拥有什么，而是他对失去的恐惧程度。",
-            "自然是一座神殿，那里活的支柱 / 有时吐出混乱的语言； / 人行走在符号的森林中， / 符号用熟悉的目光观察他。如悠长迴响彼此交织的 / 遥远声音， / 颜色、声音、气味相互呼应。",
+            "自然是一座神殿，那里活的支柱 / 有时吐出混乱的语言； / 人行走在符号的森林中， / 符号用熟悉的目光观察他。",
             "一切都在改变，没有事物消亡。",
             "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
             "工资就像方便面，加量不加价。"
@@ -1009,6 +1014,77 @@
 
                     gifwrapIntervalId = setInterval(refreshAnimation, 150);
                 }
+            },
+            // 新增 SL 命令
+            'sl': {
+                description: '运行一辆 ASCII 蒸汽火车穿越终端。Ctrl+C 退出。',
+                execute: () => {
+                    if (slIntervalId !== null) {
+                        writeOutput('sl 已经在运行。请按 Ctrl+C 退出。', 'error');
+                        return;
+                    }
+
+                    output.innerHTML = ''; // 清空屏幕
+                    writeOutput('正在启动 SL 蒸汽火车...', 'welcome');
+                    
+                    const slDiv = document.createElement('p');
+                    slDiv.id = 'sl-train-animation';
+                    slDiv.style.color = '#ffff00'; 
+                    slDiv.style.whiteSpace = 'pre'; 
+                    output.appendChild(slDiv);
+
+                    input.disabled = true;
+                    promptSpan.innerText = 'SL RUNNING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#ff0000'; 
+                    
+                    // 火车 ASCII 艺术 (简化版)
+                    const train = `
+    WWWWWWWWWWWWWWWWWW
+  /|||||||||||||||||||\\
+ /_ _________________ _\\
+| O O O O O O O O O O |
+ \`--o-o--'--o-o--'-o-o-'\`
+`;
+                    
+                    // 烟雾动画帧
+                    const smokeFrames = ['  _',' _ ', '__', ' _ ','  __'];
+                    let smokeIndex = 0;
+                    let position = -40; // 从屏幕外开始
+
+                    // 刷新函数
+                    const refreshTrain = () => {
+                        const width = output.clientWidth;
+                        
+                        // 假设火车宽度约40字符，当position超过宽度时停止
+                        if (position > width / 6) { 
+                            // 停止并清理
+                            clearInterval(slIntervalId);
+                            slIntervalId = null;
+                            output.innerHTML = ''; 
+                            writeOutput('蒸汽火车已通过。', 'welcome');
+                            input.disabled = false;
+                            updatePrompt();
+                            input.focus();
+                            promptSpan.style.color = 'var(--prompt-color)';
+                            return;
+                        }
+
+                        // 烟雾效果 (替换火车顶部)
+                        const currentSmoke = smokeFrames[smokeIndex].padEnd(4, ' ');
+                        // 这里我们简化替换，可以考虑使用更精确的替换方法
+                        const trainWithSmoke = train.replace('W W', currentSmoke); 
+                        smokeIndex = (smokeIndex + 1) % smokeFrames.length;
+
+                        // 移动效果 (使用 padding-left 模拟)
+                        slDiv.style.paddingLeft = position + 'px';
+                        slDiv.textContent = trainWithSmoke;
+
+                        position += 2; // 移动速度
+                        scrollToBottom();
+                    };
+
+                    slIntervalId = setInterval(refreshTrain, 80);
+                }
             }
         };
 
@@ -1027,8 +1103,8 @@
 
             const cmd = commands[command];
             if (cmd) {
-                // 异步命令 (curl, ping, ncat, gkrellm, gifwrap) 在内部清空输入并处理焦点
-                if (command === 'curl' || command === 'ping' || command === 'ncat' || command === 'gkrellm' || command === 'gifwrap') {
+                // 异步命令 (curl, ping, ncat, gkrellm, gifwrap, sl) 在内部清空输入并处理焦点
+                if (command === 'curl' || command === 'ping' || command === 'ncat' || command === 'gkrellm' || command === 'gifwrap' || command === 'sl') {
                     cmd.execute(args);
                 } else {
                     cmd.execute(args);
@@ -1053,23 +1129,26 @@
         input.addEventListener('keydown', (e) => {
             // 监听 Ctrl+C 组合键
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
-                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null) {
+                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null) {
                     e.preventDefault(); // 阻止浏览器默认的复制行为
                     
-                    // 清理 gkrellm 定时器
+                    // 清理所有定时器
                     if (gkrellmIntervalId !== null) {
                         clearInterval(gkrellmIntervalId);
                         gkrellmIntervalId = null;
                     }
-                    // 清理 gifwrap 定时器
                     if (gifwrapIntervalId !== null) {
                         clearInterval(gifwrapIntervalId);
                         gifwrapIntervalId = null;
                     }
+                    if (slIntervalId !== null) {
+                        clearInterval(slIntervalId);
+                        slIntervalId = null;
+                    }
                     
                     output.innerHTML = ''; // 清空动画屏幕
                     writeOutput('^C', 'error'); // 模拟 Ctrl+C 提示
-                    writeOutput('动画/监视器已停止。', 'welcome');
+                    writeOutput('特效已停止。', 'welcome');
                     
                     input.disabled = false;
                     updatePrompt();
