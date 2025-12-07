@@ -4,9 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 带弹幕功能</title>
+    <title>URL 视频播放器 - 带弹幕和关灯功能</title>
     
     <style>
+        /* 💡 关灯模式的背景遮罩层 */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95); /* 黑色半透明背景 */
+            z-index: 9; /* 位于视频容器之下 */
+            display: none; /* 默认隐藏 */
+            transition: opacity 0.3s;
+        }
+
         /* 🌈 基础和彩虹动画 */
         @keyframes rainbow-color-change {
             0%, 100% { color: #ff0000; } /* Red */
@@ -24,7 +37,7 @@
                 transform: translateX(100%);
             }
             to {
-                transform: translateX(-100vw); /* 假设滚出整个视口 */
+                transform: translateX(-100vw);
             }
         }
 
@@ -35,36 +48,47 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            /* 正常模式下的背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-        }   
+            transition: background 0.3s;
+        }
+        /* 关灯模式下移除 body 的渐变背景，由 overlay 处理变暗 */
+        body.lights-off {
+            background: none; 
+        }
+
         p {
             font-family: Comic Sans MS, cursive, sans-serif;
-            margin: 5px 0 15px 0; /* 调整间距 */
+            margin: 5px 0 15px 0;
         }
 
         .video-container {
+            /* 正常模式下的容器背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 800px;
+            
+            z-index: 10; /* 确保在 overlay 上方 */
+            position: relative; /* 确保 z-index 有效 */
+            transition: all 0.3s;
         }
-
-        /* 弹幕包裹层：用于定位弹幕在其上方 */
-        .barrage-wrapper {
-            position: relative; /* 确保子元素可以基于它定位 */
-            width: 100%;
-            /* 视频自带控件高度约 50px，这里保留空间 */
-            margin-bottom: 50px; 
+        /* 关灯模式下容器的样式 */
+        .video-container.lights-off {
+             /* 确保在黑暗背景下视频容器仍清晰 */
+            background: #222; 
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); 
         }
-
+        
         #myVideoPlayer {
             width: 100%;
             height: auto;
-            min-height: 200px; /* 确保有足够的空间显示 */
+            min-height: 200px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            margin-bottom: 15px;
             display: block;
         }
         
@@ -72,68 +96,52 @@
         .barrage {
             position: absolute;
             top: 0;
-            right: 0; /* 初始位置在右侧外面 */
+            right: 0; 
             white-space: nowrap;
             font-size: 24px;
             font-weight: bold;
             color: white;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            pointer-events: none; /* 允许点击穿透到视频控件 */
+            pointer-events: none;
             z-index: 10;
         }
 
-
-        /* 📺 播放列表和 URL 控制面板 */
-        .controls-panel {
+        /* 🆕 新增：功能按钮面板 */
+        .action-panel {
             display: flex;
+            justify-content: flex-end; /* 按钮靠右 */
+            margin-bottom: 10px;
             gap: 10px;
-            margin-bottom: 15px;
-        }                
-        .playlist-panel {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }                
-        #videoPlaylist {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            background-color: #fff;
-            cursor: pointer;
-        }
-
-        #videoUrlInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        /* 弹幕发送面板 */
-        .barrage-panel {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        #barrageInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
         }
         
-        #sendButton {
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+        #lightsButton {
+            background-color: #3498db; /* 关灯按钮颜色 */
             color: white;
-            animation: rainbow-color-change 8s linear infinite; /* 应用彩虹动画 */
+            transition: background-color 0.3s;
+        }
+        #lightsButton:hover {
+            background-color: #2980b9;
         }
         
+        /* 其他控制面板和按钮样式保持不变 */
+        .controls-panel, .playlist-panel, .barrage-panel {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        #videoPlaylist, #videoUrlInput, #barrageInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        #sendButton {
+            background-color: #ff3366;
+            color: white;
+            animation: rainbow-color-change 8s linear infinite;
+        }
         button {
             padding: 10px 15px;
             border: none;
@@ -143,14 +151,20 @@
             transition: background-color 0.3s;
             white-space: nowrap;
         }
-        
-        button:hover:not(#sendButton) {
+        button:not(#sendButton):not(#lightsButton):hover {
             background-color: #1e7e34;
         }
     </style>
 </head>
 <body>
-    <div class="video-container">
+    <div id="overlay" onclick="toggleLights()"></div>
+
+    <div class="video-container" id="videoContainer">
+        
+        <div class="action-panel">
+            <button id="lightsButton" onclick="toggleLights()">关灯</button>
+        </div>
+
         <div class="barrage-wrapper">
             <video id="myVideoPlayer" controls>
             </video>
@@ -194,50 +208,58 @@
     </div>
 
     <script>
-        // JavaScript 逻辑：处理视频加载和播放
+        // JavaScript 逻辑：处理视频加载、弹幕和关灯功能
 
-        // 弹幕池（存储弹幕的容器）
-        const barrageWrapper = document.querySelector('.barrage-wrapper');
+        const body = document.body;
+        const overlay = document.getElementById('overlay');
+        const videoContainer = document.getElementById('videoContainer');
+        const lightsButton = document.getElementById('lightsButton');
         const videoPlayer = document.getElementById('myVideoPlayer');
+        const barrageWrapper = document.querySelector('.barrage-wrapper');
+
+        // 💡 关灯/开灯功能
+        function toggleLights() {
+            // 切换 body 和 video-container 上的 lights-off 类
+            body.classList.toggle('lights-off');
+            videoContainer.classList.toggle('lights-off');
+            
+            const isLightsOff = body.classList.contains('lights-off');
+            
+            // 切换 overlay 的显示状态
+            overlay.style.display = isLightsOff ? 'block' : 'none';
+
+            // 更新按钮文本
+            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
+        }
         
         // 🚀 弹幕核心函数
         function sendBarrage() {
             const input = document.getElementById('barrageInput');
             const text = input.value.trim();
 
-            if (!text) return; // 弹幕内容为空则不发送
+            if (!text) return;
             
-            // 1. 创建弹幕元素
             const barrage = document.createElement('div');
             barrage.className = 'barrage';
             barrage.textContent = text;
 
-            // 2. 随机化弹幕的初始位置（垂直高度）
-            // 限制在视频高度的 80% 范围内，避开顶部和底部
             const videoHeight = videoPlayer.clientHeight;
             const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05); 
             barrage.style.top = `${topPosition}px`;
             
-            // 3. 随机化颜色 (可选)
             const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
             barrage.style.color = randomColor;
 
-            // 4. 随机化速度（通过调整动画时长）
-            const speed = Math.random() * 5 + 8; // 8到13秒之间
+            const speed = Math.random() * 5 + 8;
             barrage.style.animation = `move-barrage ${speed}s linear forwards`;
 
-            // 5. 将弹幕添加到包裹容器
             barrageWrapper.appendChild(barrage);
-            
-            // 6. 清空输入框
             input.value = '';
 
-            // 7. 动画结束后移除弹幕元素，以节省内存
             barrage.addEventListener('animationend', () => {
                 barrage.remove();
             });
             
-            // 如果视频暂停，则暂停弹幕动画
             if (videoPlayer.paused) {
                 barrage.style.animationPlayState = 'paused';
             }
@@ -255,7 +277,6 @@
                 b.style.animationPlayState = 'paused';
             });
         });
-
 
         // 📢 视频加载核心函数 (保持不变)
         function playVideo(url) {
@@ -302,14 +323,13 @@
             playVideo(videoUrl);
         }
 
-        // 允许用户在输入框按 Enter 键触发加载 (保持不变)
+        // 绑定 Enter 键事件 (保持不变)
         document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 loadVideo();
             }
         });
         
-        // 允许用户在弹幕输入框按 Enter 键发送弹幕
         document.getElementById('barrageInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 sendBarrage();
