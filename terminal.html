@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal CLI (全功能)</title>
     <style>
          @keyframes rainbow-color-change {
             0%, 100% { color: #ff0000; } /* Red */
@@ -44,11 +45,12 @@
         }
         /* --- 终端容器 --- */
         #terminal-container {
+            position: relative; 
             background-color: var(--terminal-bg);
             width: 100%;
             max-width: var(--terminal-width-desktop);
-            height: 100vh; /* Mobile height */
-            max-height: var(--terminal-height-desktop); /* Desktop height limit */
+            height: 100vh; 
+            max-height: var(--terminal-height-desktop); 
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
             display: flex;
@@ -63,6 +65,8 @@
             line-height: 1.4;
             white-space: pre-wrap; 
             word-break: break-all;
+            position: relative; 
+            z-index: 2; 
         }
         /* Custom Scrollbar for better retro look */
         #output::-webkit-scrollbar {
@@ -84,7 +88,9 @@
             align-items: center;
             padding: 10px 15px;
             border-top: 1px solid #004d00;
-            flex-shrink: 0;         
+            flex-shrink: 0; 
+            position: relative;
+            z-index: 3; 
         }
         #prompt {
             color: var(--prompt-color);
@@ -112,10 +118,10 @@
             color: var(--prompt-color);         
         }
         .error {
-            color: #ff4500; /* OrangeRed for errors */
+            color: #ff4500; 
         }
         .welcome {
-            color: #ffff00; /* Yellow for welcome text */
+            color: #ffff00; 
             margin-bottom: 10px;
         }
         .dir {
@@ -125,19 +131,43 @@
         .file {
             color: var(--file-color);
         }
-        /* 专门用于 display 命令的图像样式 */
         .output-line img {
             max-width: 100%; 
             height: auto; 
             margin-top: 10px; 
             border: 1px solid #00ff00; 
-            display: block; /* 确保图片独占一行 */
+            display: block; 
         }
-        /* 确保动画元素不被换行 */
-        #sl-train-animation, #gifwrap-animation, #gkrellm-monitor {
+        #sl-train-animation, #gifwrap-animation, #gkrellm-monitor, #cbonsai-animation {
             white-space: pre;
-            font-family: monospace; /* 确保 ASCII 艺术的对齐 */
+            font-family: monospace; 
         }
+
+        /* --- XSNOW 样式和动画 (深度修正) --- */
+        #xsnow-container {
+            z-index: 1; 
+        }
+        @keyframes fall {
+            0% { 
+                transform: translateY(0) translateX(0) rotate(0deg); 
+            }
+            50% { 
+                transform: translateY(50vh) translateX(5vw); 
+            }
+            100% { 
+                /* 确保雪花降落覆盖整个视口高度 */
+                transform: translateY(105vh) translateX(0) rotate(360deg); 
+            }
+        }
+        .snowflake {
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+            animation-direction: normal;
+            animation-fill-mode: forwards;
+            position: absolute; 
+        }
+
         /* --- 移动端优化 --- */
         @media (max-width: 768px) {
             body {
@@ -175,13 +205,18 @@
                         
         let history = [];
         let historyIndex = -1;
-        let currentPath = '/home/user'; // 当前工作目录
-        let gkrellmIntervalId = null; // 用于存储 gkrellm 的定时器ID
-        let gifwrapIntervalId = null; // 用于存储 gifwrap 的定时器ID
-        let slIntervalId = null; // 用于存储 sl 的定时器ID
+        let currentPath = '/home/user'; 
+        
+        // --- 全局定时器 ID ---
+        let gkrellmIntervalId = null; 
+        let gifwrapIntervalId = null; 
+        let slIntervalId = null; 
+        let xsnowIntervalId = null; 
+        let cbonsaiIntervalId = null; 
+        let pingIntervalId = null; // 新增 ping 定时器
+        // ----------------------
                         
-        // --- 全局数据 ---        
-        // 箴言列表                
+        // --- 全局数据 (Fortunes, fileSystem, etc.) ---        
         const fortunes = [
             "知者不言，言者不知。",
             "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
@@ -193,7 +228,6 @@
             "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
             "工资就像方便面，加量不加价。"
         ];
-        // 模拟文件系统结构
         const fileSystem = {
             name: '/',
             type: 'dir',
@@ -215,7 +249,7 @@
             }
         };
                 
-        // --- FS 工具函数 ---        
+        // --- 辅助函数 ---        
         function getDirNode(path) {
             let parts = path.split('/').filter(p => p.length > 0);
             let currentNode = fileSystem;                        
@@ -230,31 +264,6 @@
             return currentNode;
         }
 
-        // 解析输入路径并返回父节点和目标名称
-        function resolvePath(inputPath, currentDir) {
-            let absolutePath;
-            let parentPath;
-            let targetName;
-
-            if (inputPath.startsWith('/')) {
-                absolutePath = inputPath.replace(/\/$/, '');
-                parentPath = absolutePath.substring(0, absolutePath.lastIndexOf('/'));
-                if (parentPath === '') parentPath = '/';
-                targetName = absolutePath.substring(absolutePath.lastIndexOf('/') + 1);
-            } else {
-                absolutePath = currentDir === '/' ? `/${inputPath}` : `${currentDir}/${inputPath}`;
-                parentPath = currentDir;
-                targetName = inputPath.split('/').pop();
-            }
-            
-            return {
-                absolutePath: absolutePath,
-                parentPath: parentPath,
-                targetName: targetName,
-                parentNode: getDirNode(parentPath)
-            };
-        }
-
         function getCurrentDirNode() {
             return getDirNode(currentPath);
         }
@@ -263,7 +272,6 @@
             promptSpan.innerText = `${initialPromptText}${currentPath}~$`;
         }                
         
-        // 写入新的输出行 (纯文本)        
         function writeOutput(text, className = 'output-text') {
             const lines = text.split('\n');
             lines.forEach(line => {
@@ -275,7 +283,6 @@
             scrollToBottom();
         }                
 
-        // 写入带 HTML 的输出行 (用于 display 命令)        
         function writeHtmlOutput(htmlContent) {
             const p = document.createElement('p');
             p.className = 'output-line';
@@ -284,7 +291,6 @@
             scrollToBottom();
         }
 
-        // 写入带提示符的命令历史        
         function writeCommandHistory(commandLine) {
             const p = document.createElement('p');
             p.className = 'output-line';
@@ -292,12 +298,10 @@
             output.appendChild(p);
         }
 
-        // 自动滚动到底部        
         function scrollToBottom() {
             output.scrollTop = output.scrollHeight;
         }
         
-        // --- Tab 自动补全逻辑 ---
         function autoComplete() {
             const fullInput = input.value;
             const parts = fullInput.trim().split(/\s+/);
@@ -319,22 +323,27 @@
 
             // 2. 补全文件/目录 (仅支持当前目录内的相对路径)
             if (lastPart.includes('/') && !lastPart.startsWith('/')) {
-                // 暂不支持复杂的相对路径补全，仅处理当前目录下的补全
                 return;
             }
 
             let searchDir = getCurrentDirNode();
             let searchPrefix = lastPart;
             
-            // 处理绝对路径补全
+            function simpleResolvePath(inputPath) {
+                let parts = inputPath.split('/');
+                let targetName = parts.pop() || '';
+                let parentPath = parts.join('/') || '/';
+                return { parentPath, targetName };
+            }
+
             if (lastPart.startsWith('/')) {
-                const { parentPath, targetName } = resolvePath(lastPart, currentPath);
+                const { parentPath, targetName } = simpleResolvePath(lastPart);
                 searchDir = getDirNode(parentPath);
                 searchPrefix = targetName;
             }
 
             if (!searchDir || !searchDir.contents) {
-                return; // 无法补全
+                return; 
             }
 
             const candidates = Object.keys(searchDir.contents).filter(name => name.startsWith(searchPrefix));
@@ -344,13 +353,10 @@
                 const targetNode = searchDir.contents[targetName];
                 let suffix = targetNode.type === 'dir' ? '/' : ' ';
                 
-                // 构建新的输入值
                 let newValue;
                 if (lastPart.startsWith('/')) {
-                    // 绝对路径补全：替换路径的最后一个部分
                     newValue = prefix + lastPart.substring(0, lastPart.lastIndexOf('/') + 1) + targetName + suffix;
                 } else {
-                    // 相对路径补全：替换当前输入的最后一个词
                     newValue = prefix + targetName + suffix;
                 }
                 input.value = newValue;
@@ -358,7 +364,6 @@
             } else if (candidates.length > 1) {
                 writeCommandHistory(fullInput);
 
-                // 尝试找到最长公共前缀
                 let commonPrefix = candidates.reduce((prev, curr) => {
                     let i = 0;
                     while (i < prev.length && i < curr.length && prev[i] === curr[i]) {
@@ -368,10 +373,8 @@
                 });
 
                 if (commonPrefix.length > searchPrefix.length) {
-                    // 补全到最长公共前缀
                     input.value = prefix + commonPrefix;
                 } else {
-                    // 显示所有匹配项
                     const displayList = candidates.map(name => {
                         return searchDir.contents[name].type === 'dir' ? `<span class="dir">${name}/</span>` : name;
                     }).join('&nbsp;&nbsp;&nbsp;');
@@ -383,9 +386,7 @@
 
         // --- 核心命令执行 ---                        
         const commands = {
-            'help': {
-                description: '显示可用命令列表。',
-                execute: () => {
+            'help': { description: '显示可用命令列表。', execute: () => {
                     let helpOutput = '可用命令 (总计 ' + Object.keys(commands).length + ' 个):\n';
                     for (const cmd in commands) {
                         helpOutput += `  ${cmd.padEnd(12)} - ${commands[cmd].description}\n`;
@@ -393,671 +394,466 @@
                     writeOutput(helpOutput);
                 }
             },
-            'clear': {
-                description: '清空终端屏幕。',
-                execute: () => {
-                    output.innerHTML = '';
-                    writeWelcome();
-                }
-            },
-            'echo': {
-                description: '在终端上打印文本。用法: echo <文本>',
-                execute: (args) => {
-                    writeOutput(args.join(' '));
-                }
-            },
-            'date': {
-                description: '显示当前日期和时间。',
-                execute: () => {
-                    writeOutput(new Date().toLocaleString());
-                }
-            },
-            'whoami': {
-                description: '显示当前用户名。',
-                execute: () => {
-                    writeOutput(CLI_USER);
-                }
-            },
-            'who': {
-                description: '显示当前登录的用户。',
-                execute: () => {
-                    const date = new Date().toLocaleDateString('zh-CN', {month: 'numeric', day: 'numeric'});
-                    const time = new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
-                    writeOutput(`${CLI_USER.padEnd(10)} pts/0        ${date} ${time}`);
-                }
-            },
-            'pwd': {
-                description: '打印当前工作目录。',
-                execute: () => {
-                    writeOutput(currentPath);
-                }
-            },
-            'ls': {
-                description: '列出当前目录内容。',
-                execute: () => {
+            'clear': { description: '清空终端屏幕。', execute: () => { output.innerHTML = ''; writeWelcome(); } },
+            'ls': { description: '列出当前目录内容。', execute: () => {
                     const node = getCurrentDirNode();
-                    if (!node || node.type !== 'dir') {
-                        writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error');
-                        return;
-                    }                                                            
+                    if (!node || node.type !== 'dir') { writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error'); return; }                                                            
                     const items = Object.values(node.contents).sort((a, b) => {
                         if (a.type === 'dir' && b.type === 'file') return -1;
                         if (a.type === 'file' && b.type === 'dir') return 1;
                         return a.name.localeCompare(b.name);
                     });
-
                     items.forEach(item => {
                         const typeClass = item.type === 'dir' ? 'dir' : 'file';
                         const name = item.type === 'dir' ? item.name + '/' : item.name;
-                                                                        
                         const span = document.createElement('span');
                         span.className = `output-item ${typeClass}`;
                         span.textContent = name;
-
                         output.appendChild(span);
                         output.innerHTML += '&nbsp;&nbsp;&nbsp;'; 
                     });
-                                                            
                     output.appendChild(document.createElement('br'));
                     scrollToBottom();
                 }
             },
-            'cd': {
-                description: '切换目录。用法: cd <目录名>',
-                execute: (args) => {
+            'cd': { description: '切换目录。用法: cd <目录名>', execute: (args) => {
                     const target = args[0];
-                    if (!target) {
-                        currentPath = '/home/user';
-                        updatePrompt();
-                        return;
-                    }
-                    
+                    if (!target) { currentPath = '/home/user'; updatePrompt(); return; }
                     let newPath;
-                    if (target === '/') {
-                        newPath = '/';
-                    } else if (target.startsWith('/')) {
-                        newPath = target;
-                    } else if (target === '..') {
+                    if (target === '/') { newPath = '/'; } 
+                    else if (target.startsWith('/')) { newPath = target; } 
+                    else if (target === '..') {
                         if (currentPath === '/') return;
                         newPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
                         if (newPath === '') newPath = '/'; 
-                    } else {
-                        // 相对路径
-                        newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
-                    }
+                    } else { newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`; }
 
-                    // 清理路径中的连续斜杠
                     newPath = newPath.replace(/\/\/+/g, '/');
-
                     const node = getDirNode(newPath);
 
-                    if (!node) {
-                        writeOutput(`cd: 目录不存在: ${target}`, 'error');
-                    } else if (node.type !== 'dir') {
-                        writeOutput(`cd: 不是目录: ${target}`, 'error');
-                    } else {
+                    if (!node) { writeOutput(`cd: 目录不存在: ${target}`, 'error'); } 
+                    else if (node.type !== 'dir') { writeOutput(`cd: 不是目录: ${target}`, 'error'); } 
+                    else {
                         currentPath = newPath.endsWith('/') && newPath.length > 1 ? newPath.slice(0, -1) : newPath;
                         updatePrompt();
                     }
                 }
             },
-            'touch': {
-                description: '在当前目录创建一个空文件。用法: touch <文件名>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('touch: 缺少文件操作数。', 'error');
-                        return;
-                    }
-                    const filename = args[0];
-                    const currentNode = getCurrentDirNode();
-                    if (!currentNode || currentNode.type !== 'dir') {
-                        writeOutput(`touch: 无法创建文件: ${currentPath} 不是一个有效目录。`, 'error');
-                        return;
-                    }
-                    if (currentNode.contents[filename]) {
-                        writeOutput(`touch: 文件已存在: ${filename}`, 'error');
-                        return;
-                    }
-                    currentNode.contents[filename] = { 
-                          name: filename, 
-                          type: 'file', 
-                          created: new Date().toISOString() 
-                    };
-                    writeOutput(`文件 ${filename} 已创建。`);
-                }
-            },
-            'mkdir': {
-                description: '创建一个新目录。用法: mkdir <目录名>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('mkdir: 缺少目录名。', 'error');
-                        writeOutput('用法: mkdir <目录名>', 'error');
-                        return;
-                    }
-                    const dirname = args[0];
-                    const currentNode = getCurrentDirNode();
-                    if (dirname.includes('/') || dirname.includes('\\')) {
-                        writeOutput(`mkdir: 目录名不能包含路径分隔符: ${dirname}`, 'error');
-                        return;
-                    }                                                            
-                    if (!currentNode || currentNode.type !== 'dir') {
-                        writeOutput(`mkdir: 内部错误，当前路径无效。`, 'error');
-                        return;
-                    }
-                    if (currentNode.contents[dirname]) {
-                        writeOutput(`mkdir: 文件或目录已存在: ${dirname}`, 'error');
-                        return;
-                    }
-                    currentNode.contents[dirname] = { 
-                          name: dirname, 
-                          type: 'dir', 
-                          contents: {}
-                    };
-                    writeOutput(`目录 ${dirname} 已创建。`);
-                }
-            },
-            'rmdir': {
-                description: '删除空目录。用法: rmdir <目录名>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('rmdir: 缺少操作数。', 'error');
-                        writeOutput('用法: rmdir <目录名>', 'error');
-                        return;
-                    }
-                    const target = args[0];                    
-                    
-                    const { parentPath, targetName, targetAbsolutePath, parentNode } = resolvePath(target, currentPath);
-
-                    if (targetAbsolutePath === '/') {
-                        writeOutput('rmdir: 无法删除根目录 "/"。', 'error');
-                        return;
-                    }
-
-                    const targetNode = getDirNode(targetAbsolutePath);
-                    
-                    if (!targetNode) {
-                        writeOutput(`rmdir: 目录不存在: ${target}`, 'error');
-                        return;
-                    }
-                    if (targetNode.type !== 'dir') {
-                        writeOutput(`rmdir: 不是目录: ${target}`, 'error');
-                        return;
-                    }                                                            
-                    if (Object.keys(targetNode.contents).length > 0) {
-                        writeOutput(`rmdir: 目录非空: ${target}`, 'error');
-                        return;
-                    }                                                            
-                    if (parentNode && parentNode.contents && parentNode.contents[targetName]) {
-                        delete parentNode.contents[targetName];
-                        writeOutput(`目录 ${targetName} 已删除。`);
-                    } else {
-                        writeOutput(`rmdir: 内部错误，无法删除 ${target}.`, 'error');
-                    }
-                }
-            },
-            'rm': {
-                description: '删除文件或目录(使用 -r 递归删除)。用法: rm [-r] <目标>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('rm: 缺少操作数。', 'error');
-                        writeOutput('用法: rm [-r] <目标>', 'error');
-                        return;
-                    }                                                    
-                    const flags = args.filter(arg => arg.startsWith('-'));
-                    const targets = args.filter(arg => !arg.startsWith('-'));
-                    const recursive = flags.includes('-r') || flags.includes('-R');                                
-                    
-                    if (targets.length === 0) { 
-                          writeOutput('rm: 缺少操作目标。', 'error'); 
-                          return;
-                    }                                                            
-                    targets.forEach(target => {
-                        const { parentPath, targetName, targetAbsolutePath, parentNode } = resolvePath(target, currentPath);
-                        
-                        // 安全检查
-                        if (targetAbsolutePath === '/' || targetAbsolutePath === '/home' || targetAbsolutePath === '/home/user') {
-                            writeOutput(`rm: 危险操作，拒绝删除系统关键目录: ${targetAbsolutePath}`, 'error');
-                            return;
-                        }
-                        if (target === '.' || target === '..') {
-                            writeOutput(`rm: 拒绝删除特殊目录: ${target}`, 'error');
-                            return;
-                        }
-
-                        const targetNode = getDirNode(targetAbsolutePath);
-
-                        if (!targetNode) {
-                            writeOutput(`rm: 目标不存在: ${target}`, 'error');
-                            return;
-                        }
-
-                        if (targetNode.type === 'file') {
-                            delete parentNode.contents[targetName];
-                            writeOutput(`文件 ${targetName} 已删除。`);
-                            return;
-                        }
-
-                        if (targetNode.type === 'dir') {
-                            const isNonEmpty = Object.keys(targetNode.contents).length > 0;
-                                                                                    
-                            if (!recursive && isNonEmpty) {
-                                writeOutput(`rm: 无法删除目录 '${targetName}': 目录非空。请使用 -r 选项。`, 'error');
-                                return;
-                            }                                                                                    
-                            delete parentNode.contents[targetName];                                                                                    
-                            if (recursive) {
-                                writeOutput(`目录及其内容 ${targetName} 已递归删除。`);
-                            } else {
-                                writeOutput(`空目录 ${targetName} 已删除。`);
-                            }
-                            return;
-                        }
-                    });
-                }
-            },
-            'linuxlogo': {
-                description: '显示 logo 和系统信息。',
-                execute: () => {
-                    const logo = `      /\\ /\\         OS: Web-CLI FunOS (Simulated)
-     ( ◕ ◕ )        Kernel: 5.15.0-js-web
-   <  / ^ \\  >      Uptime: ${Math.floor(Math.random() * 5)} days, ${Math.floor(Math.random() * 24)} hours
-    \\ \\_/ /       User: ${CLI_USER}
-     '---'        CPU: Browser Core (x86_64)`;
-                    writeOutput(logo, 'welcome');
-                }
-            },
-            'cbonsai': {
-                description: '模拟 cbonsai，使用 -l 查看可用方案。',
-                execute: (args) => {
-                    if (args.includes('-l')) {
-                        const schemes = `可用方案列表 (模拟):
-------------------------------------
-  sakura  (樱花粉)
-  bamboo  (竹绿色)
-  ice     (冰蓝色)
-  fire    (火焰红)
-  matrix  (矩阵绿)
-------------------------------------
-使用 cbonsai <方案名> 模拟生成。`;
-                        writeOutput(schemes);
-                        return;
-                    }
-                    // 简单默认模式：显示一棵树
-                    const tree = `     &&&|\\
-                                        &&&&|/
-                                           \\|&
-                                            /|\\
-                                            |/\\
-                                           /|\\\\
-                                           |//
-                                          |/~
-                                         |/
-                                        |/
-                             &         /~\\|
-                             &&           /~
-                         && & &&&&         /~|
-                         & & &&&& \\__\\____\\_| /~\\
-                        & & &&&\\&_\\          \\_~
-                            \\___             /~/~
-                              :___________./~~~\.___________:
-                               \\                           / 
-                                \\_________________________/ 
-                                (_)                     (_)`;
-                    writeOutput(tree);
-                    writeOutput('cbonsai: 模拟盆栽已生长完毕。', 'welcome');
-                }
-            },
-            'fortune': {
-                description: '显示一句随机的箴言或名言。',
-                execute: () => {
-                    if (fortunes.length === 0) { 
-                          writeOutput("fortune: 没有找到任何箴言。", 'error'); 
-                          return;
-                    }
+            'fortune': { description: '显示一句随机的箴言或名言。', execute: () => {
+                    if (fortunes.length === 0) { writeOutput("fortune: 没有找到任何箴言。", 'error'); return; }
                     const randomIndex = Math.floor(Math.random() * fortunes.length);
                     const quote = fortunes[randomIndex];                                                            
-                    // 格式化输出
                     const line = '='.repeat(quote.length + 4);
                     writeOutput(`\n${line}`);
                     writeOutput(`| ${quote} |`);
                     writeOutput(`${line}\n`);
                 }
             },
-            'curl': {
-                description: '模拟 HTTP GET 请求。用法: curl <URL>',
-                execute: async (args) => {
-                    if (args.length === 0) {
-                        writeOutput('curl: 缺少 URL。', 'error');
-                        writeOutput('用法: curl https://jsonplaceholder.typicode.com/todos/1', 'error');
-                        return;
-                    }
-                    const url = args[0];                    
-                    writeOutput(`正在连接到 ${url}...`);
-
-                    input.disabled = true;                    
-                    promptSpan.style.color = 'yellow';                    
-                    promptSpan.innerText = 'FETCHING...';
-
-                    try {                        
-                        // 绕过 CORS，尝试获取数据
-                        const response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);                        
-                        if (!response.ok) {                            
-                            throw new Error(`HTTP 错误! 状态: ${response.status} ${response.statusText}`);
-                        }                        
-                        const data = await response.text();                                                 
-                        
-                        writeOutput(`--- curl 响应 (${url}) ---`);                        
-                        const outputData = data.length > 500 ? data.substring(0, 500) + '... (输出被截断)' : data;                        
-                        writeOutput(outputData);                        
-                        writeOutput(`--- 状态: ${response.status} OK ---`);
-                    } catch (error) {                        
-                        writeOutput(`curl: 错误: ${error.message}`, 'error');                        
-                        writeOutput('注意: 使用代理绕过 CORS 失败。请尝试公共 API。', 'error');
-                    } finally {                        
-                        input.disabled = false;                        
-                        updatePrompt();                        
-                        input.focus();                        
-                        scrollToBottom();                        
-                        promptSpan.style.color = 'var(--prompt-color)';
-                    }
-                }
+            'echo': { description: '在终端上打印文本。', execute: (args) => { writeOutput(args.join(' ')); } },
+            'date': { description: '显示当前日期和时间。', execute: () => { writeOutput(new Date().toLocaleString()); } },
+            'whoami': { description: '显示当前用户名。', execute: () => { writeOutput(CLI_USER); } },
+            
+            // --- 文件系统修正命令 ---
+            
+            'pwd': { 
+                description: '打印当前工作目录。', 
+                execute: () => { 
+                    writeOutput(currentPath); 
+                } 
             },
-            'ping': {
-                description: '测试网络连接到主机。用法: ping <URL>',
-                execute: async (args) => {
-                    if (args.length === 0) {
-                        writeOutput('ping: 缺少主机名或 URL。', 'error');
-                        writeOutput('用法: ping https://www.google.com', 'error');
+            'touch': { 
+                description: '在当前目录或指定路径创建空文件。', 
+                execute: (args) => { 
+                    if (args.length === 0) { 
+                        writeOutput('touch: 缺少文件操作数。', 'error'); 
                         return;
                     }
-                    const target = args[0];                    
-                    const count = 4;                    
-                    let successCount = 0;
+                    const fileName = args[0];
+                    const currentNode = getCurrentDirNode();
 
-                    writeOutput(`PING ${target}. 模拟发送 ${count} 个数据包...`);                                                            
-                    input.disabled = true;                    
-                    promptSpan.style.color = 'yellow';                    
-                    promptSpan.innerText = 'Pinging...';
-
-                    for (let i = 1; i <= count; i++) {                        
-                        const startTime = performance.now();                        
-                        let status = 'Error';                                                
-                        
-                        try {                            
-                            // 使用 HEAD/no-cors 模拟网络尝试                            
-                            await fetch(target, { method: 'HEAD', mode: 'no-cors' });                             
-                            status = 'Success';                            
-                            successCount++;
-                        } catch (error) {                            
-                            status = `Destination Host Unreachable.`;
-                        }                                                
-                        
-                        const endTime = performance.now();                        
-                        // 模拟随机延迟                        
-                        const latency = (endTime - startTime + Math.random() * 50).toFixed(2); 
-
-                        let result = '';                        
-                        if (status === 'Success') {                            
-                            result = `来自 ${target} 的回复: bytes=32 时间=${latency}ms TTL=${(Math.random() * 100).toFixed(0)}`;
-                        } else {                            
-                            result = `请求超时或连接失败: ${status}`;
-                        }                        
-                        writeOutput(result);
-
-                        await new Promise(resolve => setTimeout(resolve, 800));                    
+                    if (!currentNode || currentNode.type !== 'dir') {
+                        writeOutput(`touch: 无法访问: ${fileName}: No such file or directory`, 'error');
+                        return;
                     }
-
-                    const loss = ((count - successCount) / count * 100).toFixed(0);                    
-                    writeOutput(`\n--- ${target} ping 统计信息 ---`);                    
-                    writeOutput(`${count} 个数据包已发送, ${successCount} 个已接收, ${count - successCount} 个丢失 (${loss}% 丢失)`);                                        
                     
-                    input.disabled = false;                    
-                    updatePrompt();                    
-                    input.focus();                    
-                    scrollToBottom();                    
-                    promptSpan.style.color = 'var(--prompt-color)';
-                }
+                    if (!currentNode.contents[fileName]) {
+                        currentNode.contents[fileName] = { name: fileName, type: 'file' };
+                    }
+                } 
             },
-            // 新增 NCAT 命令            
-            'ncat': {
-                description: '模拟网络连接和端口扫描。用法: ncat <host> <port>',
-                execute: async (args) => {
-                    if (args.length < 2) {
-                        writeOutput('ncat: 缺少主机和端口。', 'error');
-                        writeOutput('用法: ncat example.com 80', 'error');
+            'mkdir': { 
+                description: '创建一个新目录。用法: mkdir <目录名>', 
+                execute: (args) => { 
+                    if (args.length === 0) { 
+                        writeOutput('mkdir: 缺少目录名。', 'error'); 
                         return;
                     }
-                    const host = args[0];                    
-                    const port = parseInt(args[1]);
+                    const dirName = args[0];
+                    const currentNode = getCurrentDirNode();
+                    
+                    if (!currentNode || currentNode.type !== 'dir') {
+                        writeOutput(`mkdir: 无法访问: ${dirName}: No such file or directory`, 'error');
+                        return;
+                    }
 
-                    writeOutput(`Ncat: 正在连接 ${host}:${port}...`);                    
-                    input.disabled = true;                    
-                    promptSpan.style.color = 'yellow';                    
-                    promptSpan.innerText = 'CONNECTING...';                                        
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模拟延迟
-
-                    let result = '';                                        
-                    if (port === 80 || port === 443 || port === 22) {
-                        // 模拟标准服务连接成功                        
-                        result = `Ncat: Connection successful to ${host}:${port}.\n`;                        
-                        if (port === 80) result += 'GET / HTTP/1.1\nHost: example.com\n\n';                        
-                        if (port === 443) result += 'Encrypted tunnel established (Simulated TLS).\n';                        
-                        if (port === 22) result += 'SSH-2.0-OpenSSH_9.0p1 Debian-1:9.0p1-1 (Simulated banner)\n';
-
-                        writeOutput(result, 'welcome');                        
-                        writeOutput('模拟连接已建立。按 Ctrl+C 退出 (在实际终端中)。');                                            
-                    } else if (port >= 1 && port <= 65535 && (Math.random() < 0.2 || port === 23)) {
-                        // 模拟一些随机开放的端口 (20% 概率) 或 Telnet (23)                        
-                        writeOutput(`Ncat: Connected to ${host}:${port}. Port appears open.`, 'welcome');                        
-                        if (port === 23) writeOutput('Trying to escape Telnet... (Simulated Telnet session)');
+                    if (currentNode.contents[dirName]) {
+                        writeOutput(`mkdir: 目录已存在: ${dirName}`, 'error');
                     } else {
-                        // 模拟连接失败/拒绝                        
-                        writeOutput(`Ncat: Connection refused to ${host}:${port}.`, 'error');
+                        currentNode.contents[dirName] = { name: dirName, type: 'dir', contents: {} };
                     }
-
-                    input.disabled = false;                    
-                    updatePrompt();                    
-                    input.focus();                    
-                    scrollToBottom();                    
-                    promptSpan.style.color = 'var(--prompt-color)';
-                }
-            },                        
-            // 新增 DISPLAY 命令            
-            'display': {
-                description: '在浏览器中显示图像。用法: display <URL>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('display: 缺少图像源。', 'error');
-                        writeOutput('用法: display https://example.com/image.jpg', 'error');
-                        return;
-                    }
-
-                    const source = args[0];
-                    
-                    if (source.startsWith('http://') || source.startsWith('https://')) {
-                        // 尝试显示外部 URL
-                        writeOutput(`display: 尝试加载远程图像 ${source}...`, 'welcome');
-                        
-                        const imageHtml = `
-                            <p>图像预览 (通过浏览器加载):</p>
-                            <a href="${source}" target="_blank" style="color:var(--dir-color);">点击在新标签页打开图像</a>
-                            <img src="${source}" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'100\\'><rect width=\\'200\\' height=\\'100\\' fill=\\'#333\\'/><text x=\\'100\\' y=\\'55\\' font-family=\\'monospace\\' font-size=\\'12\\' fill=\\'#ff0000\\' text-anchor=\\'middle\\'>加载失败或URL无效</text></svg>';" alt="Displayed Image"/>
-                        `;
-                        writeHtmlOutput(imageHtml);
-
-                    } else if (source.startsWith('/')) {
-                        // 模拟本地文件查找
-                        const node = getDirNode(source);
-                        if (node && node.type === 'file' && (node.name.endsWith('.png') || node.name.endsWith('.jpg') || node.name.endsWith('.mp3') || node.name.endsWith('.txt'))) {
-                            writeOutput(`display: 找到本地文件 ${source}。`, 'welcome');
-                            writeOutput('提示: 模拟终端无法直接访问并显示本地文件内容。', 'error');
-                        } else {
-                            writeOutput(`display: 文件不存在或不是支持的图像/文本格式: ${source}`, 'error');
-                        }
-                    } else {
-                         writeOutput(`display: 不支持的图像源格式。请使用完整的 URL 或文件路径。`, 'error');
-                    }
-                }
+                } 
             },
-            // 新增 GKRELLM 命令
-            'gkrellm': {
-                description: '模拟 GKrellM 系统监视器。Ctrl+C 退出。',
-                execute: (args) => {
-                    if (gkrellmIntervalId !== null) {
-                        writeOutput('gkrellm 已经在运行。请按 Ctrl+C 退出。', 'error');
+            'rmdir': { 
+                description: '删除空目录。用法: rmdir <目录名>', 
+                execute: (args) => { 
+                    if (args.length === 0) { 
+                        writeOutput('rmdir: 缺少操作数。', 'error'); 
+                        return;
+                    }
+                    const dirName = args[0];
+                    const currentNode = getCurrentDirNode();
+
+                    if (!currentNode || !currentNode.contents[dirName]) {
+                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 目录不存在`, 'error');
+                        return;
+                    }
+                    
+                    const targetNode = currentNode.contents[dirName];
+
+                    if (targetNode.type !== 'dir') {
+                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 不是目录`, 'error');
+                        return;
+                    }
+                    
+                    if (Object.keys(targetNode.contents).length > 0) {
+                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 目录非空`, 'error');
+                    } else {
+                        delete currentNode.contents[dirName];
+                    }
+                } 
+            },
+            'rm': { 
+                description: '删除文件或目录(使用 -r 递归删除)。用法: rm [-r] <文件/目录>', 
+                execute: (args) => { 
+                    let recursive = false;
+                    let targetIndex = 0;
+
+                    if (args[0] === '-r') {
+                        recursive = true;
+                        targetIndex = 1;
+                    }
+                    
+                    const targetName = args[targetIndex];
+
+                    if (!targetName) {
+                        writeOutput('rm: 缺少操作数。', 'error'); 
                         return;
                     }
 
-                    output.innerHTML = ''; // 清空屏幕，模拟进入全屏应用
-                    writeOutput('正在启动 GKrellM 模拟器...', 'welcome');
+                    const currentNode = getCurrentDirNode();
+                    if (!currentNode || !currentNode.contents[targetName]) {
+                        writeOutput(`rm: 无法删除 ‘${targetName}’: 文件或目录不存在`, 'error');
+                        return;
+                    }
                     
-                    const gkrellmDiv = document.createElement('div');
-                    gkrellmDiv.id = 'gkrellm-monitor';
-                    output.appendChild(gkrellmDiv);
+                    const targetNode = currentNode.contents[targetName];
 
+                    if (targetNode.type === 'dir' && !recursive) {
+                        writeOutput(`rm: 无法删除 ‘${targetName}’: 是目录 (使用 -r 递归删除)`, 'error');
+                        return;
+                    }
+                    
+                    // 模拟删除
+                    delete currentNode.contents[targetName];
+                } 
+            },
+            
+            'linuxlogo': { description: '显示 logo 和系统信息。', execute: () => { writeOutput(`      /\\ /\\         OS: Web-CLI FunOS\n     ( ◕ ◕ )        Kernel: 5.15.0-js-web\n   <  / ^ \\  >      Uptime: ...\n    \\ \\_/ /       User: ${CLI_USER}\n     '---'        CPU: Browser Core (x86_64)`, 'welcome'); } },
+
+            // --- 网络/多媒体修正命令 ---
+            
+            'curl': { 
+                description: '模拟 HTTP GET 请求。用法: curl <URL> (模拟延迟)', 
+                execute: (args) => { 
+                    const url = args[0] || 'https://www.example.com';
+                    const downloadDelay = 2000; // 模拟下载延迟 2秒
+                    
+                    writeOutput(`curl ${url}`);
+                    writeOutput(`  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0`);
+                    
                     input.disabled = true;
-                    promptSpan.innerText = 'MONITORING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#ff00ff'; 
+                    promptSpan.innerText = 'CURLING... (等待下载)';
+                    promptSpan.style.color = '#00ff40'; 
+
+                    // 创建一个段落用于显示动态进度
+                    const updateCurlOutput = document.createElement('p');
+                    updateCurlOutput.style.whiteSpace = 'pre';
+                    updateCurlOutput.className = 'curl-output';
+                    output.appendChild(updateCurlOutput);
+                    scrollToBottom();
                     
-                    let cpuUsage = 15;
-                    let memUsage = 60;
-                    let netRx = 0.1;
-                    let netTx = 0.05;
+                    // 模拟下载过程中的输出更新 (分两帧更新)
+                    const updateFrames = [
+                        ' 50   628   50   628    0     0    314      0 0:00:04 0:00:02 0:00:02   314',
+                        ' 80  1004   80  1004    0     0    502      0 0:00:02 0:00:01 0:00:01   502'
+                    ];
+                    
+                    let frameIndex = 0;
+                    const updateInterval = setInterval(() => {
+                        if (frameIndex < updateFrames.length) {
+                             updateCurlOutput.textContent = updateFrames[frameIndex];
+                             frameIndex++;
+                             scrollToBottom();
+                        }
+                    }, 500);
 
-                    const refreshMonitor = () => {
-                        // 模拟数据波动
-                        cpuUsage = Math.min(100, Math.max(5, cpuUsage + (Math.random() * 8 - 4)));
-                        memUsage = Math.min(95, Math.max(50, memUsage + (Math.random() * 2 - 1)));
-                        netRx = Math.max(0.01, netRx + (Math.random() * 0.2 - 0.1));
-                        netTx = Math.max(0.01, netTx + (Math.random() * 0.1 - 0.05));
 
-                        const cpuBar = '█'.repeat(Math.round(cpuUsage / 10)).padEnd(10, '░');
-                        const memBar = '█'.repeat(Math.round(memUsage / 10)).padEnd(10, '░');
+                    setTimeout(() => {
+                        clearInterval(updateInterval); // 停止进度更新
+                        
+                        const finalOutput = `
+100  1256  100  1256    0     0  28984      0 --:--:-- --:--:-- --:--:-- 28984
+<!doctype html>
+<html>
+<head><title>Example Domain</title>...</head>
+<body><h1>Example Domain</h1>...</body>
+</html>`;
+                        
+                        updateCurlOutput.textContent = finalOutput.trim();
 
-                        const monitorAscii = `
-┌───────────────────────────┐
-│ Web-CLI GKrellM Simulator │
-├───────────────────────────┤
-│ Uptime: ${new Date().toLocaleTimeString()}     │
-│ Load: 0.50 0.45 0.40        │
-├───────────────────────────┤
-│ CPU: [${cpuBar}] ${cpuUsage.toFixed(1).padEnd(5, ' ')}%     │
-│ Memory: [${memBar}] ${memUsage.toFixed(1).padEnd(5, ' ')}%    │
-│ Swap: [░░░░░░░░░░] 0.0%    │
-├───────────────────────────┤
-│ Net I/F: eth0 (Simulated) │
-│   Rx: ${netRx.toFixed(2).padEnd(5, '0')} MB/s (${(netRx * 8 * 10).toFixed(1)} Mb/s) │
-│   Tx: ${netTx.toFixed(2).padEnd(5, '0')} MB/s (${(netTx * 8 * 10).toFixed(1)} Mb/s) │
-├───────────────────────────┤
-│ FS: /home/user (Sim) 20G/50G│
-└───────────────────────────┘
-`;
-                        gkrellmDiv.textContent = monitorAscii;
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
                         scrollToBottom();
+                    }, downloadDelay);
+                } 
+            },
+            'ping': { 
+                description: '测试网络连接。用法: ping <IP/域名> (模拟延迟, Ctrl+C 停止)', 
+                execute: (args) => { 
+                    if (pingIntervalId !== null) { writeOutput('ping 已经在运行。', 'error'); return; }
+
+                    const host = args[0] || '127.0.0.1';
+                    const delay = 1000; // 模拟每秒发送一个包
+                    let seq = 0;
+                    const maxSeq = 4;
+                    
+                    writeOutput(`PING ${host} (127.0.0.1) 56(84) bytes of data.`);
+                    input.disabled = true;
+                    promptSpan.innerText = `PING ${host}... (按 Ctrl+C 停止)`;
+                    promptSpan.style.color = '#ff8000'; 
+
+                    const pingPacket = () => {
+                        if (seq >= maxSeq) {
+                            clearInterval(pingIntervalId);
+                            pingIntervalId = null;
+
+                            const stats = `
+^C
+--- ${host} ping statistics ---
+${maxSeq} packets transmitted, ${maxSeq} received, 0% packet loss, time ${maxSeq * delay}ms
+rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
+`;
+                            writeOutput(stats.trim());
+                            
+                            input.disabled = false;
+                            updatePrompt();
+                            input.focus();
+                            promptSpan.style.color = 'var(--prompt-color)';
+                            return;
+                        }
+
+                        const time = (Math.random() * 50 + 30).toFixed(3);
+                        writeOutput(`64 bytes from ${host}: icmp_seq=${seq + 1} ttl=64 time=${time} ms`);
+                        seq++;
                     };
 
-                    refreshMonitor();
-                    gkrellmIntervalId = setInterval(refreshMonitor, 1000);
-                }
+                    pingIntervalId = setInterval(pingPacket, delay); // 使用全局 ID
+                } 
             },
-            // 新增 GIFWRAP 命令
-            'gifwrap': {
-                description: '模拟在终端中播放 ASCII 动画。Ctrl+C 退出。',
-                execute: () => {
-                    if (gifwrapIntervalId !== null) {
-                        writeOutput('gifwrap 已经在运行。请按 Ctrl+C 退出。', 'error');
-                        return;
-                    }
+            'ncat': { 
+                description: '模拟网络连接和端口扫描。用法: ncat -z <IP> <port>', 
+                execute: (args) => { 
+                    const target = args[2] || 'localhost';
+                    const port = args[3] || '80';
+                    writeOutput(`ncat -z ${target} ${port}`);
+                    // 模拟网络延迟
+                    input.disabled = true;
+                    promptSpan.innerText = 'CONNECTING...';
+                    promptSpan.style.color = '#ff00ff'; 
 
-                    output.innerHTML = ''; // 清空屏幕
-                    writeOutput('正在启动 GIFWRAP 动画...', 'welcome');
+                    setTimeout(() => {
+                        if (Math.random() > 0.3) {
+                             writeOutput(`Ncat: Connected to ${target}:${port}.`);
+                        } else {
+                             writeOutput(`Ncat: Connection refused.`, 'error');
+                        }
+                        
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                    }, 500);
+                } 
+            },
+            'display': { 
+                description: '在终端中模拟显示图像。用法: display [URL]', 
+                execute: (args) => { 
+                    const imageUrl = args[0] || 'https://via.placeholder.com/300x150/00FF00/000000?text=Web-CLI+Image'; 
                     
-                    const gifwrapDiv = document.createElement('div');
-                    gifwrapDiv.id = 'gifwrap-animation';
-                    output.appendChild(gifwrapDiv);
+                    writeOutput(`display: 正在尝试从 ${imageUrl} 加载图像...`, 'welcome');
+                    
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.alt = '模拟图像';
+                    img.style.maxWidth = '300px'; 
+                    img.style.height = 'auto';
+                    img.style.display = 'block'; 
+
+                    output.appendChild(img);
+                    scrollToBottom();
+
+                    writeOutput('图像加载完毕。', 'welcome');
+                } 
+            },
+            
+            // CBONSAI 命令 (已修正为动画)
+            'cbonsai': {
+                description: '模拟 cbonsai 盆栽生长动画。Ctrl+C 退出。',
+                execute: () => {
+                    if (cbonsaiIntervalId !== null) { writeOutput('cbonsai 已经在生长。', 'error'); return; }
+
+                    output.innerHTML = ''; 
+                    writeOutput('正在种植盆栽 (C-Bonsai)...', 'welcome');
+                    
+                    const bonsaiDiv = document.createElement('div');
+                    bonsaiDiv.id = 'cbonsai-animation';
+                    bonsaiDiv.style.color = '#33cc33'; 
+                    bonsaiDiv.style.whiteSpace = 'pre'; 
+                    output.appendChild(bonsaiDiv);
 
                     input.disabled = true;
-                    promptSpan.innerText = 'ANIMATING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#ff8000'; // 动画模式颜色
+                    promptSpan.innerText = 'GROWING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#33cc33'; 
                     
-                    // ASCII 动画帧 (模拟一个跳动的方块)
                     const frames = [
                         `
-  (^_^)/
-   | |
-  / \\
+                          .
+                         / \\
+                        /___\\
+                       |     |
+                       |_____|
+                        \\___/
+                         | |
+                         |_|
+                        
 `,
                         `
-  \\(^_^)/
-    | |
-   / \\
+                          .
+                         / \\
+                        /___\\
+                       | @   |
+                       |_____|
+                        \\___/
+                         | |
+                         |_|
 `,
                         `
-  /(^_^)\\
-   | |
-  / \\
+                          /\\
+                         /  \\
+                        / @  \\
+                       | / \\ |
+                       |_____|
+                        \\___/
+                         | |
+                         |_|
 `,
                         `
-  (^_^)\\
-   | |
-  / \\
+                      _.._
+                     / \\  \\
+                    /  @   \\
+                   | /\\ /\\ |
+                   |_______|
+                    \\_____/
+                     | | |
+                     | | |
+`,
+                        `
+                       _..._
+                     ,dP""YMb,
+                    dP'  @  'YMb
+                   |    / \\    |
+                   |___/___\\___|
+                    \\_________ /
+                     |  |  |  |
+                     |  |  |  |
+`,
+                        `
+                      _..._
+                     ,d88""Y8b,
+                    d88' @  '88b
+                   |888 / \\ 888|
+                   |___/___\\___|
+                    \\_________ /
+                     |  |  |  |
+                     |  |  |  |
 `
                     ];
-
                     let currentFrame = 0;
+                    const TOTAL_FRAMES = frames.length;
 
-                    const refreshAnimation = () => {
-                        currentFrame = (currentFrame + 1) % frames.length;
-                        gifwrapDiv.textContent = frames[currentFrame];
+                    const growBonsai = () => {
+                        if (currentFrame >= TOTAL_FRAMES) {
+                            clearInterval(cbonsaiIntervalId);
+                            cbonsaiIntervalId = null;
+                            input.disabled = false;
+                            updatePrompt();
+                            input.focus();
+                            promptSpan.style.color = 'var(--prompt-color)';
+                            writeOutput('\nBonsai 生长完成！ 输入 Ctrl+C 即可清除画面。', 'welcome');
+                            return;
+                        }
+                        
+                        bonsaiDiv.textContent = frames[currentFrame];
+                        currentFrame++;
                         scrollToBottom();
                     };
 
-                    gifwrapIntervalId = setInterval(refreshAnimation, 150);
+                    cbonsaiIntervalId = setInterval(growBonsai, 500);
                 }
             },
-            // 新增 SL 命令
+            
+            // SL 命令
             'sl': {
                 description: '运行一辆 ASCII 蒸汽火车穿越终端。Ctrl+C 退出。',
                 execute: () => {
-                    if (slIntervalId !== null) {
-                        writeOutput('sl 已经在运行。请按 Ctrl+C 退出。', 'error');
-                        return;
-                    }
-
-                    output.innerHTML = ''; // 清空屏幕
+                    if (slIntervalId !== null) { writeOutput('sl 已经在运行。', 'error'); return; }
+                    output.innerHTML = ''; 
                     writeOutput('正在启动 SL 蒸汽火车...', 'welcome');
-                    
                     const slDiv = document.createElement('p');
                     slDiv.id = 'sl-train-animation';
                     slDiv.style.color = '#ffff00'; 
                     slDiv.style.whiteSpace = 'pre'; 
                     output.appendChild(slDiv);
-
                     input.disabled = true;
                     promptSpan.innerText = 'SL RUNNING... (按 Ctrl+C 停止)';
                     promptSpan.style.color = '#ff0000'; 
-                    
-                    // 火车 ASCII 艺术 (简化版)
                     const train = `
-    WWWWWWWWWWWWWWWWWW
+    W W     WWWWWWWWWWWWWW
   /|||||||||||||||||||\\
  /_ _________________ _\\
 | O O O O O O O O O O |
  \`--o-o--'--o-o--'-o-o-'\`
 `;
-                    
-                    // 烟雾动画帧
                     const smokeFrames = ['  _',' _ ', '__', ' _ ','  __'];
                     let smokeIndex = 0;
-                    let position = -40; // 从屏幕外开始
-
-                    // 刷新函数
+                    let position = -40; 
                     const refreshTrain = () => {
                         const width = output.clientWidth;
-                        
-                        // 假设火车宽度约40字符，当position超过宽度时停止
                         if (position > width / 6) { 
-                            // 停止并清理
                             clearInterval(slIntervalId);
                             slIntervalId = null;
                             output.innerHTML = ''; 
@@ -1068,22 +864,141 @@
                             promptSpan.style.color = 'var(--prompt-color)';
                             return;
                         }
-
-                        // 烟雾效果 (替换火车顶部)
                         const currentSmoke = smokeFrames[smokeIndex].padEnd(4, ' ');
-                        // 这里我们简化替换，可以考虑使用更精确的替换方法
                         const trainWithSmoke = train.replace('W W', currentSmoke); 
                         smokeIndex = (smokeIndex + 1) % smokeFrames.length;
-
-                        // 移动效果 (使用 padding-left 模拟)
                         slDiv.style.paddingLeft = position + 'px';
                         slDiv.textContent = trainWithSmoke;
-
-                        position += 2; // 移动速度
+                        position += 2; 
                         scrollToBottom();
                     };
-
                     slIntervalId = setInterval(refreshTrain, 80);
+                }
+            },
+
+            // GIFWRAP 命令
+            'gifwrap': {
+                description: '模拟在终端中播放 ASCII 动画。Ctrl+C 退出。',
+                execute: () => {
+                    if (gifwrapIntervalId !== null) { writeOutput('gifwrap 已经在运行。', 'error'); return; }
+                    output.innerHTML = ''; 
+                    writeOutput('正在启动 GIFWRAP 动画...', 'welcome');
+                    const gifwrapDiv = document.createElement('div');
+                    gifwrapDiv.id = 'gifwrap-animation';
+                    output.appendChild(gifwrapDiv);
+                    input.disabled = true;
+                    promptSpan.innerText = 'ANIMATING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#ff8000'; 
+                    const frames = [
+                        `\n  (^_^)/\n   | |\n  / \\`,
+                        `\n  \\(^_^)/\n    | |\n   / \\`,
+                        `\n  /(^_^)\\\n   | |\n  / \\`,
+                        `\n  (^_^)\\\n   | |\n  / \\`
+                    ];
+                    let currentFrame = 0;
+                    const refreshAnimation = () => {
+                        currentFrame = (currentFrame + 1) % frames.length;
+                        gifwrapDiv.textContent = frames[currentFrame];
+                        scrollToBottom();
+                    };
+                    gifwrapIntervalId = setInterval(refreshAnimation, 150);
+                }
+            },
+            
+            // GKRELLM 命令
+            'gkrellm': {
+                description: '模拟 GKrellM 系统监视器。Ctrl+C 退出。',
+                execute: () => {
+                    if (gkrellmIntervalId !== null) { writeOutput('gkrellm 已经在运行。', 'error'); return; }
+                    output.innerHTML = '';
+                    writeOutput('正在启动 GKrellM 模拟器...', 'welcome');
+                    const gkrellmDiv = document.createElement('div');
+                    gkrellmDiv.id = 'gkrellm-monitor';
+                    output.appendChild(gkrellmDiv);
+                    input.disabled = true;
+                    promptSpan.innerText = 'MONITORING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#ff00ff'; 
+                    let cpuUsage = 15, memUsage = 60, netRx = 0.1, netTx = 0.05;
+                    const refreshMonitor = () => {
+                        cpuUsage = Math.min(100, Math.max(5, cpuUsage + (Math.random() * 8 - 4)));
+                        memUsage = Math.min(95, Math.max(50, memUsage + (Math.random() * 2 - 1)));
+                        netRx = Math.max(0.01, netRx + (Math.random() * 0.2 - 0.1));
+                        netTx = Math.max(0.01, netTx + (Math.random() * 0.1 - 0.05));
+                        const cpuBar = '█'.repeat(Math.round(cpuUsage / 10)).padEnd(10, '░');
+                        const memBar = '█'.repeat(Math.round(memUsage / 10)).padEnd(10, '░');
+                        const monitorAscii = `
+┌───────────────────────────┐
+│ Web-CLI GKrellM Simulator │
+├───────────────────────────┤
+│ CPU: [${cpuBar}] ${cpuUsage.toFixed(1).padEnd(5, ' ')}%     │
+│ Memory: [${memBar}] ${memUsage.toFixed(1).padEnd(5, ' ')}%    │
+│ Net I/F: Rx: ${netRx.toFixed(2).padEnd(5, '0')} MB/s        │
+└───────────────────────────┘
+`;
+                        gkrellmDiv.textContent = monitorAscii;
+                        scrollToBottom();
+                    };
+                    refreshMonitor();
+                    gkrellmIntervalId = setInterval(refreshMonitor, 1000);
+                }
+            },
+            
+            // XSNOW 命令 (已修正降落深度和速度)
+            'xsnow': {
+                description: '模拟终端降雪效果。按 Ctrl+C 退出。',
+                execute: () => {
+                    if (xsnowIntervalId !== null) { writeOutput('xsnow 已经在运行。请按 Ctrl+C 退出。', 'error'); return; }
+                    const terminalContainer = document.getElementById('terminal-container');
+                    const snowContainer = document.createElement('div');
+                    snowContainer.id = 'xsnow-container';
+                    snowContainer.style.position = 'absolute';
+                    snowContainer.style.top = '0';
+                    snowContainer.style.left = '0';
+                    snowContainer.style.width = '100%';
+                    snowContainer.style.height = '100%';
+                    snowContainer.style.pointerEvents = 'none'; 
+                    snowContainer.style.overflow = 'hidden'; 
+                    snowContainer.style.zIndex = '1'; 
+                    terminalContainer.appendChild(snowContainer); 
+                    input.disabled = true;
+                    promptSpan.innerText = 'SNOWING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#87ceeb'; 
+                    let flakeCount = 0; 
+                    const MAX_FLAKES = 100;
+                    const createFlake = () => {
+                        if (xsnowIntervalId === null || flakeCount >= MAX_FLAKES) return; 
+                        flakeCount++;
+                        const flake = document.createElement('span');
+                        flake.textContent = (Math.random() > 0.5 ? '*' : '•');
+                        flake.className = 'snowflake';
+                        const startX = Math.random() * 100; 
+                        const size = Math.random() * 0.8 + 0.4; 
+                        const duration = Math.random() * 10 + 5; // 5s 到 15s 降落时间
+                        const delay = Math.random() * 10; 
+                        flake.style.cssText = `
+                            position: absolute;
+                            top: -5%; 
+                            left: ${startX}%;
+                            font-size: ${size}rem;
+                            color: white; 
+                            opacity: ${Math.random() * 0.5 + 0.5};
+                            pointer-events: none;
+                            z-index: 999;
+                            animation: fall ${duration}s linear infinite;
+                            animation-delay: -${delay}s; 
+                        `;
+                        snowContainer.appendChild(flake);
+                        setTimeout(() => {
+                            if (flake.parentNode) {
+                                flakeCount--;
+                                flake.remove();
+                            }
+                        }, duration * 1000 + 1000); 
+                    };
+                    output.innerHTML = '';
+                    writeOutput('❄️ XSnow: 启动降雪模式 (降落深度已修正)...', 'welcome');
+                    scrollToBottom();
+                    xsnowIntervalId = setInterval(createFlake, 200); 
                 }
             }
         };
@@ -1103,8 +1018,9 @@
 
             const cmd = commands[command];
             if (cmd) {
-                // 异步命令 (curl, ping, ncat, gkrellm, gifwrap, sl) 在内部清空输入并处理焦点
-                if (command === 'curl' || command === 'ping' || command === 'ncat' || command === 'gkrellm' || command === 'gifwrap' || command === 'sl') {
+                // 特效/动画命令
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display'].includes(command)) {
+                    // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
                     cmd.execute(args);
@@ -1118,8 +1034,8 @@
             }
         }                
 
-        // 欢迎信息
         function writeWelcome() {
+            writeOutput('', '');
             writeOutput('', '');
             writeOutput('', '');
             writeOutput('', '');
@@ -1127,10 +1043,11 @@
         }
 
         input.addEventListener('keydown', (e) => {
-            // 监听 Ctrl+C 组合键
+            // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
-                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null) {
-                    e.preventDefault(); // 阻止浏览器默认的复制行为
+                // 检查所有定时器 ID
+                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null) {
+                    e.preventDefault(); 
                     
                     // 清理所有定时器
                     if (gkrellmIntervalId !== null) {
@@ -1145,15 +1062,33 @@
                         clearInterval(slIntervalId);
                         slIntervalId = null;
                     }
+                    if (cbonsaiIntervalId !== null) { 
+                        clearInterval(cbonsaiIntervalId);
+                        cbonsaiIntervalId = null;
+                    }
+                    // 清理 ping 定时器
+                    if (pingIntervalId !== null) { 
+                        clearInterval(pingIntervalId);
+                        pingIntervalId = null;
+                    }
+                    if (xsnowIntervalId !== null) {
+                        clearInterval(xsnowIntervalId);
+                        xsnowIntervalId = null;
+                        const snowContainer = document.getElementById('xsnow-container');
+                        if (snowContainer) {
+                            snowContainer.remove();
+                        }
+                    }
                     
-                    output.innerHTML = ''; // 清空动画屏幕
-                    writeOutput('^C', 'error'); // 模拟 Ctrl+C 提示
-                    writeOutput('特效已停止。', 'welcome');
+                    output.innerHTML = ''; 
+                    writeOutput('^C', 'error'); 
+                    writeOutput('操作已中断。', 'welcome');
                     
                     input.disabled = false;
                     updatePrompt();
                     input.focus();
                     promptSpan.style.color = 'var(--prompt-color)';
+                    input.value = ''; // 确保中断后输入框是清空的
                     return;
                 }
             }
