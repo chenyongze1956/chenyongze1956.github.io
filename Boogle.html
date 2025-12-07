@@ -1,6 +1,5 @@
 
-<link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>  
-
+<link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
 <!DOCTYPE html>
 <html>
 <center>
@@ -22,423 +21,147 @@
             <li id="vvv"><a href="https://chenyongze1956.github.io/garelly.html">Gallery</a></li>
         </ul>
     </header>
-    </header>
-
-    <p></p>
-    <p></p>
-    <div class="bounce"><span class="letter">B</span><span class="letter">o</span><span class="letter">o</span><span class="letter">g</span><span class="letter">l</span><span class="letter">e</span>
-        <div id="bb" class="bar" >
+    <p></p><p></p>
+    <div class="bounce">
+        <span class="letter">B</span><span class="letter">o</span><span class="letter">o</span><span class="letter">g</span><span class="letter">l</span><span class="letter">e</span>
+        
+        <div id="bb" class="bar">
             <input id="ff" class="searchbar" type="search" name="q" title="Search" placeholder=">_">
             
-            <a href="https://chenyongze1956.github.io/chatgpt.html"> <img class="voice" src="https://i.ibb.co/XfqjTFtL/micro-phone.png" title="Chat by AI"></a>
-            <a></a>
-            <a></a>
-            <a href="https://chenyongze1956.github.io/camera.html"> <img class="voice" src="https://i.ibb.co/SZXQzxJ/camera.png" title="take photo"></a>
+            <button id="voiceSearchIcon" class="voice-button" type="button" title="Voice Search"> 
+                <img class="voice" src="https://i.ibb.co/XfqjTFtL/micro-phone.png" alt="Voice Search">
+            </button>
+            
+            <a href="https://chenyongze1956.github.io/camera.html"> 
+                <img class="voice" src="https://i.ibb.co/SZXQzxJ/camera.png" title="take photo">
+            </a>
         </div>
-        <a href="https://www.google.com/search?q=" + ff> <div id="micButton" class="buttons"></a>
-            <button id="kk" class="button" type="button">Boogle Search</button>
+        
+        <div id="micButton" class="buttons">
+            <button id="kk" class="button" type="button" onclick="searchQuery()">Boogle Search</button>
             <button id="vvv" class="button" type="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">I'm Feeling Lucky</button>
         </div>
     </div>
     
     <div id="visitorCounterContainer" style="text-align: center; margin-top: 15px;">
-        <span id="pageVisits" style="font-size: 18px; color: #4285f4; font-weight: bold;">0</span>
-        <span> 人访问</span>
+        <img src="https://visitor-badge.laobi.icu/badge?page_id=chenyongze1956.Booglexp&left_text=总访问量&color=4285f4&style=flat" alt="Visitor Count">
+        <span style="font-size: 16px; color: #707070;"></span>
     </div>
+
     <script>
-    // ************************************
-    // ** 本地访客计数器逻辑 **
-    // ************************************
-    const visitsDisplay = document.getElementById('pageVisits');
-    const storageKey = 'pageVisitCount';
+    // ** 移除 CountAPI 相关的 JS 逻辑 **
+    
+    document.addEventListener("DOMContentLoaded", setupEvents, true); 
 
-    // 1. 从本地存储 (localStorage) 获取当前访问次数
-    let currentCount = localStorage.getItem(storageKey);
-    if (currentCount === null) {
-        currentCount = 0;
-    } else {
-        currentCount = parseInt(currentCount);
-    }
-
-    // 2. 将访问次数增加 1
-    currentCount += 1;
-
-    // 3. 将新的次数保存回本地存储
-    localStorage.setItem(storageKey, currentCount);
-
-    // 4. 更新 HTML 中的显示数字
-    visitsDisplay.textContent = currentCount;
-    // (计数器逻辑结束)
-
-
-    // ************************************
-    // ** 您的原有搜索和语音识别逻辑 **
-    // ************************************
-    this.addEventListener("DOMContentLoaded", setupEvents, true); 
-    function setupEvents(e){
-        var yesButton = document.getElementById("bb");
-        var noButton = document.getElementById("noButton");
-        var v = yesButton.value;
-        yesButton.addEventListener('keyup', yesFunction, false);
-        noButton.addEventListener('click', noFunction, false);
+    function setupEvents(){        
+        var searchBarContainer = document.getElementById("bb");        
+        if (searchBarContainer) {            
+            searchBarContainer.addEventListener('keyup', yesFunction, false);        
+        }    
     } 
-    function yesFunction(e){
-        if (event.keyCode === 13){
-            var ff = document.getElementById("ff").value;
-            window.location = "https://www.google.com/search?q=" + ff ;
-        }
+
+    function searchQuery() {        
+        var ff = document.getElementById("ff").value;        
+        if (ff) {            
+            window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(ff); 
+        }    
+    }        
+
+    function yesFunction(e){        
+        if (e.keyCode === 13){ 
+             searchQuery();        
+        }    
     }
-
-
-    function noFunction(e){
-        window.location = "http://failblog.org/";
-    }
-
-
-    const searchInput = document.getElementById('ff');
-    const micButton = document.getElementById('micButton');
-    const statusMessage = document.getElementById('statusMessage');
-    // Check for browser support for Web Speech API
+    
+    // ** 语音识别功能核心逻辑 (绑定到 voiceSearchIcon 按钮) **
+    const searchInput = document.getElementById('ff');    
+    const voiceSearchIcon = document.getElementById('voiceSearchIcon'); 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false; // Set to true for continuous recognition
-        recognition.interimResults = false; // Set to true to get interim results
-        recognition.lang = 'zh-CN'; // Set the language for recognition
+    if (SpeechRecognition && voiceSearchIcon) {        
+        const recognition = new SpeechRecognition();        
+        recognition.continuous = false;         
+        recognition.interimResults = false;         
+        recognition.lang = 'zh-CN'; 
 
-        micButton.addEventListener('click', () => {
-            recognition.start();
-            statusMessage.textContent = 'Listening...';
+        voiceSearchIcon.addEventListener('click', () => {           
+            // ** 调试信息：确认点击被捕获 **
+            console.log('--- 麦克风按钮点击，尝试启动语音识别 ---');
+            try {
+                recognition.start();                
+            } catch (error) {                
+                console.warn('启动失败，检查 HTTPS 和权限:', error);            
+            }        
         });
-
-        recognition.onresult = (event) => {
+        
+        recognition.onresult = (event) => {            
             const last = event.results.length - 1;
             const transcript = event.results[last][0].transcript;
-            searchInput.value = transcript;
-            statusMessage.textContent = `You said: "${transcript}"`;
-            // You can now submit the search query or perform other actions
+            searchInput.value = transcript;             
+            searchQuery(); 
+        };                
+        
+        recognition.onspeechend = () => {            
+            recognition.stop();        
         };
         
-        recognition.onspeechend = () => {
-            recognition.stop();
-            statusMessage.textContent = 'Speech ended.';               
-        };
-
-        recognition.onerror = (event) => {
-            statusMessage.textContent = `Error: ${event.error}`;
-        };
+        recognition.onerror = (event) => {            
+            console.error(`语音识别错误: ${event.error}. 请确保使用 HTTPS 并授予权限.`);        
+        };    
     } else {
-        statusMessage.textContent = 'Speech recognition not supported in this browser.';
-        micButton.disabled = true;
+        if (voiceSearchIcon) {
+             voiceSearchIcon.title = '当前浏览器不支持语音搜索';
+        }
     }
-</script>
-      
-<style>
-
-    #ss{
-                                }
-    @keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}          
-    #vvv{
-        color:linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-    }          
-    #kk{
-        color:;    
-    }                 
-    ul {  
-        list-style-type: none;  
-        overflow: hidden;
-    }
-    #bb{
-        font-family: Comic Sans MS, cursive, sans-serif;
-        -webkit-text-stroke-width: 1px;    
-        -webkit-text-fill-color: transparent;             
-        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);              
-        animation: rainbow-color-change 3s linear infinite alternate;
-    }
-    #ff{
-        color:red;
-        font-family: Comic Sans MS, cursive, sans-serif;     
-        -webkit-text-stroke-width: 1px;    
-        -webkit-text-fill-color: transparent;
-        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);                  
-        animation: rainbow-color-change 3s linear infinite alternate;
-    }
-
-
-    #ff::placeholder {      
-        color:black; /* Or any other color like 'red', 'blue', 'rgb(0, 128, 0)', etc. */     
-        font-family: Comic Sans MS, cursive, sans-serif;
-        animation: rainbow-color-change 3s linear infinite alternate;
-    }                    
-    li {  
-        float: right;
-    }
-    li a {  
-        color: #000;  
-        display: block;  
-        text-align: center;  
-        padding: 10px 10px;  
-        text-decoration: none;  
-        font-size:14px;
-    }
-    li a:hover {  
-        text-decoration: underline;
-    }
-
-    .grid{  
-        height:23px;  
-        position:relative;  
-        bottom:0px;
-    }
-    .kkk{  
-        height:23px;  
-        position:relative;  
-        bottom:0px;
-    }         
-    .signbutton{  
-        background-color: gray;  
-        color: #fff;  
-        border:none;  
-        border-radius:3px;  
-        padding:7px 10px;  
-        position:relative;  
-        bottom:7px;  
-        font-weight:bold;
-    }
-    .logo{  
-        margin-top:200px;  
-        margin-bottom:20px;
-    }
-    .bar{  
-        margin:0 auto;  
-        width:575px;  
-        border-radius:30px;  
-        border:1px solid #dcdcdc;
-    }
-    .bar:hover{  
-        box-shadow: 1px 1px 8px 1px #dcdcdc;
-    }
-    .bar:focus-within{  
-        box-shadow: 1px 1px 8px 1px #dcdcdc;  
-        outline:none;
-    }
-    .searchbar{  
-        height:45px;  
-        border:none;  
-        width:500px;  
-        font-size:16px;  
-        outline: none;  
-    }
-    .voice{  
-        height:20px;  
-        position:relative;  
-        top:5px;  
-        left:10px;
-    }
-    .buttons{  
-        margin-top:30px;
-    }
-    .button{  
-        background-color: #f5f5f5;  
-        border:none;  
-        color:#707070;  
-        font-size:15px;  
-        padding: 10px 20px;  
-        margin:5px;  
-        border-radius:4px;  
-        outline:none;
-    }
-    .button:hover{  
-        border: 1px solid #c8c8c8;  
-        padding: 9px 19px;  
-        color:#808080;
-    }
-    .button:focus{  
-        border:1px solid #4885ed;  
-        padding: 9px 19px;
-    }
-
-    /* Start https://www.cursors-4u.com */ * {cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.ani), url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;} /* End https://www.cursors-4u.com */
-</style>
-
-
-<style>
-    body {
-    }
-    #cat {    
-        width:100px;    
-        height:100px;  
-        max-width: 300px;  
-        margin: 0 auto;    
-        position:fixed;    
-        left:84%;    
-        top:80%;
-        -webkit-animation: haha-face  2s linear infinite;          
-        animation: haha-face  2s linear infinite;  
-    }
-    #cauda {  
-        width: 42px;  
-        height: 49px;  
-        -webkit-animation: cauda 6s linear infinite;          
-        animation: cauda 6s linear infinite;  
-        transform-origin: right bottom;  
-        transform-box: fill-box;
-    }
-    @-webkit-keyframes cauda {  
-        0% {    transform: rotate(-10deg);  }  
-        50% {    transform: rotate(30deg);  }  
-        100% {    transform: rotate(-10deg);  }
-    }
-    @keyframes cauda {  
-        0% {    transform: rotate(-10deg);  }  
-        50% {    transform: rotate(30deg);  }  
-        100% {    transform: rotate(-10deg);  }
-    }  
-
-    @keyframes rainbow-color-change {    
-        0%, 100% { color: #ff0000; } /* Red */    
-        14% { color: #ff8b00; } /* Orange */    
-        28% { color: #e8ff00; } /* Yellow */    
-        42% { color: #5dff00; } /* Green */    
-        56% { color: #00b9ff; } /* Blue */    
-        70% { color: #5d00ff; } /* Indigo */    
-        84% { color: #e800ff; } /* Violet */
-    }        
-    @keyframes haha-face {  
-        10% {    transform: translateY(25px);  }  
-        20% {    transform: translateY(15px);  }  
-        30% {    transform: translateY(25px);  }  
-        40% {    transform: translateY(15px);  }  
-        50% {    transform: translateY(25px);  }  
-        60% {    transform: translateY(0);  }  
-        70% {    transform: translateY(-10px);  }  
-        80% {    transform: translateY(0);  }  
-        90% {    transform: translateY(-10px);  }
-    }            
-    #ss{
-
-        -webkit-animation: haha-face 2s linear infinite;          
-        animation: haha-face 2s linear infinite;
-
-    }
-
-
-    @keyframes angry-face {  
-        35%, 60% {    transform: translateX(0) translateY(10px) scale(0.9);  }  
-        40% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }  
-        45% {    transform: translateX(5px) translateY(10px) scale(0.9);  }  
-        50% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }  
-        55% {    transform: translateX(5px) translateY(10px) scale(0.9);  }
-    }            
-</style>
-
-
-<audio src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="autoplay"   id="MusicPlayer">
-    <embed src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="true" width="450" height="300" name="MusicPlayer" id="MusicPlayer">
-</audio>
-
-
-<div class="snowflakes">  
-    <div class="snowflake">    </div>  
-    <div class="snowflake"> 🌸  </div>  
-    <div class="snowflake"> 🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>  
-    <div class="snowflake">  🌸  </div>
-</div>
-
-<style>
-    body{
-
-    }                     
-    /* customizable snowflake styling */
-    .snowflake {  
-        color: #fff;  
-        font-size: 1em;  
-        font-family: Arial;  
-        text-shadow: 0 0 1px #000;
-    }
-    @-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}
-    @-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}
-    @keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}
-    @keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}
-    .snowflake{
-        position:fixed;
-        top:-10%;
-        z-index:9999;
-        -webkit-user-select:none;
-        -moz-user-select:none;
-        -ms-user-select:none;
-        user-select:none;
-        cursor:default;
-        -webkit-animation-name:snowflakes-fall,snowflakes-shake;
-        -webkit-animation-duration:10s,3s;
-        -webkit-animation-timing-function:linear,ease-in-out;
-        -webkit-animation-iteration-count:infinite,infinite;
-        -webkit-animation-play-state:running,running;
-        animation-name:snowflakes-fall,snowflakes-shake;
-        animation-duration:10s,3s;
-        animation-timing-function:linear,ease-in-out;
-        animation-iteration-count:infinite,infinite;
-        animation-play-state:running,running
-    }
-    .snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}
-    .snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}
-    .snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}
-    .snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}
-    .snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}
-    .snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}
-    .snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}
-    .snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:https://proxy.everskies.com/a/https://proxy.everskies.com/a/2.5s,1s;animation-delay:https://proxy.everskies.com/a/https://proxy.everskies.com/a/2.5s,1s}
-    .snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}
-    .snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,https://proxy.everskies.com/a/https://proxy.everskies.com/a/1.5s;animation-delay:3s,https://proxy.everskies.com/a/https://proxy.everskies.com/a/1.5s}
-    /* Demo Purpose Only*/
-    .demo {  
-        font-family: 'Raleway', sans-serif;	
-        color:#fff;    
-        display: block;    
-        margin: 0 auto;    
-        padding: 15px 0;    
-        text-align: center;
-    }
-    .demo a{  
-        font-family: 'Raleway', sans-serif;
-        color: #000;		
-    }
-</style>
-
-
-
-</div>
-<style>
-
-
-
-
-
-
-
+    </script>
         
-html,body {
-}
-.bounce {  position:relative;    }
-.letter {  -webkit-animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;          animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;  display: inline-block;  transform: translate3d(0, 0, 0);  margin-top: 0.5em;  text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  font: normal bold 6rem "Product Sans", sans-serif;}.letter:nth-child(1) {  -webkit-animation-delay: 0s;          animation-delay: 0s;  color: #4285f4;}.letter:nth-child(2) {  -webkit-animation-delay: 0.0833333333s;          animation-delay: 0.0833333333s;  color: #ea4335;}.letter:nth-child(3) {  -webkit-animation-delay: 0.1666666667s;          animation-delay: 0.1666666667s;  color: #fbbc05;}.letter:nth-child(4) {  -webkit-animation-delay: 0.25s;          animation-delay: 0.25s;  color: #4285f4;}.letter:nth-child(5) {  -webkit-animation-delay: 0.3333333333s;          animation-delay: 0.3333333333s;  color: #34a853;}.letter:nth-child(6) {  -webkit-animation-delay: 0.4166666667s;          animation-delay: 0.4166666667s;  color: #ea4335;}
-@-webkit-keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}
-@keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}
+    <style>
+    /* ************* CSS 样式 (为简洁起见，省略重复样式) ************** */
+    
+    /* 搜索栏容器样式修正，确保 Flexbox 布局 */
+    #bb{
+        display: flex; 
+        align-items: center; 
+        padding: 0 10px; 
+        margin:0 auto;          
+        width:575px;          
+        border-radius:30px;          
+        border:1px solid #dcdcdc;
+        /* ... 其他背景和动画样式 ... */
+    }    
+    .searchbar{
+        flex-grow: 1; 
+        height:45px;          
+        border:none;          
+        width:auto; 
+        font-size:16px;          
+        outline: none;
+        padding-left: 5px;
+    }
 
+    /* 语音按钮样式修正 */
+    .voice-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0 5px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 5px;
+        position: relative; 
+    }
 
+    /* 语音/相机图标样式修正，确保它们正确地在搜索栏内 */        
+    .voice{          
+        height:20px;          
+        position:static; 
+        top: auto; 
+        left: auto;
+    }        
 
-
-
- :root {            --bg: #fff;            --text: black;            --primaryBg: #c0c0c0;            --primaryText: #1b1b1b;            --btnHover: #5d5d5d33;        }
-        body[data-theme="dark"] {            --bg: #121212;            --text: #ffffff;            --primaryBg: #222;            --primaryText: white;            --btnHover: #ffffff33;        }
-  body {                       background-color: var(--bg);                  }        
-</style>
-
-</center>
-</html>
+    /* ... 保持所有动画和主题样式不变 ... */
+    
+    #ss{                                }    @keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}                  #vvv{        color:linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    }                  #kk{        color:;        }                         ul {          list-style-type: none;          overflow: hidden;    }    #bb{        font-family: Comic Sans MS, cursive, sans-serif;        -webkit-text-stroke-width: 1px;            -webkit-text-fill-color: transparent;                     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);                      animation: rainbow-color-change 3s linear infinite alternate;    }    #ff{        color:red;        font-family: Comic Sans MS, cursive, sans-serif;             -webkit-text-stroke-width: 1px;            -webkit-text-fill-color: transparent;        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);                          animation: rainbow-color-change 3s linear infinite alternate;    }    #ff::placeholder {              color:black; /* Or any other color like 'red', 'blue', 'rgb(0, 128, 0)', etc. */             font-family: Comic Sans MS, cursive, sans-serif;        animation: rainbow-color-change 3s linear infinite alternate;    }                            li {          float: right;    }        li a {          color: #000;          display: block;          text-align: center;          padding: 10px 10px;          text-decoration: none;          font-size:14px;    }        li a:hover {          text-decoration: underline;    }    .grid{          height:23px;          position:relative;          bottom:0px;    }        .kkk{          height:23px;          position:relative;          bottom:0px;    }                 .signbutton{          background-color: gray;          color: #fff;          border:none;          border-radius:3px;          padding:7px 10px;          position:relative;          bottom:7px;          font-weight:bold;    }        .logo{          margin-top:200px;          margin-bottom:20px;    }        .bar:hover{          box-shadow: 1px 1px 8px 1px #dcdcdc;    }        .bar:focus-within{          box-shadow: 1px 1px 8px 1px #dcdcdc;          outline:none;    }        .buttons{          margin-top:30px;    }        .button{          background-color: #f5f5f5;          border:none;          color:#707070;          font-size:15px;          padding: 10px 20px;          margin:5px;          border-radius:4px;          outline:none;    }        .button:hover{          border: 1px solid #c8c8c8;          padding: 9px 19px;          color:#808080;    }        .button:focus{          border:1px solid #4885ed;          padding: 9px 19px;    }    /* Start https://www.cursors-4u.com */ * {cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.ani), url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;} /* End https://www.cursors-4u.com */    </style>    <style>    body {    }    #cat {            width:100px;            height:100px;          max-width: 300px;          margin: 0 auto;            position:fixed;            left:84%;            top:80%;        -webkit-animation: haha-face  2s linear infinite;                  animation: haha-face  2s linear infinite;      }    #cauda {          width: 42px;          height: 49px;          -webkit-animation: cauda 6s linear infinite;                  animation: cauda 6s linear infinite;          transform-origin: right bottom;          transform-box: fill-box;    }    @-webkit-keyframes cauda {          0% {    transform: rotate(-10deg);  }          50% {    transform: rotate(30deg);  }          100% {    transform: rotate(-10deg);  }    }    @keyframes cauda {          0% {    transform: rotate(-10deg);  }          50% {    transform: rotate(30deg);  }          100% {    transform: rotate(-10deg);  }    }      @keyframes rainbow-color-change {            0%, 100% { color: #ff0000; } /* Red */            14% { color: #ff8b00; } /* Orange */            28% { color: #e8ff00; } /* Yellow */            42% { color: #5dff00; } /* Green */            56% { color: #00b9ff; } /* Blue */            70% { color: #5d00ff; } /* Indigo */            84% { color: #e800ff; } /* Violet */    }                @keyframes haha-face {          10% {    transform: translateY(25px);  }          20% {    transform: translateY(15px);  }          30% {    transform: translateY(25px);  }          40% {    transform: translateY(15px);  }          50% {    transform: translateY(25px);  }          60% {    transform: translateY(0);  }          70% {    transform: translateY(-10px);  }          80% {    transform: translateY(0);  }          90% {    transform: translateY(-10px);  }    }                    #ss{        -webkit-animation: haha-face 2s linear infinite;                  animation: haha-face 2s linear infinite;    }    @keyframes angry-face {          35%, 60% {    transform: translateX(0) translateY(10px) scale(0.9);  }          40% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }          45% {    transform: translateX(5px) translateY(10px) scale(0.9);  }          50% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }          55% {    transform: translateX(5px) translateY(10px) scale(0.9);  }    }                </style>    <audio src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="autoplay"   id="MusicPlayer">    <embed src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="true" width="450" height="300" name="MusicPlayer" id="MusicPlayer"></audio>    <div class="snowflakes">      <div class="snowflake">    </div>      <div class="snowflake"> 🌸  </div>      <div class="snowflake"> 🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div></div>        <style>    body{    }                         /* customizable snowflake styling */        .snowflake {          color: #fff;          font-size: 1em;          font-family: Arial;          text-shadow: 0 0 1px #000;    }        @-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}        @-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}        @keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}        @keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}        .snowflake{        position:fixed;        top:-10%;        z-index:9999;        -webkit-user-select:none;        -moz-user-select:none;        -ms-user-select:none;        user-select:none;        cursor:default;        -webkit-animation-name:snowflakes-fall,snowflakes-shake;        -webkit-animation-duration:10s,3s;        -webkit-animation-timing-function:linear,ease-in-out;        -webkit-animation-iteration-count:infinite,infinite;        -webkit-animation-play-state:running,running;        animation-name:snowflakes-fall,snowflakes-shake;        animation-duration:10s,3s;        animation-timing-function:linear,ease-in-out;        animation-iteration-count:infinite,infinite;        animation-play-state:running,running    }        .snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}        .snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}        .snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}        .snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}        .snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}        .snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}        .snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}        .snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}        .snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}        .snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}        /* Demo Purpose Only*/        .demo {          font-family: 'Raleway', sans-serif;	        color:#fff;            display: block;            margin: 0 auto;            padding: 15px 0;            text-align: center;    }        .demo a{          font-family: 'Raleway', sans-serif;        color: #000;		    }        </style></div><style>html,body {}.bounce {  position:relative;    }.letter {  -webkit-animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;          animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;  display: inline-block;  transform: translate3d(0, 0, 0);  margin-top: 0.5em;  text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  font: normal bold 6rem "Product Sans", sans-serif;}.letter:nth-child(1) {  -webkit-animation-delay: 0s;          animation-delay: 0s;  color: #4285f4;}.letter:nth-child(2) {  -webkit-animation-delay: 0.0833333333s;          animation-delay: 0.0833333333s;  color: #ea4335;}.letter:nth-child(3) {  -webkit-animation-delay: 0.1666666667s;          animation-delay: 0.1666666667s;  color: #fbbc05;}.letter:nth-child(4) {  -webkit-animation-delay: 0.25s;          animation-delay: 0.25s;  color: #4285f4;}.letter:nth-child(5) {  -webkit-animation-delay: 0.3333333333s;          animation-delay: 0.3333333333s;  color: #34a853;}.letter:nth-child(6) {  -webkit-animation-delay: 0.4166666667s;          animation-delay: 0.4166666667s;  color: #ea4335;}@-webkit-keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}@keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}
+ :root {            --bg: #fff;            --text: black;            --primaryBg: #c0c0c0;            --primaryText: #1b1b1b;            --btnHover: #5d5d5d33;        }        body[data-theme="dark"] {            --bg: #121212;            --text: #ffffff;            --primaryBg: #222;            --primaryText: white;            --btnHover: #ffffff33;        }  body {                       background-color: var(--bg);                  }        </style></center></html>
