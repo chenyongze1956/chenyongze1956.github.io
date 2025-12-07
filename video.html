@@ -1,44 +1,49 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 更新目录版</title>
+    <title>URL 视频播放器 - 带弹幕功能</title>
     
     <style>
+        /* 🌈 基础和彩虹动画 */
         @keyframes rainbow-color-change {
-    0%, 100% { color: #ff0000; } /* Red */
-    14% { color: #ff8b00; } /* Orange */
-    28% { color: #e8ff00; } /* Yellow */
-    42% { color: #5dff00; } /* Green */
-    56% { color: #00b9ff; } /* Blue */
-    70% { color: #5d00ff; } /* Indigo */
-    84% { color: #e800ff; } /* Violet */
-}
-        /* CSS 样式：定义界面布局和外观 */
-        body {
+            0%, 100% { color: #ff0000; } /* Red */
+            14% { color: #ff8b00; } /* Orange */
+            28% { color: #e8ff00; } /* Yellow */
+            42% { color: #5dff00; } /* Green */
+            56% { color: #00b9ff; } /* Blue */
+            70% { color: #5d00ff; } /* Indigo */
+            84% { color: #e800ff; } /* Violet */
+        }
+        
+        /* 🏃 弹幕滚动动画 */
+        @keyframes move-barrage {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(-100vw); /* 假设滚出整个视口 */
+            }
+        }
 
-            
+        /* 💻 界面布局和外观 */
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+        }   
+        p {
+            font-family: Comic Sans MS, cursive, sans-serif;
+            margin: 5px 0 15px 0; /* 调整间距 */
         }
-   p{
 
-
-                         font-family: Comic Sans MS, cursive, sans-serif;
-
-
-       
-   }
         .video-container {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -46,28 +51,50 @@
             max-width: 800px;
         }
 
+        /* 弹幕包裹层：用于定位弹幕在其上方 */
+        .barrage-wrapper {
+            position: relative; /* 确保子元素可以基于它定位 */
+            width: 100%;
+            /* 视频自带控件高度约 50px，这里保留空间 */
+            margin-bottom: 50px; 
+        }
+
         #myVideoPlayer {
             width: 100%;
             height: auto;
+            min-height: 200px; /* 确保有足够的空间显示 */
             border: 1px solid #ccc;
             border-radius: 4px;
-            margin-bottom: 15px;
-            display: block; 
+            display: block;
+        }
+        
+        /* 🚀 弹幕样式 */
+        .barrage {
+            position: absolute;
+            top: 0;
+            right: 0; /* 初始位置在右侧外面 */
+            white-space: nowrap;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            pointer-events: none; /* 允许点击穿透到视频控件 */
+            z-index: 10;
         }
 
+
+        /* 📺 播放列表和 URL 控制面板 */
         .controls-panel {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
-        }
-        
+        }                
         .playlist-panel {
             margin-bottom: 15px;
             display: flex;
             gap: 10px;
             align-items: center;
-        }
-        
+        }                
         #videoPlaylist {
             flex-grow: 1;
             padding: 10px;
@@ -86,10 +113,29 @@
             font-size: 16px;
         }
 
+        /* 弹幕发送面板 */
+        .barrage-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        #barrageInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        #sendButton {
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            color: white;
+            animation: rainbow-color-change 8s linear infinite; /* 应用彩虹动画 */
+        }
+        
         button {
             padding: 10px 15px;
-            background-color: #28a745;
-            color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -97,24 +143,25 @@
             transition: background-color 0.3s;
             white-space: nowrap;
         }
-
-        button:hover {
+        
+        button:hover:not(#sendButton) {
             background-color: #1e7e34;
         }
     </style>
 </head>
 <body>
-      
     <div class="video-container">
-        <video id="myVideoPlayer" controls>
-        </video>
-              <p style="text-align: center;">因视频源不稳定，不定期做种</p>
+        <div class="barrage-wrapper">
+            <video id="myVideoPlayer" controls>
+            </video>
+        </div>
+
+        <p style="text-align: center;">因视频源不稳定，不定期做种</p>
 
         <div class="playlist-panel">
             <label for="videoPlaylist">选择视频:</label>
             <select id="videoPlaylist" onchange="loadSelectedVideo()">
                 <option value="">-- 选择一个视频 --</option>
-                
                 <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0ed22MovKOMlVvy2gX4svZm6yjbN-I2pg_cnoHs_AmgI.mp4">
                     PV:小夜曲
                 </option>
@@ -130,7 +177,7 @@
                  <option value="https://pouch.jumpshare.com/preview/-jpMj6oENBpPNxZTVathYKgq4M4UYkQSeNN8UHiLNS3LtBUaZIwASB7lufFZdYVEsnxL4DBfOilUUt14SfuHdW7wDVN8FP2F_AJovg9o1HygHq0bd7-2I0ORCLD6l1uNcwH2b-JrWOc8OuczcHRLR26yjbN-I2pg_cnoHs_AmgI.mp4">
                PV：宿命感音乐
                 </option>
-                </select>
+            </select>
         </div>
 
         <div class="controls-panel">
@@ -138,17 +185,80 @@
                    placeholder="或者在此输入自定义视频 URL (例如: .mp4, .webm)">
             <button onclick="loadVideo()">加载并播放</button>
         </div>
+        
+        <div class="barrage-panel">
+            <input type="text" id="barrageInput" 
+                   placeholder="输入您的弹幕...">
+            <button id="sendButton" onclick="sendBarrage()">发送弹幕</button>
+        </div>
     </div>
 
     <script>
         // JavaScript 逻辑：处理视频加载和播放
 
-        /**
-         * 核心加载函数：根据传入的 URL 加载视频并尝试播放
-         */
-        function playVideo(url) {
-            const videoPlayer = document.getElementById('myVideoPlayer');
+        // 弹幕池（存储弹幕的容器）
+        const barrageWrapper = document.querySelector('.barrage-wrapper');
+        const videoPlayer = document.getElementById('myVideoPlayer');
+        
+        // 🚀 弹幕核心函数
+        function sendBarrage() {
+            const input = document.getElementById('barrageInput');
+            const text = input.value.trim();
+
+            if (!text) return; // 弹幕内容为空则不发送
             
+            // 1. 创建弹幕元素
+            const barrage = document.createElement('div');
+            barrage.className = 'barrage';
+            barrage.textContent = text;
+
+            // 2. 随机化弹幕的初始位置（垂直高度）
+            // 限制在视频高度的 80% 范围内，避开顶部和底部
+            const videoHeight = videoPlayer.clientHeight;
+            const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05); 
+            barrage.style.top = `${topPosition}px`;
+            
+            // 3. 随机化颜色 (可选)
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            barrage.style.color = randomColor;
+
+            // 4. 随机化速度（通过调整动画时长）
+            const speed = Math.random() * 5 + 8; // 8到13秒之间
+            barrage.style.animation = `move-barrage ${speed}s linear forwards`;
+
+            // 5. 将弹幕添加到包裹容器
+            barrageWrapper.appendChild(barrage);
+            
+            // 6. 清空输入框
+            input.value = '';
+
+            // 7. 动画结束后移除弹幕元素，以节省内存
+            barrage.addEventListener('animationend', () => {
+                barrage.remove();
+            });
+            
+            // 如果视频暂停，则暂停弹幕动画
+            if (videoPlayer.paused) {
+                barrage.style.animationPlayState = 'paused';
+            }
+        }
+        
+        // 暂停/播放弹幕的逻辑 (与视频同步)
+        videoPlayer.addEventListener('play', () => {
+            document.querySelectorAll('.barrage').forEach(b => {
+                b.style.animationPlayState = 'running';
+            });
+        });
+        
+        videoPlayer.addEventListener('pause', () => {
+            document.querySelectorAll('.barrage').forEach(b => {
+                b.style.animationPlayState = 'paused';
+            });
+        });
+
+
+        // 📢 视频加载核心函数 (保持不变)
+        function playVideo(url) {
             if (url === "") {
                 videoPlayer.src = "";
                 videoPlayer.load();
@@ -167,22 +277,17 @@
                 });
         }
         
-        /**
-         * 处理目录选择变化事件
-         */
+        // 目录选择函数 (保持不变)
         function loadSelectedVideo() {
             const playlist = document.getElementById('videoPlaylist');
             const selectedUrl = playlist.value;
             
-            // 每次从目录选择时，清空手动输入框
             document.getElementById('videoUrlInput').value = ""; 
             
             playVideo(selectedUrl);
         }
 
-        /**
-         * 处理手动输入 URL 加载事件
-         */
+        // 手动 URL 加载函数 (保持不变)
         function loadVideo() {
             const urlInput = document.getElementById('videoUrlInput');
             const videoUrl = urlInput.value.trim();
@@ -192,16 +297,22 @@
                 return;
             }
             
-            // 每次手动加载时，将目录选择重置到默认
             document.getElementById('videoPlaylist').value = "";
             
             playVideo(videoUrl);
         }
 
-        // 允许用户在输入框按 Enter 键触发加载
+        // 允许用户在输入框按 Enter 键触发加载 (保持不变)
         document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 loadVideo();
+            }
+        });
+        
+        // 允许用户在弹幕输入框按 Enter 键发送弹幕
+        document.getElementById('barrageInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendBarrage();
             }
         });
     </script>
