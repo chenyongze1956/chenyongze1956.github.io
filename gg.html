@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📜 动态卷轴：收卷/放卷效果</title>
+    <title>📜 动态卷轴：移动端适配</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
@@ -15,7 +14,8 @@
 
         /* 奇幻背景和基础设置 */
         body {
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            /* 采用用户提供的背景 */
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             color: #e0e0f0; 
             font-family: 'Georgia', serif;
             display: flex;
@@ -34,12 +34,12 @@
             color: #4b0082;
         }
 
-        /* 卷轴容器 */
+        /* 卷轴容器 - 桌面端默认设置 */
         .book-container {
             position: relative;
-            width: 550px; 
-            height: 600px; /* 固定显示高度 */
-            perspective: 1000px; /* 启用 3D 视角 */
+            width: 550px; /* 桌面端固定宽度 */
+            height: 600px; 
+            perspective: 1000px; 
         }
         
         /* 卷轴主体 */
@@ -47,45 +47,43 @@
             width: 100%;
             height: 100%;
             position: relative;
-            overflow: hidden; /* 隐藏卷出/卷入的内容 */
+            overflow: hidden;
         }
 
-        /* 卷轴圆木轴心 - 顶部 */
+        /* 卷轴圆木轴心 - 顶部和底部 */
         .scroll-axis-top, .scroll-axis-bottom {
             position: absolute;
             width: 100%;
             height: 50px;
-            background: #964b00; /* 棕色圆木 */
+            background: #964b00;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
             z-index: 100;
             border-radius: 5px;
-            
-            /* 模拟圆木的 3D 效果 */
             transform-style: preserve-3d;
         }
         .scroll-axis-top {
             top: 0;
             transform-origin: top;
-            transform: rotateX(10deg); /* 顶部轻微倾斜 */
+            transform: rotateX(10deg);
         }
         .scroll-axis-bottom {
             bottom: 0;
             transform-origin: bottom;
-            transform: rotateX(-10deg); /* 底部轻微倾斜 */
+            transform: rotateX(-10deg);
         }
 
         /* 卷轴页面 (内容区域) */
         .page {
             position: absolute;
-            top: 50px; /* 避开顶部圆木 */
+            top: 50px; 
             left: 50%;
             transform: translateX(-50%);
             width: 95%;
-            height: calc(100% - 100px); /* 减去上下圆木高度 */
+            height: calc(100% - 100px); 
             padding: 30px;
             box-sizing: border-box;
             color: #333;
-            overflow: auto; /* 允许内容超出时滚动 */
+            overflow: auto; 
             
             /* 羊皮纸背景和样式 */
             background-color: #fcf8e8; 
@@ -93,7 +91,7 @@
             border-left: 2px solid #7e6c4e;
             border-right: 2px solid #7e6c4e;
             
-            /* 默认隐藏，等待切换 */
+            /* 动画 */
             opacity: 0; 
             pointer-events: none;
             z-index: 5;
@@ -107,13 +105,11 @@
             z-index: 10;
             transform: translateX(-50%) translateY(0);
         }
-
-        /* 准备进入/退出：模拟内容被收卷 */
         .page.next-enter {
-            transform: translateX(-50%) translateY(100%); /* 从下方卷出 */
+            transform: translateX(-50%) translateY(100%);
         }
         .page.prev-enter {
-            transform: translateX(-50%) translateY(-100%); /* 从上方卷出 */
+            transform: translateX(-50%) translateY(-100%);
         }
 
         /* 卷轴内容格式 */
@@ -129,30 +125,69 @@
             margin-bottom: 20px;
         }
 
-        /* 导航按钮 */
+        /* 导航按钮 - 桌面端默认：两侧 */
         .nav-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
             padding: 10px 15px;
-     background: #964b00;
+            background: #964b00;
             border: 1px solid #ffed86; 
             color: #fff;
             cursor: pointer;
-            z-index: 200; /* 确保在所有元素之上 */
+            z-index: 200; 
             font-size: 1.1em;
             border-radius: 5px;
             transition: background 0.3s, opacity 0.3s;
+            /* 桌面端位置 */
+            left: -80px; 
         }
-        .nav-btn:hover {      background: #964b00; }
-        .prev-btn { left: -80px; } 
-        .next-btn { right: -80px; } 
+        .nav-btn:hover { background: #7c3e00; }
+        .next-btn { right: -80px; left: auto; } /* 确保 next-btn 在右侧 */
+
         .nav-btn:disabled {
-                 background: #964b00;;
-;
+            background: #964b00;
             cursor: not-allowed;
             opacity: 0.6;
             box-shadow: none;
+        }
+
+        /* -------------------------------------- */
+        /* 🌟 移动端适配 (Max-width: 600px) 🌟 */
+        /* -------------------------------------- */
+        @media (max-width: 600px) {
+            
+            /* 卷轴容器: 使用百分比宽度，确保在小屏上不溢出 */
+            .book-container {
+                width: 90vw; /* 占据视口宽度的90% */
+                height: 80vh; /* 占据视口高度的80% */
+                margin-top: 50px; /* 留出顶部空间 */
+            }
+
+            /* 导航按钮: 移到顶部，并横向排列 */
+            .nav-btn {
+                position: absolute;
+                top: -40px; /* 移动到卷轴上方 */
+                transform: none; /* 取消 Y 轴的转换 */
+                width: 45%; /* 均分可用宽度 */
+                font-size: 1em;
+                margin: 0;
+                padding: 8px 10px;
+                /* 重置桌面端位置 */
+                left: 0; 
+                right: auto;
+            }
+
+            /* “放卷”按钮在右侧 */
+            .next-btn {
+                left: auto;
+                right: 0;
+            }
+            
+            /* 卷轴页面内容: 调整内边距适应小屏 */
+            .page {
+                padding: 20px 15px;
+            }
         }
     </style>
 </head>
