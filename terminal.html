@@ -222,7 +222,7 @@
             "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
             "重要的不是你站的位置，而是你朝向的方向。",
             "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
-            "衡量一个人幸福与否的标准，不是他拥有什么，而是他对失去的恐惧程度。",
+            "所有活着的人，都会受到命运的支配。",
             "自然是一座神殿，那里活的支柱 / 有时吐出混乱的语言； / 人行走在符号的森林中， / 符号用熟悉的目光观察他。",
             "一切都在改变，没有事物消亡。",
             "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
@@ -719,6 +719,43 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     writeOutput('图像加载完毕。', 'welcome');
                 } 
             },
+
+            // --- 新增的 makemagnet 命令 ---
+            'makemagnet': {
+                description: '模拟将下载链接/文件名转换为磁力链接。用法: makemagnet <文件名/URL>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('makemagnet: 缺少文件名或 URL 操作数。', 'error');
+                        return;
+                    }
+                    const source = args[0];
+                    // 模拟计算 SHA-1 Hash。
+                    const simulatedHash = 'A1B2C3D4E5F67890A1B2C3D4E5F67890A1B2C3D4'; 
+                    const fileName = source.split('/').pop().split('?')[0]; // 尝试从路径中获取文件名
+                    
+                    // 构造标准的磁力链接格式
+                    const magnetLink = `magnet:?xt=urn:btih:${simulatedHash}&dn=${encodeURIComponent(fileName)}&tr=http://example.tracker/announce`;
+
+                    writeOutput(`正在处理: ${source}`);
+                    writeOutput('--- 正在模拟计算文件哈希值 (SHA-1)... ---', 'welcome');
+                    
+                    // 模拟生成延迟
+                    input.disabled = true;
+                    promptSpan.innerText = 'CALCULATING...';
+                    promptSpan.style.color = '#ff00ff'; 
+
+                    setTimeout(() => {
+                        writeOutput(`✅ 转换成功。模拟磁力链接已生成:`);
+                        writeOutput(magnetLink, 'dir'); // 使用 dir 颜色突出显示链接
+                        
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                    }, 1500); // 1.5秒延迟
+                }
+            },
+            // ----------------------------------
             
             // CBONSAI 命令 (已修正为动画)
             'cbonsai': {
@@ -1019,7 +1056,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             const cmd = commands[command];
             if (cmd) {
                 // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display'].includes(command)) {
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet'].includes(command)) {
                     // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
