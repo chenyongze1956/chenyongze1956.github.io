@@ -1,12 +1,10 @@
 
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 带弹幕和关灯功能</title>
+    <title>URL 视频播放器 - 增加黑白滤镜功能</title>
     
     <style>
         /* 💡 关灯模式的背景遮罩层 */
@@ -50,11 +48,9 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            /* 正常模式下的背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             transition: background 0.3s;
         }
-        /* 关灯模式下移除 body 的渐变背景，由 overlay 处理变暗 */
         body.lights-off {
             background: none; 
         }
@@ -65,25 +61,27 @@
         }
 
         .video-container {
-            /* 正常模式下的容器背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             width: 90%;
             max-width: 800px;
-            
-            z-index: 10; /* 确保在 overlay 上方 */
-            position: relative; /* 确保 z-index 有效 */
+            z-index: 10;
+            position: relative;
             transition: all 0.3s;
         }
-        /* 关灯模式下容器的样式 */
         .video-container.lights-off {
-             /* 确保在黑暗背景下视频容器仍清晰 */
             background: #222; 
             box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); 
         }
         
+        /* 🎨 1. 新增：黑白滤镜样式 */
+        .grayscale-on {
+            filter: grayscale(100%);
+            transition: filter 0.3s ease-in-out;
+        }
+
         #myVideoPlayer {
             width: 100%;
             height: auto;
@@ -108,21 +106,30 @@
             z-index: 10;
         }
 
-        /* 🆕 新增：功能按钮面板 */
+        /* 🎬 功能按钮面板 */
         .action-panel {
             display: flex;
-            justify-content: flex-end; /* 按钮靠右 */
+            justify-content: flex-end;
             margin-bottom: 10px;
             gap: 10px;
         }
         
         #lightsButton {
-            background-color: #3498db; /* 关灯按钮颜色 */
+            background-color: #3498db;
             color: white;
             transition: background-color 0.3s;
         }
         #lightsButton:hover {
             background-color: #2980b9;
+        }
+        
+        /* 🎨 2. 新增：黑白按钮样式 */
+        #grayscaleButton {
+            background-color: #3498db; /* 橙黄色 */
+            color: white;
+        }
+        #grayscaleButton:hover {
+            background-color: #e67e22;
         }
         
         /* 其他控制面板和按钮样式保持不变 */
@@ -153,7 +160,7 @@
             transition: background-color 0.3s;
             white-space: nowrap;
         }
-        button:not(#sendButton):not(#lightsButton):hover {
+        button:not(#sendButton):not(#lightsButton):not(#grayscaleButton):hover {
             background-color: #1e7e34;
         }
     </style>
@@ -165,6 +172,7 @@
         
         <div class="action-panel">
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
+            <button id="grayscaleButton" onclick="toggleGrayscale()">彩色屏</button> 
         </div>
 
         <div class="barrage-wrapper">
@@ -181,16 +189,16 @@
                 <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0gAViDC9Sua1WS90r7tTghW6yjbN-I2pg_cnoHs_AmgI.mp4">
                     PV:小夜曲
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gV4VoGX4H6pFtNICUf6p8yim6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVntSHC-fhcg6EXPiT_X2rwW6yjbN-I2pg_cnoHs_AmgI.mp4">
                     PV:滨崎步演唱会
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/iz8IYe4GYKFd2AgBVrWou1uF_SgXONtaV4al8GXs5EAhxRUBW77bBvmNOpdFYCo5P535ANNDz1KxNy8MpWZxwRBniA98fRMrUXQ-zB5HjDF66Cn_pIHC2LXuyZJI_qDx7zi8O-K6YfWnKNqfaz4h2G6yjbN-I2pg_cnoHs_AmgI.mp4">
-                  CG:魔兽CG兽人兄弟情
+                <option value="https://pouch.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlum6bu55nVtXEXK_n_EzA9kE26yjbN-I2pg_cnoHs_AmgI.mp4">
+                  MV:韩剧我的野蛮师姐
                 </option>
-                 <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0nmcTSZXQhiiVcvgV-KpvaG6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi06MXBP-O_rl81wt2OMDUFaW6yjbN-I2pg_cnoHs_AmgI.mp4">
                   PV:宿命感乌拉尼亚之镜
                 </option>
-                 <option value="https://pouch.jumpshare.com/preview/-jpMj6oENBpPNxZTVathYKgq4M4UYkQSeNN8UHiLNS3LtBUaZIwASB7lufFZdYVEsnxL4DBfOilUUt14SfuHdW7wDVN8FP2F_AJovg9o1HygHq0bd7-2I0ORCLD6l1uN4VoGX4H6pFtNICUf6p8yim6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/-jpMj6oENBpPNxZTVathYKgq4M4UYkQSeNN8UHiLNS3LtBUaZIwASB7lufFZdYVEsnxL4DBfOilUUt14SfuHdW7wDVN8FP2F_AJovg9o1HygHq0bd7-2I0ORCLD6l1uNJ_ckBD45cWXileECy-ZHcW6yjbN-I2pg_cnoHs_AmgI.mp4">
                PV：宿命感音乐
                 </option>
             </select>
@@ -210,31 +218,37 @@
     </div>
 
     <script>
-        // JavaScript 逻辑：处理视频加载、弹幕和关灯功能
+        // JavaScript 逻辑：处理视频加载、弹幕、关灯和黑白滤镜功能
 
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
         const lightsButton = document.getElementById('lightsButton');
+        const grayscaleButton = document.getElementById('grayscaleButton'); // 4. 获取新按钮
         const videoPlayer = document.getElementById('myVideoPlayer');
         const barrageWrapper = document.querySelector('.barrage-wrapper');
 
         // 💡 关灯/开灯功能
         function toggleLights() {
-            // 切换 body 和 video-container 上的 lights-off 类
             body.classList.toggle('lights-off');
             videoContainer.classList.toggle('lights-off');
             
             const isLightsOff = body.classList.contains('lights-off');
-            
-            // 切换 overlay 的显示状态
             overlay.style.display = isLightsOff ? 'block' : 'none';
 
-            // 更新按钮文本
             lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
         }
         
-        // 🚀 弹幕核心函数
+        // 🎨 5. 新增：黑白滤镜功能
+        function toggleGrayscale() {
+            // 切换 videoPlayer 上的 'grayscale-on' 类
+            videoPlayer.classList.toggle('grayscale-on');
+            
+            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
+            grayscaleButton.textContent = isGrayscaleOn ? '黑白屏' : '彩色屏';
+        }
+
+        // 🚀 弹幕核心函数 (保持不变)
         function sendBarrage() {
             const input = document.getElementById('barrageInput');
             const text = input.value.trim();
@@ -267,7 +281,7 @@
             }
         }
         
-        // 暂停/播放弹幕的逻辑 (与视频同步)
+        // 暂停/播放弹幕的逻辑 (与视频同步) (保持不变)
         videoPlayer.addEventListener('play', () => {
             document.querySelectorAll('.barrage').forEach(b => {
                 b.style.animationPlayState = 'running';
