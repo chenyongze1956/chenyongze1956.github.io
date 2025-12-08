@@ -4,265 +4,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-
+    <title>📜 动态卷轴：收卷/放卷效果</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
         /* -------------------------------------- */
-        /* CSS 样式部分 (已优化排版并添加魔法符号) */
+        /* CSS 样式部分 (动态卷轴结构) */
         /* -------------------------------------- */
 
         /* 奇幻背景和基础设置 */
         body {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            color: #e0e0f0; /* 柔和的亮色文字 */
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            color: #e0e0f0; 
             font-family: 'Georgia', serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden; /* 隐藏滚动条 */
+            overflow: hidden; 
         }
 
-        /* 标题字体样式 (Cinzel) */
-        .cover h1, .front h2, .front h3 {
-            font-family: 'Cinzel', serif; /* 应用 Cinzel 字体 */
+        /* 标题字体样式 */
+        .scroll-content h1, .scroll-content h2, .scroll-content h3 {
+            font-family: 'Cinzel', serif; 
             letter-spacing: 2px;
-            text-shadow: 0 0 5px rgba(255, 204, 0, 0.7); /* 金色光晕效果 */
+            text-shadow: 0 0 3px rgba(106, 90, 205, 0.5); 
+            color: #4b0082;
         }
 
-        /* 书籍容器 */
+        /* 卷轴容器 */
         .book-container {
-            perspective: 2000px; /* 3D 景深效果 */
             position: relative;
-        }
-
-        /* 书籍主体 */
-        .book {
-            width: 300px; /* 书的宽度 */
-            height: 450px; /* 书的高度 */
-            position: relative;
-            transform-style: preserve-3d; /* 启用 3D 转换 */
-            transition: transform 1s;
-        }
-
-        /* 单个页面 */
-        .page {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-origin: left; /* 翻页的轴心在左侧 */
-            transition: transform 0.8s ease-in-out; /* 翻页动画速度 */
-            backface-visibility: hidden; 
-            box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.5);
-            border: 1px solid #6a5acd; /* 奇幻边框 */
-            border-radius: 4px;
-        }
-
-        /* 页面内容：正面和背面 */
-        .front, .back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            padding: 25px; /* 增加内边距，留白更多 */
-            box-sizing: border-box;
-            background-color: #f7f7e8; /* 浅色纸张 */
-            color: #333;
-            border-radius: 4px;
-            overflow: auto; 
-            line-height: 1.7; /* 增加行高，提升阅读舒适度和古籍感 */
-            letter-spacing: 0.5px; /* 微微增加字间距 */
-            text-indent: 2em; /* 首行缩进 */
-            
-            /* 纸张内凹阴影效果，模拟羊皮纸纹理 */
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1), 
-                        inset 0 0 20px rgba(255, 255, 255, 0.5); 
-            
-            position: relative; /* 允许伪元素定位 */
-        }
-
-        .back {
-            transform: rotateY(180deg);
-            backface-visibility: hidden;
-            background-color: #f0f0d0; /* 背面略微深一点 */
+            width: 550px; 
+            height: 600px; /* 固定显示高度 */
+            perspective: 1000px; /* 启用 3D 视角 */
         }
         
-        /* 标题排版优化 */
-        .front h2, .front h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            text-align: center; /* 标题居中 */
-            text-indent: 0; /* 标题取消缩进 */
-            color: #4b0082; /* 紫色标题，更显神秘 */
+        /* 卷轴主体 */
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden; /* 隐藏卷出/卷入的内容 */
         }
 
-        /* 封面特殊样式 */
-        .cover .front {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2em;
-            text-align: center;
-            box-shadow: none; 
-        }
-
-        /* 翻页效果的关键类 (由 JS 添加/移除) */
-        .flipped {
-            transform: rotateY(-180deg); 
-        }
-
-        /* ---------------------------- */
-        /* 魔法符号装饰 */
-        /* ---------------------------- */
-        .front::before, .front::after, .back::before, .back::after {
-            content: ''; /* 伪元素必须有 content 属性 */
+        /* 卷轴圆木轴心 - 顶部 */
+        .scroll-axis-top, .scroll-axis-bottom {
             position: absolute;
-            font-size: 1.2em;
-            color: rgba(106, 90, 205, 0.6); /* 紫罗兰色，半透明 */
-            text-shadow: 0 0 5px rgba(106, 90, 205, 0.4); /* 微微发光 */
-            z-index: 1; /* 确保在文字下面 */
-            pointer-events: none; /* 不会影响鼠标事件 */
+            width: 100%;
+            height: 50px;
+            background: #964b00; /* 棕色圆木 */
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            border-radius: 5px;
+            
+            /* 模拟圆木的 3D 效果 */
+            transform-style: preserve-3d;
+        }
+        .scroll-axis-top {
+            top: 0;
+            transform-origin: top;
+            transform: rotateX(10deg); /* 顶部轻微倾斜 */
+        }
+        .scroll-axis-bottom {
+            bottom: 0;
+            transform-origin: bottom;
+            transform: rotateX(-10deg); /* 底部轻微倾斜 */
         }
 
-        /* 正面左上角符号 */
-        .front::before {
-            content: '🜁'; /* 炼金术符号：空气 */
-            top: 5px;
-            left: 5px;
-            transform: rotate(-15deg);
+        /* 卷轴页面 (内容区域) */
+        .page {
+            position: absolute;
+            top: 50px; /* 避开顶部圆木 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            height: calc(100% - 100px); /* 减去上下圆木高度 */
+            padding: 30px;
+            box-sizing: border-box;
+            color: #333;
+            overflow: auto; /* 允许内容超出时滚动 */
+            
+            /* 羊皮纸背景和样式 */
+            background-color: #fcf8e8; 
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            border-left: 2px solid #7e6c4e;
+            border-right: 2px solid #7e6c4e;
+            
+            /* 默认隐藏，等待切换 */
+            opacity: 0; 
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+        }
+        
+        /* 卷入/卷出动画 */
+        .page.active {
+            opacity: 1; 
+            pointer-events: auto;
+            z-index: 10;
+            transform: translateX(-50%) translateY(0);
         }
 
-        /* 正面右下角符号 */
-        .front::after {
-            content: '✨'; /* 星星闪烁 */
-            bottom: 5px;
-            right: 5px;
-            transform: rotate(15deg);
+        /* 准备进入/退出：模拟内容被收卷 */
+        .page.next-enter {
+            transform: translateX(-50%) translateY(100%); /* 从下方卷出 */
+        }
+        .page.prev-enter {
+            transform: translateX(-50%) translateY(-100%); /* 从上方卷出 */
         }
 
-        /* 背面右上角符号 */
-        .back::before {
-            content: '⁂'; /* 星号 */
-            top: 5px;
-            right: 5px;
-            transform: rotate(15deg);
+        /* 卷轴内容格式 */
+        .scroll-content {
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+            text-indent: 2em; 
+            text-align: justify;
+        }
+        .scroll-content h2, .scroll-content h3 {
+            text-align: center;
+            text-indent: 0;
+            margin-bottom: 20px;
         }
 
-        /* 背面左下角符号 */
-        .back::after {
-            content: '🜄'; /* 炼金术符号：水 */
-            bottom: 5px;
-            left: 5px;
-            transform: rotate(-15deg);
-        }
-
-        /* 特殊页面的符号覆盖（例如封面或某些需要不同符号的页） */
-        .cover .front::before,
-        .cover .front::after,
-        .cover .back::before,
-        .cover .back::after {
-            content: none; /* 封面不显示这些通用符号 */
-        }
-        /* 如果你希望封面有特殊符号，可以单独为 .cover .front 定义 ::before/::after */
-
-        /* 导航按钮 (样式不变) */
+        /* 导航按钮 */
         .nav-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
             padding: 10px 15px;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            border: 1px solid #fff;
+     background: #964b00;
+            border: 1px solid #ffed86; 
             color: #fff;
             cursor: pointer;
-            z-index: 20;
+            z-index: 200; /* 确保在所有元素之上 */
             font-size: 1.1em;
             border-radius: 5px;
-            transition: background 0.3s;
+            transition: background 0.3s, opacity 0.3s;
         }
-
-        .nav-btn:hover {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-        }
-
-        .prev-btn { left: -80px; }
-        .next-btn { right: -80px; }
-
+        .nav-btn:hover {      background: #964b00; }
+        .prev-btn { left: -80px; } 
+        .next-btn { right: -80px; } 
         .nav-btn:disabled {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+                 background: #964b00;;
+;
             cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
         }
     </style>
 </head>
 <body>
-
     <div class="book-container">
-        <div id="book" class="book">
+        <div class="scroll-axis-top"></div>
 
-            <div class="page cover" id="page-1">
-                <div class="front">
-                    <h1>🌌 幻境之书 🌌</h1>
-                    <p>—— 尘封的预言与失落的星图 ——</p>
-                </div>
-                <div class="back">
-                    <p style="text-align: center; font-style: italic; color: #6a5acd; text-indent: 0;">
-                        “当你打开此页，世界便会倾听。”
-                    </p>
+        <div id="book" class="book">
+            <div class="page active" data-index="0" id="page-1">
+                <div class="front scroll-content" style="text-align: center;">
+                    <h1 style="font-size: 2.2em; color: #7e6c4e;">📜 幻境之卷轴 📜</h1>
+                    <p style="font-style: italic; color: #999; text-indent: 0;">—— 尘封的预言与失落的星图 ——</p>
+                    <p style="text-indent: 0; margin-top: 50px;">点击右侧按钮，**放卷**下一篇章。</p>
                 </div>
             </div>
 
-            <div class="page" id="page-2">
-                <div class="front">
+            <div class="page" data-index="1" id="page-2">
+                <div class="front scroll-content">
                     <h2>✨ 第一章：星辰的低语</h2>
                     <p>在永恒之夜的第三个钟声响起时，古老的预言被夜风吹散，只剩下闪烁的尘埃。</p>
                     <p>传说中的生物在月光下起舞，它们不是血肉之躯，而是由纯粹的奥术光芒编织而成。它们等待着，等待一个被遗忘已久的名字再次被呼唤。</p>
-                </div>
-                <div class="back">
-                    <h3 style="color: #4b0082;">🗝️ 失落的语言</h3>
+                    
+                    <h3>🗝️ 失落的语言</h3>
                     <p>真正的魔法并非咒语，而是理解星辰运行的规律。每一个字句，都需用灵魂深处的火焰去点燃。只有当凡人的心跳与宇宙的脉动同步时，那扇通往异界的大门才会微微颤动。</p>
                 </div>
             </div>
 
-            <div class="page" id="page-3">
-                <div class="front">
+            <div class="page" data-index="2" id="page-3">
+                <div class="front scroll-content">
                     <h2>🔮 卷轴与秘法</h2>
                     <p>这份残缺的羊皮纸，是在“哭泣之湖”底部的琥珀矿脉中发现的。它记载了九环法术中，第八环的核心——**虚空穿梭**的法阵绘制方法。</p>
                     <p>但请注意，每一次绘制都需要献祭等量的**月光石**。**凡人切勿尝试。**</p>
-                </div>
-                <div class="back">
-                    <h3 style="color: #4b0082;">📍 旅途的起点</h3>
+                
+                    <h3>📍 旅途的起点</h3>
                     <p style="text-indent: 0;">地图的起点总是隐藏在最不起眼的地方。寻找三颗连成一线的古老橡树，它们是通往**迷雾之塔**的指引。那里，守卫着第一块“时间碎片”。</p>
-                    <p style="text-align: right; margin-top: 20px; text-indent: 0; font-style: italic;">—— 艾尔维斯 · 编年史官</p>
+                    <p style="text-align: right; margin-top: 20px; text-indent: 0; font-style: italic; color: #7e6c4e;">—— 艾尔维斯 · 编年史官</p>
                 </div>
             </div>
-            
-            <div class="page" id="page-4">
-                <div class="front">
+
+            <div class="page" data-index="3" id="page-4">
+                <div class="front scroll-content">
                     <h2>🦄 幻彩与驯服</h2>
                     <p>世人皆知独角兽象征纯洁，但只有真正的术士才明白，它们的角中蕴含着净化灵魂的**虹光魔力**。</p>
                     <p>驯服它们的方法，不是武力，而是无声的承诺：**永远守护森林之心。**</p>
                 </div>
-                <div class="back">
-                    <p style="font-size: 0.9em; font-style: italic; color: #555; text-indent: 0; text-align: center;">(本页空白。留待未来的探险者记录所见证的奇迹。)</p>
+            </div>
+            
+            <div class="page" data-index="4" id="page-5">
+                <div class="front scroll-content" style="text-align: center;">
+                    <p style="font-size: 0.9em; font-style: italic; color: #555; text-indent: 0;">—— 卷轴于此封印，已无更多内容 ——</p>
+                    <p style="text-indent: 0; margin-top: 30px;">点击左侧按钮，**收卷**上一章。</p>
                 </div>
             </div>
-
         </div>
 
-        <button id="prev-btn" class="nav-btn prev-btn">上一页</button>
-        <button id="next-btn" class="nav-btn next-btn">下一页</button>
+        <div class="scroll-axis-bottom"></div>
+        
+        <button id="prev-btn" class="nav-btn prev-btn">收卷</button>
+        <button id="next-btn" class="nav-btn next-btn">放卷</button>
     </div>
 
     <script>
         // --------------------------------------
-        // JavaScript 交互部分 (不变)
+        // JavaScript 交互部分 (动态卷轴逻辑)
         // --------------------------------------
         document.addEventListener('DOMContentLoaded', () => {
             const pages = document.querySelectorAll('.page');
@@ -271,43 +225,78 @@
 
             let currentPageIndex = 0;
             const maxPageIndex = pages.length - 1;
+            let isAnimating = false;
 
-            // 初始化：更新书本状态
-            updateBookState();
+            // 初始化：显示第一页
+            pages[0].classList.add('active');
+            updateButtonState();
 
-            function updateBookState() {
-                // 遍历所有页面
-                pages.forEach((page, index) => {
-                    if (index < currentPageIndex) {
-                        // 当前页之前的页面，视为已翻转 (flipped)
-                        page.classList.add('flipped');
-                        page.style.zIndex = index + 1; // 确保翻转的页面按顺序堆叠
+            function animateTransition(newIndex, direction) {
+                if (isAnimating) return;
+                isAnimating = true;
+                
+                const current = pages[currentPageIndex];
+                const next = pages[newIndex];
+
+                // 1. 设置下一页的初始位置（卷出方向）
+                if (direction === 'next') {
+                    next.classList.add('next-enter');
+                } else {
+                    next.classList.add('prev-enter');
+                }
+
+                // 确保下一页可见并位于当前页之下 (z-index)
+                next.style.opacity = 1;
+                next.style.zIndex = 9;
+                
+                // 2. 移除当前页的 active 状态，准备退出
+                current.classList.remove('active');
+
+                // 3. 延迟执行动画，使浏览器先应用初始状态
+                setTimeout(() => {
+                    // 4. 触发下一页的进入动画
+                    next.classList.remove('next-enter', 'prev-enter');
+                    next.classList.add('active');
+                    next.style.zIndex = 10;
+                    
+                    // 5. 触发当前页的退出动画（卷入方向）
+                    if (direction === 'next') {
+                        current.style.transform = 'translateX(-50%) translateY(-100%)'; // 向上卷入
                     } else {
-                        // 当前页及之后的页面，视为未翻转
-                        page.classList.remove('flipped');
-                        // 未翻转的页面 z-index 倒序，确保最上面的页先翻
-                        page.style.zIndex = maxPageIndex - index + 1;
+                        current.style.transform = 'translateX(-50%) translateY(100%)'; // 向下卷入
                     }
-                });
+                    current.style.opacity = 0;
+                }, 50);
 
-                // 更新按钮状态
-                prevBtn.disabled = currentPageIndex === 0;
-                nextBtn.disabled = currentPageIndex === maxPageIndex;
+                // 6. 动画结束后清理
+                setTimeout(() => {
+                    current.style.transform = 'translateX(-50%)'; // 重置为初始位置
+                    current.style.zIndex = 5;
+
+                    currentPageIndex = newIndex;
+                    updateButtonState();
+                    isAnimating = false;
+                }, 650); // 动画持续 600ms，清理时间略长
             }
 
-            // “下一页”按钮逻辑
+            function updateButtonState() {
+                prevBtn.disabled = currentPageIndex === 0;
+                nextBtn.disabled = currentPageIndex === maxPageIndex;
+                prevBtn.textContent = '收卷';
+                nextBtn.textContent = '放卷';
+            }
+
+            // “放卷”按钮逻辑 (Next)
             nextBtn.addEventListener('click', () => {
-                if (currentPageIndex < maxPageIndex) {
-                    currentPageIndex++;
-                    updateBookState();
+                if (currentPageIndex < maxPageIndex && !isAnimating) {
+                    animateTransition(currentPageIndex + 1, 'next');
                 }
             });
 
-            // “上一页”按钮逻辑
+            // “收卷”按钮逻辑 (Previous)
             prevBtn.addEventListener('click', () => {
-                if (currentPageIndex > 0) {
-                    currentPageIndex--;
-                    updateBookState();
+                if (currentPageIndex > 0 && !isAnimating) {
+                    animateTransition(currentPageIndex - 1, 'prev');
                 }
             });
         });
