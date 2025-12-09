@@ -4,164 +4,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 增加黑白滤镜功能</title>
+    <title>URL 视频播放器 - 优化弹幕输入长度</title>
     
     <style>
         /* 💡 关灯模式的背景遮罩层 */
         #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.95); /* 黑色半透明背景 */
-            z-index: 9; /* 位于视频容器之下 */
-            display: none; /* 默认隐藏 */
-            transition: opacity 0.3s;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9; display: none; transition: opacity 0.3s;
         }
 
         /* 🌈 基础和彩虹动画 */
         @keyframes rainbow-color-change {
-            0%, 100% { color: #ff0000; } /* Red */
-            14% { color: #ff8b00; } /* Orange */
-            28% { color: #e8ff00; } /* Yellow */
-            42% { color: #5dff00; } /* Green */
-            56% { color: #00b9ff; } /* Blue */
-            70% { color: #5d00ff; } /* Indigo */
-            84% { color: #e800ff; } /* Violet */
+            0%, 100% { color: #ff0000; }
+            14% { color: #ff8b00; }
+            28% { color: #e8ff00; }
+            42% { color: #5dff00; }
+            56% { color: #00b9ff; }
+            70% { color: #5d00ff; }
+            84% { color: #e800ff; }
         }
         
         /* 🏃 弹幕滚动动画 */
         @keyframes move-barrage {
-            from {
-                transform: translateX(100%);
-            }
-            to {
-                transform: translateX(-100vw);
-            }
+            from { transform: translateX(100%); }
+            to { transform: translateX(-100vw); }
+        }
+        
+        /* 📺 雪花动画 */
+        @keyframes static-anim {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
         }
 
         /* 💻 界面布局和外观 */
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             transition: background 0.3s;
         }
-        body.lights-off {
-            background: none; 
-        }
+        body.lights-off { background: none; }
 
-        p {
-            font-family: Comic Sans MS, cursive, sans-serif;
-            margin: 5px 0 15px 0;
-        }
+        p { font-family: Comic Sans MS, cursive, sans-serif; margin: 5px 0 15px 0; }
 
         .video-container {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 800px;
-            z-index: 10;
-            position: relative;
-            transition: all 0.3s;
+            padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 90%; max-width: 800px; z-index: 10; position: relative; transition: all 0.3s;
         }
-        .video-container.lights-off {
-            background: #222; 
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); 
-        }
+        .video-container.lights-off { background: #222; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); }
         
-        /* 🎨 1. 新增：黑白滤镜样式 */
-        .grayscale-on {
-            filter: grayscale(100%);
-            transition: filter 0.3s ease-in-out;
-        }
+        /* 🎨 黑白滤镜样式 */
+        .grayscale-on { filter: grayscale(100%); transition: filter 0.3s ease-in-out; }
 
         #myVideoPlayer {
-            width: 100%;
-            height: auto;
-            min-height: 200px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            display: block;
+            width: 100%; height: auto; min-height: 200px;
+            border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
         }
         
+        /* 📺 雪花特效覆盖层 */
+        #staticOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(0deg, #fff, #fff 1px, #000 2px, #000 3px);
+            background-size: 100px 100px; z-index: 20; display: none; opacity: 0.8;
+            animation: static-anim 0.1s linear infinite;
+        }
+
         /* 🚀 弹幕样式 */
         .barrage {
-            position: absolute;
-            top: 0;
-            right: 0; 
-            white-space: nowrap;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 0; right: 0; white-space: nowrap; font-size: 24px; font-weight: bold;
+            color: white; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); pointer-events: none; z-index: 15;
         }
 
         /* 🎬 功能按钮面板 */
         .action-panel {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 10px;
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            margin-bottom: 10px; 
             gap: 10px;
         }
         
-        #lightsButton {
-            background-color: #3498db;
-            color: white;
-            transition: background-color 0.3s;
+        /* 📂 本地文件输入容器样式 */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-right: auto; 
         }
-        #lightsButton:hover {
-            background-color: #2980b9;
-        }
-        
-        /* 🎨 2. 新增：黑白按钮样式 */
-        #grayscaleButton {
-            background-color: #3498db; /* 橙黄色 */
-            color: white;
-        }
-        #grayscaleButton:hover {
-            background-color: #e67e22;
+        /* 隐藏原始的文件输入框 */
+        #localFileInput {
+            position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer;
         }
         
-        /* 其他控制面板和按钮样式保持不变 */
-        .controls-panel, .playlist-panel, .barrage-panel {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
+        /* 按钮和输入框通用样式 */
+        button {
+            padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; white-space: nowrap;
         }
-        #videoPlaylist, #videoUrlInput, #barrageInput {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+        
+        /* 按钮颜色 */
+        #localFileButton { background-color: #8e44ad; color: white; }
+        #localFileButton:hover { background-color: #9b59b6; }
+        #lightsButton { background-color: #3498db; color: white; }
+        #lightsButton:hover { background-color: #2980b9; }
+        #grayscaleButton { background-color: #f39c12; color: white; }
+        #grayscaleButton:hover { background-color: #e67e22; }
+        #captureButton { background-color: #2ecc71; color: white; }
+        #captureButton:hover { background-color: #27ae60; }
+
+        /* 控制面板 */
+        .controls-panel, .playlist-panel, .barrage-panel { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            align-items: center; 
+            flex-wrap: wrap; 
         }
+        
+        /* URL 输入框 - 保持伸展性 */
+        #videoUrlInput { 
+            flex-grow: 1; 
+            min-width: 200px;
+            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
+        }
+        #videoPlaylist { 
+            flex-grow: 1; 
+            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
+        }
+        
+        /* 弹幕面板优化 */
+        .barrage-panel {
+            /* 确保弹幕输入行独占一行并充分利用空间 */
+            width: 100%; 
+        }
+        
+        /* 🚀 关键优化：弹幕输入框最大程度伸展 */
+        #barrageInput { 
+            flex-grow: 1; 
+            min-width: 60%; /* 设置最小宽度，确保在小屏幕上也有足够的空间 */
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 16px; 
+        }
+        
         #sendButton {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            color: white;
-            animation: rainbow-color-change 8s linear infinite;
-        }
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-            white-space: nowrap;
-        }
-        button:not(#sendButton):not(#lightsButton):not(#grayscaleButton):hover {
-            background-color: #1e7e34;
+            color: white; animation: rainbow-color-change 8s linear infinite;
         }
     </style>
 </head>
@@ -171,11 +160,20 @@
     <div class="video-container" id="videoContainer">
         
         <div class="action-panel">
+            
+            <div class="file-input-wrapper">
+                <button id="localFileButton">选择本地文件</button>
+                <input type="file" id="localFileInput" accept="video/*">
+            </div>
+            
+            <button id="captureButton" onclick="captureFrame()">截屏</button>
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
-            <button id="grayscaleButton" onclick="toggleGrayscale()">彩色屏</button> 
+            <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button> 
         </div>
 
         <div class="barrage-wrapper">
+            <div id="staticOverlay"></div>
+            
             <video id="myVideoPlayer" controls>
             </video>
         </div>
@@ -206,7 +204,7 @@
 
         <div class="controls-panel">
             <input type="text" id="videoUrlInput" 
-                   placeholder="或者在此输入自定义视频 URL (例如: .mp4, .webm)">
+                   placeholder="在此输入自定义视频 URL (例如: .mp4, .webm)">
             <button onclick="loadVideo()">加载并播放</button>
         </div>
         
@@ -218,113 +216,136 @@
     </div>
 
     <script>
-        // JavaScript 逻辑：处理视频加载、弹幕、关灯和黑白滤镜功能
+        // JavaScript 逻辑
 
+        const videoPlayer = document.getElementById('myVideoPlayer');
+        const localFileInput = document.getElementById('localFileInput');
+        const staticOverlay = document.getElementById('staticOverlay');
+        const lightsButton = document.getElementById('lightsButton');
+        const grayscaleButton = document.getElementById('grayscaleButton');
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
-        const lightsButton = document.getElementById('lightsButton');
-        const grayscaleButton = document.getElementById('grayscaleButton'); // 4. 获取新按钮
-        const videoPlayer = document.getElementById('myVideoPlayer');
         const barrageWrapper = document.querySelector('.barrage-wrapper');
 
-        // 💡 关灯/开灯功能
-        function toggleLights() {
-            body.classList.toggle('lights-off');
-            videoContainer.classList.toggle('lights-off');
-            
-            const isLightsOff = body.classList.contains('lights-off');
-            overlay.style.display = isLightsOff ? 'block' : 'none';
+        // 加载本地文件的函数
+        function loadLocalVideo() {
+            const file = localFileInput.files[0];
+            if (file) {
+                document.getElementById('videoUrlInput').value = "";
+                document.getElementById('videoPlaylist').value = "";
 
-            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
-        }
-        
-        // 🎨 5. 新增：黑白滤镜功能
-        function toggleGrayscale() {
-            // 切换 videoPlayer 上的 'grayscale-on' 类
-            videoPlayer.classList.toggle('grayscale-on');
-            
-            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
-            grayscaleButton.textContent = isGrayscaleOn ? '黑白屏' : '彩色屏';
-        }
-
-        // 🚀 弹幕核心函数 (保持不变)
-        function sendBarrage() {
-            const input = document.getElementById('barrageInput');
-            const text = input.value.trim();
-
-            if (!text) return;
-            
-            const barrage = document.createElement('div');
-            barrage.className = 'barrage';
-            barrage.textContent = text;
-
-            const videoHeight = videoPlayer.clientHeight;
-            const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05); 
-            barrage.style.top = `${topPosition}px`;
-            
-            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-            barrage.style.color = randomColor;
-
-            const speed = Math.random() * 5 + 8;
-            barrage.style.animation = `move-barrage ${speed}s linear forwards`;
-
-            barrageWrapper.appendChild(barrage);
-            input.value = '';
-
-            barrage.addEventListener('animationend', () => {
-                barrage.remove();
-            });
-            
-            if (videoPlayer.paused) {
-                barrage.style.animationPlayState = 'paused';
+                const fileURL = URL.createObjectURL(file);
+                
+                playVideo(fileURL);
+                
+                console.log(`已加载本地文件: ${file.name}`);
             }
         }
-        
-        // 暂停/播放弹幕的逻辑 (与视频同步) (保持不变)
-        videoPlayer.addEventListener('play', () => {
-            document.querySelectorAll('.barrage').forEach(b => {
-                b.style.animationPlayState = 'running';
-            });
-        });
-        
-        videoPlayer.addEventListener('pause', () => {
-            document.querySelectorAll('.barrage').forEach(b => {
-                b.style.animationPlayState = 'paused';
-            });
-        });
 
-        // 📢 视频加载核心函数 (保持不变)
+        // 监听文件输入框的 change 事件
+        localFileInput.addEventListener('change', loadLocalVideo);
+
+        // 核心加载函数
         function playVideo(url) {
+            if (videoPlayer.src && videoPlayer.src.startsWith('blob:')) {
+                 URL.revokeObjectURL(videoPlayer.src);
+            }
+
             if (url === "") {
                 videoPlayer.src = "";
                 videoPlayer.load();
+                staticOverlay.style.display = 'none'; 
                 return;
             }
 
-            videoPlayer.src = url;
-            videoPlayer.load(); 
+            staticOverlay.style.display = 'block';
 
-            videoPlayer.play()
-                .then(() => {
-                    console.log(`视频加载成功并开始播放: ${url}`);
-                })
-                .catch(error => {
-                    console.error("尝试播放视频时发生错误，可能需要用户交互：", error);
-                });
+            setTimeout(() => {
+                videoPlayer.src = url;
+                videoPlayer.load(); 
+
+                videoPlayer.play()
+                    .then(() => {
+                        console.log(`视频加载成功并开始播放: ${url}`);
+                        staticOverlay.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error("尝试播放视频时发生错误，可能需要用户交互：", error);
+                        staticOverlay.style.display = 'none';
+                    });
+            }, 1500);
+        }
+
+        // 截屏功能
+        function captureFrame() {
+            if (!videoPlayer.src) {
+                alert("请先加载并播放一个视频！");
+                return;
+            }
+
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = videoPlayer.videoWidth;
+                canvas.height = videoPlayer.videoHeight;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+                const imageURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imageURL;
+                
+                let fileName = 'screenshot';
+                if (localFileInput.files.length > 0 && videoPlayer.src.startsWith('blob:')) {
+                    fileName = localFileInput.files[0].name.replace(/\.[^/.]+$/, "");
+                } else {
+                    fileName = new Date().toISOString().replace(/[:.]/g, '-');
+                }
+                
+                link.download = `${fileName}_capture.png`;
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (e) {
+                if (e.name === "SecurityError" && !videoPlayer.src.startsWith('blob:')) {
+                    alert("截屏失败：由于跨域安全限制（CORS），外部链接视频无法截取。本地文件不受此限制。");
+                } else {
+                    alert("截屏失败：" + e.message);
+                }
+                console.error("截屏错误：", e);
+            }
+        }
+
+
+        // 关灯/开灯功能
+        function toggleLights() {
+            body.classList.toggle('lights-off');
+            videoContainer.classList.toggle('lights-off');
+            const isLightsOff = body.classList.contains('lights-off');
+            overlay.style.display = isLightsOff ? 'block' : 'none';
+            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
         }
         
-        // 目录选择函数 (保持不变)
+        // 黑白滤镜功能
+        function toggleGrayscale() {
+            videoPlayer.classList.toggle('grayscale-on');
+            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
+            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
+        }
+
+        // 目录选择函数
         function loadSelectedVideo() {
             const playlist = document.getElementById('videoPlaylist');
             const selectedUrl = playlist.value;
-            
             document.getElementById('videoUrlInput').value = ""; 
-            
+            localFileInput.value = null; 
             playVideo(selectedUrl);
         }
 
-        // 手动 URL 加载函数 (保持不变)
+        // 手动 URL 加载函数
         function loadVideo() {
             const urlInput = document.getElementById('videoUrlInput');
             const videoUrl = urlInput.value.trim();
@@ -333,13 +354,12 @@
                 alert("请输入一个有效的视频 URL！");
                 return;
             }
-            
             document.getElementById('videoPlaylist').value = "";
-            
+            localFileInput.value = null; 
             playVideo(videoUrl);
         }
 
-        // 绑定 Enter 键事件 (保持不变)
+        // 绑定 Enter 键事件
         document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 loadVideo();
@@ -350,6 +370,43 @@
             if (event.key === 'Enter') {
                 sendBarrage();
             }
+        });
+        
+        // 弹幕相关函数
+        function sendBarrage() {
+            const input = document.getElementById('barrageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const barrage = document.createElement('div');
+            barrage.className = 'barrage';
+            barrage.textContent = text;
+            const videoHeight = videoPlayer.clientHeight;
+            const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05); 
+            barrage.style.top = `${topPosition}px`;
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            barrage.style.color = randomColor;
+            const speed = Math.random() * 5 + 8;
+            barrage.style.animation = `move-barrage ${speed}s linear forwards`;
+            barrageWrapper.appendChild(barrage);
+            input.value = '';
+            barrage.addEventListener('animationend', () => {
+                barrage.remove();
+            });
+            if (videoPlayer.paused) {
+                barrage.style.animationPlayState = 'paused';
+            }
+        }
+        
+        videoPlayer.addEventListener('play', () => {
+            document.querySelectorAll('.barrage').forEach(b => {
+                b.style.animationPlayState = 'running';
+            });
+        });
+        
+        videoPlayer.addEventListener('pause', () => {
+            document.querySelectorAll('.barrage').forEach(b => {
+                b.style.animationPlayState = 'paused';
+            });
         });
     </script>
 </body>
