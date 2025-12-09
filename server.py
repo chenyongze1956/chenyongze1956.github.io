@@ -163,7 +163,7 @@ async def chat_handler(websocket, path):
             await notify_users_count()
 
 # 启动 WebSocket 服务器
-start_server = websockets.serve(chat_handler, "localhost", 8774)
+start_server = websockets.serve(chat_handler, "localhost", 8775)
 
 print("WebSocket 服务器已启动，监听 ws://localhost:8765")
 
