@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; margin: 20px;  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+ }
+        
+        /* 侧边栏和主容器样式 */
+        #chatContainer { display: flex; max-width: 850px; margin: 0 auto; }
+        #messagesDiv { flex-grow: 1; height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-right: 10px; background-color: #f8f8f8;}
+        #sidebar { width: 150px; padding: 10px; border: 1px solid #eee; background-color: #f9f9f9; }
+
+        /* 消息列表样式 */
+        .message-item { margin-bottom: 5px; line-height: 1.4; padding: 2px 0;}
+        .user { font-weight: bold; color: #007bff; }
+        .user-private { font-weight: bold; color: #dc3545; }
+        .timestamp { font-size: 0.8em; color: #999; margin-left: 10px; }
+        .info { color: orange; font-style: italic; }
+        .error { color: red; font-weight: bold; }
+        
+        /* 在线用户指示器 */
+        .online-user-item { cursor: pointer; padding: 5px; border-bottom: 1px dotted #ccc; display: flex; align-items: center; }
+        .online-user-item:hover { background-color: #e9e9e9; }
+        .online-indicator { height: 8px; width: 8px; background-color: #28a745; border-radius: 50%; margin-right: 8px; display: inline-block; }
+
+        /* 文件和表情符号 */
+        .file-transfer a { color: #dc3545; text-decoration: none; word-break: break-all; }
+        .emoji-item { font-size: 24px; padding: 5px; cursor: pointer; margin: 2px; display: inline-block; transition: transform 0.1s; }
+        .emoji-item:hover { transform: scale(1.2); }
+    </style>
+</head>
+<body>
+
+    
+    <div>
+        <label for="username">您的用户名:</label>
+        <input type="text" id="username" value="UserA" required>
+        <button onclick="refreshPage()">重新连接</button>
+    </div>
+    
+    <hr>
+    
+    <div id="chatContainer">
+        
+        <div style="flex-grow: 1;">
+            <div id="chatTabs" style="display: flex; margin-bottom: 10px;">
+                <button id="publicTabBtn" onclick="switchChatTab('public')" 
+                    style="padding: 10px; flex-grow: 1; cursor: pointer; background-color: #28a745; color: white; border: none;">
+                    公聊 (Public)
+                </button>
+                <button id="privateTabBtn" onclick="switchChatTab('private')" disabled
+                    style="padding: 10px; flex-grow: 1; cursor: default; background-color: #ccc; color: #666; border: none;">
+                    私聊 (未选中)
+                </button>
+            </div>
+
+            <div id="messagesDiv">
+                </div>
+            
+            <div id="typingIndicator" style="height: 20px; color: #999; font-size: 0.9em; margin-top: 5px;">
+                </div>
+
+            <div id="privateChatStatus" style="color: #dc3545; font-weight: bold; margin-top: 5px; display: none;">
+                正在与 <span id="privateTargetUser"></span> 私聊...
+            </div>
+        </div>
+
+        <div id="sidebar">
+            <div id="onlineCount">在线人数: 0</div>
+            <strong>在线用户:</strong>
+            <div id="onlineUsersList">
+                </div>
+        </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; margin-top: 10px;">
+        <button onclick="toggleEmojiPicker()" style="margin-right: 10px; padding: 5px 10px; cursor: pointer;">😀</button>
+        
+        <input type="text" id="messageInput" placeholder="输入消息..." style="width: 500px;">
+        <button onclick="sendMessage()">发送</button>
+        
+        <input type="file" id="fileInput" onchange="enableFileSend()" style="margin-left: 20px;">
+        <button id="sendFileBtn" onclick="sendFile()" disabled>发送文件</button>
+    </div>
+    
+    <div id="emojiPicker">
+        <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+        <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+        <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
+        <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
+        <span class="emoji-item" onclick="insertEmoji('🥳')">🥳</span>
+        <span class="emoji-item" onclick="insertEmoji('😭')">😭</span>
+        <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+        <span class="emoji-item" onclick="insertEmoji('🙏')">🙏</span>
+        <span class="emoji-item" onclick="insertEmoji('🔥')">🔥</span>
+        <span class="emoji-item" onclick="insertEmoji('🎉')">🎉</span>
+        <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+        <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
+    </div>
+
+    <script>
+        // --- 核心变量定义 ---
+        const SOCKET_URL = "ws://localhost:8774";
+        const messagesDiv = document.getElementById("messagesDiv");
+        const messageInput = document.getElementById("messageInput");
+        const usernameInput = document.getElementById("username");
+        const onlineCountDiv = document.getElementById("onlineCount");
+        const onlineUsersListDiv = document.getElementById("onlineUsersList");
+        const fileInput = document.getElementById("fileInput");
+        const sendFileBtn = document.getElementById("sendFileBtn");
+        const emojiPicker = document.getElementById("emojiPicker");
+        const typingIndicatorDiv = document.getElementById("typingIndicator");
+
+        let socket;
+        let activeTab = 'public'; 
+        let privateChatTarget = null; 
+        const privateConversations = {}; 
+        const publicMessages = []; 
+
+        // 输入状态管理
+        const typingUsers = {};
+        let isTyping = false; 
+        let typingTimeout = null; 
+        
+        // --- 连接和初始化 ---
+        
+        function connect() {
+            const user = usernameInput.value.trim();
+            if (!user) { alert("请先输入一个用户名！"); return; }
+            if (socket && socket.readyState === WebSocket.OPEN) { socket.close(); }
+            
+            socket = new WebSocket(SOCKET_URL);
+
+            socket.onopen = function(e) {
+                const registrationMessage = { type: "register", user: user };
+                socket.send(JSON.stringify(registrationMessage));
+                
+                const element = createMessageElement("系统", `以用户名 **${user}** 连接服务器成功！`, "info");
+                appendMessage(element, 'info', "系统");
+            };
+
+            socket.onclose = function(event) {
+                 const element = createMessageElement("系统", `连接已断开 (代码: ${event.code})`, "info");
+                 appendMessage(element, 'info', "系统");
+            };
+
+            socket.onerror = function(error) {
+                const element = createMessageElement("系统", `连接发生错误，请检查服务器是否运行。`, "error");
+                appendMessage(element, 'error', "系统");
+            };
+
+            // 2. 接收消息 - **核心路由**
+            socket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    const time = data.time || new Date().toISOString();
+                    
+                    if (data.type === "chat" || data.type === "info" || data.type === "error") {
+                        const element = createMessageElement(data.user || "系统", data.message, data.type, time);
+                        appendMessage(element, data.type, data.user || "系统");
+                    
+                    } else if (data.type === "private") {
+                        initiatePrivateChat(data.user); 
+                        const element = createMessageElement(data.user, data.message, 'private', time, data.to_user);
+                        appendMessage(element, 'private', data.user, data.to_user);
+
+                    } else if (data.type === "count") {
+                        onlineCountDiv.textContent = `在线人数: ${data.data}`;
+                        updateOnlineUsersList(data.users);
+                        
+                    } else if (data.type === "file") {
+                        addFileLink(data.user, data.filename, data.file_data, time);
+
+                    } else if (data.type === "history") {
+                        const startElement = createMessageElement("系统", "--- 加载历史消息 ---", "info");
+                        appendMessage(startElement, 'info', "系统");
+                        data.messages.forEach(msg => {
+                            const element = createMessageElement(msg.user, msg.message, "chat", msg.time);
+                            appendMessage(element, 'chat', msg.user);
+                        });
+                        const endElement = createMessageElement("系统", "--- 历史消息加载完毕 ---", "info");
+                        appendMessage(endElement, 'info', "系统");
+                        
+                    } else if (data.type === "typing_notification") {
+                        const user = data.user;
+                        const status = data.is_typing;
+                        typingUsers[user] = status;
+                        if (!status) { delete typingUsers[user]; }
+                        updateTypingIndicator();
+                    }
+
+                } catch (e) {
+                    console.error("解析消息失败:", e);
+                }
+            };
+        }
+        
+        window.onload = connect;
+
+        // --- 标签页管理 ---
+
+        function switchChatTab(tabName) {
+            if (activeTab === tabName) return;
+
+            activeTab = tabName;
+            messagesDiv.innerHTML = ''; 
+
+            const publicBtn = document.getElementById('publicTabBtn');
+            const privateBtn = document.getElementById('privateTabBtn');
+            const statusDiv = document.getElementById('privateChatStatus');
+
+            if (tabName === 'public') {
+                publicBtn.style.backgroundColor = '#28a745';
+                privateBtn.style.backgroundColor = '#ccc';
+                privateBtn.style.color = '#666';
+                statusDiv.style.display = 'none';
+                publicMessages.forEach(msg => messagesDiv.appendChild(msg));
+
+            } else if (tabName === 'private' && privateChatTarget) {
+                publicBtn.style.backgroundColor = '#ccc';
+                privateBtn.style.backgroundColor = '#dc3545';
+                privateBtn.style.color = 'white';
+                statusDiv.style.display = 'block';
+                document.getElementById('privateTargetUser').textContent = privateChatTarget;
+
+                const convos = privateConversations[privateChatTarget] || [];
+                convos.forEach(msg => messagesDiv.appendChild(msg));
+            }
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // --- 核心功能函数 (消息创建和存储) ---
+
+        function createMessageElement(user, message, type, time, targetUser = null) {
+            const messageItem = document.createElement("div");
+            messageItem.classList.add("message-item");
+            messageItem.classList.add(type);
+
+            let timeString = '';
+            if (time) {
+                try {
+                    const date = new Date(time);
+                    timeString = `<span class="timestamp">${date.toLocaleTimeString()}</span>`;
+                } catch (e) { timeString = ''; }
+            }
+            
+            if (type === 'private') {
+                const myUser = usernameInput.value.trim();
+                const sender = user === myUser ? '您' : user;
+                const receiver = targetUser === myUser ? '您' : targetUser;
+                messageItem.innerHTML = `<span class="user-private">[${sender} &rarr; ${receiver}]:</span> ${message} ${timeString}`;
+            } else {
+                messageItem.innerHTML = `<span class="user">${user}</span>: ${message} ${timeString}`;
+            }
+            return messageItem;
+        }
+
+        function appendMessage(element, type, fromUser, toUser = null) {
+            const myUser = usernameInput.value.trim();
+
+            if (type === 'chat' || type === 'info' || type === 'error') {
+                publicMessages.push(element);
+                if (activeTab === 'public') { messagesDiv.appendChild(element); }
+            } else if (type === 'private') {
+                const otherUser = (fromUser === myUser) ? toUser : fromUser;
+                
+                if (!privateConversations[otherUser]) { privateConversations[otherUser] = []; }
+                privateConversations[otherUser].push(element);
+
+                if (activeTab === 'private' && privateChatTarget === otherUser) { messagesDiv.appendChild(element); }
+            }
+
+            if ((activeTab === 'public' && (type === 'chat' || type === 'info' || type === 'error')) || 
+                (activeTab === 'private' && type === 'private' && (fromUser === privateChatTarget || toUser === privateChatTarget))) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+        
+        // --- 交互功能函数 ---
+
+        function initiatePrivateChat(targetUser) {
+            if (usernameInput.value.trim() === targetUser) {
+                const element = createMessageElement("系统", "不能和自己私聊。", "error");
+                appendMessage(element, 'error', "系统");
+                return;
+            }
+            
+            privateChatTarget = targetUser;
+            const privateBtn = document.getElementById('privateTabBtn');
+            privateBtn.disabled = false;
+            privateBtn.textContent = `私聊 (${targetUser})`;
+            
+            switchChatTab('private');
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            const user = usernameInput.value.trim();
+
+            if (!message || !user || socket.readyState !== WebSocket.OPEN) { 
+                console.error("无法发送消息：连接未打开或消息为空。");
+                return; 
+            }
+            
+            if (isTyping) { sendTypingStatus(false); }
+
+            if (activeTab === 'public') {
+                // 公聊：发送 'public_chat' 和 'message' 字段
+                const chat_data = JSON.stringify({ 
+                    type: "public_chat", 
+                    user: user, 
+                    message: message 
+                });
+                socket.send(chat_data);
+
+            } else if (activeTab === 'private' && privateChatTarget) {
+                // 私聊：发送 'private_transfer' 和 'message' 字段
+                const private_data = JSON.stringify({ 
+                    type: "private_transfer", 
+                    from_user: user, 
+                    to_user: privateChatTarget, 
+                    message: message 
+                });
+                socket.send(private_data);
+                
+                // 立即渲染自己的私聊消息 (本地显示)
+                const now = new Date().toISOString();
+                const element = createMessageElement(user, message, 'private', now, privateChatTarget);
+                appendMessage(element, 'private', user, privateChatTarget);
+            }
+            
+            messageInput.value = '';
+        }
+
+        function updateOnlineUsersList(users) {
+            onlineUsersListDiv.innerHTML = ''; 
+            const currentUser = usernameInput.value.trim();
+            
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.classList.add('online-user-item');
+
+                const indicator = document.createElement('span');
+                indicator.classList.add('online-indicator');
+                item.appendChild(indicator);
+                
+                const nameText = document.createElement('span');
+                
+                if (user === currentUser) {
+                    nameText.textContent = `${user} (您)`;
+                    item.style.fontWeight = 'bold';
+                    item.style.color = 'green';
+                    item.style.cursor = 'default';
+                } else {
+                    nameText.textContent = user;
+                    item.onclick = () => { initiatePrivateChat(user); };
+                }
+                
+                item.appendChild(nameText);
+                onlineUsersListDiv.appendChild(item);
+            });
+        }
+        
+        function enableFileSend() {
+            sendFileBtn.disabled = (fileInput.files.length === 0);
+        }
+        
+        function sendFile() {
+             const file = fileInput.files[0];
+             const user = usernameInput.value.trim();
+        
+             if (!file || socket.readyState !== WebSocket.OPEN) {
+                 const element = createMessageElement("系统", "请先选择文件或检查连接状态。", "info");
+                 appendMessage(element, 'info', "系统");
+                 return;
+             }
+             if (file.size > 5 * 1024 * 1024) { 
+                 const element = createMessageElement("系统", "文件过大，当前示例仅支持 5MB 以下的文件。", "error");
+                 appendMessage(element, 'error', "系统");
+                 return;
+             }
+        
+             const reader = new FileReader();
+             
+             reader.onload = function(event) {
+                 const fileDataObject = {
+                     type: "file_transfer",
+                     user: user,
+                     filename: file.name,
+                     file_type: file.type,
+                     file_data: event.target.result 
+                 };
+                 
+                 socket.send(JSON.stringify(fileDataObject));
+                 
+                 fileInput.value = ''; 
+                 enableFileSend(); 
+             };
+        
+             reader.readAsDataURL(file);
+        }
+
+        function addFileLink(user, filename, fileData, time) {
+            const fileElement = createMessageElement(user, "", "file", time); 
+            fileElement.classList.add("file-transfer");
+
+            const link = document.createElement('a');
+            link.href = fileData; 
+            link.download = filename; 
+            link.textContent = `点击下载文件: ${filename}`;
+            link.style.fontWeight = 'bold';
+            
+            fileElement.innerHTML = `<span class="user">${user}</span> 发送了一个文件: `;
+            fileElement.appendChild(link);
+            fileElement.innerHTML += ` <span class="timestamp">${new Date(time).toLocaleTimeString()}</span>`;
+
+            publicMessages.push(fileElement);
+            if (activeTab === 'public') {
+                messagesDiv.appendChild(fileElement);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+
+        // --- 表情符号功能 ---
+        function toggleEmojiPicker() {
+             emojiPicker.style.display = (emojiPicker.style.display === 'block') ? 'none' : 'block';
+             if (emojiPicker.style.display === 'none') { messageInput.focus(); }
+        }
+        function insertEmoji(emoji) {
+            const input = messageInput;
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            input.value = input.value.substring(0, start) + emoji + input.value.substring(end);
+            input.selectionStart = input.selectionEnd = start + emoji.length;
+            input.focus();
+        }
+        messageInput.addEventListener('focus', () => { emojiPicker.style.display = 'none'; });
+
+        // --- 输入状态功能 ---
+        function sendTypingStatus(status) {
+            if (socket.readyState === WebSocket.OPEN) {
+                const statusMessage = { type: "typing_status", is_typing: status };
+                socket.send(JSON.stringify(statusMessage));
+                isTyping = status;
+            }
+        }
+        function handleInputDetection() {
+            if (!isTyping) { sendTypingStatus(true); }
+            if (typingTimeout) { clearTimeout(typingTimeout); }
+            typingTimeout = setTimeout(() => { sendTypingStatus(false); }, 1500);
+        }
+        messageInput.addEventListener('input', handleInputDetection);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && isTyping) { sendTypingStatus(false); }
+        });
+
+        function updateTypingIndicator() {
+            const usersTyping = Object.keys(typingUsers).filter(user => typingUsers[user]);
+            if (usersTyping.length === 0) {
+                typingIndicatorDiv.textContent = '';
+            } else if (usersTyping.length === 1) {
+                typingIndicatorDiv.textContent = `${usersTyping[0]} 正在输入...`;
+            } else {
+                typingIndicatorDiv.textContent = `${usersTyping.join(', ')} 正在输入...`;
+            }
+        }
+
+        // --- 实用工具 ---
+        function refreshPage() { window.location.reload(); }
+        
+        messageInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { sendMessage(); }
+        });
+    </script>
+
+</body>
+</html>
