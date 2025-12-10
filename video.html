@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 优化弹幕输入长度</title>
+    
     
     <style>
         /* 💡 关灯模式的背景遮罩层 */
@@ -31,12 +31,12 @@
             to { transform: translateX(-100vw); }
         }
         
-        /* 📺 雪花动画 */
+        /* 📺 老电视雪花动画 */
         @keyframes static-anim {
             0% { background-position: 0 0; }
             100% { background-position: 100% 100%; }
         }
-
+        
         /* 💻 界面布局和外观 */
         body {
             display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
@@ -55,19 +55,30 @@
         .video-container.lights-off { background: #222; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); }
         
         /* 🎨 黑白滤镜样式 */
-        .grayscale-on { filter: grayscale(100%); transition: filter 0.3s ease-in-out; }
+        /* 确保黑白滤镜应用到 videoPlayer 元素 */
+        #myVideoPlayer.grayscale-on { filter: grayscale(100%); transition: filter 0.3s ease-in-out; }
 
         #myVideoPlayer {
             width: 100%; height: auto; min-height: 200px;
             border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
+            position: relative;
+            z-index: 1; 
+            /* 正常状态下的默认滤镜和形变（会被类覆盖） */
+            filter: none;
+            transform: none;
         }
         
         /* 📺 雪花特效覆盖层 */
         #staticOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: repeating-linear-gradient(0deg, #fff, #fff 1px, #000 2px, #000 3px);
-            background-size: 100px 100px; z-index: 20; display: none; opacity: 0.8;
-            animation: static-anim 0.1s linear infinite;
+            z-index: 20; display: none; opacity: 0.8;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.4) 1px, transparent 0),
+                radial-gradient(circle at 35% 85%, rgba(255,255,255,0.6) 1px, transparent 0),
+                radial-gradient(circle at 60% 40%, rgba(255,255,255,0.3) 1px, transparent 0),
+                radial-gradient(circle at 90% 70%, rgba(255,255,255,0.5) 1px, transparent 0);
+            background-size: 5px 5px, 8px 8px, 6px 6px, 10px 10px; 
+            animation: static-anim 0.05s linear infinite;
         }
 
         /* 🚀 弹幕样式 */
@@ -111,6 +122,10 @@
         #grayscaleButton:hover { background-color: #e67e22; }
         #captureButton { background-color: #2ecc71; color: white; }
         #captureButton:hover { background-color: #27ae60; }
+        
+        /* 3D 按钮颜色 */
+        #threeDButton { background-color: #e74c3c; color: white; } 
+        #threeDButton:hover { background-color: #c0392b; }
 
         /* 控制面板 */
         .controls-panel, .playlist-panel, .barrage-panel { 
@@ -123,35 +138,56 @@
         
         /* URL 输入框 - 保持伸展性 */
         #videoUrlInput { 
-            flex-grow: 1; 
-            min-width: 200px;
+            flex-grow: 1; min-width: 200px;
             padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
         }
         #videoPlaylist { 
-            flex-grow: 1; 
-            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
+            flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
         }
         
         /* 弹幕面板优化 */
-        .barrage-panel {
-            /* 确保弹幕输入行独占一行并充分利用空间 */
-            width: 100%; 
-        }
+        .barrage-panel { width: 100%; }
         
-        /* 🚀 关键优化：弹幕输入框最大程度伸展 */
+        /* 弹幕输入框最大程度伸展 */
         #barrageInput { 
-            flex-grow: 1; 
-            min-width: 60%; /* 设置最小宽度，确保在小屏幕上也有足够的空间 */
-            padding: 10px; 
-            border: 1px solid #ddd; 
-            border-radius: 4px; 
-            font-size: 16px; 
+            flex-grow: 1; min-width: 60%; 
+            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
         }
         
         #sendButton {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             color: white; animation: rainbow-color-change 8s linear infinite;
         }
+
+        /* ---------------------------------------------------- */
+        /* 🕶️ 3D 立体电影特效 CSS (修改为直接作用于 videoPlayer) */
+        /* ---------------------------------------------------- */
+
+        /* 视频容器相对定位 */
+        .barrage-wrapper {
+            position: relative;
+        }
+
+        /* 只有在容器有 three-d-on 类时，才应用 3D 效果 */
+        .barrage-wrapper.three-d-on #myVideoPlayer {
+            /* 移除黑白滤镜 */
+            filter: none; 
+            /* 应用红蓝效果：红色通道滤镜 + 略微右移 */
+            filter: grayscale(100%) contrast(150%) sepia(100%) hue-rotate(0deg) saturate(300%) drop-shadow(2px 0 0 cyan) drop-shadow(-2px 0 0 red);
+            /* 注：使用 drop-shadow 模拟通道分离，比 mix-blend-mode 兼容性略好，但效果仍是模拟 */
+            transform: none; /* 移除 transform，让 drop-shadow 负责错位 */
+        }
+        
+        /* 如果要使用 transform 错位（更清晰的红蓝分离）：*/
+        .barrage-wrapper.three-d-on #myVideoPlayer {
+             /* 视频本身只显示红色通道并右移 */
+             filter: grayscale(100%) contrast(150%) sepia(100%) hue-rotate(0deg) saturate(300%);
+             transform: translateX(2px);
+             z-index: 10;
+        }
+        
+        /* 修复逻辑：为了让切换更可靠，我们只对 `three-d-on` 类进行样式覆盖 */
+
     </style>
 </head>
 <body>
@@ -165,6 +201,8 @@
                 <button id="localFileButton">选择本地文件</button>
                 <input type="file" id="localFileInput" accept="video/*">
             </div>
+            
+            <button id="threeDButton" onclick="toggle3D()">立体电影</button> 
             
             <button id="captureButton" onclick="captureFrame()">截屏</button>
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
@@ -223,48 +261,70 @@
         const staticOverlay = document.getElementById('staticOverlay');
         const lightsButton = document.getElementById('lightsButton');
         const grayscaleButton = document.getElementById('grayscaleButton');
+        const threeDButton = document.getElementById('threeDButton'); 
+        const barrageWrapper = document.querySelector('.barrage-wrapper');
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
-        const barrageWrapper = document.querySelector('.barrage-wrapper');
 
-        // 加载本地文件的函数
-        function loadLocalVideo() {
-            const file = localFileInput.files[0];
-            if (file) {
-                document.getElementById('videoUrlInput').value = "";
-                document.getElementById('videoPlaylist').value = "";
 
-                const fileURL = URL.createObjectURL(file);
-                
-                playVideo(fileURL);
-                
-                console.log(`已加载本地文件: ${file.name}`);
+        // ----------------------------------------------------
+        // 🕶️ 修复后的立体电影功能逻辑
+        // ----------------------------------------------------
+        function toggle3D() {
+            // 切换 barrage-wrapper 的 class，以应用 CSS 滤镜和错位
+            barrageWrapper.classList.toggle('three-d-on');
+            
+            const is3DOn = barrageWrapper.classList.contains('three-d-on');
+            
+            if (is3DOn) {
+                threeDButton.textContent = "退出立体";
+                // 启用 3D 时，强制关闭黑白滤镜，以避免视觉冲突
+                if (videoPlayer.classList.contains('grayscale-on')) {
+                     // 移除黑白 class，并更新按钮
+                     videoPlayer.classList.remove('grayscale-on');
+                     grayscaleButton.textContent = '黑白屏';
+                }
+            } else {
+                threeDButton.textContent = "立体电影";
+                // 退出 3D 时，不需要手动重置样式，因为 CSS 类已经被移除，浏览器会自动恢复默认样式。
             }
         }
+        
+        // 黑白滤镜功能 (修改：确保在启用时关闭 3D)
+        function toggleGrayscale() {
+            if (barrageWrapper.classList.contains('three-d-on')) {
+                toggle3D(); // 自动关闭 3D
+            }
+            videoPlayer.classList.toggle('grayscale-on');
+            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
+            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
+        }
 
-        // 监听文件输入框的 change 事件
-        localFileInput.addEventListener('change', loadLocalVideo);
 
+        // ----------------------------------------------------
+        // 核心功能 (保持不变)
+        // ----------------------------------------------------
+        
         // 核心加载函数
         function playVideo(url) {
             if (videoPlayer.src && videoPlayer.src.startsWith('blob:')) {
                  URL.revokeObjectURL(videoPlayer.src);
             }
-
+            // 加载新视频时，默认关闭 3D
+            if (barrageWrapper.classList.contains('three-d-on')) {
+                toggle3D(); 
+            }
             if (url === "") {
                 videoPlayer.src = "";
                 videoPlayer.load();
                 staticOverlay.style.display = 'none'; 
                 return;
             }
-
             staticOverlay.style.display = 'block';
-
             setTimeout(() => {
                 videoPlayer.src = url;
                 videoPlayer.load(); 
-
                 videoPlayer.play()
                     .then(() => {
                         console.log(`视频加载成功并开始播放: ${url}`);
@@ -277,50 +337,7 @@
             }, 1500);
         }
 
-        // 截屏功能
-        function captureFrame() {
-            if (!videoPlayer.src) {
-                alert("请先加载并播放一个视频！");
-                return;
-            }
-
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = videoPlayer.videoWidth;
-                canvas.height = videoPlayer.videoHeight;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-
-                const imageURL = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = imageURL;
-                
-                let fileName = 'screenshot';
-                if (localFileInput.files.length > 0 && videoPlayer.src.startsWith('blob:')) {
-                    fileName = localFileInput.files[0].name.replace(/\.[^/.]+$/, "");
-                } else {
-                    fileName = new Date().toISOString().replace(/[:.]/g, '-');
-                }
-                
-                link.download = `${fileName}_capture.png`;
-
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-            } catch (e) {
-                if (e.name === "SecurityError" && !videoPlayer.src.startsWith('blob:')) {
-                    alert("截屏失败：由于跨域安全限制（CORS），外部链接视频无法截取。本地文件不受此限制。");
-                } else {
-                    alert("截屏失败：" + e.message);
-                }
-                console.error("截屏错误：", e);
-            }
-        }
-
-
-        // 关灯/开灯功能
+        // 关灯/开灯功能 (保持不变)
         function toggleLights() {
             body.classList.toggle('lights-off');
             videoContainer.classList.toggle('lights-off');
@@ -329,13 +346,6 @@
             lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
         }
         
-        // 黑白滤镜功能
-        function toggleGrayscale() {
-            videoPlayer.classList.toggle('grayscale-on');
-            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
-            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
-        }
-
         // 目录选择函数
         function loadSelectedVideo() {
             const playlist = document.getElementById('videoPlaylist');
@@ -349,7 +359,6 @@
         function loadVideo() {
             const urlInput = document.getElementById('videoUrlInput');
             const videoUrl = urlInput.value.trim();
-
             if (videoUrl === "") {
                 alert("请输入一个有效的视频 URL！");
                 return;
@@ -358,19 +367,41 @@
             localFileInput.value = null; 
             playVideo(videoUrl);
         }
-
-        // 绑定 Enter 键事件
-        document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                loadVideo();
-            }
-        });
         
-        document.getElementById('barrageInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendBarrage();
+        // 截屏功能
+        function captureFrame() {
+            if (!videoPlayer.src) {
+                alert("请先加载并播放一个视频！");
+                return;
             }
-        });
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = videoPlayer.videoWidth;
+                canvas.height = videoPlayer.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+                const imageURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = imageURL;
+                let fileName = 'screenshot';
+                if (localFileInput.files.length > 0 && videoPlayer.src.startsWith('blob:')) {
+                    fileName = localFileInput.files[0].name.replace(/\.[^/.]+$/, "");
+                } else {
+                    fileName = new Date().toISOString().replace(/[:.]/g, '-');
+                }
+                link.download = `${fileName}_capture.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (e) {
+                if (e.name === "SecurityError" && !videoPlayer.src.startsWith('blob:')) {
+                    alert("截屏失败：由于跨域安全限制（CORS），外部链接视频无法截取。本地文件不受此限制。");
+                } else {
+                    alert("截屏失败：" + e.message);
+                }
+                console.error("截屏错误：", e);
+            }
+        }
         
         // 弹幕相关函数
         function sendBarrage() {
@@ -408,6 +439,36 @@
                 b.style.animationPlayState = 'paused';
             });
         });
+
+        // 绑定 Enter 键事件
+        document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                loadVideo();
+            }
+        });
+        
+        document.getElementById('barrageInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendBarrage();
+            }
+        });
+
+        // 加载本地文件的函数
+        function loadLocalVideo() {
+            const file = localFileInput.files[0];
+            if (file) {
+                document.getElementById('videoUrlInput').value = "";
+                document.getElementById('videoPlaylist').value = "";
+
+                const fileURL = URL.createObjectURL(file);
+                
+                playVideo(fileURL);
+                
+                console.log(`已加载本地文件: ${file.name}`);
+            }
+        }
+        localFileInput.addEventListener('change', loadLocalVideo);
+
     </script>
 </body>
 </html>
