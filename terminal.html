@@ -138,7 +138,7 @@
             border: 1px solid #00ff00; 
             display: block; 
         }
-        #sl-train-animation, #gifwrap-animation, #gkrellm-monitor, #cbonsai-animation {
+        #sl-train-animation, #gifwrap-animation, #gkrellm-monitor, #cbonsai-animation, #mplayer-progress {
             white-space: pre;
             font-family: monospace; 
         }
@@ -224,6 +224,7 @@
         let xsnowIntervalId = null; 
         let cbonsaiIntervalId = null; 
         let pingIntervalId = null; 
+        let mplayerIntervalId = null; 
         // ----------------------
                         
         // --- 全局数据 (Fortunes, fileSystem, etc.) ---        
@@ -987,6 +988,210 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                 }
             },
             
+            // --- FX 命令 (模拟汇率查询和转换) ---
+            'fx': {
+                description: '查询货币汇率或进行转换。用法: fx <FROM> <TO> [AMOUNT]',
+                execute: (args) => {
+                    // 默认值
+                    let fromCode = (args[0] || 'USD').toUpperCase();
+                    let toCode = (args[1] || 'CNY').toUpperCase();
+                    let amount = parseFloat(args[2]) || 1.0;
+                    
+                    if (isNaN(amount) || amount <= 0) {
+                        writeOutput('fx: 数量 (AMOUNT) 必须是一个有效的正数。', 'error');
+                        return;
+                    }
+                    
+                    writeOutput(`正在连接到 ForeignExchange API... 查询 ${fromCode} 到 ${toCode} 的汇率... 请稍候... `, 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'FETCHING FX...';
+                    promptSpan.style.color = '#ffd700'; // 黄金色
+
+                    setTimeout(() => {
+                        // 1. 模拟实时汇率数据 (核心模拟逻辑)
+                        // 使用一个随机波动模拟汇率
+                        const volatility = (Math.random() * 0.05 + 0.95); 
+                        let rate = 0;
+
+                        if (fromCode === toCode) {
+                            rate = 1.0;
+                        } else if (fromCode === 'USD' && toCode === 'CNY') {
+                            rate = 7.15 * volatility;
+                        } else if (fromCode === 'USD' && toCode === 'EUR') {
+                            rate = 0.92 * volatility;
+                        } else if (fromCode === 'EUR' && toCode === 'USD') {
+                            rate = 1 / (0.92 * volatility);
+                        } else if (fromCode === 'CNY' && toCode === 'USD') {
+                            rate = 1 / (7.15 * volatility);
+                        } else {
+                            // 默认模拟一个近似 1:1 的汇率，并带随机波动
+                            rate = 1.0 * volatility;
+                        }
+
+                        // 2. 计算转换结果
+                        const convertedAmount = amount * rate;
+                        
+                        // 3. 格式化输出
+                        const rateFormatted = rate.toFixed(4); // 汇率保留4位小数
+                        const amountFormatted = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const convertedFormatted = convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        
+                        const outputData = [
+                            { key: '查询货币对', value: `${fromCode} / ${toCode}` },
+                            { key: '实时汇率', value: `1 ${fromCode} = ${rateFormatted} ${toCode}` },
+                            { key: '转换数量', value: `${amountFormatted} ${fromCode}` },
+                            { key: '转换结果', value: `${convertedFormatted} ${toCode}` }
+                        ];
+
+                        const maxKeyLength = outputData.reduce((max, item) => Math.max(max, item.key.length), 0);
+                        
+                        let outputText = `\n--- 实时汇率查询结果 --- \n`;
+
+                        outputData.forEach(item => {
+                            // 保持键的对齐，并使用 <span> 突出结果
+                            const valueHtml = (item.key === '实时汇率' || item.key === '转换结果') 
+                                ? `<span style="color:#00ffff;">${item.value}</span>` 
+                                : item.value;
+                            
+                            const line = `| ${item.key.padEnd(maxKeyLength)} : ${valueHtml} |`;
+                            // 由于 valueHtml 中包含 HTML 标签，这里必须替换空格为 &nbsp; 才能保持对齐
+                            outputText += line.replace(/ /g, '&nbsp;') + '\n';
+                        });
+
+                        outputText += `-------------------------------`;
+                        
+                        writeHtmlOutput(outputText);
+                        writeOutput(`数据源: Web-CLI FX Cache (${new Date().toLocaleTimeString()} 模拟)`);
+
+                        // 恢复终端状态
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                        
+                    }, 1000); // 模拟 1 秒的网络延迟
+                }
+            },
+
+            // --- MPLATER 命令 (模拟媒体播放器) ---
+            'mplayer': {
+                description: '模拟媒体播放器。用法: mplayer <URL/文件> (Ctrl+C 停止)',
+                execute: (args) => {
+                    if (mplayerIntervalId !== null) { writeOutput('mplayer 已经在播放。', 'error'); return; }
+
+                    const mediaSource = args[0] || 'trailer.mp4';
+                    writeOutput(`正在启动 MPlayer SVN-r37509 (C) 2000-2015 MPlayer Team`, 'welcome');
+                    writeOutput(`播放文件: ${mediaSource}`, 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'PLAYING... (按 Ctrl+C 停止)';
+                    promptSpan.style.color = '#87ceeb'; // Light Blue/Cyan for media
+
+                    const durationSeconds = 90; // 模拟总时长 90 秒
+                    let currentTimeSeconds = 0;
+                    const updateInterval = 1000; // 每 1000ms (1秒) 更新一次
+                    
+                    // 创建一个用于动态更新进度的 DIV
+                    const mplayerDiv = document.createElement('div');
+                    mplayerDiv.id = 'mplayer-progress';
+                    mplayerDiv.style.whiteSpace = 'pre';
+                    output.appendChild(mplayerDiv);
+
+                    // 模拟 MPlayer 的初始化和解码输出
+                    writeOutput(`Video: no video`, 'output-text');
+                    writeOutput(`Audio: MP3 (44100 Hz, 2 channels)`, 'output-text');
+                    writeOutput(`Starting playback...`, 'output-text');
+
+                    // 格式化时间 (HH:MM:SS)
+                    const formatTime = (totalSeconds) => {
+                        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                        const s = String(Math.floor(totalSeconds % 60)).padStart(2, '0');
+                        return `${h}:${m}:${s}`;
+                    };
+
+                    const refreshMplayer = () => {
+                        if (currentTimeSeconds >= durationSeconds) {
+                            clearInterval(mplayerIntervalId);
+                            mplayerIntervalId = null;
+                            writeOutput('\n播放结束 (文件已到达末尾)。', 'welcome');
+                            
+                            // 恢复终端状态
+                            input.disabled = false;
+                            updatePrompt();
+                            input.focus();
+                            promptSpan.style.color = 'var(--prompt-color)';
+                            return;
+                        }
+
+                        const percent = Math.floor((currentTimeSeconds / durationSeconds) * 100);
+                        const progressBarWidth = 30;
+                        const filled = Math.round((currentTimeSeconds / durationSeconds) * progressBarWidth);
+                        const empty = progressBarWidth - filled;
+                        
+                        const progressBar = `[${'='.repeat(filled)}${'>'}${' '.repeat(empty)}]`;
+                        
+                        const currentTimestamp = formatTime(currentTimeSeconds);
+                        const durationTimestamp = formatTime(durationSeconds);
+                        
+                        // 模拟 MPlayer 实时更新的输出格式
+                        const outputLine = `A: ${currentTimeSeconds.toFixed(0).padStart(3, ' ')} / ${durationSeconds.toFixed(0)} (${percent}%) ${progressBar} ${currentTimestamp} / ${durationTimestamp}`;
+                        
+                        mplayerDiv.textContent = outputLine;
+                        scrollToBottom();
+
+                        currentTimeSeconds++;
+                    };
+
+                    // 使用全局变量来控制中断
+                    mplayerIntervalId = setInterval(refreshMplayer, updateInterval);
+                }
+            },
+
+            // --- LISTEN 命令 (模拟播放 + 真实链接) ---
+            'listen': {
+                description: '尝试播放指定的音乐 URL。用法: listen <URL>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('listen: 缺少 URL 操作数。', 'error');
+                        writeOutput('用法: listen https://example.com/song.mp3', 'error');
+                        return;
+                    }
+                    
+                    const url = args[0];
+                    writeOutput(`正在启动 AudioStream CLI 播放器 (PID ${Math.floor(Math.random() * 5000) + 100})...`, 'welcome');
+                    writeOutput(`尝试连接到流媒体源: ${url}`, 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'BUFFERING...';
+                    promptSpan.style.color = '#800080'; // Purple for audio
+
+                    setTimeout(() => {
+                        // 模拟检查流媒体状态
+                        if (!url.startsWith('http')) {
+                             writeOutput(`错误: 无效的 URL 格式。`, 'error');
+                        } else {
+                            // 实际生成可点击的链接
+                            const linkText = `点击此处 (在新标签页) 播放音乐: ${url}`;
+                            const htmlContent = `
+✅ <span style="color:#00ffff;">流媒体就绪。</span>
+<span style="color:#ffcc00;">[<a href="${url}" target="_blank" style="color:inherit; text-decoration:underline;">${linkText}</a>]</span>
+<span style="color:#00ff00;">Buffering: 100% (Playing: 00:00)</span>
+<span style="color:#ffffff;">----------------------------------------</span>
+`;
+                            writeHtmlOutput(htmlContent);
+                        }
+                        
+                        // 恢复终端状态
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                    }, 1500); // 模拟连接和缓冲延迟
+                }
+            },
+            
             // CBONSAI 命令 (已修正为动画)
             'cbonsai': {
                 description: '模拟 cbonsai 盆栽生长动画。Ctrl+C 退出。',
@@ -1286,7 +1491,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             const cmd = commands[command];
             if (cmd) {
                 // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock'].includes(command)) {
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx'].includes(command)) {
                     // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
@@ -1303,10 +1508,11 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
 
         function writeWelcome() {
             writeOutput('', '');
-            writeOutput('');
+            writeOutput('', '');
             writeOutput('', '');
             writeOutput('', ''); 
             writeOutput('', ''); 
+            writeOutput('', '');
             writeOutput('', '');
         }
 
@@ -1315,7 +1521,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
                 // ... (原有的 Ctrl+C 清理逻辑)
-                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null) {
+                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null || mplayerIntervalId !== null) {
                     e.preventDefault(); 
                     
                     // 清理所有定时器
@@ -1339,6 +1545,11 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     if (pingIntervalId !== null) { 
                         clearInterval(pingIntervalId);
                         pingIntervalId = null;
+                    }
+                    // 清理 mplayer 定时器
+                    if (mplayerIntervalId !== null) { 
+                        clearInterval(mplayerIntervalId);
+                        mplayerIntervalId = null;
                     }
                     if (xsnowIntervalId !== null) {
                         clearInterval(xsnowIntervalId);
