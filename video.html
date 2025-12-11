@@ -4,59 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 完整响应式版 (含 特效, 循环, 速度)</title>
-    
+    <title>URL 视频播放器 - 完整响应式版 (含 AR 沉浸式, 特效, 弹幕)</title>
+
     <style>
         /* ---------------------------------------------------- */
         /* 基础和通用样式 */
         /* ---------------------------------------------------- */
-                
+
         body {
             display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0;
-            padding: 20px 10px; 
+            padding: 20px 10px;
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             transition: background 0.3s;
-            box-sizing: border-box; 
+            box-sizing: border-box;
         }
         body.lights-off { background: none; }
 
         .video-container {
-            width: 100%; 
-            max-width: 900px; 
+            width: 100%;
+            max-width: 900px;
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             z-index: 10; position: relative; transition: all 0.3s;
             box-sizing: border-box;
         }
         .video-container.lights-off { background: #222; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); }
-        
+
         #myVideoPlayer {
             width: 100%; height: auto; min-height: 200px;
             border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
             position: relative; z-index: 1; filter: none; transform: none;
         }
-        
-        /* 🎬 功能按钮面板 */
+
         .action-panel {
-            display: flex; justify-content: flex-start; 
-            align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap; 
+            display: flex; justify-content: flex-start;
+            align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;
         }
 
-        /* 按钮通用样式 */
         button {
-            padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; 
-            transition: background-color 0.3s; white-space: nowrap; flex-grow: 1; min-width: 80px; 
+            padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;
+            transition: background-color 0.3s; white-space: nowrap; flex-grow: 1; min-width: 80px;
         }
-        
-        /* 输入框和 Select 元素通用样式 */
+
         input[type="text"], select, .speed-control label {
             flex-grow: 1; min-width: 150px;
-            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; 
+            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;
             box-sizing: border-box;
         }
-        
-        /* 控制面板/播放列表/弹幕面板 */
-        .controls-panel, .playlist-panel, .barrage-panel { 
+
+        .controls-panel, .playlist-panel, .barrage-panel {
             display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; width: 100%;
         }
 
@@ -67,18 +63,22 @@
         #lightsButton { background-color: #3498db; color: white; }
         #grayscaleButton { background-color: #f39c12; color: white; }
         #captureButton { background-color: #2ecc71; color: white; }
-        #threeDButton { background-color: #e74c3c; color: white; } 
-        #glitchButton { background-color: #555; color: white; } 
+        #threeDButton { background-color: #e74c3c; color: white; }
+        #glitchButton { background-color: #555; color: white; }
         #glitchButton.active { background-color: #ff5722; }
         #translationButton { background-color: #1abc9c; color: white; }
         #translationButton.active { background-color: #0c7a6f; }
-        #diamondButton { background-color: #a44; color: white; } 
+        #diamondButton { background-color: #a44; color: white; }
         #diamondButton.active { background-color: #ffc107; color: black; }
         #sendButton { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); color: white; animation: rainbow-color-change 8s linear infinite; }
         #loopButton { background-color: #9c27b0; color: white; }
-        #loopButton.active { background-color: #e91e63; } 
-        
-        /* ⚙️ 播放速度控制样式 */
+        #loopButton.active { background-color: #e91e63; }
+
+        /* 新增：AR 按钮样式 */
+        #arModeButton { background-color: #007bff; color: white; }
+        #arModeButton.active { background-color: #ffc107; color: black; }
+
+
         .speed-control {
             display: flex;
             align-items: center;
@@ -97,193 +97,189 @@
         }
 
         /* ---------------------------------------------------- */
-        /* 针对移动设备优化 (屏幕宽度小于 768px) */
+        /* 针对移动设备优化 (保持不变) */
         /* ---------------------------------------------------- */
         @media (max-width: 768px) {
             body { padding: 10px 5px; }
             .video-container { padding: 10px; }
 
             .action-panel { justify-content: space-between; gap: 5px; }
-            
+
             button {
-                flex-basis: calc(33.33% - 7px); 
+                flex-basis: calc(33.33% - 7px);
                 padding: 8px 10px;
                 font-size: 14px;
                 min-width: unset;
             }
-            
+
             .file-input-wrapper { flex-basis: calc(33.33% - 7px); margin-right: 0; }
-            
+
             input[type="text"], select, .speed-control label {
                 flex-basis: 100%;
-                margin-bottom: 5px; 
+                margin-bottom: 5px;
                 font-size: 14px;
             }
-            
+
             .barrage-panel { flex-wrap: wrap; }
-            
+
             #sendButton { flex-basis: calc(50% - 5px); }
             #barrageInput { flex-basis: calc(50% - 5px); min-width: 50%; }
         }
 
         /* ---------------------------------------------------- */
-        /* 特效 CSS */
+        /* 特效 CSS (保留并补充) */
         /* ---------------------------------------------------- */
-        
-        /* 💡 关灯模式的背景遮罩层 */
+
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.95);
             z-index: 9; display: none; transition: opacity 0.3s;
         }
 
-        /* 🌈 基础和彩虹动画 */
         @keyframes rainbow-color-change {
-            0%, 100% { color: #ff0000; }
-            14% { color: #ff8b00; }
-            28% { color: #e8ff00; }
-            42% { color: #5dff00; }
-            56% { color: #00b9ff; }
-            70% { color: #5d00ff; }
+            0%, 100% { color: #ff0000; } 14% { color: #ff8b00; } 28% { color: #e8ff00; }
+            42% { color: #5dff00; } 56% { color: #00b9ff; } 70% { color: #5d00ff; }
             84% { color: #e800ff; }
         }
-        
-        /* 🏃 弹幕滚动动画 */
+
         @keyframes move-barrage {
             from { transform: translateX(100%); }
             to { transform: translateX(-100vw); }
         }
-        
-        /* 📺 老电视雪花动画 */
+
         @keyframes static-anim {
             0% { background-position: 0 0; }
             100% { background-position: 100% 100%; }
         }
-        #staticOverlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            pointer-events: none; z-index: 2; opacity: 0.15;
-            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVRYdCAAAAAAAL/8AALAAAAAAAAAAAwICAAAAAAAAAAAAAAADAgAAAAAAAAAAAAAAAwICAAAAAAAAAAAAAAAAAAAAAAD///+l227tAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAWElEQVQokWNgGAWjYBSMgqMAAyEwE8A2I6E8A8pEEeI20+F2gABWkQY6gA0A+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWhAwgAwBjAAAAAElFTkSuQmCC'); 
-            background-repeat: repeat;
-            animation: static-anim 0.1s linear infinite; 
-            display: none;
+        #staticOverlay {
+             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+             pointer-events: none; z-index: 2; opacity: 0.15;
+             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVRYdCAAAAAAAL/8AALAAAAAAAAAAAwICAAAAAAAAAAAAAAADAgAAAAAAAAAAAAAAAwICAAAAAAAAAAAAAAAAAAAAAAD///+l227tAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAWElEQVQokWNgGAWjYBSMgqMAAyEwE8A2I6E8A8pEEeI20+F2gABWkQY6gA0A+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWhAwgAwBjAAAAAElFTkSuQmCC');
+             background-repeat: repeat;
+             animation: static-anim 0.1s linear infinite;
+             display: none;
         }
 
-        /* 🚀 弹幕样式 */
         .barrage-wrapper {
             position: relative;
-            overflow: hidden; 
+            overflow: hidden;
         }
         .barrage {
-            position: absolute; 
-            white-space: nowrap; 
-            font-size: 20px; 
+            position: absolute;
+            white-space: nowrap;
+            font-size: 20px;
             font-weight: bold;
             text-shadow: 1px 1px 2px black, 0 0 10px rgba(0,0,0,0.5);
-            pointer-events: none; 
+            pointer-events: none;
             z-index: 5;
         }
-
-        /* 🎨 黑白滤镜样式 */
         #myVideoPlayer.grayscale-on { filter: grayscale(100%); transition: filter 0.3s ease-in-out; }
 
-
-        /* ---------------------------------------------------- */
-        /* 💥 Glitch 信号干扰特效 */
-        /* ---------------------------------------------------- */
         @keyframes sustained-glitch {
-            0% { transform: translate(0); }
-            2% { transform: translate(-2px, -2px); }
-            4% { transform: translate(2px, 2px); }
-            6% { transform: translate(-2px, 2px); }
-            8% { transform: translate(2px, -2px); }
-            10% { transform: translate(0); }
-            /* 颜色通道分离效果 */
-            50% { filter: hue-rotate(10deg) saturate(1.5); }
-            51% { filter: hue-rotate(-10deg) saturate(1.2); }
+            0% { transform: translate(0); } 2% { transform: translate(-2px, -2px); }
+            4% { transform: translate(2px, 2px); } 6% { transform: translate(-2px, 2px); }
+            8% { transform: translate(2px, -2px); } 10% { transform: translate(0); }
+            50% { filter: hue-rotate(10deg) saturate(1.5); } 51% { filter: hue-rotate(-10deg) saturate(1.2); }
             100% { transform: translate(0); }
         }
-
         .glitch-on #myVideoPlayer {
             filter: sepia(0.2) hue-rotate(10deg);
-            animation: sustained-glitch 0.4s infinite alternate; 
+            animation: sustained-glitch 0.4s infinite alternate;
         }
 
-        /* ---------------------------------------------------- */
-        /* 🕶️ 3D 立体电影特效 - 增强版 Anaglyph (已修改) */
-        /* ---------------------------------------------------- */
         .barrage-wrapper.three-d-on #myVideoPlayer {
-            /* 使用 drop-shadow 模拟红蓝通道分离，以创建更真实的景深错觉 */
             filter: drop-shadow(-5px 0 0 red) drop-shadow(5px 0 0 cyan) opacity(0.8);
-            
-            /* multiply 混合模式用于叠加红青分离的图像，模拟 Anaglyph 视觉效果 */
-            mix-blend-mode: multiply; 
-            
+            mix-blend-mode: multiply;
             transform: scale(0.98);
             transition: all 0.3s;
-            position: relative; 
+            position: relative;
         }
-        
-        /* ---------------------------------------------------- */
-        /* 💎 水晶掉落特效 */
-        /* ---------------------------------------------------- */
+
         .diamond {
             position: absolute;
             width: 20px;
             height: 20px;
             transform: rotate(45deg);
-            /* 水晶/钻石的渐变和光泽效果 */
             background: linear-gradient(to bottom right, #e0f7fa, #00bcd4, #80deea);
             box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.5), 0 0 20px 10px rgba(0, 200, 200, 0.3);
-            z-index: 50; 
+            z-index: 50;
             pointer-events: none;
-            top: 0; 
+            top: 0;
         }
-        
+
         @keyframes fall-and-fade {
-            0% { 
-                opacity: 1; 
-                transform: translateY(0) rotate(45deg); 
-            }
-            100% { 
-                opacity: 0; 
-                transform: translateY(1000px) rotate(500deg); 
-            }
+            0% { opacity: 1; transform: translateY(0) rotate(45deg); }
+            100% { opacity: 0; transform: translateY(1000px) rotate(500deg); }
         }
-        
+
+        /* ---------------------------------------------------- */
+        /* 📱 AR 沉浸式模式样式 (新增) */
+        /* ---------------------------------------------------- */
+
+        .ar-mode .video-container {
+            background: rgba(0, 0, 0, 0.4) !important;
+            box-shadow: none;
+            border-radius: 0;
+            z-index: 100;
+        }
+        .ar-mode body {
+            background: black;
+        }
+
+        .ar-mode #myVideoPlayer {
+            background-color: transparent !important;
+            border: none !important;
+            opacity: 0.85; /* 略微透明，以便看到后面的摄像头画面 */
+        }
+
+        #camera-stream {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 5; /* 确保在遮罩层之上，但在视频容器之下 */
+            display: none;
+            filter: brightness(0.8);
+            transform: scaleX(-1); /* 镜像 */
+        }
     </style>
 </head>
 <body>
     <div id="overlay" onclick="toggleLights()"></div>
 
+    <video id="camera-stream" autoplay playsinline></video>
+
     <div class="video-container" id="videoContainer">
-        
+
         <div class="action-panel">
-            
+
             <div class="file-input-wrapper">
                 <button id="localFileButton">选择本地文件</button>
                 <input type="file" id="localFileInput" accept="video/*">
             </div>
-            
+
             <button id="translationButton" onclick="toggleTranslationMode()">实时翻译</button>
-            <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button> 
-            <button id="threeDButton" onclick="toggle3D()">立体电影</button> 
-            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button> 
-            
+            <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button>
+            <button id="threeDButton" onclick="toggle3D()">立体电影</button>
+            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button>
+
             <button id="captureButton" onclick="captureFrame()">截屏</button>
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
-            <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button> 
-            <button id="loopButton" onclick="toggleLoop()">循环播放</button> 
-        </div>
+            <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button>
+            <button id="loopButton" onclick="toggleLoop()">循环播放</button>
 
+            <button id="arModeButton" onclick="toggleArMode()">AR 沉浸式</button>
+
+        </div>
         <div class="barrage-wrapper" id="barrageWrapper">
             <div id="staticOverlay"></div>
-            
+
             <video id="myVideoPlayer" controls>
             </video>
         </div>
-
         <p style="text-align: center;">因视频源不稳定，不定期做种</p>
-
         <div class="playlist-panel">
             <label for="videoPlaylist">选择视频:</label>
             <select id="videoPlaylist" onchange="loadSelectedVideo()">
@@ -305,13 +301,11 @@
                 </option>
             </select>
         </div>
-
         <div class="controls-panel">
-            <input type="text" id="videoUrlInput" 
+            <input type="text" id="videoUrlInput"
                    placeholder="在此输入自定义视频 URL (例如: .mp4, .webm)">
             <button onclick="loadVideo()">加载并播放</button>
         </div>
-        
         <div class="playlist-panel">
             <div class="speed-control">
                 <label for="speedSelect">播放速度:</label>
@@ -323,14 +317,12 @@
                 </select>
             </div>
         </div>
-        
         <div class="barrage-panel">
-            <input type="text" id="barrageInput" 
+            <input type="text" id="barrageInput"
                    placeholder="输入您的弹幕...">
             <button id="sendButton" onclick="sendBarrage()">发送弹幕</button>
         </div>
     </div>
-
     <script>
         // JavaScript 逻辑
         const videoPlayer = document.getElementById('myVideoPlayer');
@@ -338,41 +330,151 @@
         const staticOverlay = document.getElementById('staticOverlay');
         const lightsButton = document.getElementById('lightsButton');
         const grayscaleButton = document.getElementById('grayscaleButton');
-        const threeDButton = document.getElementById('threeDButton'); 
-        const glitchButton = document.getElementById('glitchButton'); 
-        const translationButton = document.getElementById('translationButton'); 
-        const diamondButton = document.getElementById('diamondButton'); 
-        const loopButton = document.getElementById('loopButton'); 
-        const speedSelect = document.getElementById('speedSelect'); 
-        const barrageWrapper = document.getElementById('barrageWrapper'); 
+        const threeDButton = document.getElementById('threeDButton');
+        const glitchButton = document.getElementById('glitchButton');
+        const translationButton = document.getElementById('translationButton');
+        const diamondButton = document.getElementById('diamondButton');
+        const loopButton = document.getElementById('loopButton');
+        const speedSelect = document.getElementById('speedSelect');
+        const barrageWrapper = document.getElementById('barrageWrapper');
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
-        
-        let isTranslationMode = false; 
-        let isDiamondScatterMode = false; 
-        let diamondInterval; 
-        
+        // 3. JS 关键修改：添加 AR 模式相关元素和状态
+        const arModeButton = document.getElementById('arModeButton');
+        let arModeEnabled = false;
+        const cameraStreamElement = document.getElementById('camera-stream');
+        let currentCameraStream = null;
+
+
+        let isTranslationMode = false;
+        let isDiamondScatterMode = false;
+        let diamondInterval;
+
         // ----------------------------------------------------
-        // ⚙️ 播放速度控制 
+        // 核心功能和特效函数
         // ----------------------------------------------------
-        function setPlaybackSpeed(speed) {
-            videoPlayer.playbackRate = parseFloat(speed);
-            if (isTranslationMode) { 
-                if (speed === '1') {
-                    speakChinese("播放速度已恢复正常。");
-                } else {
-                    speakChinese(`播放速度已调整为 ${speed} 倍速。`); 
-                }
+
+        function speakJapanese(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+        function speakChinese(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            window.speechSynthesis.speak(utterance);
+        }
+        function toggleTranslationMode() {
+            isTranslationMode = !isTranslationMode;
+            if (isTranslationMode) {
+                translationButton.textContent = "退出翻译";
+                translationButton.classList.add('active');
+            } else {
+                translationButton.textContent = "实时翻译";
+                translationButton.classList.remove('active');
             }
         }
-        
-        // ----------------------------------------------------
-        // 🔁 循环播放功能
-        // ----------------------------------------------------
+        function toggleLights() {
+            if (isTranslationMode) { speakChinese("呀，现场灯光突然熄灭了！"); }
+            body.classList.toggle('lights-off');
+            videoContainer.classList.toggle('lights-off');
+            const isLightsOff = body.classList.contains('lights-off');
+            overlay.style.display = isLightsOff ? 'block' : 'none';
+            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
+        }
+
+        // 黑白滤镜功能
+        function toggleGrayscale() {
+            if (isTranslationMode) { speakChinese("切换到黑白的历史影像模式咯！"); }
+            // 与 AR/Glitch/3D 互斥
+            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
+            if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); }
+            if (arModeEnabled) { toggleArMode(); }
+
+            videoPlayer.classList.toggle('grayscale-on');
+            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
+            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
+            isGrayscaleOn ? grayscaleButton.classList.add('active') : grayscaleButton.classList.remove('active');
+        }
+
+        // Glitch 模式逻辑
+        function toggleGlitch() {
+            const isGlitchOn = barrageWrapper.classList.contains('glitch-on');
+
+            if (!isGlitchOn) {
+                // 与 AR/Grayscale/3D 互斥
+                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
+                if (videoPlayer.classList.contains('grayscale-on')) { toggleGrayscale(); }
+                if (arModeEnabled) { toggleArMode(); }
+
+                barrageWrapper.classList.add('glitch-on');
+                glitchButton.textContent = "退出干扰";
+                glitchButton.classList.add('active');
+            } else {
+                barrageWrapper.classList.remove('glitch-on');
+                glitchButton.textContent = "信号干扰";
+                glitchButton.classList.remove('active');
+            }
+        }
+
+        // 立体电影功能逻辑
+        function toggle3D() {
+            if (isTranslationMode) { speakChinese("现场切换成立体小视角啦！"); }
+
+            // 与 AR/Glitch/Grayscale 互斥
+            if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); }
+            if (arModeEnabled) { toggleArMode(); }
+            if (videoPlayer.classList.contains('grayscale-on')) { toggleGrayscale(); }
+
+            barrageWrapper.classList.toggle('three-d-on');
+            const is3DOn = barrageWrapper.classList.contains('three-d-on');
+            threeDButton.textContent = is3DOn ? "退出立体" : "立体电影";
+            is3DOn ? threeDButton.classList.add('active') : threeDButton.classList.remove('active');
+        }
+
+        function createDiamond() {
+            const diamond = document.createElement('div');
+            diamond.className = 'diamond';
+
+            const videoWidth = barrageWrapper.clientWidth;
+            const startX = Math.random() * (videoWidth - 40) + 20;
+            const startY = -50;
+            diamond.style.left = `${startX}px`;
+            diamond.style.top = `${startY}px`;
+
+            const duration = Math.random() * 2 + 3;
+            const delay = Math.random() * 0.5;
+
+            diamond.style.animation = `fall-and-fade ${duration}s linear ${delay}s forwards`;
+
+            barrageWrapper.appendChild(diamond);
+
+            diamond.addEventListener('animationend', () => {
+                diamond.remove();
+            });
+        }
+
+        function toggleDiamondScatter() {
+            isDiamondScatterMode = !isDiamondScatterMode;
+
+            if (isDiamondScatterMode) {
+                diamondButton.textContent = "停止撒水晶";
+                diamondButton.classList.add('active');
+                diamondInterval = setInterval(createDiamond, 100);
+                if (isTranslationMode) { speakChinese("呀，天上下水晶雨啦！"); }
+            } else {
+                diamondButton.textContent = "撒水晶";
+                diamondButton.classList.remove('active');
+                clearInterval(diamondInterval);
+                barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
+                if (isTranslationMode) { speakChinese("水晶雨停了哦。"); }
+            }
+        }
+
         function toggleLoop() {
-            videoPlayer.loop = !videoPlayer.loop; 
-            
+            videoPlayer.loop = !videoPlayer.loop;
             if (videoPlayer.loop) {
                 loopButton.textContent = "取消循环";
                 loopButton.classList.add('active');
@@ -383,142 +485,111 @@
                 if (isTranslationMode) { speakChinese("已退出循环播放模式。"); }
             }
         }
-        
-        // ----------------------------------------------------
-        // 💎 撒水晶功能逻辑
-        // ----------------------------------------------------
-        
-        function createDiamond() {
-            const diamond = document.createElement('div');
-            diamond.className = 'diamond';
-            
-            const videoWidth = barrageWrapper.clientWidth;
-            const startX = Math.random() * (videoWidth - 40) + 20; 
-            const startY = -50;
-            diamond.style.left = `${startX}px`;
-            diamond.style.top = `${startY}px`; 
 
-            const duration = Math.random() * 2 + 3; 
-            const delay = Math.random() * 0.5; 
-            
-            diamond.style.animation = `fall-and-fade ${duration}s linear ${delay}s forwards`;
-            
-            barrageWrapper.appendChild(diamond); 
-            
-            diamond.addEventListener('animationend', () => {
-                diamond.remove();
-            });
-        }
-
-        function toggleDiamondScatter() {
-            isDiamondScatterMode = !isDiamondScatterMode;
-            
-            if (isDiamondScatterMode) {
-                diamondButton.textContent = "停止撒水晶";
-                diamondButton.classList.add('active');
-                diamondInterval = setInterval(createDiamond, 100); 
-                if (isTranslationMode) { speakChinese("呀，天上下水晶雨啦！"); } 
-            } else {
-                diamondButton.textContent = "撒水晶";
-                diamondButton.classList.remove('active');
-                clearInterval(diamondInterval); 
-                barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
-                if (isTranslationMode) { speakChinese("水晶雨停了哦。"); } 
-            }
-        }
-        
-        // ----------------------------------------------------
-        // 🌍 实时翻译模式 (Translation Mode) 逻辑
-        // ----------------------------------------------------
-        
-        function speakJapanese(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ja-JP'; 
-            utterance.rate = 1.1; 
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function speakChinese(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN'; 
-            window.speechSynthesis.speak(utterance);
-        }
-
-        function toggleTranslationMode() {
-            isTranslationMode = !isTranslationMode;
-            
+        function setPlaybackSpeed(speed) {
+            videoPlayer.playbackRate = parseFloat(speed);
             if (isTranslationMode) {
-                translationButton.textContent = "退出翻译";
-                translationButton.classList.add('active');
-            } else {
-                translationButton.textContent = "实时翻译";
-                translationButton.classList.remove('active');
+                if (speed === '1') {
+                    speakChinese("播放速度已恢复正常。");
+                } else {
+                    speakChinese(`播放速度已调整为 ${speed} 倍速。`);
+                }
             }
         }
-        
-        // ----------------------------------------------------
-        // 💥 Glitch 模式逻辑 
-        // ----------------------------------------------------
-        function toggleGlitch() {
-            const isGlitchOn = barrageWrapper.classList.contains('glitch-on');
 
-            if (!isGlitchOn) {
+        // ----------------------------------------------------
+        // 📱 AR 沉浸式模式逻辑 (新增)
+        // ----------------------------------------------------
+
+        async function startCamera() {
+            if (!cameraStreamElement.srcObject) {
+                try {
+                    // 尝试获取后置摄像头 (environment)
+                    currentCameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "environment" },
+                        audio: false
+                    });
+                    cameraStreamElement.srcObject = currentCameraStream;
+                    await cameraStreamElement.play();
+                    cameraStreamElement.style.display = 'block';
+                    return true;
+                } catch (err) {
+                    console.error("无法访问摄像头:", err);
+                    alert("AR 模式启动失败：无法访问您的摄像头。请检查权限或使用支持的设备。");
+                    return false;
+                }
+            }
+            cameraStreamElement.style.display = 'block';
+            return true;
+        }
+
+        function stopCamera() {
+            if (currentCameraStream) {
+                currentCameraStream.getTracks().forEach(track => track.stop());
+                currentCameraStream = null;
+            }
+            if (cameraStreamElement) {
+                cameraStreamElement.style.display = 'none';
+            }
+        }
+
+        function toggleArMode() {
+            if (!videoPlayer.src) {
+                if (isTranslationMode) { speakChinese("请先加载一个视频源！"); }
+                alert("请先加载一个视频源！");
+                return;
+            }
+
+            arModeEnabled = !arModeEnabled;
+
+            if (arModeEnabled) {
+                // 关闭互斥特效
                 if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
-                if (videoPlayer.classList.contains('grayscale-on')) {
-                     videoPlayer.classList.remove('grayscale-on');
-                     grayscaleButton.textContent = '黑白屏';
-                }
-                
-                barrageWrapper.classList.add('glitch-on');
-                glitchButton.textContent = "退出干扰";
-                glitchButton.classList.add('active');
-                
-            } else {
-                barrageWrapper.classList.remove('glitch-on');
-                glitchButton.textContent = "信号干扰";
-                glitchButton.classList.remove('active');
-            }
-        }
+                if (videoPlayer.classList.contains('grayscale-on')) { toggleGrayscale(); }
+                if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); }
 
-        
-        // ----------------------------------------------------
-        // 🕶️ 立体电影功能逻辑 
-        // ----------------------------------------------------
-        function toggle3D() {
-            if (isTranslationMode) { speakChinese("现场切换成立体小视角啦！"); }
-            if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); } 
+                // 尝试启动摄像头
+                startCamera().then(success => {
+                    if (success) {
+                        if (isTranslationMode) { speakChinese("AR 沉浸式模式已开启，请允许摄像头权限！"); }
 
-            barrageWrapper.classList.toggle('three-d-on');
-            
-            const is3DOn = barrageWrapper.classList.contains('three-d-on');
-            
-            if (is3DOn) {
-                threeDButton.textContent = "退出立体";
-                if (videoPlayer.classList.contains('grayscale-on')) {
-                     videoPlayer.classList.remove('grayscale-on');
-                     grayscaleButton.textContent = '黑白屏';
-                }
+                        // 1. 启用 AR 模式样式
+                        body.classList.add('ar-mode');
+                        videoContainer.classList.add('ar-mode');
+
+                        // 2. 更新按钮状态
+                        arModeButton.textContent = "退出 AR 模式";
+                        arModeButton.classList.add('active');
+
+                        // 3. 确保视频播放
+                        videoPlayer.play();
+                    } else {
+                        arModeEnabled = false; // 启动失败则关闭状态
+                        // 恢复按钮显示
+                        arModeButton.textContent = "AR 沉浸式";
+                        arModeButton.classList.remove('active');
+                    }
+                });
+
             } else {
-                threeDButton.textContent = "立体电影";
+                stopCamera();
+                if (isTranslationMode) { speakChinese("AR 沉浸式模式已关闭，恢复普通播放。"); }
+
+                // 1. 禁用 AR 模式样式
+                body.classList.remove('ar-mode');
+                videoContainer.classList.remove('ar-mode');
+
+                // 2. 更新按钮状态
+                arModeButton.textContent = "AR 沉浸式";
+                arModeButton.classList.remove('active');
             }
-        }
-        
-        // 黑白滤镜功能
-        function toggleGrayscale() {
-            if (isTranslationMode) { speakChinese("切换到黑白的历史影像模式咯！"); }
-            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); } 
-            if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); } 
-            
-            videoPlayer.classList.toggle('grayscale-on');
-            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
-            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
         }
 
 
         // ----------------------------------------------------
         // 核心加载及控制功能
         // ----------------------------------------------------
-        
+
         function playVideo(url) {
             if (videoPlayer.src && videoPlayer.src.startsWith('blob:')) {
                  URL.revokeObjectURL(videoPlayer.src);
@@ -527,19 +598,19 @@
             if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
             if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); }
             if (videoPlayer.classList.contains('grayscale-on')) { toggleGrayscale(); }
-
+            if (arModeEnabled) { toggleArMode(); } // 加载新视频时退出 AR 模式
 
             if (url === "") {
                 videoPlayer.src = "";
                 videoPlayer.load();
-                staticOverlay.style.display = 'none'; 
+                staticOverlay.style.display = 'none';
                 return;
             }
             staticOverlay.style.display = 'block';
             if (isTranslationMode) { speakChinese("视频正在加载中..."); }
             setTimeout(() => {
                 videoPlayer.src = url;
-                videoPlayer.load(); 
+                videoPlayer.load();
                 videoPlayer.play()
                     .then(() => {
                         console.log(`视频加载成功并开始播放: ${url}`);
@@ -555,28 +626,17 @@
             }, 1500);
         }
 
-        // 关灯/开灯功能
-        function toggleLights() {
-            if (isTranslationMode) { speakChinese("呀，现场灯光突然熄灭了！"); }
-            body.classList.toggle('lights-off');
-            videoContainer.classList.toggle('lights-off');
-            const isLightsOff = body.classList.contains('lights-off');
-            overlay.style.display = isLightsOff ? 'block' : 'none';
-            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
-        }
-        
         // 目录选择函数
         function loadSelectedVideo() {
             const playlist = document.getElementById('videoPlaylist');
             const selectedUrl = playlist.value;
-            document.getElementById('videoUrlInput').value = ""; 
-            localFileInput.value = null; 
+            document.getElementById('videoUrlInput').value = "";
+            localFileInput.value = null;
             if (isTranslationMode && selectedUrl) {
                 speakChinese(`正在切换视频源，请稍等！`);
             }
             playVideo(selectedUrl);
         }
-
         // 手动 URL 加载函数
         function loadVideo() {
             const urlInput = document.getElementById('videoUrlInput');
@@ -587,12 +647,12 @@
                 return;
             }
             document.getElementById('videoPlaylist').value = "";
-            localFileInput.value = null; 
+            localFileInput.value = null;
             if (isTranslationMode) { speakChinese("正在加载自定义 URL 视频源！"); }
             playVideo(videoUrl);
         }
-        
-        // 截屏功能
+
+        // 截屏功能 (已更新以支持 AR 模式下的截屏，但仅截取视频画面)
         function captureFrame() {
             if (!videoPlayer.src) {
                 alert("请先加载并播放一个视频！");
@@ -601,10 +661,19 @@
             }
             try {
                 const canvas = document.createElement('canvas');
-                canvas.width = videoPlayer.videoWidth;
-                canvas.height = videoPlayer.videoHeight;
+                canvas.width = videoPlayer.videoWidth || videoPlayer.clientWidth;
+                canvas.height = videoPlayer.videoHeight || videoPlayer.clientHeight;
                 const ctx = canvas.getContext('2d');
+
+                // 绘制摄像头背景（仅在 AR 模式下，简化处理）
+                if (arModeEnabled && cameraStreamElement.videoWidth > 0) {
+                    // 注意：真正的 AR 截屏可能需要更复杂的层叠处理
+                    ctx.drawImage(cameraStreamElement, 0, 0, canvas.width, canvas.height);
+                }
+
+                // 绘制视频内容
                 ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
                 const imageURL = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.href = imageURL;
@@ -620,22 +689,23 @@
                 document.body.removeChild(link);
                 if (isTranslationMode) { speakChinese("精彩瞬间已定格！图片开始下载啦。"); }
             } catch (e) {
-                alert("截屏失败，请检查视频源。");
+                console.error("截屏失败:", e);
+                alert("截屏失败，请检查视频源或浏览器权限。");
                 if (isTranslationMode) { speakChinese("截屏操作遇到错误了呢。"); }
             }
         }
-        
+
         // 弹幕相关函数
         function sendBarrage() {
             const input = document.getElementById('barrageInput');
             const text = input.value.trim();
             if (!text) return;
-            
+
             const barrage = document.createElement('div');
             barrage.className = 'barrage';
             barrage.textContent = text;
             const videoHeight = videoPlayer.clientHeight;
-            const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05); 
+            const topPosition = Math.random() * (videoHeight * 0.8) + (videoHeight * 0.05);
             barrage.style.top = `${topPosition}px`;
             const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
             barrage.style.color = randomColor;
@@ -643,7 +713,7 @@
             barrage.style.animation = `move-barrage ${speed}s linear forwards`;
             barrageWrapper.appendChild(barrage);
             input.value = '';
-            
+
             if (isTranslationMode) {
                 speakJapanese(text);
             }
@@ -655,13 +725,13 @@
                 barrage.style.animationPlayState = 'paused';
             }
         }
-        
+
         videoPlayer.addEventListener('play', () => {
             document.querySelectorAll('.barrage').forEach(b => {
                 b.style.animationPlayState = 'running';
             });
         });
-        
+
         videoPlayer.addEventListener('pause', () => {
             document.querySelectorAll('.barrage').forEach(b => {
                 b.style.animationPlayState = 'paused';
@@ -674,14 +744,14 @@
                 loadVideo();
             }
         });
-        
+
         document.getElementById('barrageInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 sendBarrage();
             }
         });
 
-        // 加载本地文件的函数 (已修复重复选择问题)
+        // 加载本地文件的函数
         function loadLocalVideo() {
             const file = localFileInput.files[0];
             if (file) {
@@ -689,18 +759,17 @@
                 document.getElementById('videoPlaylist').value = "";
 
                 const fileURL = URL.createObjectURL(file);
-                
+
                 if (isTranslationMode) { speakChinese(`正在加载本地视频文件：${file.name}`); }
                 playVideo(fileURL);
-                
+
                 console.log(`已加载本地文件: ${file.name}`);
-                
-                // ✅ 关键修复：清除 value，确保再次选择同一文件时能触发 change 事件
-                localFileInput.value = null; 
+
+                // 关键修复：清除 value，确保再次选择同一文件时能触发 change 事件
+                localFileInput.value = null;
             }
         }
         localFileInput.addEventListener('change', loadLocalVideo);
-
     </script>
 </body>
 </html>
