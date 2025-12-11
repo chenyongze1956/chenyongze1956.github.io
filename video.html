@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    
     <style>
         /* (CSS 样式部分保持不变，为节省篇幅略去) */
         
@@ -161,6 +160,11 @@
         #translationButton { background-color: #1abc9c; color: white; }
         #translationButton:hover { background-color: #16a085; }
         #translationButton.active { background-color: #0c7a6f; }
+        
+        /* 💎 撒钻石按钮颜色 */
+        #diamondButton { background-color: #a44; color: white; } 
+        #diamondButton:hover { background-color: #700; }
+        #diamondButton.active { background-color: #ffc107; color: black; } /* 激活时的颜色 */
 
 
         /* 控制面板 */
@@ -200,6 +204,8 @@
         /* ---------------------------------------------------- */
         .barrage-wrapper {
             position: relative;
+            /* 确保容器裁剪掉落到边界外的钻石 */
+            overflow: hidden; 
         }
         
         /* 3D 模式激活时，滤镜和形变 */
@@ -209,6 +215,38 @@
              transform: translateX(2px);
              z-index: 10;
         }
+        
+        /* ---------------------------------------------------- */
+        /* 💎 钻石掉落动画和样式 */
+        /* ---------------------------------------------------- */
+        
+        /* 钻石本体 */
+        .diamond {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            /* 使用 CSS 绘制一个简易的钻石形状（菱形） */
+            transform: rotate(45deg);
+            background: linear-gradient(to bottom right, #e0f7fa, #00bcd4, #80deea); /* 闪亮蓝色 */
+            box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.5), 0 0 20px 10px rgba(0, 200, 200, 0.3); /* 闪光效果 */
+            z-index: 50; /* 确保它在最上层 */
+            pointer-events: none;
+            top: 0; /* 修正：让 JS 来设置随机起始位置，这里确保默认从顶部开始 */
+        }
+        
+        /* 掉落动画 - 修正: 使用足够大的绝对像素值确保掉落至容器底部之外 */
+        @keyframes fall-and-fade {
+            0% { 
+                opacity: 1; 
+                transform: translateY(0) rotate(45deg); 
+            }
+            100% { 
+                opacity: 0; 
+                /* 确保掉落距离足够长，覆盖视频区域的高度 */
+                transform: translateY(1000px) rotate(500deg); 
+            }
+        }
+
 
     </style>
 </head>
@@ -230,6 +268,8 @@
             
             <button id="threeDButton" onclick="toggle3D()">立体电影</button> 
             
+            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button> 
+            
             <button id="captureButton" onclick="captureFrame()">截屏</button>
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
             <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button> 
@@ -248,20 +288,20 @@
             <label for="videoPlaylist">选择视频:</label>
             <select id="videoPlaylist" onchange="loadSelectedVideo()">
                 <option value="">-- 选择一个视频 --</option>
-                <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0K0tY4QEgU3P2s2jaGPU1Km6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0GHz8L1rIsCyl8GLF5Rvukm6yjbN-I2pg_cnoHs_AmgI.mp4">
                     PV:小夜曲
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVK0tY4QEgU3P2s2jaGPU1Km6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gV7kKeDMHKW1DaZgC0agli7G6yjbN-I2pg_cnoHs_AmgI.mp4">
                     PV:滨崎步演唱会
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlumK0tY4QEgU3P2s2jaGPU1Km6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlumdPQ0JsNmI2YNzaxSdtJCCm6yjbN-I2pg_cnoHs_AmgI.mp4">
                   MV:韩剧我的野蛮师姐
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0K0tY4QEgU3P2s2jaGPU1Km6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0ZdztQnKpmgX4V_ICFh2Gwm6yjbN-I2pg_cnoHs_AmgI.mp4">
                   PV:宿命感乌拉尼亚之镜
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/xRQv8t1FtnXpkz0HeKUUH0newH92bUpYKRZSSWWu6FR77JT8LsakE5i1xxOQiCk_mcvMB3jY4YRtFvLtp0Ic5WHOLVsfM3KGf4TpETh6i6jgNIr_x24VvFyQwl-vlSwHLi0Bq01tRGOKFI3LPiVjS26yjbN-I2pg_cnoHs_AmgI.mp4">
-               PV：宿命感纯乐
+                <option value="https://pouch.jumpshare.com/preview/tn7AS1B4QEU-8C8zSEFZ79HqurdtckiQdELLZDHNzPbJeXaj_WHI2v9IWO802jSZyzdG8eOGpwEi6WUvAr93tRJnuGc_KZZyTUGLJqXYREsQtA8l0FJ4rZaOZW2gJakFmgmBYbmKa98EQovDntUVUG6yjbN-I2pg_cnoHs_AmgI.mp4">
+               PV：最终幻想
                 </option>
             </select>
         </div>
@@ -290,12 +330,76 @@
         const threeDButton = document.getElementById('threeDButton'); 
         const glitchButton = document.getElementById('glitchButton'); 
         const translationButton = document.getElementById('translationButton'); 
+        const diamondButton = document.getElementById('diamondButton'); 
         const barrageWrapper = document.getElementById('barrageWrapper'); 
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
         
         let isTranslationMode = false; 
+        let isDiamondScatterMode = false; 
+        let diamondInterval; 
+        
+        // ----------------------------------------------------
+        // 💎 撒钻石功能逻辑 (已修正落点)
+        // ----------------------------------------------------
+        
+        // 生成单个钻石的函数
+        function createDiamond() {
+            const diamond = document.createElement('div');
+            diamond.className = 'diamond';
+            
+            // 随机设置起始水平位置 (基于 barrageWrapper 的宽度)
+            const videoWidth = barrageWrapper.clientWidth;
+            // 确保起始点位于顶部边缘外，让掉落更自然
+            const startX = Math.random() * (videoWidth - 40) + 20; // 留出一点边距
+            
+            // 修正：从容器顶部上方 50px 处开始
+            const startY = -50;
+            diamond.style.left = `${startX}px`;
+            diamond.style.top = `${startY}px`; 
+
+            // 随机设置动画时间和延迟
+            const duration = Math.random() * 2 + 3; // 3s 到 5s
+            const delay = Math.random() * 0.5; // 0s 到 0.5s 延迟
+            
+            // 使用绝对值确保掉落到底部
+            diamond.style.animation = `fall-and-fade ${duration}s linear ${delay}s forwards`;
+            
+            // 添加到 barrageWrapper (视频容器)
+            barrageWrapper.appendChild(diamond); 
+            
+            // 动画结束时移除钻石元素
+            diamond.addEventListener('animationend', () => {
+                diamond.remove();
+            });
+        }
+
+        // 切换钻石模式的函数
+        function toggleDiamondScatter() {
+            isDiamondScatterMode = !isDiamondScatterMode;
+            
+            if (isDiamondScatterMode) {
+                diamondButton.textContent = "停止撒水晶";
+                diamondButton.classList.add('active');
+                
+                // 每 100 毫秒生成一次钻石
+                diamondInterval = setInterval(createDiamond, 100); 
+                
+                if (isTranslationMode) { speakChinese("呀，天上下水晶雨啦！"); }
+            } else {
+                diamondButton.textContent = "撒水晶";
+                diamondButton.classList.remove('active');
+                
+                // 清除计时器
+                clearInterval(diamondInterval); 
+                
+                // 立即移除所有当前屏幕上的钻石
+                barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
+                
+                if (isTranslationMode) { speakChinese("水晶雨停了哦。"); }
+            }
+        }
         
         // ----------------------------------------------------
         // 🌍 实时翻译模式 (Translation Mode) 逻辑
@@ -333,9 +437,6 @@
         // 💥 Glitch 模式逻辑 (彻底移除所有中文播报)
         // ----------------------------------------------------
         function toggleGlitch() {
-            
-            // Glitch 不再进行任何语音播报，无论是开启还是关闭
-            
             const isGlitchOn = barrageWrapper.classList.contains('glitch-on');
 
             if (!isGlitchOn) {
@@ -404,6 +505,7 @@
             }
             if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
             if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(); }
+            // 注意：这里不需要关闭钻石特效，因为它是全局背景特效，可以与视频状态独立存在
 
             if (url === "") {
                 videoPlayer.src = "";
