@@ -167,6 +167,16 @@
             animation-fill-mode: forwards;
             position: absolute; 
         }
+        
+        /* 二维码样式 */
+        .qr-code-ascii {
+            font-family: monospace;
+            line-height: 0.7; 
+            color: #ffffff;
+            white-space: pre;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
 
         /* --- 移动端优化 --- */
         @media (max-width: 768px) {
@@ -213,7 +223,7 @@
         let slIntervalId = null; 
         let xsnowIntervalId = null; 
         let cbonsaiIntervalId = null; 
-        let pingIntervalId = null; // 新增 ping 定时器
+        let pingIntervalId = null; 
         // ----------------------
                         
         // --- 全局数据 (Fortunes, fileSystem, etc.) ---        
@@ -222,7 +232,7 @@
             "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
             "重要的不是你站的位置，而是你朝向的方向。",
             "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
-            "所有活着的人，都会受到命运的支配。",
+            "衡量一个人幸福与否的标准，不是他拥有什么，而是他对失去的恐惧程度。",
             "自然是一座神殿，那里活的支柱 / 有时吐出混乱的语言； / 人行走在符号的森林中， / 符号用熟悉的目光观察他。",
             "一切都在改变，没有事物消亡。",
             "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
@@ -720,7 +730,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                 } 
             },
 
-            // --- 新增的 makemagnet 命令 ---
+            // --- makemagnet 命令 ---
             'makemagnet': {
                 description: '模拟将下载链接/文件名转换为磁力链接。用法: makemagnet <文件名/URL>',
                 execute: (args) => {
@@ -731,7 +741,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     const source = args[0];
                     // 模拟计算 SHA-1 Hash。
                     const simulatedHash = 'A1B2C3D4E5F67890A1B2C3D4E5F67890A1B2C3D4'; 
-                    const fileName = source.split('/').pop().split('?')[0]; // 尝试从路径中获取文件名
+                    const fileName = source.split('/').pop().split('?')[0]; 
                     
                     // 构造标准的磁力链接格式
                     const magnetLink = `magnet:?xt=urn:btih:${simulatedHash}&dn=${encodeURIComponent(fileName)}&tr=http://example.tracker/announce`;
@@ -746,16 +756,236 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
 
                     setTimeout(() => {
                         writeOutput(`✅ 转换成功。模拟磁力链接已生成:`);
-                        writeOutput(magnetLink, 'dir'); // 使用 dir 颜色突出显示链接
+                        writeOutput(magnetLink, 'dir'); 
                         
                         input.disabled = false;
                         updatePrompt();
                         input.focus();
                         promptSpan.style.color = 'var(--prompt-color)';
-                    }, 1500); // 1.5秒延迟
+                    }, 1500); 
                 }
             },
-            // ----------------------------------
+            
+            // --- qrterminal 命令 ---
+            'qrterminal': {
+                description: '将文本或 URL 编码为 ASCII 二维码。用法: qrterminal <TEXT/URL>',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('qrterminal: 缺少要编码的文本或 URL。', 'error');
+                        writeOutput('用法: qrterminal "Hello World!"', 'error');
+                        return;
+                    }
+
+                    const data = args.join(' ');
+                    
+                    // 模拟 ASCII 二维码输出
+                    const asciiQRCode = `
+█████████████████████████████████
+█▄ ▀▀▀█ ▀▄▀▀▄ ▄▄ ▄▀█ ▀ ▀▀ █▄█ ▀▄█
+█ ▄▀█▄▄ ▄▀█▄ █▄█ ▄ ▀▀▄▄█▀██▀ ▀▄█
+█▀ ▀▄█ ▀▀█▀█ █▀▀█▀ █▄▀▀█▄▄█ ▀ ▄█
+██▄██▀██▄ █▀▄ █▄▀█▀█▄█▀ ▄▄▄██▄ ▀█
+█▄█▄ ▀ ▄█▀▀▀█▄█▄ ▀ █▀█▄█▄█ ▄ ▀ ▀█
+█▀▀▀██▀ ▄▄▄▀ ▀█ ▄ ▀▄ ▄▄ █▀▄█▄ █▄█
+█ ▀ █▄ ▄ ▀▄█▀ █ ▄▀█ ▄▀▄▄ ▀▀ ▄▀ ▀█
+█▀ ▄▄ ▄ ▄▀▄▀▄▀▀▀█▀ █▀▀ ▄█ ▄▄█▄█▄█
+█ ▄▀ ▄█▀ ▄▄ █▄ ▀▀▄█▀▄ ▀▄ █ ▀▄▄ ▀█
+█ ▀▄█▄▀█ █▀▀ ▀▄▀█▀█ ▀ ▄█▄ ▀ ▀▄ ▄█
+█▀▀▀█ ▄▄ ▄▄▀ ▄▀▀ ▀▄ ▀▄ ▀▀▀▄▄ ▄▀ ▄█
+█████████████████████████████████
+`;
+                    
+                    writeOutput(`正在将 "${data}" 编码为二维码...`, 'welcome');
+                    
+                    // 模拟渲染延迟
+                    input.disabled = true;
+                    promptSpan.innerText = 'RENDERING QR CODE...';
+                    promptSpan.style.color = '#00ffc0'; 
+
+                    setTimeout(() => {
+                        writeOutput('生成成功:', 'welcome');
+                        
+                        // 输出 ASCII 二维码
+                        const qrDiv = document.createElement('div');
+                        qrDiv.className = 'qr-code-ascii';
+                        qrDiv.textContent = asciiQRCode;
+                        output.appendChild(qrDiv);
+                        
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                        scrollToBottom();
+                    }, 800); 
+                }
+            },
+            
+            // --- pwgen 命令 ---
+            'pwgen': {
+                description: '生成随机密码。用法: pwgen <长度> [数量] (默认长度16, 数量1)',
+                execute: (args) => {
+                    let length = 16;
+                    let count = 1;
+
+                    // 解析参数
+                    if (args.length > 0 && !isNaN(parseInt(args[0]))) {
+                        length = parseInt(args[0]);
+                    }
+                    if (args.length > 1 && !isNaN(parseInt(args[1]))) {
+                        count = parseInt(args[1]);
+                    }
+
+                    // 限制合理范围
+                    length = Math.min(Math.max(8, length), 64); // 长度限制在 8 到 64
+                    count = Math.min(Math.max(1, count), 10);   // 数量限制在 1 到 10
+
+                    writeOutput(`正在生成 ${count} 个长度为 ${length} 的随机密码...`, 'welcome');
+
+                    const generatePassword = (len) => {
+                        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=';
+                        let password = '';
+                        
+                        // 确保包含至少一个大写、一个小写、一个数字、一个特殊字符 (提高安全性模拟)
+                        const requirements = [
+                            () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)],
+                            () => 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)],
+                            () => '0123456789'[Math.floor(Math.random() * 10)],
+                            () => '!@#$%^&*()-_+='[Math.floor(Math.random() * 14)]
+                        ];
+
+                        // 插入必需的字符
+                        for (let i = 0; i < requirements.length && i < len; i++) {
+                            password += requirements[i]();
+                        }
+
+                        // 填充剩余长度
+                        while (password.length < len) {
+                            password += chars[Math.floor(Math.random() * chars.length)];
+                        }
+
+                        // 随机打乱密码 (确保必需的字符不总是在开头)
+                        password = password.split('').sort(() => 0.5 - Math.random()).join('');
+                        return password;
+                    };
+
+                    for (let i = 0; i < count; i++) {
+                        const password = generatePassword(length);
+                        writeOutput(password, 'dir');
+                    }
+                }
+            },
+            
+            // --- crypto 命令 ---
+            'crypto': {
+                description: '显示主流加密货币的实时价格 (模拟数据)。用法: crypto',
+                execute: () => {
+                    writeOutput('正在连接到 CoinGecko API...  请稍候...', 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'FETCHING DATA...';
+                    promptSpan.style.color = '#ff9900'; 
+
+                    setTimeout(() => {
+                        const data = [
+                            { symbol: 'BTC', name: 'Bitcoin', price: 68500.45, change: 1.56, marketCap: 1350 },
+                            { symbol: 'ETH', name: 'Ethereum', price: 3780.22, change: -0.87, marketCap: 454 },
+                            { symbol: 'SOL', name: 'Solana', price: 155.10, change: 5.92, marketCap: 70 },
+                            { symbol: 'DOGE', name: 'Dogecoin', price: 0.1543, change: 0.05, marketCap: 22 }
+                        ];
+
+                        const header = `| ${'Symbol'.padEnd(6)} | ${'Name'.padEnd(10)} | ${'Price (USD)'.padEnd(15)} | ${'24h Change'.padEnd(12)} | ${'Mkt Cap (B)'.padEnd(11)} |`;
+                        const separator = `+${'-'.repeat(8)}+${'-'.repeat(12)}+${'-'.repeat(17)}+${'-'.repeat(14)}+${'-'.repeat(13)}+`;
+                        let outputText = '\n' + separator + '\n' + header + '\n' + separator + '\n';
+                        
+                        data.forEach(item => {
+                            // 使用 toLocaleString 来格式化千位分隔符
+                            const priceFormatted = `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
+                            
+                            // 根据涨跌幅设置颜色
+                            const changeColor = item.change >= 0 ? 'color:#00ff00;' : 'color:#ff4500;';
+                            const changeSign = item.change >= 0 ? '+' : '';
+                            const changeText = `${changeSign}${item.change.toFixed(2)}%`;
+                            
+                            // 构造行，使用 <span> 标签应用颜色
+                            const line = 
+                                `| ${item.symbol.padEnd(6)} | ${item.name.padEnd(10)} | ${priceFormatted.padEnd(15)} | <span style="${changeColor}">${changeText.padEnd(12)}</span> | ${('$'+item.marketCap).padEnd(11)} |`;
+                            
+                            // 因为使用了 HTML 标签，这里不再使用 writeOutput，而是 writeHtmlOutput
+                            outputText += line + '\n';
+                        });
+
+                        outputText += separator;
+                        
+                        // 使用 writeHtmlOutput 并替换空格为 &nbsp; 以保持 ASCII 表格对齐
+                        writeHtmlOutput(outputText.replace(/ /g, '&nbsp;'));
+                        writeOutput(`数据更新时间: ${new Date().toLocaleTimeString()} (模拟)`);
+
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                        
+                    }, 1500); // 模拟 1.5 秒的网络延迟
+                }
+            },
+
+            // --- stock 命令 (新增) ---
+            'stock': {
+                description: '显示模拟的股票实时行情。用法: stock <股票代码> (默认: AAPL)',
+                execute: (args) => {
+                    const symbol = args[0] ? args[0].toUpperCase() : 'AAPL';
+                    writeOutput(`正在连接到 NASDAQ/NYSE API... 查询股票代码: ${symbol}... 
+
+[Image of stock market candlestick chart]
+ 请稍候...`, 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'FETCHING STOCK...';
+                    promptSpan.style.color = '#ffd700'; // Gold color for finance
+
+                    setTimeout(() => {
+                        // 模拟数据生成
+                        const basePrice = 150 + Math.random() * 50;
+                        const changePercent = (Math.random() * 8 - 4); // -4% to +4%
+                        const price = basePrice * (1 + changePercent / 100);
+                        const volume = Math.floor(Math.random() * 500) + 10;
+                        const market = (symbol === 'TSLA' || symbol === 'AAPL' || symbol === 'GOOG') ? 'NASDAQ' : 'NYSE';
+
+                        const changeColor = changePercent >= 0 ? 'color:#00ff00;' : 'color:#ff4500;';
+                        const changeSign = changePercent >= 0 ? '+' : '';
+                        
+                        const stockData = [
+                            { key: '股票代码', value: symbol },
+                            { key: '交易市场', value: market },
+                            { key: '最新价格', value: `$${price.toFixed(2)}` },
+                            { key: '涨跌幅 (24h)', value: `<span style="${changeColor}">${changeSign}${changePercent.toFixed(2)}%</span>` },
+                            { key: '交易量 (M)', value: `${volume.toFixed(1)}M` }
+                        ];
+
+                        const maxKeyLength = stockData.reduce((max, item) => Math.max(max, item.key.length), 0);
+                        
+                        let outputText = `\n--- 实时行情 (${symbol}) --- \n`;
+
+                        stockData.forEach(item => {
+                            // 保持键的对齐
+                            const line = `| ${item.key.padEnd(maxKeyLength)} : ${item.value} |`;
+                            outputText += line + '\n';
+                        });
+
+                        outputText += `-------------------------------`;
+                        
+                        // 使用 writeHtmlOutput 以便应用颜色
+                        writeHtmlOutput(outputText.replace(/ /g, '&nbsp;'));
+                        writeOutput(`数据源: ${market} (模拟)`);
+
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                        
+                    }, 1200); // 模拟 1.2 秒的网络延迟
+                }
+            },
             
             // CBONSAI 命令 (已修正为动画)
             'cbonsai': {
@@ -1056,7 +1286,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             const cmd = commands[command];
             if (cmd) {
                 // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet'].includes(command)) {
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock'].includes(command)) {
                     // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
@@ -1073,16 +1303,18 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
 
         function writeWelcome() {
             writeOutput('', '');
+            writeOutput('');
             writeOutput('', '');
-            writeOutput('', '');
-            writeOutput('', '');
+            writeOutput('', ''); 
+            writeOutput('', ''); 
             writeOutput('', '');
         }
 
         input.addEventListener('keydown', (e) => {
+            
             // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
-                // 检查所有定时器 ID
+                // ... (原有的 Ctrl+C 清理逻辑)
                 if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null) {
                     e.preventDefault(); 
                     
@@ -1125,7 +1357,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     updatePrompt();
                     input.focus();
                     promptSpan.style.color = 'var(--prompt-color)';
-                    input.value = ''; // 确保中断后输入框是清空的
+                    input.value = ''; 
                     return;
                 }
             }
