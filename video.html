@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 视频播放器 - 最终稳定版</title>
 
     <style>
         /* ---------------------------------------------------- */
@@ -33,7 +32,9 @@
         #myVideoPlayer {
             width: 100%; height: auto; min-height: 200px;
             border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
-            position: relative; z-index: 1; filter: none; transform: none;
+            position: relative; z-index: 1; filter: none; 
+            /* 保证过渡平滑 */
+            transition: transform 0.1s ease-out, filter 0.3s ease-in-out; 
         }
 
         .action-panel {
@@ -72,12 +73,12 @@
         #diamondButton.active { background-color: #ffc107; color: black; }
         #sendButton { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); color: white; }
 
-        #loopButton { background-color: #9c27b0; color: white; }
-        #loopButton.active { background-color: #e91e63; }
+        /* V19 新增按钮 */
+        #parallaxButton { background-color: #ff9800; color: white; }
+        #parallaxButton.active { background-color: #f57c00; }
 
         #arModeButton { background-color: #007bff; color: white; }
         #arModeButton.active { background-color: #ffc107; color: black; }
-
 
         .speed-control {
             display: flex;
@@ -116,10 +117,10 @@
             0% { background-position: 0 0; }
             100% { background-position: 100% 100%; }
         }
-        #staticOverlay {
-             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-             pointer-events: none; z-index: 2; opacity: 0.15;
-             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVRYdCAAAAAAAL/8AALAAAAAAAAAAAwICAAAAAAAAAAAAAAADAgAAAAAAAAAAAAAAAwICAAAAAAAAAAAAAAAAAAAAAAD///+l227tAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAWElEQVQokWNgGAWjYBSMgqMAAyEwE8A2I6E8A8pEEeI20+F2gABWkQY6gA0A+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWhAwgAwBjAAAAAElFTkSuQmCC');
+        #staticOverlay { 
+             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+             pointer-events: none; z-index: 2; opacity: 0.15; 
+             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVRYdCAAAAAAAL/8AALAAAAAAAAAAAwICAAAAAAAAAAAAAAADAgAAAAAAAAAAAAAAAwICAAAAAAAAAAAAAAAAAAAAAAD///+l227tAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAWElEQVQokWNgGAWjYBSMgqMAAyEwE8A2I6E8A8pEEeI20+F2gABWkQY6gA0A+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWhAwgAwBjAAAAAElFTkSuQmCC'); 
              background-repeat: repeat;
              animation: static-anim 0.1s linear infinite;
              display: none;
@@ -128,10 +129,11 @@
         .barrage-wrapper {
             position: relative; 
             overflow: hidden;
+            /* V19：视差推移需要 overflow: hidden 来裁剪放大的视频 */
         }
         .barrage {
             position: absolute;
-            right: 0; /* 弹幕的绝对定位起点在右侧 */
+            right: 0; 
             white-space: nowrap;
             font-size: 20px;
             font-weight: bold;
@@ -139,7 +141,7 @@
             pointer-events: none;
             z-index: 5;
         }
-        #myVideoPlayer.grayscale-on { filter: grayscale(100%); transition: filter 0.3s ease-in-out; }
+        #myVideoPlayer.grayscale-on { filter: grayscale(100%); }
 
         @keyframes sustained-glitch {
             0% { transform: translate(0); } 2% { transform: translate(-2px, -2px); }
@@ -152,7 +154,8 @@
             filter: sepia(0.2) hue-rotate(10deg);
             animation: sustained-glitch 0.4s infinite alternate;
         }
-
+        
+        /* 立体电影（纯 CSS 实现，避免 Canvas 问题） */
         .barrage-wrapper.three-d-on #myVideoPlayer {
             filter: drop-shadow(-5px 0 0 red) drop-shadow(5px 0 0 cyan) opacity(0.8);
             mix-blend-mode: multiply;
@@ -161,6 +164,13 @@
             position: relative;
         }
         
+        /* V19 视差推移 CSS */
+        .parallax-on #myVideoPlayer {
+            transform: scale(1.1) translate(0, 0); /* 放大 10%，准备推移 */
+            cursor: move;
+            transition: filter 0.3s ease-in-out, transform 0.1s ease-out;
+        }
+
         @keyframes fall-and-fade {
             0% { opacity: 1; transform: translateY(0) rotate(45deg); }
             100% { opacity: 0; transform: translateY(1000px) rotate(500deg); }
@@ -178,10 +188,7 @@
             top: 0;
         }
 
-        /* ---------------------------------------------------- */
-        /* 📱 AR 沉浸式模式样式 */
-        /* ---------------------------------------------------- */
-
+        /* AR 沉浸式模式样式 (保持稳定) */
         .ar-mode .video-container {
             background: rgba(0, 0, 0, 0.4) !important;
             box-shadow: none;
@@ -230,8 +237,12 @@
 
             <button id="translationButton" onclick="toggleTranslationMode()">实时翻译</button>
             <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button>
+            
             <button id="threeDButton" onclick="toggle3D()">立体电影</button>
+            
             <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button>
+            
+            <button id="parallaxButton" onclick="toggleParallax()">视差推移</button>
             
             <button id="arModeButton" onclick="toggleArMode()">AR 沉浸式</button>
             
@@ -239,14 +250,11 @@
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
             <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button>
 
-            <button id="loopButton" onclick="toggleLoop()">循环播放</button>
-
-        </div>
+            </div>
         <div class="barrage-wrapper" id="barrageWrapper">
             <div id="staticOverlay"></div>
 
-            <video id="myVideoPlayer" controls>
-            </video>
+            <video id="myVideoPlayer" controls></video>
         </div>
         <p style="text-align: center;">因视频源不稳定，不定期做种</p>
         <div class="playlist-panel">
@@ -265,7 +273,7 @@
                 <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0fMRyanUbBWEOsTQbrXRZ_W6yjbN-I2pg_cnoHs_AmgI.mp4">
                   PV:宿命感乌拉尼亚之镜
                 </option>
-                <option value="https://pouch.jumpshare.com/preview/tn7AS1B4QEU-8C8zSEFZ79HqCVR-P0lBd-SgQ-dLLZDHNzPbJeXaj_WHI2v9IWO802jSZyzdG8eOGpwEi6WUvAr93tRJnuGc_KZZyTUGLJqXYREsQtA8l0FJ4rZaOZW2gJakFGHz8L1rIsCyl8GLF5Rvukm6yjbN-I2pg_cnoHs_AmgI.mp4">
+                <option value="https://pouch.jumpshare.com/preview/tn7AS1B4QEU-8C8zSEFZ79HqCVR-P0lBd-SgQ-dLLZDHNzPbJeXaj_WHI2v9IWO80jSZyzdG8eOGpwEi6WUvAr93tRJnuGc_KZZyTUGLJqXYREsQtA8l0FJ4rZaOZW2gJakFGHz8L1rIsCyl8GLF5Rvukm6yjbN-I2pg_cnoHs_AmgI.mp4">
                PV：最终幻想
                 </option>
             </select>
@@ -303,13 +311,14 @@
         const glitchButton = document.getElementById('glitchButton');
         const translationButton = document.getElementById('translationButton');
         const diamondButton = document.getElementById('diamondButton');
-        const loopButton = document.getElementById('loopButton');
+        const parallaxButton = document.getElementById('parallaxButton'); // V19 新增
         const speedSelect = document.getElementById('speedSelect');
         const barrageWrapper = document.getElementById('barrageWrapper');
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
         const arModeButton = document.getElementById('arModeButton');
+        
         let arModeEnabled = false;
         let arCleanupPending = false; 
         const cameraStreamElement = document.getElementById('camera-stream');
@@ -318,56 +327,35 @@
         let isTranslationMode = false;
         let isDiamondScatterMode = false;
         let diamondInterval;
+        let isParallaxMode = false; // V19 视差推移状态
 
         // ----------------------------------------------------
         // 核心功能和特效函数
         // ----------------------------------------------------
-
-        // 【语音功能修正】：增强 speakChinese 函数，处理阻塞和错误
+        
         function speakChinese(text) {
-            if (!('speechSynthesis' in window)) {
-                console.error("浏览器不支持语音合成 API (SpeechSynthesis)。");
-                return;
-            }
-            
-            // 关键修正：在开始新的语音之前，确保停止所有正在播放的语音
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-            }
-            
+            if (!('speechSynthesis' in window)) { return; }
+            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); }
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
-            
             utterance.onerror = (event) => {
                 console.error('SpeechSynthesis Error:', event.error);
-                if (event.error === 'network' || event.error === 'service') {
-                    // 通常发生在浏览器/设备没有中文语音包的情况下
-                    console.warn("语音服务不可用，可能需要安装中文语音包。");
-                }
             };
-            
             window.speechSynthesis.speak(utterance);
         }
-        
+
         function toggleLights() {
-            console.log("--- DEBUG: toggleLights() Called ---");
-            
             if (arModeEnabled || arCleanupPending) { 
-                console.log("DEBUG: Lights blocked because AR Mode is active/pending cleanup.");
                 if (isTranslationMode) { speakChinese("AR 沉浸式模式下，关灯操作被锁定。请先退出 AR 模式。"); }
                 return; 
             }
-            
             if (isTranslationMode) { speakChinese("呀，现场灯光突然熄灭了！"); }
-            
             lightsButton.classList.toggle('active');
             body.classList.toggle('lights-off');
             videoContainer.classList.toggle('lights-off');
             const isLightsOff = body.classList.contains('lights-off');
             overlay.style.display = isLightsOff ? 'block' : 'none';
             lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
-            
-            console.log(`DEBUG: Lights toggled. New state: lights-off=${isLightsOff}`);
         }
 
         function toggleTranslationMode() {
@@ -375,18 +363,17 @@
             if (isTranslationMode) {
                 translationButton.textContent = "退出翻译";
                 translationButton.classList.add('active');
-                speakChinese("实时翻译模式已开启！"); // 确认开启
+                speakChinese("实时翻译模式已开启！"); 
             } else {
                 translationButton.textContent = "实时翻译";
                 translationButton.classList.remove('active');
-                window.speechSynthesis.cancel(); // 退出时停止播报
+                window.speechSynthesis.cancel(); 
             }
         }
 
         function toggleGrayscale() {
             if (isTranslationMode) { speakChinese("切换到黑白的历史影像模式咯！"); }
             if (arModeEnabled) { toggleArMode(); }
-
             videoPlayer.classList.toggle('grayscale-on');
             const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
             grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
@@ -408,16 +395,18 @@
                 glitchButton.classList.remove('active');
             }
         }
-
+        
         function toggle3D() {
             if (isTranslationMode) { speakChinese("现场切换成立体小视角啦！"); }
             if (arModeEnabled) { toggleArMode(); }
+            if (isParallaxMode) { toggleParallax(); } // 冲突功能互斥
+            
             barrageWrapper.classList.toggle('three-d-on');
             const is3DOn = barrageWrapper.classList.contains('three-d-on');
             threeDButton.textContent = is3DOn ? "退出立体" : "立体电影";
             is3DOn ? threeDButton.classList.add('active') : threeDButton.classList.remove('active');
         }
-
+        
         function createDiamond() {
             const diamond = document.createElement('div');
             diamond.className = 'diamond';
@@ -450,19 +439,68 @@
                 barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
             }
         }
+        
+        // V19 新增：视差推移功能
+        function handleParallax(e) {
+            if (!isParallaxMode) return;
 
-        function toggleLoop() {
-            videoPlayer.loop = !videoPlayer.loop;
-            if (videoPlayer.loop) {
-                if (isTranslationMode) { speakChinese("已开启循环播放。"); }
-                loopButton.textContent = "取消循环";
-                loopButton.classList.add('active');
+            const rect = barrageWrapper.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // 鼠标位置相对于中心的偏移量 (-0.5 到 0.5)
+            const offsetX = (e.clientX - rect.left - centerX) / centerX;
+            const offsetY = (e.clientY - rect.top - centerY) / centerY;
+
+            // 视差强度：移动范围限制在 ±5%
+            const maxMove = 5; 
+            const moveX = -offsetX * maxMove; 
+            const moveY = -offsetY * maxMove; 
+
+            // 应用 transform
+            videoPlayer.style.transform = `scale(1.1) translate(${moveX}%, ${moveY}%)`;
+        }
+
+        function resetParallax() {
+             // 恢复默认的缩放和位置
+            videoPlayer.style.transform = 'scale(1.1) translate(0, 0)'; 
+        }
+
+        function toggleParallax() {
+            isParallaxMode = !isParallaxMode;
+            
+            if (isParallaxMode) {
+                if (isTranslationMode) { speakChinese("视差推移模式已开启。"); }
+                if (arModeEnabled) { toggleArMode(); } // 互斥
+                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); } // 互斥
+                
+                barrageWrapper.classList.add('parallax-on');
+                parallaxButton.textContent = "退出视差";
+                parallaxButton.classList.add('active');
+                
+                // 绑定鼠标事件
+                barrageWrapper.addEventListener('mousemove', handleParallax);
+                barrageWrapper.addEventListener('mouseleave', resetParallax);
+                
+                if (videoPlayer.paused) videoPlayer.play();
+                
             } else {
-                if (isTranslationMode) { speakChinese("已关闭循环播放。"); }
-                loopButton.textContent = "循环播放";
-                loopButton.classList.remove('active');
+                if (isTranslationMode) { speakChinese("视差推移模式已关闭。"); }
+                
+                barrageWrapper.classList.remove('parallax-on');
+                parallaxButton.textContent = "视差推移";
+                parallaxButton.classList.remove('active');
+                
+                // 移除鼠标事件
+                barrageWrapper.removeEventListener('mousemove', handleParallax);
+                barrageWrapper.removeEventListener('mouseleave', resetParallax);
+                
+                // 恢复视频到默认状态 (仅移除 Parallax CSS class 即可，transform 会被 CSS 覆盖)
+                videoPlayer.style.transform = ''; 
             }
         }
+        
+        // 移除 toggleLoop 函数
 
         function setPlaybackSpeed(speed) {
             videoPlayer.playbackRate = parseFloat(speed);
@@ -511,21 +549,18 @@
                 alert("请先加载一个视频源！");
                 return;
             }
-
-            if (arCleanupPending) {
-                return;
-            }
+            if (isParallaxMode) { toggleParallax(); } // 互斥
+            if (arCleanupPending) { return; }
 
             arModeEnabled = !arModeEnabled;
 
             if (arModeEnabled) {
-                
-                if (body.classList.contains('lights-off')) {
-                     body.classList.remove('lights-off');
-                     videoContainer.classList.remove('lights-off');
-                     overlay.style.display = 'none';
-                     lightsButton.textContent = '关灯';
-                     lightsButton.classList.remove('active'); 
+                if (body.classList.contains('lights-off')) { 
+                    body.classList.remove('lights-off'); 
+                    videoContainer.classList.remove('lights-off'); 
+                    overlay.style.display = 'none'; 
+                    lightsButton.textContent = '关灯'; 
+                    lightsButton.classList.remove('active'); 
                 }
 
                 startCamera().then(success => {
@@ -549,46 +584,39 @@
                         }, 200); 
                     }
                 });
-
             } else {
                 stopCamera();
                 if (isTranslationMode) { speakChinese("AR 沉浸式模式已关闭，恢复普通播放。"); }
-
+                
                 body.classList.remove('ar-mode');
                 videoContainer.classList.remove('ar-mode');
-                
                 arCleanupPending = true; 
-                
                 setTimeout(() => {
                     body.classList.remove('lights-off');
                     videoContainer.classList.remove('lights-off');
                     overlay.style.display = 'none';
                     lightsButton.textContent = '关灯';
                     lightsButton.classList.remove('active'); 
-
                     arModeButton.textContent = "AR 沉浸式";
                     arModeButton.classList.remove('active');
-                    
                     arCleanupPending = false;
                 }, 100); 
             }
         }
 
-        // ----------------------------------------------------
-        // 核心加载及控制功能
-        // ----------------------------------------------------
+
+        // 核心加载、弹幕及事件绑定
         function playVideo(url) {
             if (videoPlayer.src && videoPlayer.src.startsWith('blob:')) {
                 URL.revokeObjectURL(videoPlayer.src);
             }
 
-            if (arModeEnabled) { 
-                toggleArMode(); 
-            }
+            // 重置冲突模式
+            if (arModeEnabled) { toggleArMode(); } 
+            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
+            if (isParallaxMode) { toggleParallax(); }
             
-            if (body.classList.contains('lights-off')) {
-                toggleLights(); 
-            }
+            if (body.classList.contains('lights-off')) { toggleLights(); } 
             
             videoPlayer.style.display = 'block';
 
@@ -646,10 +674,16 @@
                 canvas.width = videoPlayer.videoWidth || videoPlayer.clientWidth;
                 canvas.height = videoPlayer.videoHeight || videoPlayer.clientHeight;
                 const ctx = canvas.getContext('2d');
+                
+                // 确保截屏时捕捉到任何当前的 CSS 滤镜和变换
+                // 注意：纯 CSS 3D 效果（如 drop-shadow, mix-blend-mode）在 Canvas.drawImage 中不会被捕获
+                // 截屏结果将是原始视频+AR/弹幕
+
                 if (arModeEnabled && cameraStreamElement.videoWidth > 0) {
                     ctx.drawImage(cameraStreamElement, 0, 0, canvas.width, canvas.height);
                 }
                 ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+                
                 const imageURL = canvas.toDataURL('image/png');
                 const link = document.createElement('a');
                 link.href = imageURL;
@@ -664,7 +698,6 @@
             }
         }
 
-        // 弹幕相关函数
         function sendBarrage() {
             const input = document.getElementById('barrageInput');
             const text = input.value.trim();
@@ -677,11 +710,7 @@
             barrage.textContent = text;
             
             const videoHeight = videoPlayer.clientHeight || 200; 
-            
-            if (videoHeight <= 0) {
-                barrage.remove();
-                return;
-            }
+            if (videoHeight <= 0) { barrage.remove(); return; }
 
             const maxTop = videoHeight * 0.8; 
             const minTop = videoHeight * 0.05;
@@ -705,7 +734,7 @@
                 barrage.style.animationPlayState = 'paused';
             }
         }
-
+        
         videoPlayer.addEventListener('play', () => {
             document.querySelectorAll('.barrage').forEach(b => {
                 b.style.animationPlayState = 'running';
@@ -717,7 +746,7 @@
                 b.style.animationPlayState = 'paused';
             });
         });
-
+        
         // 绑定 Enter 键事件
         document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
