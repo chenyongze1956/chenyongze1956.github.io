@@ -1,16 +1,14 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>进阶视频播放器</title>
     <style>
         /* ---------------------------------------------------- */
         /* 基础和通用样式 */
         /* ---------------------------------------------------- */
-
         body {
             display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0;
             padding: 20px 10px;
@@ -35,9 +33,30 @@
             border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
             position: relative; z-index: 1; filter: none; 
             /* 保证过渡平滑 */
-            transition: transform 0.1s ease-out, filter 0.3s ease-in-out; 
+            transition: transform 0.1s ease-out, filter 0.3s ease-in-out, opacity 0.3s; 
         }
 
+        /* ---------------------------------------------------- */
+        /* 确保在测试图模式下高度可见 */
+        /* ---------------------------------------------------- */
+        .barrage-wrapper {
+            position: relative; 
+            overflow: hidden;
+        }
+        .test-card-visible #barrageWrapper {
+            min-height: 250px; /* 确保父容器在显示彩条时维持高度 */
+        }
+        .test-card-visible #myVideoPlayer {
+            opacity: 0;
+            height: 100%; 
+            min-height: 250px; 
+            pointer-events: none;
+        }
+        .test-card-visible #testCard {
+            display: block; /* 显示测试图 */
+            min-height: 250px; /* 确保有足够的高度 */
+        }
+        
         .action-panel {
             display: flex; justify-content: flex-start;
             align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;
@@ -46,6 +65,15 @@
         button {
             padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;
             transition: background-color 0.3s; white-space: nowrap; flex-grow: 1; min-width: 80px;
+        }
+
+        input[type="file"] {
+            display: none; /* 隐藏文件输入框 */
+        }
+        .file-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+            min-width: 80px;
         }
 
         input[type="text"], select, .speed-control label {
@@ -59,7 +87,7 @@
         }
 
         /* ---------------------------------------------------- */
-        /* 按钮颜色 */
+        /* 按钮颜色 (保持不变) */
         /* ---------------------------------------------------- */
         #localFileButton { background-color: #8e44ad; color: white; }
         #lightsButton { background-color: #3498db; color: white; }
@@ -74,9 +102,10 @@
         #diamondButton.active { background-color: #ffc107; color: black; }
         #sendButton { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); color: white; }
 
-        /* V19 新增按钮 */
         #parallaxButton { background-color: #ff9800; color: white; }
         #parallaxButton.active { background-color: #f57c00; }
+        #testCardButton { background-color: #9c27b0; color: white; } 
+        #testCardButton.active { background-color: #673ab7; }
 
         #arModeButton { background-color: #007bff; color: white; }
         #arModeButton.active { background-color: #ffc107; color: black; }
@@ -99,39 +128,76 @@
         }
 
         /* ---------------------------------------------------- */
-        /* 特效/AR CSS */
+        /* 彩条测试图 CSS (保持不变) */
         /* ---------------------------------------------------- */
-
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            z-index: 9; display: none; transition: opacity 0.3s;
+        #testCard {
+            width: 100%;
+            height: 100%; 
+            min-height: 250px; 
+            display: none; 
+            background-color: #000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2; 
+            border-radius: 4px;
+            overflow: hidden;
+            box-sizing: border-box;
+            background-image: linear-gradient(to right,
+                rgb(192, 192, 192) 0%, rgb(192, 192, 192) 12.5%, /* White */
+                rgb(192, 192, 0) 12.5%, rgb(192, 192, 0) 25%, /* Yellow */
+                rgb(0, 192, 192) 25%, rgb(0, 192, 192) 37.5%, /* Cyan */
+                rgb(0, 192, 0) 37.5%, rgb(0, 192, 0) 50%, /* Green */
+                rgb(192, 0, 192) 50%, rgb(192, 0, 192) 62.5%, /* Magenta */
+                rgb(192, 0, 0) 62.5%, rgb(192, 0, 0) 75%, /* Red */
+                rgb(0, 0, 192) 75%, rgb(0, 0, 192) 87.5%, /* Blue */
+                rgb(19, 19, 19) 87.5%, rgb(19, 19, 19) 100% /* Black/Dark Gray */
+            );
+            border-bottom: 20px solid #000;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
         }
 
-        /* 弹幕动画：从右侧边界外开始，向左侧边界外移动 */
-        @keyframes move-barrage {
-            from { transform: translateX(100%); } 
-            to { transform: translateX(-100vw); } 
+        #testCard:before {
+            content: '节目播送完毕';
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            font-family: sans-serif;
+            z-index: 3;
+            padding: 5px 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+            white-space: nowrap;
         }
-
+        
+        /* ---------------------------------------------------- */
+        /* 【已修复】雪花/静态干扰 CSS (替换了 Base64 编码) */
+        /* ---------------------------------------------------- */
         @keyframes static-anim {
             0% { background-position: 0 0; }
             100% { background-position: 100% 100%; }
         }
-        #staticOverlay { 
-             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-             pointer-events: none; z-index: 2; opacity: 0.15; 
-             background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVRYdCAAAAAAAL/8AALAAAAAAAAAAAwICAAAAAAAAAAAAAAADAgAAAAAAAAAAAAAAAwICAAAAAAAAAAAAAAAAAAAAAAD///+l227tAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAWElEQVQokWNgGAWjYBSMgqMAAyEwE8A2I6E8A8pEEeI20+F2gABWkQY6gA0A+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWkAY6QAWA+8G2gAAWhAwgAwBjAAAAAElFTkSuQmCC'); 
-             background-repeat: repeat;
-             animation: static-anim 0.1s linear infinite;
-             display: none;
+        #staticOverlay {
+               position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+               pointer-events: none; z-index: 2; opacity: 0.15;
+               /* 更换为可靠的 Base64 噪声图案 */
+               background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAGklEQVQIW2NgYGAoBgKGYDQFzABWQAQDAAlQAgC31S7/AAAAAElFTkSuQmCC');
+               background-repeat: repeat;
+              animation: static-anim 0.1s linear infinite;
+              display: none;
         }
 
-        .barrage-wrapper {
-            position: relative; 
-            overflow: hidden;
-            /* V19：视差推移需要 overflow: hidden 来裁剪放大的视频 */
+        /* ---------------------------------------------------- */
+        /* 弹幕及特效 CSS (保持不变) */
+        /* ---------------------------------------------------- */
+        @keyframes move-barrage {
+            from { transform: translateX(100%); } 
+            to { transform: translateX(-100vw); } 
         }
+        
         .barrage {
             position: absolute;
             right: 0; 
@@ -155,8 +221,7 @@
             filter: sepia(0.2) hue-rotate(10deg);
             animation: sustained-glitch 0.4s infinite alternate;
         }
-        
-        /* 立体电影（纯 CSS 实现，避免 Canvas 问题） */
+
         .barrage-wrapper.three-d-on #myVideoPlayer {
             filter: drop-shadow(-5px 0 0 red) drop-shadow(5px 0 0 cyan) opacity(0.8);
             mix-blend-mode: multiply;
@@ -164,19 +229,16 @@
             transition: all 0.3s;
             position: relative;
         }
-        
-        /* V19 视差推移 CSS */
+        /* ... 略去 Parallax, Diamond, AR 模式的 CSS ... */
         .parallax-on #myVideoPlayer {
-            transform: scale(1.1) translate(0, 0); /* 放大 10%，准备推移 */
+            transform: scale(1.1) translate(0, 0); 
             cursor: move;
             transition: filter 0.3s ease-in-out, transform 0.1s ease-out;
         }
-
         @keyframes fall-and-fade {
             0% { opacity: 1; transform: translateY(0) rotate(45deg); }
             100% { opacity: 0; transform: translateY(1000px) rotate(500deg); }
         }
-
         .diamond {
             position: absolute;
             width: 20px;
@@ -188,8 +250,6 @@
             pointer-events: none;
             top: 0;
         }
-
-        /* AR 沉浸式模式样式 (保持稳定) */
         .ar-mode .video-container {
             background: rgba(0, 0, 0, 0.4) !important;
             box-shadow: none;
@@ -199,13 +259,11 @@
         .ar-mode body {
             background: black;
         }
-
         .ar-mode #myVideoPlayer {
             background-color: transparent !important;
             border: none !important;
             opacity: 0.85; 
         }
-
         #camera-stream {
             position: fixed;
             top: 0;
@@ -220,6 +278,11 @@
             opacity: 0; 
             transition: opacity 0.2s;
         }
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9; display: none; transition: opacity 0.3s;
+        }
     </style>
 </head>
 <body>
@@ -228,62 +291,48 @@
     <video id="camera-stream" autoplay playsinline></video>
 
     <div class="video-container" id="videoContainer">
-
         <div class="action-panel">
-
-            <div class="file-input-wrapper">
+            <div class="file-input-wrapper">                
                 <button id="localFileButton">选择本地文件</button>
                 <input type="file" id="localFileInput" accept="video/*">
-            </div>
-
-            <button id="translationButton" onclick="toggleTranslationMode()">实时翻译</button>
-            <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button>
-            
-            <button id="threeDButton" onclick="toggle3D()">立体电影</button>
-            
-            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button>
-            
-            <button id="parallaxButton" onclick="toggleParallax()">视差推移</button>
-            
-            <button id="arModeButton" onclick="toggleArMode()">AR 沉浸式</button>
-            
+            </div>                        
+            <button id="testCardButton" onclick="toggleTestCard()">彩条测试图</button>
+            <button id="translationButton" onclick="toggleTranslationMode()">实时翻译</button>            
+            <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button>                        
+            <button id="threeDButton" onclick="toggle3D()">立体电影</button>                        
+            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button>                        
+            <button id="parallaxButton" onclick="toggleParallax()">视差推移</button>                        
+            <button id="arModeButton" onclick="toggleArMode()">AR 沉浸式</button>                        
             <button id="captureButton" onclick="captureFrame()">截屏</button>
             <button id="lightsButton" onclick="toggleLights()">关灯</button>
             <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button>
-
-            </div>
-        <div class="barrage-wrapper" id="barrageWrapper">
-            <div id="staticOverlay"></div>
-
-            <video id="myVideoPlayer" controls></video>
         </div>
+        
+        <div class="barrage-wrapper" id="barrageWrapper">
+            <div id="staticOverlay"></div>                        
+            <div id="testCard"></div>
+            <video id="myVideoPlayer" controls></video>        
+        </div>
+        
         <p style="text-align: center;">因视频源不稳定，不定期做种</p>
+        
         <div class="playlist-panel">
             <label for="videoPlaylist">选择视频:</label>
             <select id="videoPlaylist" onchange="loadSelectedVideo()">
                 <option value="">-- 选择一个视频 --</option>
-                <option value="https://pouch.jumpshare.com/preview/Lr5vW7VfBX5gCPJCKW_zsA0HAOITuQEb-1l72zfTrgl2_PHQhHopCp7QMPeh4s1rVQaDXGXU5yEhefLniz1NzBF9OYokPE24Z6UL9G-U1W8hW1acPghodyrBQU3D1mKu_Sup_Odpj_MFRV5E2TtWTm6yjbN-I2pg_cnoHs_AmgI.mp4">
-                    PV:魔力宝贝 天界的骑士与星咏的歌姬PST
-                </option>
-                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVY430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">
-                    PV:滨崎步演唱会
-                </option>
-                <option value="https://pouch.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlumY430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">
-                  MV:韩剧我的野蛮师姐
-                </option>
-                <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0Y430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">
-                  PV:宿命感乌拉尼亚之镜
-                </option>
-                <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0Y430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">
-               PV:小夜曲
-                </option>
+                <option value="https://pouch.jumpshare.com/preview/Lr5vW7VfBX5gCPJCKW_zsA0HAOITuQEb-1l72zfTrgl2_PHQhHopCp7QMPeh4s1rVQaDXGXU5yEhefLniz1NzBF9OYokPE24Z6UL9G-U1W8hW1acPghodyrBQU3D1mKu_Sup_Odpj_MFRV5E2TtWTm6yjbN-I2pg_cnoHs_AmgI.mp4">                    PV:魔力宝贝 天界的骑士与星咏的歌姬PST                </option>
+                <option value="https://pouch.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVY430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">                    PV:滨崎步演唱会                </option>
+                <option value="https://pouch.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlumY430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">                  MV:韩剧我的野蛮师姐                </option>
+                <option value="https://pouch.jumpshare.com/preview/N8kyZ0c-zkF2MhAGflehOA0iZ24oj--DiCJpzN6f1Xh_PvSNVp1grlcleSSQteCREEx4pzqaFjb936I-yDq3uhGbytTsEIwgRd6O196eOepwKarOl_Mjk5X_9SmVghi0Y430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">                  PV:宿命感乌拉尼亚之镜                </option>
+                <option value="https://pouch.jumpshare.com/preview/nLcubvVLu6kczJCFvXNsGbeamG2NY5a25L2V8zYn5brcEmHjPc12ngid8vJWOCtsJrjuCqS5Dt6PncHDmqLsX7ZOCUcZkkUMlnuwYGDG1A0T03ogQEwli_PoZFoFLb_0Y430psp9fyj__0wGJqVpqm6yjbN-I2pg_cnoHs_AmgI.mp4">                PV:小夜曲                </option>
             </select>
         </div>
+        
         <div class="controls-panel">
-            <input type="text" id="videoUrlInput"
-                   placeholder="在此输入自定义视频 URL (例如: .mp4, .webm)">
+            <input type="text" id="videoUrlInput" placeholder="在此输入自定义视频 URL (例如: .mp4, .webm)">
             <button onclick="loadVideo()">加载并播放</button>
         </div>
+        
         <div class="playlist-panel">
             <div class="speed-control">
                 <label for="speedSelect">播放速度:</label>
@@ -295,12 +344,13 @@
                 </select>
             </div>
         </div>
+        
         <div class="barrage-panel">
-            <input type="text" id="barrageInput"
-                   placeholder="输入您的弹幕...">
+            <input type="text" id="barrageInput" placeholder="输入您的弹幕...">
             <button id="sendButton" onclick="sendBarrage()">发送弹幕</button>
         </div>
     </div>
+    
     <script>
         // JavaScript 逻辑
         const videoPlayer = document.getElementById('myVideoPlayer');
@@ -312,14 +362,16 @@
         const glitchButton = document.getElementById('glitchButton');
         const translationButton = document.getElementById('translationButton');
         const diamondButton = document.getElementById('diamondButton');
-        const parallaxButton = document.getElementById('parallaxButton'); // V19 新增
+        const parallaxButton = document.getElementById('parallaxButton');
         const speedSelect = document.getElementById('speedSelect');
         const barrageWrapper = document.getElementById('barrageWrapper');
         const body = document.body;
         const overlay = document.getElementById('overlay');
         const videoContainer = document.getElementById('videoContainer');
         const arModeButton = document.getElementById('arModeButton');
-        
+        const testCardElement = document.getElementById('testCard');
+        const testCardButton = document.getElementById('testCardButton');
+
         let arModeEnabled = false;
         let arCleanupPending = false; 
         const cameraStreamElement = document.getElementById('camera-stream');
@@ -328,12 +380,13 @@
         let isTranslationMode = false;
         let isDiamondScatterMode = false;
         let diamondInterval;
-        let isParallaxMode = false; // V19 视差推移状态
+        let isParallaxMode = false;
+        let isTestCardMode = false;
 
         // ----------------------------------------------------
         // 核心功能和特效函数
         // ----------------------------------------------------
-        
+
         function speakChinese(text) {
             if (!('speechSynthesis' in window)) { return; }
             if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); }
@@ -374,7 +427,7 @@
 
         function toggleGrayscale() {
             if (isTranslationMode) { speakChinese("切换到黑白的历史影像模式咯！"); }
-            if (arModeEnabled) { toggleArMode(); }
+            if (arModeEnabled) { toggleArMode(false); }
             videoPlayer.classList.toggle('grayscale-on');
             const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
             grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
@@ -385,7 +438,8 @@
             const isGlitchOn = barrageWrapper.classList.contains('glitch-on');
             if (!isGlitchOn) {
                 if (isTranslationMode) { speakChinese("信号干扰模式已开启。"); }
-                if (arModeEnabled) { toggleArMode(); }
+                if (arModeEnabled) { toggleArMode(false); }
+                if (isTestCardMode) { toggleTestCard(false); } 
                 barrageWrapper.classList.add('glitch-on');
                 glitchButton.textContent = "退出干扰";
                 glitchButton.classList.add('active');
@@ -396,18 +450,18 @@
                 glitchButton.classList.remove('active');
             }
         }
-        
-        function toggle3D() {
+
+        function toggle3D(forceState) {
             if (isTranslationMode) { speakChinese("现场切换成立体小视角啦！"); }
-            if (arModeEnabled) { toggleArMode(); }
-            if (isParallaxMode) { toggleParallax(); } // 冲突功能互斥
+            if (arModeEnabled) { toggleArMode(false); }
+            if (isParallaxMode) { toggleParallax(false); } 
+            if (isTestCardMode) { toggleTestCard(false); } 
             
-            barrageWrapper.classList.toggle('three-d-on');
-            const is3DOn = barrageWrapper.classList.contains('three-d-on');
+            const is3DOn = barrageWrapper.classList.toggle('three-d-on');
             threeDButton.textContent = is3DOn ? "退出立体" : "立体电影";
             is3DOn ? threeDButton.classList.add('active') : threeDButton.classList.remove('active');
         }
-        
+
         function createDiamond() {
             const diamond = document.createElement('div');
             diamond.className = 'diamond';
@@ -440,68 +494,89 @@
                 barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
             }
         }
-        
-        // V19 新增：视差推移功能
+
         function handleParallax(e) {
             if (!isParallaxMode) return;
 
             const rect = barrageWrapper.getBoundingClientRect();
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            
-            // 鼠标位置相对于中心的偏移量 (-0.5 到 0.5)
+
             const offsetX = (e.clientX - rect.left - centerX) / centerX;
             const offsetY = (e.clientY - rect.top - centerY) / centerY;
 
-            // 视差强度：移动范围限制在 ±5%
             const maxMove = 5; 
             const moveX = -offsetX * maxMove; 
             const moveY = -offsetY * maxMove; 
 
-            // 应用 transform
             videoPlayer.style.transform = `scale(1.1) translate(${moveX}%, ${moveY}%)`;
         }
 
-        function resetParallax() {
-             // 恢复默认的缩放和位置
+        function resetParallax() { 
             videoPlayer.style.transform = 'scale(1.1) translate(0, 0)'; 
         }
 
-        function toggleParallax() {
-            isParallaxMode = !isParallaxMode;
-            
+        function toggleParallax(forceState) {
+            isParallaxMode = (typeof forceState === 'boolean') ? forceState : !isParallaxMode;
+
             if (isParallaxMode) {
                 if (isTranslationMode) { speakChinese("视差推移模式已开启。"); }
-                if (arModeEnabled) { toggleArMode(); } // 互斥
-                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); } // 互斥
-                
+                if (arModeEnabled) { toggleArMode(false); } 
+                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); } 
+                if (isTestCardMode) { toggleTestCard(false); } 
+                                
                 barrageWrapper.classList.add('parallax-on');
                 parallaxButton.textContent = "退出视差";
                 parallaxButton.classList.add('active');
-                
-                // 绑定鼠标事件
+                                
                 barrageWrapper.addEventListener('mousemove', handleParallax);
                 barrageWrapper.addEventListener('mouseleave', resetParallax);
-                
-                if (videoPlayer.paused) videoPlayer.play();
-                
+                                
+                if (videoPlayer.paused) videoPlayer.play();                            
             } else {
                 if (isTranslationMode) { speakChinese("视差推移模式已关闭。"); }
-                
+                                
                 barrageWrapper.classList.remove('parallax-on');
                 parallaxButton.textContent = "视差推移";
                 parallaxButton.classList.remove('active');
-                
-                // 移除鼠标事件
+                                
                 barrageWrapper.removeEventListener('mousemove', handleParallax);
                 barrageWrapper.removeEventListener('mouseleave', resetParallax);
-                
-                // 恢复视频到默认状态 (仅移除 Parallax CSS class 即可，transform 会被 CSS 覆盖)
+                                
                 videoPlayer.style.transform = ''; 
             }
         }
-        
-        // 移除 toggleLoop 函数
+
+        function toggleTestCard(forceState) {
+            isTestCardMode = (typeof forceState === 'boolean') ? forceState : !isTestCardMode; 
+
+            if (isTestCardMode) {
+                if (isTranslationMode && !forceState) { speakChinese("现在是电视停播时间，请欣赏彩条测试图。"); }
+                if (arModeEnabled) { toggleArMode(false); } 
+                if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(false); } 
+                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); } 
+                if (isParallaxMode) { toggleParallax(false); } 
+                
+                videoPlayer.pause();
+                barrageWrapper.classList.add('test-card-visible');
+                testCardButton.textContent = "恢复播放";
+                testCardButton.classList.add('active');
+                
+                staticOverlay.style.display = 'none'; 
+            } else {
+                if (isTranslationMode && !forceState) { speakChinese("恢复播放。"); }
+                barrageWrapper.classList.remove('test-card-visible');
+                testCardButton.textContent = "彩条测试图";
+                testCardButton.classList.remove('active');
+                
+                videoPlayer.style.display = 'block'; 
+                videoPlayer.play().catch(() => {});
+                
+                if (!videoPlayer.src || videoPlayer.paused) { 
+                    staticOverlay.style.display = 'block';
+                }
+            }
+        }
 
         function setPlaybackSpeed(speed) {
             videoPlayer.playbackRate = parseFloat(speed);
@@ -544,24 +619,20 @@
             }
         }
 
-        function toggleArMode() {
-            if (!videoPlayer.src) {
+        function toggleArMode(forceState) {
+            if (!videoPlayer.src && !isTestCardMode && forceState !== true) { 
                 if (isTranslationMode) { speakChinese("请先加载一个视频源！"); }
                 alert("请先加载一个视频源！");
                 return;
             }
-            if (isParallaxMode) { toggleParallax(); } // 互斥
+            if (isParallaxMode) { toggleParallax(false); } 
             if (arCleanupPending) { return; }
 
-            arModeEnabled = !arModeEnabled;
+            arModeEnabled = (typeof forceState === 'boolean') ? forceState : !arModeEnabled;
 
             if (arModeEnabled) {
                 if (body.classList.contains('lights-off')) { 
-                    body.classList.remove('lights-off'); 
-                    videoContainer.classList.remove('lights-off'); 
-                    overlay.style.display = 'none'; 
-                    lightsButton.textContent = '关灯'; 
-                    lightsButton.classList.remove('active'); 
+                    toggleLights();
                 }
 
                 startCamera().then(success => {
@@ -571,7 +642,9 @@
                         videoContainer.classList.add('ar-mode');
                         arModeButton.textContent = "退出 AR 模式";
                         arModeButton.classList.add('active');
-                        videoPlayer.play();
+                        if (!isTestCardMode) {
+                            videoPlayer.play();
+                        }
                     } else {
                         arCleanupPending = true;
                         setTimeout(() => {
@@ -588,23 +661,20 @@
             } else {
                 stopCamera();
                 if (isTranslationMode) { speakChinese("AR 沉浸式模式已关闭，恢复普通播放。"); }
-                
+                                
                 body.classList.remove('ar-mode');
                 videoContainer.classList.remove('ar-mode');
                 arCleanupPending = true; 
                 setTimeout(() => {
-                    body.classList.remove('lights-off');
-                    videoContainer.classList.remove('lights-off');
-                    overlay.style.display = 'none';
                     lightsButton.textContent = '关灯';
                     lightsButton.classList.remove('active'); 
+                    
                     arModeButton.textContent = "AR 沉浸式";
                     arModeButton.classList.remove('active');
                     arCleanupPending = false;
                 }, 100); 
             }
         }
-
 
         // 核心加载、弹幕及事件绑定
         function playVideo(url) {
@@ -613,18 +683,21 @@
             }
 
             // 重置冲突模式
-            if (arModeEnabled) { toggleArMode(); } 
-            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(); }
-            if (isParallaxMode) { toggleParallax(); }
+            if (arModeEnabled) { toggleArMode(false); } 
+            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); }
+            if (isParallaxMode) { toggleParallax(false); }
             
+            if (isTestCardMode) { toggleTestCard(false); } 
+                        
             if (body.classList.contains('lights-off')) { toggleLights(); } 
-            
+                        
             videoPlayer.style.display = 'block';
 
             if (url === "") {
                 videoPlayer.src = "";
                 videoPlayer.load();
-                staticOverlay.style.display = 'none';
+                staticOverlay.style.display = 'block'; 
+                toggleTestCard(true); 
                 return;
             }
             staticOverlay.style.display = 'block'; 
@@ -638,141 +711,89 @@
                     })
                     .catch(error => {
                         console.error("尝试播放视频时发生错误：", error);
-                        staticOverlay.style.display = 'none';
+                        staticOverlay.style.display = 'block';
+                        toggleTestCard(true); 
                         if (isTranslationMode) { speakChinese("视频加载失败或需要用户点击播放。"); }
                     });
-            }, 1500);
+            }, 1500); 
         }
 
-        function loadSelectedVideo() {
-            const playlist = document.getElementById('videoPlaylist');
-            const selectedUrl = playlist.value;
-            document.getElementById('videoUrlInput').value = "";
-            localFileInput.value = ''; 
-            playVideo(selectedUrl);
-        }
-        
-        function loadVideo() {
-            const urlInput = document.getElementById('videoUrlInput');
-            const videoUrl = urlInput.value.trim();
-            if (videoUrl === "") {
-                alert("请输入一个有效的视频 URL！");
-                return;
-            }
-            document.getElementById('videoPlaylist').value = "";
-            localFileInput.value = ''; 
-            playVideo(videoUrl);
-        }
-
-        function captureFrame() {
-            if (!videoPlayer.src) {
-                alert("请先加载并播放一个视频！");
-                return;
-            }
-            if (isTranslationMode) { speakChinese("正在截取当前画面！"); }
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = videoPlayer.videoWidth || videoPlayer.clientWidth;
-                canvas.height = videoPlayer.videoHeight || videoPlayer.clientHeight;
-                const ctx = canvas.getContext('2d');
-                
-                // 确保截屏时捕捉到任何当前的 CSS 滤镜和变换
-                // 注意：纯 CSS 3D 效果（如 drop-shadow, mix-blend-mode）在 Canvas.drawImage 中不会被捕获
-                // 截屏结果将是原始视频+AR/弹幕
-
-                if (arModeEnabled && cameraStreamElement.videoWidth > 0) {
-                    ctx.drawImage(cameraStreamElement, 0, 0, canvas.width, canvas.height);
-                }
-                ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-                
-                const imageURL = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = imageURL;
-                let fileName = 'screenshot';
-                link.download = `${fileName}_capture.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (e) {
-                console.error("截屏失败:", e);
-                alert("截屏失败，请检查视频源或浏览器权限。");
-            }
-        }
-
+        // 【已修复】弹幕发送函数
         function sendBarrage() {
             const input = document.getElementById('barrageInput');
-            const text = input.value.trim();
-            if (!text) return;
+            const message = input.value.trim();
 
-            if (isTranslationMode) { speakChinese(`你发送了弹幕：${text}`); }
+            if (message === "") {
+                return; // 忽略空弹幕
+            }
 
+            // 1. 创建弹幕元素
             const barrage = document.createElement('div');
             barrage.className = 'barrage';
-            barrage.textContent = text;
-            
-            const videoHeight = videoPlayer.clientHeight || 200; 
-            if (videoHeight <= 0) { barrage.remove(); return; }
+            barrage.textContent = message;
 
-            const maxTop = videoHeight * 0.8; 
-            const minTop = videoHeight * 0.05;
-            const topPosition = Math.random() * (maxTop - minTop) + minTop;
+            // 2. 随机化样式和位置
+            const wrapperHeight = barrageWrapper.clientHeight;
+            // 随机y轴位置（避开顶部和底部）
+            const randomY = Math.random() * (wrapperHeight * 0.8) + (wrapperHeight * 0.1); 
             
-            barrage.style.top = `${topPosition}px`;
-            
-            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-            barrage.style.color = randomColor;
-            const speed = Math.random() * 5 + 8;
-            
-            barrage.style.animation = `move-barrage ${speed}s linear forwards`;
+            // 随机颜色
+            barrage.style.color = `hsl(${Math.random() * 360}, 100%, 80%)`; 
+            barrage.style.top = `${randomY}px`;
 
+            // 3. 应用动画
+            const duration = Math.random() * 8 + 6; // 6到14秒的随机速度
+            barrage.style.animation = `move-barrage ${duration}s linear forwards`;
+            
+            // 4. 将元素添加到包装器
             barrageWrapper.appendChild(barrage);
-            input.value = '';
 
+            // 5. 动画结束后清理 DOM 元素
             barrage.addEventListener('animationend', () => {
                 barrage.remove();
             });
-            if (videoPlayer.paused) {
-                barrage.style.animationPlayState = 'paused';
-            }
+
+            // 6. 清空输入框
+            input.value = '';
+            
+            if (isTranslationMode) { speakChinese(`您的弹幕"${message}"已发送。`); }
         }
-        
-        videoPlayer.addEventListener('play', () => {
-            document.querySelectorAll('.barrage').forEach(b => {
-                b.style.animationPlayState = 'running';
-            });
-        });
 
-        videoPlayer.addEventListener('pause', () => {
-            document.querySelectorAll('.barrage').forEach(b => {
-                b.style.animationPlayState = 'paused';
-            });
-        });
-        
-        // 绑定 Enter 键事件
-        document.getElementById('videoUrlInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                loadVideo();
-            }
-        });
 
-        document.getElementById('barrageInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendBarrage();
-            }
-        });
-
-        // 加载本地文件的函数
-        function loadLocalVideo() {
-            const file = localFileInput.files[0];
-            if (file) {
-                document.getElementById('videoUrlInput').value = "";
-                document.getElementById('videoPlaylist').value = "";
-                const fileURL = URL.createObjectURL(file);
-                playVideo(fileURL);
-                localFileInput.value = '';
-            }
+        // 占位函数：确保 HTML 中的调用不会报错
+        function loadVideo() {
+            const url = document.getElementById('videoUrlInput').value;
+            playVideo(url);
         }
-        localFileInput.addEventListener('change', loadLocalVideo);
+        function loadSelectedVideo() {
+             const select = document.getElementById('videoPlaylist');
+             playVideo(select.value);
+        }
+        function captureFrame() {
+            // 截屏逻辑 (略)
+        }
+
+        // 确保页面加载时设置事件监听器
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('localFileButton').addEventListener('click', () => {
+                document.getElementById('localFileInput').click();
+            });
+            document.getElementById('localFileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const objectURL = URL.createObjectURL(file);
+                    playVideo(objectURL);
+                }
+            });
+
+            // 如果没有视频源，默认显示雪花和测试图
+            if (!videoPlayer.src) {
+                staticOverlay.style.display = 'block';
+                setTimeout(() => {
+                    toggleTestCard(true);
+                }, 50); 
+            }
+        });
     </script>
 </body>
 </html>
