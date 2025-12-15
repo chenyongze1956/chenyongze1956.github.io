@@ -1,12 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Web FC 投屏接收端</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; background: #000;
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
         }
@@ -14,13 +15,11 @@
             width: 100%; 
             height: 100%; 
             object-fit: contain; 
-            background: #111;
-        }
+background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);        }
         .control-panel {
             position: absolute;
             top: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
+background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            padding: 15px;
             border-radius: 10px;
             text-align: center;
             z-index: 10;
