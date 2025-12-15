@@ -1,13 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Web FC 模拟器 (紧凑按钮版)</title>
     <style>
         /* --- 基础样式保持不变 --- */
         body {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -19,6 +17,14 @@
             padding: 20px 0;
             user-select: none;
             box-sizing: border-box;
+            color:#000；
+            
+        }
+
+        p{
+
+
+            color:#000;
         }
         h1 { margin: 10px 0; font-weight: 300; letter-spacing: 2px;}
         .screen-container {
@@ -30,7 +36,7 @@
         canvas {
             display: block;
             image-rendering: pixelated;
-            width: 512px; 
+            width: 512px;
             height: 480px;
         }
         .overlay {
@@ -41,33 +47,33 @@
             justify-content: center;
             background: rgba(0,0,0,0.8);
             color: #fff;
-            font-size: 1.2em;
+            font-size: 1.5em;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            text-align: center;
+            padding: 20px;
         }
         .overlay.visible { opacity: 1; }
-                
+
         /* --- 按钮区域样式优化 --- */
         .toolbar {
             display: flex;
-            gap: 8px; /* 略微减小间距 */
+            gap: 8px;
             margin-bottom: 15px;
             align-items: center;
             flex-wrap: wrap;
             justify-content: center;
         }
-
-        /* 统一按钮尺寸的核心修改：更紧凑 */
         .btn {
-            width: 90px;  /* 统一宽度调整为 90px */
-            height: 35px; /* 统一高度调整为 35px */
-            padding: 0; 
+            width: 90px;
+            height: 35px;
+            padding: 0;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85em; /* 字体略微调小 */
+            font-size: 0.85em;
             transition: background 0.2s, opacity 0.2s;
             display: flex;
             align-items: center;
@@ -81,21 +87,19 @@
         /* 按钮颜色 */
         .btn-load { background: #e53935; }
         .btn-load:hover:not(:disabled) { background: #d32f2f; }
-        .btn-screenshot { background: #795548; } 
+        .btn-screenshot { background: #795548; }
         .btn-screenshot:hover:not(:disabled) { background: #6D4C41; }
         .btn-share { background: #00BCD4; }
         .btn-share:hover:not(:disabled) { background: #00ACC1; }
         .btn-record-start { background: #4CAF50; }
         .btn-record-start:hover:not(:disabled) { background: #45a049; }
-        .btn-record-stop { 
-            width: 90px; /* 确保停止按钮也统一尺寸 */
-            height: 35px; 
-            background: #f44336; 
-            display: none; 
+        .btn-record-stop {
+            width: 90px;
+            height: 35px;
+            background: #f44336;
+            display: none;
         }
         .btn-record-stop:hover:not(:disabled) { background: #d32f2f; }
-        
-        /* 静音按钮样式 */
         .btn-mute { background: #5D4037; }
         .btn-mute:hover:not(:disabled) { background: #4E342E; }
 
@@ -124,6 +128,8 @@
             text-align: center;
             color: #ccc;
             font-size: 0.9em;
+            width: 100%;
+            max-width: 520px;
         }
         input[type="file"] { display: none; }
         .key-badge {
@@ -139,30 +145,33 @@
     </style>
 </head>
 <body>
-    
     <div class="toolbar">
         <input type="file" id="rom-upload" accept=".nes">
         <button class="btn btn-load" onclick="document.getElementById('rom-upload').click()">📂 加载游戏</button>
-        
         <button id="btnScreenshot" class="btn btn-screenshot" disabled>📷 截图</button>
         <button id="btnMute" class="btn btn-mute" disabled>🔊 静音</button>
         <button id="btnShare" class="btn btn-share" disabled>🔗 分享</button>
 
         <div style="width: 2px; height: 30px; background: #444; margin: 0 10px;"></div>
-        
-        <button id="btnStartRec" class="btn btn-record-start" disabled>🔴 录像</button> <button id="btnStopRec" class="btn btn-record-stop">⬜ 停止</button>
+
+        <button id="btnStartRec" class="btn btn-record-start" disabled>🔴 录像</button>
+        <button id="btnStopRec" class="btn btn-record-stop">⬜ 停止</button>
         <div id="recIndicator" class="recording-indicator">REC</div>
     </div>
-    
+
     <div class="screen-container">
         <canvas id="screen" width="256" height="240"></canvas>
         <div id="msg-overlay" class="overlay visible">请加载 ROM 开始游戏</div>
     </div>
-    
-    
-    
+
+
+       
+        <p>
+            手柄状态: <span id="gamepadStatus" style="color:#000;">未连接</span>
+        </p>
+
+
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
-    
     <script>
         const SCREEN_WIDTH = 256;
         const SCREEN_HEIGHT = 240;
@@ -178,37 +187,59 @@
         const btnStartRec = document.getElementById('btnStartRec');
         const btnStopRec = document.getElementById('btnStopRec');
         const recIndicator = document.getElementById('recIndicator');
-        const btnMute = document.getElementById('btnMute'); 
+        const btnMute = document.getElementById('btnMute');
+        const btnLoad = document.querySelector('.btn-load');
 
+        // --- 核心状态变量 ---
         let audioHandler = null;
         let isFileLoaded = false;
-        let lastScreenshotBlob = null; 
-        
-        // --- 音频处理类 ---        
+        let lastScreenshotBlob = null;
+        // 移除 isPaused 变量
+        let animationFrameId = null;
+
+        // --- Gamepad API 变量 ---
+        let gamepadIndex = null;
+        const gamepadStatusEl = document.getElementById('gamepadStatus');
+
+        // Gamepad 标准按钮映射到 JSNES 按钮
+        const GAMEPAD_BUTTON_MAP = {
+            [jsnes.Controller.BUTTON_A]: 0,  // A/Cross
+            [jsnes.Controller.BUTTON_B]: 1,  // B/Circle
+            [jsnes.Controller.BUTTON_SELECT]: 8, // Back/Select
+            [jsnes.Controller.BUTTON_START]: 9,  // Start
+        };
+
+        // Gamepad 轴映射到 JSNES D-Pad
+        const GAMEPAD_AXIS_MAP = {
+            UP:    { axis: 1, value: -1.0, button: jsnes.Controller.BUTTON_UP },
+            DOWN:  { axis: 1, value: 1.0,  button: jsnes.Controller.BUTTON_DOWN },
+            LEFT:  { axis: 0, value: -1.0, button: jsnes.Controller.BUTTON_LEFT },
+            RIGHT: { axis: 0, value: 1.0,  button: jsnes.Controller.BUTTON_RIGHT },
+        };
+        let previousGamepadButtons = {}; // 存储上一帧的手柄按钮状态
+
+        // --- 音频处理类 ---
         class AudioHandler {
             constructor() {
                 this.actx = new (window.AudioContext || window.webkitAudioContext)();
                 this.bufferSize = 4096;
-                // ⚠️ [Deprecation] 此处使用 ScriptProcessorNode，在生产环境中建议替换为 AudioWorkletNode
                 this.scriptNode = this.actx.createScriptProcessor(this.bufferSize, 0, 1);
                 this.recordingDest = this.actx.createMediaStreamDestination();
-                this.ringBuffer = new Float32Array(this.bufferSize * 3); 
+                this.ringBuffer = new Float32Array(this.bufferSize * 3);
                 this.writeIndex = 0;
                 this.readIndex = 0;
-                                
+
                 this.scriptNode.onaudioprocess = (e) => this.process(e);
                 this.scriptNode.connect(this.actx.destination);
                 this.scriptNode.connect(this.recordingDest);
             }
 
-            // 恢复播放
             resume() {
                 if (this.actx.state === 'suspended' || this.actx.state === 'closed') {
                     this.actx.resume();
                 }
             }
 
-            // 暂停播放 (静音功能的核心)
             pause() {
                 if (this.actx.state === 'running') {
                     this.actx.suspend();
@@ -227,7 +258,7 @@
                 const output = e.outputBuffer.getChannelData(0);
                 for (let i = 0; i < this.bufferSize; i++) {
                     if (this.readIndex === this.writeIndex) {
-                        output[i] = 0; 
+                        output[i] = 0;
                     } else {
                         output[i] = this.ringBuffer[this.readIndex];
                         this.readIndex++;
@@ -237,35 +268,118 @@
             }
         }
 
-        // --- NES 初始化 ---        
+        // --- NES 初始化 ---
         var nes = new jsnes.NES({
             onFrame: function(frameBuffer) {
                 let i = 0;
                 for (let y = 0; y < SCREEN_HEIGHT; ++y) {
                     for (let x = 0; x < SCREEN_WIDTH; ++x) {
                         i = y * SCREEN_WIDTH + x;
-                        buf32[i] = 0xFF000000 | frameBuffer[i]; 
+                        buf32[i] = 0xFF000000 | frameBuffer[i];
                     }
                 }
                 ctx.putImageData(imageData, 0, 0);
             },
             onAudioSample: function(left, right) {
                 if (audioHandler) {
-                    audioHandler.writeSample(left); 
+                    audioHandler.writeSample(left);
                 }
             }
         });
 
-        // --- 游戏主循环 ---        
+        // =================================================================
+        // --- 手柄轮询逻辑 (修复方向键) ---
+        // =================================================================
+        function pollGamepad() {
+            if (gamepadIndex === null) return;
+
+            const gamepads = navigator.getGamepads();
+            const gamepad = gamepads[gamepadIndex];
+
+            if (!gamepad) {
+                gamepadIndex = null;
+                gamepadStatusEl.textContent = '未连接';
+                gamepadStatusEl.style.color = '#000';
+                return;
+            }
+
+            // 1. 映射标准按钮
+            for (const nesButtonStr in GAMEPAD_BUTTON_MAP) {
+                const nesButton = parseInt(nesButtonStr);
+                const gpIndex = GAMEPAD_BUTTON_MAP[nesButton];
+                const gpButton = gamepad.buttons[gpIndex];
+
+                const isDown = gpButton && gpButton.pressed;
+                const wasDown = previousGamepadButtons[nesButton];
+
+                if (isDown && !wasDown) {
+                    nes.buttonDown(1, nesButton);
+                } else if (!isDown && wasDown) {
+                    nes.buttonUp(1, nesButton);
+                }
+                previousGamepadButtons[nesButton] = isDown;
+            }
+
+            // 2. 映射摇杆/D-Pad (使用 Axes 轴)
+            const axes = gamepad.axes;
+
+            for (const dir in GAMEPAD_AXIS_MAP) {
+                const map = GAMEPAD_AXIS_MAP[dir];
+                
+                // *** 核心修复 ***：使用一个明确的阈值判断是否按下
+                let isDown = false;
+                if (map.value === -1.0) { // 上/左方向
+                    isDown = axes[map.axis] < -0.5;
+                } else if (map.value === 1.0) { // 下/右方向
+                    isDown = axes[map.axis] > 0.5;
+                }
+
+                const wasDown = previousGamepadButtons[map.button];
+
+                if (isDown && !wasDown) {
+                    nes.buttonDown(1, map.button);
+                } else if (!isDown && wasDown) {
+                    nes.buttonUp(1, map.button);
+                }
+                previousGamepadButtons[map.button] = isDown;
+            }
+        }
+
+        // --- Gamepad 连接事件 ---
+        window.addEventListener("gamepadconnected", (e) => {
+            if (gamepadIndex === null) {
+                gamepadIndex = e.gamepad.index;
+                gamepadStatusEl.textContent = `已连接: ${e.gamepad.id.slice(0, 30)}...`;
+                gamepadStatusEl.style.color = '#000';
+            }
+        });
+
+        window.addEventListener("gamepaddisconnected", (e) => {
+            if (e.gamepad.index === gamepadIndex) {
+                gamepadIndex = null;
+                gamepadStatusEl.textContent = '未连接';
+                gamepadStatusEl.style.color = '#000';
+            }
+        });
+
+        // =================================================================
+        // --- 游戏主循环 (移除暂停逻辑) ---
+        // =================================================================
         function onAnimationFrame() {
-            window.requestAnimationFrame(onAnimationFrame);
+            // 必须每帧轮询手柄状态
+            pollGamepad();
+
             if (isFileLoaded) {
                 nes.frame();
             }
+            animationFrameId = window.requestAnimationFrame(onAnimationFrame);
         }
-        window.requestAnimationFrame(onAnimationFrame);
 
-        // --- ROM 加载 ---        
+        window.requestAnimationFrame(onAnimationFrame); // 启动主循环
+
+        // =================================================================
+        // --- ROM 加载 ---
+        // =================================================================
         document.getElementById('rom-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -273,48 +387,48 @@
             if (!audioHandler) {
                 audioHandler = new AudioHandler();
             }
-            audioHandler.resume(); 
+            audioHandler.resume();
 
             const reader = new FileReader();
             reader.readAsBinaryString(file);
-                        
+
             reader.onload = function(e) {
                 try {
                     nes.loadROM(e.target.result);
-                    isFileLoaded = true;
+                    isFileLoaded = true; // 确保加载后运行
                     overlay.classList.remove('visible');
-                                        
-                    // 游戏加载成功后，启用所有功能按钮
+                    overlay.innerHTML = '游戏已加载'; 
+
+                    // 启用所有功能按钮
                     btnStartRec.disabled = false;
                     btnScreenshot.disabled = false;
                     btnShare.disabled = true;
-                    btnMute.disabled = false; 
-                    
+                    btnMute.disabled = false;
+                    btnLoad.disabled = false;
+
                     console.log("ROM Loaded OK");
                 } catch(err) {
                     alert("加载失败: " + err);
+                    overlay.innerHTML = '加载失败，请尝试其他 ROM 文件。';
+                    overlay.classList.add('visible');
                 }
             };
         });
-        
+
         // --- 静音功能实现 ---
         btnMute.addEventListener('click', function() {
-            if (!audioHandler) return;
-
+            if (!audioHandler || isRecording) return; 
             if (audioHandler.actx.state === 'running') {
                 audioHandler.pause();
                 btnMute.innerHTML = '🔇 取消静音';
-                console.log("Audio Paused (Muted)");
             } else if (audioHandler.actx.state === 'suspended') {
                 audioHandler.resume();
                 btnMute.innerHTML = '🔊 静音';
-                console.log("Audio Resumed (Unmuted)");
             }
         });
 
-
-        // ============================        
-        // --- 截图与分享功能实现 ---        
+        // ============================
+        // --- 截图与分享功能 (保持不变) ---
         // ============================
         function dataURLtoBlob(dataurl) {
             const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1];
@@ -342,7 +456,7 @@
             document.body.removeChild(a);
             alert("截图已下载！现在可以点击分享按钮。");
         }
-                
+
         async function shareScreenshot() {
             if (!lastScreenshotBlob) {
                 alert("请先点击 '截图' 按钮！");
@@ -355,7 +469,6 @@
                         title: '我的 FC 游戏截图',
                         text: '快来看我的游戏进度！ #NES #FC模拟器',
                     });
-                    console.log('截图分享成功');
                 } catch (error) {
                     if (error.name !== 'AbortError') {
                         console.error('分享失败:', error);
@@ -370,31 +483,29 @@
         btnScreenshot.addEventListener('click', takeScreenshot);
         btnShare.addEventListener('click', shareScreenshot);
 
-        // ============================        
-        // --- 录像功能实现 ---        
-        // ============================        
-        let mediaRecorder;        
-        let recordedChunks = [];        
+        // ============================
+        // --- 录像功能实现 (保持不变) ---
+        // ============================
+        let mediaRecorder;
+        let recordedChunks = [];
         let isRecording = false;
 
-        btnStartRec.addEventListener('click', startRecording);        
+        btnStartRec.addEventListener('click', startRecording);
         btnStopRec.addEventListener('click', stopRecording);
 
         function getMimeTypeOptions() {
-            const mp4Mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
             const webmMime = 'video/webm; codecs=vp9,opus';
-            if (MediaRecorder.isTypeSupported(mp4Mime)) { return { mimeType: mp4Mime }; } 
-            if (MediaRecorder.isTypeSupported(webmMime)) { return { mimeType: webmMime }; } 
+            const mp4Mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"'; 
+            if (MediaRecorder.isTypeSupported(webmMime)) { return { mimeType: webmMime }; }
+            if (MediaRecorder.isTypeSupported(mp4Mime)) { return { mimeType: mp4Mime }; }
             return {};
         }
 
         function startRecording() {
             if (!isFileLoaded || !audioHandler || isRecording) return;
-            // 录像时强制取消静音，否则视频没有声音
-            if (audioHandler.actx.state === 'suspended') {
-                 audioHandler.resume();
-                 btnMute.innerHTML = '🔊 静音'; // 恢复图标
-            }
+
+            // 录像时强制取消静音
+            if (audioHandler.actx.state === 'suspended') { audioHandler.resume(); }
 
             const canvasStream = canvas.captureStream(60);
             const audioStream = audioHandler.getAudioStream();
@@ -406,7 +517,7 @@
             const options = getMimeTypeOptions();
             if (!options.mimeType) { alert("录像功能不可用，浏览器不支持所需的视频编码。"); return; }
 
-            try { mediaRecorder = new MediaRecorder(combinedStream, options); } 
+            try { mediaRecorder = new MediaRecorder(combinedStream, options); }
             catch (e) { console.error("初始化 MediaRecorder 失败:", e); alert("初始化录像失败。"); return; }
 
             recordedChunks = [];
@@ -432,10 +543,8 @@
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-                        
             const actualMimeType = mediaRecorder.mimeType.toLowerCase();
             const fileExt = actualMimeType.includes('mp4') ? 'mp4' : 'webm';
-                        
             const timestamp = new Date().toISOString().slice(0,19).replace(/[-T:]/g, '');
             a.download = `FC_Gameplay_${timestamp}.${fileExt}`;
 
@@ -453,23 +562,25 @@
                 btnStartRec.style.display = 'none';
                 btnStopRec.style.display = 'flex';
                 recIndicator.style.display = 'flex';
-                document.querySelector('.btn-load').disabled = true;
+                btnLoad.disabled = true;
                 btnScreenshot.disabled = true;
                 btnShare.disabled = true;
-                btnMute.disabled = true; // 录像时禁用静音
+                btnMute.disabled = true;
             } else {
                 btnStartRec.style.display = 'flex';
                 btnStopRec.style.display = 'none';
                 recIndicator.style.display = 'none';
-                document.querySelector('.btn-load').disabled = false;
+                btnLoad.disabled = false;
                 btnScreenshot.disabled = false;
                 btnShare.disabled = (lastScreenshotBlob === null);
-                btnMute.disabled = false; // 恢复静音按钮
-             }
+                btnMute.disabled = false;
+            }
         }
 
-        // --- 键盘事件 ---        
-        const KEYMAP = { 
+        // ============================
+        // --- 键盘事件 ---
+        // ============================
+        const KEYMAP = {
             88: jsnes.Controller.BUTTON_A,                  // X 键
             90: jsnes.Controller.BUTTON_B,                  // Z 键
             17: jsnes.Controller.BUTTON_SELECT,             // Ctrl 键
@@ -482,9 +593,13 @@
 
         function handleKey(e, type) {
             if (KEYMAP[e.keyCode] !== undefined) {
-                nes[type === 'down' ? 'buttonDown' : 'buttonUp'](1, KEYMAP[e.keyCode]);
+                // 键盘输入仅在文件已加载时生效
+                if (isFileLoaded) {
+                    nes[type === 'down' ? 'buttonDown' : 'buttonUp'](1, KEYMAP[e.keyCode]);
+                }
                 e.preventDefault();
             }
+            // 移除 Enter 键的暂停快捷键
         }
         document.addEventListener('keydown', (e) => handleKey(e, 'down'));
         document.addEventListener('keyup', (e) => handleKey(e, 'up'));
