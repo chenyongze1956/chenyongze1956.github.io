@@ -1,22 +1,69 @@
 
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 1. 强制 Body 占据整个视口并居中内容 */
+        html, body {
+            height: 100%; /* 确保 html 和 body 占满整个屏幕高度 */
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 防止出现不必要的滚动条 */
+        }
+        
+        body {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            
+            /* 【核心居中】使用 Flexbox 同时进行水平和垂直居中 */
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+        }
 
+        /* 2. RSS 容器设置 - 限制最大尺寸并居中 */
+        .rss-center-wrapper {
+            width: 90vw; /* 占据视口宽度的 90% */
+            max-width: 400px; /* 限制在电脑端 RSS 框的最大宽度 */
+            
+            /* 垂直居中时，不需要 padding: 20px 0; */
+            padding: 0; 
+            box-sizing: border-box;
+            
+            /* 【高度控制】限制最大高度，防止在长屏幕上过高 */
+            max-height: 85vh; 
+        }
 
- <div style="text-align: center;">  <iframe width="250" height="750"   class="rssdog" src="https://www.rssdog.com/index.php?url=https%3A%2F%2Fanime-rss.vercel.app%2Fapi%2Frss%3Fdata%3D%255B%257B%2522keyword%2522%253A%2522%25E5%2585%2583%25E7%25A5%2596%25EF%25BC%2581BanG%2520Dream%2520Chan%2522%252C%2522site%2522%253A%2522bangumi%2522%257D%255D&mode=html&showonly=&maxitems=0&showdescs=0&desctrim=0&descmax=0&tabwidth=100%25&utf8=1&linktarget=_blank&bordercol=%23&headbgcol=%23&headtxtcol=%23&titlebgcol=%23&titletxtcol=%23000&itembgcol=%23&itemtxtcol=%23&ctl=0"></iframe></div>
+        /* 3. iframe 样式 - 适配容器尺寸 */
+        .rssdog {
+            display: block; 
+            margin: 0 auto;
+            
+            /* 确保 iframe 占据 rss-center-wrapper 的全部空间 */
+            width: 100%; 
+            height: 100%; 
+            
+            border: none; 
+            
+            /* 覆盖原 HTML 中设置的内联 width/height，确保响应式生效 */
+            max-width: none !important; 
+            min-height: 500px; /* 保持最小高度，防止内容挤压 */
+        }
 
+        /* 4. 移动端优化 */
+        @media (max-width: 600px) {
+            .rss-center-wrapper {
+                max-width: 95vw;
+                max-height: 95vh; /* 移动端占用更多高度 */
+            }
+        }
+    </style>
+</head>
+<body>
 
-
-<style>
-body{
-
- background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
-
-}
-
-</style>
-
-
-
-
-
-
+    <div class="rss-center-wrapper">
+             <iframe width="250" height="750" class="rssdog" src="https://www.rssdog.com/?url=https%3A%2F%2Fanime-rss.vercel.app%2Fapi%2Frss%3Fdata%3D%255B%257B%2522keyword%2522%253A%2522%25E5%2585%2583%25E7%25A5%2596%25EF%25BC%2581BanG%2520Dream%2520Chan%2522%252C%2522site%2522%253A%2522bangumi%2522%257D%255D&mode=html&showonly=&maxitems=0&showdescs=0&desctrim=0&descmax=0&tabwidth=100%25&utf8=1&linktarget=_blank&bordercol=%23&headbgcol=%23&headtxtcol=%23&titlebgcol=%23&titletxtcol=%23000&itembgcol=%23&itemtxtcol=%23&ctl=0"></iframe>
+    </div>
+</body>
+</html>
