@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Web FC 投屏接收端</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
+        }
+        #remoteVideo {
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; 
+            background: #111;
+        }
+        .control-panel {
+            position: absolute;
+            top: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10;
+        }
+        h2, p { margin: 5px 0; }
+        strong { color: #4CAF50; }
+    </style>
+</head>
+<body>
+
+    <div class="control-panel">
+        <h2>📺 WebRTC 接收端</h2>
+        <p>您的直播 ID (请告知主播): <strong id="myId">等待中...</strong></p>
+        <p id="status">状态: 正在等待主播连接...</p>
+    </div>
+
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <script>
+        const remoteVideo = document.getElementById('remoteVideo');
+        const myIdEl = document.getElementById('myId');
+        const statusEl = document.getElementById('status');
+        let peer = null;
+
+        function startViewer() {
+            // 1. 初始化 PeerJS (指向本地 PeerServer)
+            peer = new Peer({
+                // !!! 关键修改: 指向本地 PeerServer
+                host: '127.0.0.1', 
+                port: 9000,
+                path: '/',
+                secure: false // 本地连接
+            });
+
+            peer.on('open', (id) => {
+                myIdEl.textContent = id;
+                statusEl.textContent = "状态: 准备就绪，请将此 ID 告知主播";
+                myIdEl.style.color = '#FFC107';
+            });
+
+            // 2. 监听来自主播的呼叫
+            peer.on('call', (call) => {
+                statusEl.textContent = `状态: 收到来自 ${call.peer} 的呼叫，正在连接...`;
+                
+                call.answer(); 
+
+                // 3. 接收视频流
+                call.on('stream', (remoteStream) => {
+                    remoteVideo.srcObject = remoteStream;
+                    remoteVideo.play().catch(e => {
+                        console.error("Video playback failed:", e);
+                        statusEl.textContent = "状态: 视频播放失败，请尝试点击屏幕！";
+                    });
+                    
+                    statusEl.textContent = "状态: 正在直播！";
+                    myIdEl.style.color = '#4CAF50';
+                });
+                
+                call.on('close', () => {
+                    statusEl.textContent = "状态: 直播已断开";
+                    remoteVideo.srcObject = null;
+                    myIdEl.style.color = '#FFC107';
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.error("PeerJS 错误:", err);
+                statusEl.textContent = `P2P 错误: ${err.type} (请检查本地PeerServer是否运行)`;
+            });
+        }
+
+        startViewer();
+    </script>
+</body>
+</html>
