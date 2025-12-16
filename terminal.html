@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Terminal CLI (全功能)</title>
     <style>
          @keyframes rainbow-color-change {
             0%, 100% { color: #ff0000; } /* Red */
             14% { color: #ff8b00; } /* Orange */
             28% { color: #e8ff00; } /* Yellow */
-            42% { color: #5dff00; } /* Green */
             56% { color: #00b9ff; } /* Blue */
+            42% { color: #5dff00; } /* Green */
             70% { color: #5d00ff; } /* Indigo */
             84% { color: #e800ff; } /* Violet */
         }
@@ -44,7 +45,7 @@
         }
         /* --- 终端容器 --- */
         #terminal-container {
-            position: relative; 
+            position: relative; /* 保持相对定位 */
             background-color: var(--terminal-bg);
             width: 100%;
             max-width: var(--terminal-width-desktop);
@@ -54,7 +55,11 @@
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
             display: flex;
             flex-direction: column;
-            overflow: hidden;         
+            /* 关键：不需要 overflow: hidden; 来裁剪雪花，雪花现在是全局 Fixed 定位 */
+            color: var(--terminal-text); 
+            font-family: monospace; 
+            font-size: var(--font-size-desktop);
+            z-index: 100; /* 确保终端本身在雪花之上（尽管雪花 Z-index 更高） */
         }
         /* --- 输出区域 --- */
         #output {
@@ -142,15 +147,26 @@
             font-family: monospace; 
         }
 
-        /* --- XSNOW 样式和动画 (深度修正) --- */
+        /* --- XSNOW 样式和动画 (Fixed 定位强化) --- */
         #xsnow-container {
-            z-index: 1; 
+            position: fixed; /* 关键修复：改为 Fixed 定位，相对于整个视口 */
+            top: 0;
+            left: 0;
+            width: 100vw; /* 覆盖整个视口宽度 */
+            height: 100vh; /* 覆盖整个视口高度 */
+            pointer-events: none; /* 允许点击穿透 */
+            overflow: hidden;
+            z-index: 99999; /* 极高 Z-index，确保在所有元素之上 */
+            opacity: 0.8; 
+            display: none; /* 默认隐藏，启动时再显示 */
         }
         @keyframes fall {
             0% { 
-                transform: translateY(0) translateX(0) rotate(0deg); 
+                /* 雪花从视口顶部上方开始 */
+                transform: translateY(-5%) translateX(0) rotate(0deg); 
             }
             50% { 
+                /* 增加轻微的水平摆动 */
                 transform: translateY(50vh) translateX(5vw); 
             }
             100% { 
@@ -164,7 +180,9 @@
             animation-iteration-count: infinite;
             animation-direction: normal;
             animation-fill-mode: forwards;
-            position: absolute; 
+            position: absolute; /* 雪花相对于 #xsnow-container 绝对定位 */
+            color: white; 
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); 
         }
         
         /* 二维码样式 */
@@ -175,6 +193,14 @@
             white-space: pre;
             margin-top: 5px;
             margin-bottom: 5px;
+        }
+
+        /* 尺子样式 */
+        .ruler-ascii {
+            font-family: monospace;
+            white-space: pre;
+            color: #ff8000; 
+            margin: 5px 0;
         }
 
         /* --- 移动端优化 --- */
@@ -197,6 +223,8 @@
     </style>
 </head>
 <body>
+    <div id="xsnow-container"></div> 
+    
     <div id="terminal-container">
         <div id="output">
         </div>
@@ -429,6 +457,101 @@
             return genericResponses[Math.floor(Math.random() * genericResponses.length)];
         }
 
+        // --- 核心占卜辅助函数 (DIVINE) ---
+        
+        // 投掷三枚铜钱，返回点数 (6, 7, 8, 9)
+        function throwCoins() {
+            // 2: 反面 (头像/正面), 3: 正面 (字/背面)
+            // 结果和含义: 6(老阴,X), 7(少阳, —), 8(少阴, --), 9(老阳, O)
+            const throw1 = Math.floor(Math.random() * 2) + 2; // 2或3
+            const throw2 = Math.floor(Math.random() * 2) + 2;
+            const throw3 = Math.floor(Math.random() * 2) + 2;
+            return throw1 + throw2 + throw3;
+        }
+
+        // 爻的值和含义
+        const yaoMap = {
+            6: { symbol: 'X', isMoving: true, changesTo: 7, name: '老阴 (动)' }, // 变阳
+            7: { symbol: '—', isMoving: false, changesTo: 7, name: '少阳' },
+            8: { symbol: '--', isMoving: false, changesTo: 8, name: '少阴' },
+            9: { symbol: 'O', isMoving: true, changesTo: 8, name: '老阳 (动)' } // 变阴
+        };
+
+        // 获取爻的符号
+        function getYaoSymbol(yaoValue) {
+            return yaoMap[yaoValue] ? yaoMap[yaoValue].symbol : '??';
+        }
+
+        // 随机的模拟卦象名称和寓意 (简化版，仅用于模拟输出)
+        const simplifiedHexagrams = [
+            { code: 1, name: '乾为天 (创造)', message: '大吉。时机成熟，把握主动权，一切顺利。' },
+            { code: 2, name: '坤为地 (顺从)', message: '平稳。以柔克刚，跟随潮流，耐心等待。' },
+            { code: 3, name: '屯卦 (艰难)', message: '有阻碍。初期困难，需坚忍不拔，寻求外援。' },
+            { code: 4, name: '蒙卦 (启蒙)', message: '迷茫。需要老师或导师指导，不可贸然行事。' },
+            { code: 5, name: '需卦 (等待)', message: '等待时机。宜静不宜动，准备充分后再行动。' },
+            { code: 6, name: '讼卦 (争讼)', message: '凶险。避免争执，退让为宜，否则两败俱伤。' },
+            { code: 7, name: '师卦 (结集)', message: '聚合力量。需要团结一致，找到正确的领导者。' },
+            { code: 8, name: '比卦 (亲密)', message: '和谐。人际关系良好，适合合作和交友。' },
+            { code: 30, name: '离为火 (光明)', message: '顺利。前景光明，但需保持警惕，防止过度依赖。' },
+            { code: 64, name: '未济 (未完成)', message: '仍需努力。事情尚未完结，坚持到底才能成功。' }
+        ];
+
+        // 模拟生成完整的六爻 (6次投掷)
+        function generateHexagram() {
+            let hexagram = [];
+            let changingHexagram = []; 
+            let movingYaoIndices = []; 
+
+            for (let i = 0; i < 6; i++) {
+                const result = throwCoins(); 
+                hexagram.push(result);
+
+                if (yaoMap[result].isMoving) {
+                    movingYaoIndices.push(i);
+                    changingHexagram.push(yaoMap[result].changesTo);
+                } else {
+                    changingHexagram.push(result);
+                }
+            }
+            
+            // 为了模拟，如果所有爻都是静止的，我们随机指定一个爻变动 (使结果更有趣)
+            if (movingYaoIndices.length === 0) {
+                 const randomIndex = Math.floor(Math.random() * 6);
+                 hexagram[randomIndex] = (Math.random() > 0.5 ? 6 : 9); 
+                 movingYaoIndices.push(randomIndex);
+                 changingHexagram[randomIndex] = yaoMap[hexagram[randomIndex]].changesTo;
+            }
+
+
+            return { hexagram, changingHexagram, movingYaoIndices };
+        }
+
+        // 模拟分析卦象并给出寓意
+        function analyzeHexagram(hexagram) {
+            // 简单地基于随机选择的简化卦象
+            const mainHex = simplifiedHexagrams[Math.floor(Math.random() * simplifiedHexagrams.length)];
+            const changeHex = simplifiedHexagrams[Math.floor(Math.random() * simplifiedHexagrams.length)];
+
+            let message;
+            if (mainHex.code === changeHex.code || Math.random() < 0.2) { // 20% 概率无变卦
+                message = `卦象为【${mainHex.name}】。这代表您目前处于一个相对稳定的阶段。您的答案在于“${mainHex.message}”这一启示。`;
+                return {
+                    hexagramCode: mainHex.code,
+                    hexagramName: mainHex.name,
+                    oracleMessage: message
+                };
+            } else {
+                message = `由【${mainHex.name}】变至【${changeHex.name}】。这预示着变化正在发生。当前的核心在于“${mainHex.message}”，而未来的方向将趋向于“${changeHex.message}”。`;
+                 return {
+                    hexagramCode: mainHex.code,
+                    hexagramName: mainHex.name,
+                    changingHexagramCode: changeHex.code,
+                    changingHexagramName: changeHex.name,
+                    oracleMessage: message
+                };
+            }
+        }
+
 
         // --- 核心命令执行 ---                        
         const commands = {
@@ -615,6 +738,83 @@
             },
             
             'linuxlogo': { description: '显示 logo 和系统信息。', execute: () => { writeOutput(`      /\\ /\\         OS: Web-CLI FunOS\n     ( ◕ ◕ )        Kernel: 5.15.0-js-web\n   <  / ^ \\  >      Uptime: ...\n    \\ \\_/ /       User: ${CLI_USER}\n     '---'        CPU: Browser Core (x86_64)`, 'welcome'); } },
+
+            // --- 尺子功能 (RULER) ---
+            'ruler': {
+                description: '生成一条指定长度的 ASCII 尺。用法: ruler [长度]',
+                execute: (args) => {
+                    const defaultLength = 80; 
+                    let length = defaultLength;
+                    
+                    if (args.length > 0) {
+                        const parsedLength = parseInt(args[0]);
+                        if (!isNaN(parsedLength) && parsedLength > 0) {
+                            // 限制最大长度以防止性能问题和终端宽度限制
+                            length = Math.min(parsedLength, 120); 
+                        } else if (!isNaN(parsedLength) && parsedLength <= 0) {
+                            writeOutput('ruler: 长度必须为正数。', 'error');
+                            return;
+                        } else {
+                            writeOutput('ruler: 无效的长度参数，使用默认长度 80。', 'error');
+                        }
+                    }
+
+                    let indexLine = '';
+                    let scaleLine = '';
+                    let tempScale = 0;
+
+                    // 生成刻度线和数字行
+                    for (let i = 0; i < length; i++) {
+                        if (i % 10 === 0) {
+                            // 每隔10个字符打印数字
+                            const numStr = String(tempScale);
+                            const currentNumLength = numStr.length;
+                            
+                            // 打印数字，如果数字长度大于剩余空间，则停止
+                            if (i + currentNumLength <= length) {
+                                indexLine += numStr;
+                                // 填充空格直到下一个刻度线或行尾
+                                const spacesToFill = 10 - currentNumLength;
+                                
+                                for (let j = 0; j < spacesToFill && (i + currentNumLength + j) < length; j++) {
+                                    indexLine += ' ';
+                                }
+
+                                i += (10 - 1); // 因为 for 循环的 i++，所以这里减去 1
+                                scaleLine += '|' + '-'.repeat(9); // 10个字符的刻度
+                                tempScale += 10;
+
+                            } else {
+                                // 空间不足，只打印刻度线，并结束
+                                indexLine += ' '.repeat(length - indexLine.length);
+                                scaleLine += '|' + '-'.repeat(length - scaleLine.length - 1);
+                                break; 
+                            }
+                            
+                        } else if (i % 5 === 0) {
+                            // 每隔5个字符打印中刻度
+                            scaleLine += '+';
+                            indexLine += ' ';
+                        } else {
+                            // 其他为短刻度
+                            scaleLine += '-';
+                            indexLine += ' ';
+                        }
+                    }
+
+                    // 确保最后长度匹配
+                    indexLine = indexLine.substring(0, length);
+                    scaleLine = scaleLine.substring(0, length);
+                    
+                    const rulerOutput = 
+                        `尺子长度: ${length} 个字符 (请使用全宽/等宽字体)\n` +
+                        `<span style="color:#ff8000;">${indexLine}</span>\n` +
+                        `<span style="color:#ff8000;">${scaleLine}</span>`;
+
+                    // 使用 writeHtmlOutput 并设置 class 以应用等宽字体
+                    writeHtmlOutput(`<div class="ruler-ascii">${rulerOutput}</div>`);
+                }
+            },
 
             // --- 网络/多媒体修正命令 ---
             
@@ -1167,6 +1367,67 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                 }
             },
 
+            // --- DIVINE 命令 (模拟六爻占卜) ---
+            'divine': {
+                description: '进行六爻占卜，模拟回答您提出的问题。用法: divine "我的事业运如何?"',
+                execute: (args) => {
+                    if (args.length === 0) {
+                        writeOutput('divine: 请提出您的问题 (例如: divine "我应该换工作吗?")', 'error');
+                        return;
+                    }
+                    const userQuestion = args.join(' ');
+
+                    writeOutput(`\n🔮 接收到您的提问: "${userQuestion}"`, 'welcome');
+                    writeOutput('   正在模拟投掷三枚铜钱，进行六爻占卜...', 'welcome');
+                    
+                    input.disabled = true;
+                    promptSpan.innerText = 'DIVINING...';
+                    promptSpan.style.color = '#ffc0cb'; // Pink for mysticism
+
+                    // 1. 模拟延迟和进程
+                    setTimeout(() => {
+                        const castResult = generateHexagram();
+                        const analysis = analyzeHexagram(castResult.hexagram);
+                        
+                        // 2. 占卜结果输出
+                        writeOutput('\n--- 六爻占卜结果 ---');
+                        writeOutput('爻辞排列 (从下往上):', 'dir');
+                        
+                        // 输出爻的排列和动爻信息
+                        const hexagramDisplay = castResult.hexagram.map((yao, index) => {
+                            const isMoving = castResult.movingYaoIndices.includes(index);
+                            const yaoSymbol = getYaoSymbol(yao);
+                            const yaoText = `爻${index + 1}: ${yaoSymbol}`;
+                            const movingText = isMoving ? ` (动爻，变${getYaoSymbol(yaoMap[yao].changesTo)})` : '';
+                            return yaoText + movingText;
+                        }).reverse().join('\n');
+                        
+                        writeOutput(hexagramDisplay);
+
+                        // 3. 卦象解读
+                        writeOutput('\n--- 卦象解读 ---', 'dir');
+                        writeOutput(`主卦象: ${analysis.hexagramName}${analysis.hexagramCode ? ` (${analysis.hexagramCode})` : ''}`);
+                        if (analysis.changingHexagramName) {
+                            writeOutput(`变卦象: ${analysis.changingHexagramName}${analysis.changingHexagramCode ? ` (${analysis.changingHexagramCode})` : ''}`);
+                        }
+                        
+                        // 4. 给出模拟的启示
+                        writeOutput('\n--- 启示录 (The Oracle) ---', 'dir');
+                        writeOutput(analysis.oracleMessage, 'dir');
+                        
+                        writeOutput('\n占卜结束。命运在您自己的手中。', 'welcome');
+
+                        // 5. 恢复终端状态
+                        input.disabled = false;
+                        updatePrompt();
+                        input.focus();
+                        promptSpan.style.color = 'var(--prompt-color)';
+                        scrollToBottom();
+                        
+                    }, 2500); // 模拟 2.5 秒的占卜过程
+                }
+            },
+
             // --- MPLATER 命令 (模拟媒体播放器) ---
             'mplayer': {
                 description: '模拟媒体播放器。用法: mplayer <URL/文件> (Ctrl+C 停止)',
@@ -1342,12 +1603,12 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     /  @   \\
                    | /\\ /\\ |
                    |_______|
-                    \\_____/
+                    \\___/
                      | | |
                      | | |
 `,
                         `
-                       _..._
+                      _..._
                      ,dP""YMb,
                     dP'  @  'YMb
                    |    / \\    |
@@ -1508,61 +1769,80 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                 }
             },
             
-            // XSNOW 命令 (已修正降落深度和速度)
+            // XSNOW 命令 (Fixed 定位强化)
             'xsnow': {
                 description: '模拟终端降雪效果。按 Ctrl+C 退出。',
                 execute: () => {
-                    if (xsnowIntervalId !== null) { writeOutput('xsnow 已经在运行。请按 Ctrl+C 退出。', 'error'); return; }
-                    const terminalContainer = document.getElementById('terminal-container');
-                    const snowContainer = document.createElement('div');
-                    snowContainer.id = 'xsnow-container';
-                    snowContainer.style.position = 'absolute';
-                    snowContainer.style.top = '0';
-                    snowContainer.style.left = '0';
-                    snowContainer.style.width = '100%';
-                    snowContainer.style.height = '100%';
-                    snowContainer.style.pointerEvents = 'none'; 
-                    snowContainer.style.overflow = 'hidden'; 
-                    snowContainer.style.zIndex = '1'; 
-                    terminalContainer.appendChild(snowContainer); 
+                    if (xsnowIntervalId !== null) { 
+                        writeOutput('xsnow 已经在运行。请按 Ctrl+C 退出。', 'error'); 
+                        return; 
+                    }
+                    
+                    const snowContainer = document.getElementById('xsnow-container');
+                    snowContainer.innerHTML = ''; 
+                    snowContainer.style.display = 'block'; // 显示容器
+                    
                     input.disabled = true;
                     promptSpan.innerText = 'SNOWING... (按 Ctrl+C 停止)';
                     promptSpan.style.color = '#87ceeb'; 
+                    
                     let flakeCount = 0; 
-                    const MAX_FLAKES = 100;
+                    const MAX_FLAKES = 100; 
+                    const containerWidth = window.innerWidth;
+                    
                     const createFlake = () => {
-                        if (xsnowIntervalId === null || flakeCount >= MAX_FLAKES) return; 
+                        if (xsnowIntervalId === null || flakeCount >= MAX_FLAKES) {
+                            // 保持定时器运行直到达到最大数量，然后停止生成
+                            if (flakeCount >= MAX_FLAKES) {
+                                clearInterval(xsnowIntervalId);
+                                xsnowIntervalId = setInterval(cleanupFlakes, 1000); // 切换到清理模式
+                            }
+                             return;
+                        }
                         flakeCount++;
+                        
                         const flake = document.createElement('span');
-                        flake.textContent = (Math.random() > 0.5 ? '*' : '•');
+                        flake.innerHTML = (Math.random() > 0.5 ? '&#10052;' : '&#10053;'); 
                         flake.className = 'snowflake';
+                        
                         const startX = Math.random() * 100; 
                         const size = Math.random() * 0.8 + 0.4; 
-                        const duration = Math.random() * 10 + 5; // 5s 到 15s 降落时间
+                        const duration = Math.random() * 10 + 5; 
                         const delay = Math.random() * 10; 
+                        
+                        // 使用 vh 和 vw 确保动画基于视口
                         flake.style.cssText = `
-                            position: absolute;
-                            top: -5%; 
-                            left: ${startX}%;
+                            position: absolute; /* 相对于 Fixed 的父容器 */
+                            top: -5vh; 
+                            left: ${startX}vw;
                             font-size: ${size}rem;
-                            color: white; 
                             opacity: ${Math.random() * 0.5 + 0.5};
                             pointer-events: none;
-                            z-index: 999;
+                            z-index: 99999; 
                             animation: fall ${duration}s linear infinite;
                             animation-delay: -${delay}s; 
                         `;
+                        
                         snowContainer.appendChild(flake);
+                        
+                        // 移除动画结束后的元素 (防止 DOM 爆炸)
+                        // 使用一个稍微长一点的 timeout 来确保动画跑完
                         setTimeout(() => {
                             if (flake.parentNode) {
                                 flakeCount--;
                                 flake.remove();
                             }
-                        }, duration * 1000 + 1000); 
+                        }, (duration + delay) * 1000 + 1000); 
                     };
-                    output.innerHTML = '';
-                    writeOutput('❄️ XSnow: 启动降雪模式 (降落深度已修正)...', 'welcome');
+
+                    const cleanupFlakes = () => {
+                        // 在 Ctrl+C 时进行清理，这个函数在启动时并不执行
+                    };
+
+                    output.innerHTML = ''; 
+                    writeOutput('❄️ XSnow: 启动降雪模式 (Fixed 强化修复)...', 'welcome');
                     scrollToBottom();
+                    
                     xsnowIntervalId = setInterval(createFlake, 200); 
                 }
             }
@@ -1584,7 +1864,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             const cmd = commands[command];
             if (cmd) {
                 // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx', 'chat'].includes(command)) {
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx', 'chat', 'divine', 'ruler'].includes(command)) {
                     // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
@@ -1600,9 +1880,10 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
         }                
 
         function writeWelcome() {
+            writeOutput('');
+            writeOutput('');
             writeOutput('', '');
-            writeOutput('', '');
-            writeOutput('', '');
+            writeOutput('', ''); 
             writeOutput('', ''); 
             writeOutput('', ''); 
             writeOutput('', '');
@@ -1614,10 +1895,9 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
                 
-                // 检查是否在 chat 模式下，如果是，则不拦截 Ctrl+C，让 chatListener 处理 /quit 逻辑
+                // 检查是否在 chat 模式下
                 if (promptSpan.innerText.startsWith('AI-CHAT:')) {
                     // 允许 chatListener 接收 Ctrl+C 后的输入，用户需要手动输入 /quit
-                    // 但需要中断正在进行的 thinking 状态
                     if (input.disabled) {
                          // 清理 AI 思考中的状态，并提醒用户手动退出
                          input.disabled = false;
@@ -1660,12 +1940,19 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                         clearInterval(mplayerIntervalId);
                         mplayerIntervalId = null;
                     }
+                    
+                    // 清理 xsnow 定时器和元素 (这次的清理逻辑)
                     if (xsnowIntervalId !== null) {
                         clearInterval(xsnowIntervalId);
                         xsnowIntervalId = null;
                         const snowContainer = document.getElementById('xsnow-container');
                         if (snowContainer) {
-                            snowContainer.remove();
+                            // 移除雪花容器内的所有子元素 (雪花)
+                            while (snowContainer.firstChild) {
+                                snowContainer.removeChild(snowContainer.firstChild);
+                            }
+                            // 隐藏容器本身
+                            snowContainer.style.display = 'none';
                         }
                     }
                     
