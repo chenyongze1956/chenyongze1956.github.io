@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Terminal CLI (全功能)</title>
     <style>
          @keyframes rainbow-color-change {
             0%, 100% { color: #ff0000; } /* Red */
@@ -129,7 +128,7 @@
             font-weight: bold;
         }                        
         .file {
-            color: var(--file-color);
+            color: var(--file-color;
         }
         .output-line img {
             max-width: 100%; 
@@ -392,6 +391,42 @@
                     writeHtmlOutput(displayList);
                 }
             }
+        }
+
+        // --- 核心 AI 模拟函数 ---
+        function simulateAiResponse(query) {
+            const lowQuery = query.toLowerCase();
+
+            // 预设知识点和关键词识别
+            if (lowQuery.includes('时间') || lowQuery.includes('日期')) {
+                return `当前的时间是 ${new Date().toLocaleString()}。我的内部时钟与您的系统保持同步。`;
+            }
+            if (lowQuery.includes('你是谁') || lowQuery.includes('介绍')) {
+                return '我是一个基于 JavaScript 模拟的 AI 模型，运行在 Web-CLI 终端环境中，旨在提供一个虚拟的交互式体验。';
+            }
+            if (lowQuery.includes('天气') || lowQuery.includes('温度')) {
+                return '我的环境无法访问实时的外部数据，因此无法提供准确的天气信息。';
+            }
+            if (lowQuery.includes('编程') || lowQuery.includes('代码')) {
+                return '编程是一种与机器沟通的艺术。您在寻找特定的算法优化或语言特性吗？';
+            }
+            if (lowQuery.includes('美元') || lowQuery.includes('汇率')) {
+                return '我不能提供实时金融数据，但您可以使用终端中的 `fx` 命令查询模拟汇率。';
+            }
+            if (lowQuery.includes('你好') || lowQuery.includes('您好')) {
+                const greetings = ['很高兴能为您服务。', '您好！', '有什么可以帮到您的？'];
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            }
+
+            // 通用/哲学/随机回复
+            const genericResponses = [
+                '这是一个深刻的问题。我的计算显示，答案可能隐藏在输入本身的复杂性中。',
+                '我理解您的查询。我正在处理大量数据以找到最优解。',
+                '我目前的数据集缺乏关于该主题的具体信息。您能提供更多上下文吗？',
+                '我将此标记为未来的训练数据。感谢您的输入。',
+                '在逻辑上，这似乎是一个开放性问题，涉及主观性和环境依赖性。',
+            ];
+            return genericResponses[Math.floor(Math.random() * genericResponses.length)];
         }
 
 
@@ -1073,6 +1108,64 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                     }, 1000); // 模拟 1 秒的网络延迟
                 }
             },
+            
+            // --- CHAT 命令 (模拟 AI 聊天) ---
+            'chat': {
+                description: '启动AI聊天会话。输入 /quit 或 /exit 退出会话。',
+                execute: () => {
+                    writeOutput('正在连接 AI 核心引擎 (v2.0)...', 'welcome');
+                    writeOutput('AI: 问候。我是 Web-CLI AI 助理。请问您有什么需要？输入 /quit 或 /exit 结束会话。', 'dir');
+                    
+                    // 禁用其他命令，进入聊天模式
+                    input.disabled = true; 
+                    promptSpan.innerText = 'AI-CHAT: ';
+                    promptSpan.style.color = '#ff69b4'; // Hot Pink for AI
+
+                    // 临时事件监听器，用于处理聊天输入
+                    const chatListener = (e) => {
+                        if (e.key === 'Enter') {
+                            const chatInput = input.value.trim();
+                            writeCommandHistory(chatInput); // 记录用户输入
+                            input.value = '';
+
+                            // 1. 检查退出命令
+                            if (chatInput === '/quit' || chatInput === '/exit') {
+                                writeOutput('AI: 收到退出请求。会话已结束。期待您的下次连接。', 'dir');
+                                
+                                // 清理
+                                input.removeEventListener('keydown', chatListener);
+                                input.disabled = false;
+                                updatePrompt();
+                                input.focus();
+                                promptSpan.style.color = 'var(--prompt-color)';
+                                return;
+                            }
+                            
+                            // 2. 模拟 AI 思考延迟
+                            input.disabled = true;
+                            promptSpan.innerText = 'AI-THINKING...';
+                            promptSpan.style.color = '#ff69b4'; 
+
+                            setTimeout(() => {
+                                let response = simulateAiResponse(chatInput);
+                                writeOutput('AI: ' + response, 'dir');
+                                
+                                // 恢复聊天模式
+                                input.disabled = false;
+                                promptSpan.innerText = 'AI-CHAT: ';
+                                promptSpan.style.color = '#ff69b4'; 
+                                input.focus();
+                                scrollToBottom();
+                            }, 1500 + Math.random() * 1000); // 1.5 到 2.5 秒的思考时间
+                        }
+                    };
+
+                    // 添加临时监听器
+                    input.addEventListener('keydown', chatListener);
+                    input.disabled = false;
+                    input.focus();
+                }
+            },
 
             // --- MPLATER 命令 (模拟媒体播放器) ---
             'mplayer': {
@@ -1491,7 +1584,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             const cmd = commands[command];
             if (cmd) {
                 // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx'].includes(command)) {
+                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx', 'chat'].includes(command)) {
                     // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
                     cmd.execute(args);
                 } else {
@@ -1520,6 +1613,22 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             
             // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
             if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
+                
+                // 检查是否在 chat 模式下，如果是，则不拦截 Ctrl+C，让 chatListener 处理 /quit 逻辑
+                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
+                    // 允许 chatListener 接收 Ctrl+C 后的输入，用户需要手动输入 /quit
+                    // 但需要中断正在进行的 thinking 状态
+                    if (input.disabled) {
+                         // 清理 AI 思考中的状态，并提醒用户手动退出
+                         input.disabled = false;
+                         promptSpan.innerText = 'AI-CHAT: ';
+                         promptSpan.style.color = '#ff69b4';
+                         writeOutput('AI: 思考中断。请手动输入 /quit 退出聊天模式。', 'error');
+                         input.focus();
+                    }
+                    return; 
+                }
+
                 // ... (原有的 Ctrl+C 清理逻辑)
                 if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null || mplayerIntervalId !== null) {
                     e.preventDefault(); 
@@ -1574,15 +1683,37 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
             }
 
             if (e.key === 'Enter') {
-                if (input.disabled) return; 
+                // 如果处于 AI-CHAT 模式，Enter 键已经在 chatListener 中处理，这里只拦截正常命令的执行
+                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
+                    // 如果在 AI-CHAT 模式，且输入框被禁用（即 AI 正在思考），则忽略 Enter
+                    if (input.disabled) {
+                        e.preventDefault();
+                    }
+                    return;
+                }
+                
+                if (input.disabled) {
+                    e.preventDefault();
+                    return;
+                } 
                 handleInput();
             } else if (e.key === 'ArrowUp') {
+                // 如果处于 AI-CHAT 模式，禁用历史记录
+                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
+                    e.preventDefault();
+                    return;
+                }
                 e.preventDefault();
                 if (historyIndex > 0) {
                     historyIndex--;
                     input.value = history[historyIndex];
                 }
             } else if (e.key === 'ArrowDown') {
+                 // 如果处于 AI-CHAT 模式，禁用历史记录
+                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
+                    e.preventDefault();
+                    return;
+                }
                 e.preventDefault();
                 if (historyIndex < history.length - 1) {
                     historyIndex++;
@@ -1593,7 +1724,7 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
                 }
             } else if (e.key === 'Tab') {
                 e.preventDefault();
-                if (!input.disabled) {
+                if (!input.disabled && !promptSpan.innerText.startsWith('AI-CHAT:')) { // AI 模式下禁用补全
                     autoComplete();
                 }
             }
@@ -1613,4 +1744,4 @@ rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
         });
     </script>
 </body>
-</html>
+    </html>
