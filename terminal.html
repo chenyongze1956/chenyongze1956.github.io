@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Terminal CLI (全功能)</title>
+    <title>Web Terminal CLI (超全功能 - 魔法版)</title>
     <style>
-         @keyframes rainbow-color-change {
-            0%, 100% { color: #ff0000; } /* Red */
-            14% { color: #ff8b00; } /* Orange */
-            28% { color: #e8ff00; } /* Yellow */
-            56% { color: #00b9ff; } /* Blue */
-            42% { color: #5dff00; } /* Green */
-            70% { color: #5d00ff; } /* Indigo */
-            84% { color: #e800ff; } /* Violet */
+        /* [CSS Styles for Terminal Look and Feel] */
+        @keyframes rainbow-color-change {
+            0%, 100% { color: #ff0000; }
+            14% { color: #ff8b00; }
+            28% { color: #e8ff00; }
+            56% { color: #00b9ff; }
+            42% { color: #5dff00; }
+            70% { color: #5d00ff; }
+            84% { color: #e800ff; }
         }
-        /* CSS Reset and Global Styles */
         * {
             box-sizing: border-box;
         }
@@ -43,58 +43,45 @@
             font-size: var(--font-size-desktop);
             animation: rainbow-color-change 3s linear infinite alternate;
         }
-        /* --- 终端容器 --- */
         #terminal-container {
-            position: relative; /* 保持相对定位 */
+            position: relative;
             background-color: var(--terminal-bg);
             width: 100%;
             max-width: var(--terminal-width-desktop);
-            height: 100vh; 
-            max-height: var(--terminal-height-desktop); 
+            height: 100vh;
+            max-height: var(--terminal-height-desktop);
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
             display: flex;
             flex-direction: column;
-            /* 关键：不需要 overflow: hidden; 来裁剪雪花，雪花现在是全局 Fixed 定位 */
-            color: var(--terminal-text); 
-            font-family: monospace; 
+            color: var(--terminal-text);
+            font-family: monospace;
             font-size: var(--font-size-desktop);
-            z-index: 100; /* 确保终端本身在雪花之上（尽管雪花 Z-index 更高） */
+            z-index: 100;
+            transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out; 
         }
-        /* --- 输出区域 --- */
         #output {
             flex-grow: 1;
             overflow-y: auto;
             padding: 15px;
             line-height: 1.4;
-            white-space: pre-wrap; 
+            white-space: pre-wrap;
             word-break: break-all;
-            position: relative; 
-            z-index: 2; 
+            position: relative;
+            z-index: 2;
         }
-        /* Custom Scrollbar for better retro look */
-        #output::-webkit-scrollbar {
-            width: 8px;
-        }
-        #output::-webkit-scrollbar-track {
-            background: #222;
-        }
-        #output::-webkit-scrollbar-thumb {
-            background: #004d00;
-            border-radius: 4px;
-        }
-        #output::-webkit-scrollbar-thumb:hover {
-            background: var(--terminal-text);
-        }                        
-        /* --- 输入行 --- */
+        #output::-webkit-scrollbar { width: 8px; }
+        #output::-webkit-scrollbar-track { background: #222; }
+        #output::-webkit-scrollbar-thumb { background: #004d00; border-radius: 4px; }
+        #output::-webkit-scrollbar-thumb:hover { background: var(--terminal-text); }
         #input-line {
             display: flex;
             align-items: center;
             padding: 10px 15px;
             border-top: 1px solid #004d00;
-            flex-shrink: 0; 
+            flex-shrink: 0;
             position: relative;
-            z-index: 3; 
+            z-index: 3;
         }
         #prompt {
             color: var(--prompt-color);
@@ -110,121 +97,78 @@
             font-family: inherit;
             font-size: inherit;
             outline: none;
-            caret-color: var(--terminal-text); 
+            caret-color: var(--terminal-text);
             padding: 0;
             margin: 0;
-        }                        
-        /* --- 输出行样式 --- */
-        .output-line {
-            margin: 0;
         }
-        .output-line span {
-            color: var(--prompt-color);         
-        }
-        .error {
-            color: #ff4500; 
-        }
-        .welcome {
-            color: #ffff00; 
-            margin-bottom: 10px;
-        }
-        .dir {
-            color: var(--dir-color);
-            font-weight: bold;
-        }                        
-        .file {
-            color: var(--file-color;
-        }
+        .output-line { margin: 0; }
+        .output-line span { color: var(--prompt-color); }
+        .error { color: #ff4500; }
+        .welcome { color: #ffff00; margin-bottom: 10px; }
+        .dir { color: var(--dir-color); font-weight: bold; }
+        .file { color: var(--file-color); }
         .output-line img {
-            max-width: 100%; 
-            height: auto; 
-            margin-top: 10px; 
-            border: 1px solid #00ff00; 
-            display: block; 
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+            border: 1px solid #00ff00;
+            display: block;
         }
         #sl-train-animation, #gifwrap-animation, #gkrellm-monitor, #cbonsai-animation, #mplayer-progress {
             white-space: pre;
-            font-family: monospace; 
+            font-family: monospace;
         }
-
-        /* --- XSNOW 样式和动画 (Fixed 定位强化) --- */
-        #xsnow-container {
-            position: fixed; /* 关键修复：改为 Fixed 定位，相对于整个视口 */
-            top: 0;
-            left: 0;
-            width: 100vw; /* 覆盖整个视口宽度 */
-            height: 100vh; /* 覆盖整个视口高度 */
-            pointer-events: none; /* 允许点击穿透 */
-            overflow: hidden;
-            z-index: 99999; /* 极高 Z-index，确保在所有元素之上 */
-            opacity: 0.8; 
-            display: none; /* 默认隐藏，启动时再显示 */
-        }
-        @keyframes fall {
-            0% { 
-                /* 雪花从视口顶部上方开始 */
-                transform: translateY(-5%) translateX(0) rotate(0deg); 
-            }
-            50% { 
-                /* 增加轻微的水平摆动 */
-                transform: translateY(50vh) translateX(5vw); 
-            }
-            100% { 
-                /* 确保雪花降落覆盖整个视口高度 */
-                transform: translateY(105vh) translateX(0) rotate(360deg); 
-            }
-        }
-        .snowflake {
-            animation-name: fall;
-            animation-timing-function: linear;
-            animation-iteration-count: infinite;
-            animation-direction: normal;
-            animation-fill-mode: forwards;
-            position: absolute; /* 雪花相对于 #xsnow-container 绝对定位 */
-            color: white; 
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); 
-        }
-        
-        /* 二维码样式 */
         .qr-code-ascii {
             font-family: monospace;
-            line-height: 0.7; 
+            line-height: 0.7;
             color: #ffffff;
             white-space: pre;
             margin-top: 5px;
             margin-bottom: 5px;
         }
-
-        /* 尺子样式 */
         .ruler-ascii {
             font-family: monospace;
             white-space: pre;
-            color: #ff8000; 
+            color: #ff8000;
             margin: 5px 0;
         }
-
-        /* --- 移动端优化 --- */
+        #xsnow-container {            
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100vw; 
+            height: 100vh; 
+            pointer-events: none; 
+            overflow: hidden;
+            z-index: 99999; 
+            opacity: 0.8; 
+            display: none; 
+        }        
+        @keyframes fall {            
+            0% { transform: translateY(-5%) translateX(0) rotate(0deg); }            
+            50% { transform: translateY(50vh) translateX(5vw); }            
+            100% { transform: translateY(105vh) translateX(0) rotate(360deg); }        
+        }        
+        .snowflake {            
+            animation-name: fall;            
+            animation-timing-function: linear;            
+            animation-iteration-count: infinite;            
+            animation-direction: normal;            
+            animation-fill-mode: forwards;            
+            position: absolute; 
+            color: white; 
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); 
+        }
         @media (max-width: 768px) {
-            body {
-                font-size: var(--font-size-mobile);
-                padding: 0;
-            }
-            #terminal-container {
-                border-radius: 0;
-                height: 100vh; 
-            }
-            #output {
-                padding: 10px;
-            }
-            #input-line {
-                padding: 8px 10px;
-            }
+            body { font-size: var(--font-size-mobile); padding: 0; }
+            #terminal-container { border-radius: 0; height: 100vh; }
+            #output { padding: 10px; }
+            #input-line { padding: 8px 10px; }
         }
     </style>
 </head>
 <body>
-    <div id="xsnow-container"></div> 
-    
+    <div id="xsnow-container"></div>
     <div id="terminal-container">
         <div id="output">
         </div>
@@ -233,39 +177,50 @@
             <input type="text" id="commandInput" autofocus>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
     <script>
         const output = document.getElementById('output');
         const input = document.getElementById('commandInput');
         const promptSpan = document.getElementById('prompt');
+        const terminalContainer = document.getElementById('terminal-container');
         const initialPromptText = "user@web-cli:";
         const CLI_USER = 'web-cli-user';
-                        
+                                
         let history = [];
         let historyIndex = -1;
-        let currentPath = '/home/user'; 
-        
-        // --- 全局定时器 ID ---
-        let gkrellmIntervalId = null; 
-        let gifwrapIntervalId = null; 
-        let slIntervalId = null; 
-        let xsnowIntervalId = null; 
-        let cbonsaiIntervalId = null; 
-        let pingIntervalId = null; 
-        let mplayerIntervalId = null; 
+        let currentPath = '/home/user';
+        let isLumosActive = false; // 魔法功能所需
+        let isChatMode = false; // chat 模式开关
+        let chatHistory = []; 
+        let isCtrlCBlocked = false; 
+
+        // --- 全局定时器 ID 列表 ---
+        let activeIntervals = [];
+
+        function clearAllIntervals() {
+            activeIntervals.forEach(id => clearInterval(id));
+            activeIntervals = [];
+        }
+
+        function clearAllTimeouts() {
+            // 清除各种动画和模拟进程
+            const xsnowContainer = document.getElementById('xsnow-container');
+            if (xsnowContainer) {
+                xsnowContainer.style.display = 'none';
+                xsnowContainer.innerHTML = '';
+            }
+            
+            // 重置 Ctrl+C
+            isCtrlCBlocked = false;
+        }
         // ----------------------
-                        
+                                
         // --- 全局数据 (Fortunes, fileSystem, etc.) ---        
         const fortunes = [
-            "知者不言，言者不知。",
-            "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
-            "重要的不是你站的位置，而是你朝向的方向。",
-            "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
-            "衡量一个人幸福与否的标准，不是他拥有什么，而是他对失去的恐惧程度。",
-            "自然是一座神殿，那里活的支柱 / 有时吐出混乱的语言； / 人行走在符号的森林中， / 符号用熟悉的目光观察他。",
-            "一切都在改变，没有事物消亡。",
-            "梦想是注定孤独的旅行，路上少不了质疑和嘲笑。",
-            "工资就像方便面，加量不加价。"
+            "知者不言，言者不知。", "人生就像一盒巧克力，你永远不知道下一块会是什么味道。",
+            "重要的不是你站的位置，而是你朝向的方向。", "我们最大的荣耀不在于永不跌倒，而在于每次跌倒后都能站起来。",
         ];
+        // 文件系统
         const fileSystem = {
             name: '/',
             type: 'dir',
@@ -276,7 +231,7 @@
                             name: 'user', type: 'dir', contents: {
                                 'Documents': { name: 'Documents', type: 'dir', contents: {} },
                                 'Images': { name: 'Images', type: 'dir', contents: {} },
-                                'music.mp3': { name: 'music.mp3', type: 'file' },
+                                'music.mp3': { name: 'music.mp3', type: 'file', locked: true }, // 默认锁定
                                 'README.txt': { name: 'README.txt', type: 'file' }
                             }
                         }
@@ -287,27 +242,27 @@
             }
         };
                 
-        // --- 辅助函数 ---        
+        // --- 辅助函数 (文件系统, I/O) ---        
         function getDirNode(path) {
             let parts = path.split('/').filter(p => p.length > 0);
-            let currentNode = fileSystem;                        
+            let currentNode = fileSystem;                    
             
             for (const part of parts) {
                 if (currentNode.contents && currentNode.contents[part]) {
                     currentNode = currentNode.contents[part];
                 } else {
-                    return null;                                 
+                    return null;                            
                 }
             }
             return currentNode;
         }
 
-        function getCurrentDirNode() {
-            return getDirNode(currentPath);
-        }
+        function getCurrentDirNode() { return getDirNode(currentPath); }
 
         function updatePrompt() {
-            promptSpan.innerText = `${initialPromptText}${currentPath}~$`;
+            const promptPrefix = isChatMode ? `AI_Session` : initialPromptText;
+            const promptSuffix = isChatMode ? ' >' : `~$`;
+            promptSpan.innerText = `${promptPrefix}:${currentPath}${promptSuffix}`;
         }                
         
         function writeOutput(text, className = 'output-text') {
@@ -336,1699 +291,771 @@
             output.appendChild(p);
         }
 
-        function scrollToBottom() {
-            output.scrollTop = output.scrollHeight;
-        }
+        function scrollToBottom() { output.scrollTop = output.scrollHeight; }
         
-        function autoComplete() {
-            const fullInput = input.value;
-            const parts = fullInput.trim().split(/\s+/);
-            const lastPart = parts.pop();
-            const prefix = parts.join(' ') + (parts.length > 0 ? ' ' : '');
-
-            // 1. 补全命令本身
-            if (parts.length === 0 || (parts.length === 1 && fullInput.endsWith(parts[0]))) {
-                const matchingCommands = Object.keys(commands).filter(cmd => cmd.startsWith(fullInput.trim()));
-
-                if (matchingCommands.length === 1) {
-                    input.value = matchingCommands[0] + ' ';
-                } else if (matchingCommands.length > 1) {
-                    writeCommandHistory(fullInput);
-                    writeOutput(matchingCommands.join('\t'));
-                }
-                return;
-            }
-
-            // 2. 补全文件/目录 (仅支持当前目录内的相对路径)
-            if (lastPart.includes('/') && !lastPart.startsWith('/')) {
-                return;
-            }
-
-            let searchDir = getCurrentDirNode();
-            let searchPrefix = lastPart;
-            
-            function simpleResolvePath(inputPath) {
-                let parts = inputPath.split('/');
-                let targetName = parts.pop() || '';
-                let parentPath = parts.join('/') || '/';
-                return { parentPath, targetName };
-            }
-
-            if (lastPart.startsWith('/')) {
-                const { parentPath, targetName } = simpleResolvePath(lastPart);
-                searchDir = getDirNode(parentPath);
-                searchPrefix = targetName;
-            }
-
-            if (!searchDir || !searchDir.contents) {
-                return; 
-            }
-
-            const candidates = Object.keys(searchDir.contents).filter(name => name.startsWith(searchPrefix));
-            
-            if (candidates.length === 1) {
-                const targetName = candidates[0];
-                const targetNode = searchDir.contents[targetName];
-                let suffix = targetNode.type === 'dir' ? '/' : ' ';
-                
-                let newValue;
-                if (lastPart.startsWith('/')) {
-                    newValue = prefix + lastPart.substring(0, lastPart.lastIndexOf('/') + 1) + targetName + suffix;
-                } else {
-                    newValue = prefix + targetName + suffix;
-                }
-                input.value = newValue;
-
-            } else if (candidates.length > 1) {
-                writeCommandHistory(fullInput);
-
-                let commonPrefix = candidates.reduce((prev, curr) => {
-                    let i = 0;
-                    while (i < prev.length && i < curr.length && prev[i] === curr[i]) {
-                        i++;
-                    }
-                    return prev.substring(0, i);
-                });
-
-                if (commonPrefix.length > searchPrefix.length) {
-                    input.value = prefix + commonPrefix;
-                } else {
-                    const displayList = candidates.map(name => {
-                        return searchDir.contents[name].type === 'dir' ? `<span class="dir">${name}/</span>` : name;
-                    }).join('&nbsp;&nbsp;&nbsp;');
-                    writeHtmlOutput(displayList);
-                }
-            }
-        }
-
-        // --- 核心 AI 模拟函数 ---
+        // --- 核心 AI/占卜/工具 辅助函数 ---
+        
+        // 1. 模拟 AI 问答
         function simulateAiResponse(query) {
-            const lowQuery = query.toLowerCase();
-
-            // 预设知识点和关键词识别
-            if (lowQuery.includes('时间') || lowQuery.includes('日期')) {
-                return `当前的时间是 ${new Date().toLocaleString()}。我的内部时钟与您的系统保持同步。`;
-            }
-            if (lowQuery.includes('你是谁') || lowQuery.includes('介绍')) {
-                return '我是一个基于 JavaScript 模拟的 AI 模型，运行在 Web-CLI 终端环境中，旨在提供一个虚拟的交互式体验。';
-            }
-            if (lowQuery.includes('天气') || lowQuery.includes('温度')) {
-                return '我的环境无法访问实时的外部数据，因此无法提供准确的天气信息。';
-            }
-            if (lowQuery.includes('编程') || lowQuery.includes('代码')) {
-                return '编程是一种与机器沟通的艺术。您在寻找特定的算法优化或语言特性吗？';
-            }
-            if (lowQuery.includes('美元') || lowQuery.includes('汇率')) {
-                return '我不能提供实时金融数据，但您可以使用终端中的 `fx` 命令查询模拟汇率。';
-            }
-            if (lowQuery.includes('你好') || lowQuery.includes('您好')) {
-                const greetings = ['很高兴能为您服务。', '您好！', '有什么可以帮到您的？'];
-                return greetings[Math.floor(Math.random() * greetings.length)];
-            }
-
-            // 通用/哲学/随机回复
-            const genericResponses = [
-                '这是一个深刻的问题。我的计算显示，答案可能隐藏在输入本身的复杂性中。',
-                '我理解您的查询。我正在处理大量数据以找到最优解。',
-                '我目前的数据集缺乏关于该主题的具体信息。您能提供更多上下文吗？',
-                '我将此标记为未来的训练数据。感谢您的输入。',
-                '在逻辑上，这似乎是一个开放性问题，涉及主观性和环境依赖性。',
-            ];
-            return genericResponses[Math.floor(Math.random() * genericResponses.length)];
+             const lowQuery = query.toLowerCase();
+             if (lowQuery.includes('时间')) return `当前的时间是 ${new Date().toLocaleString()}。`;
+             if (lowQuery.includes('你是谁')) return '我是一个基于 JavaScript 模拟的 AI 模型，运行在 Web-CLI 终端环境中。';
+             if (lowQuery.includes('你好')) return '很高兴能为您服务。';
+             const genericResponses = ['这是一个深刻的问题。', '我正在处理大量数据以找到最优解。', '我将此标记为未来的训练数据。'];
+             return genericResponses[Math.floor(Math.random() * genericResponses.length)];
         }
 
-        // --- 核心占卜辅助函数 (DIVINE) ---
-        
-        // 投掷三枚铜钱，返回点数 (6, 7, 8, 9)
-        function throwCoins() {
-            // 2: 反面 (头像/正面), 3: 正面 (字/背面)
-            // 结果和含义: 6(老阴,X), 7(少阳, —), 8(少阴, --), 9(老阳, O)
-            const throw1 = Math.floor(Math.random() * 2) + 2; // 2或3
-            const throw2 = Math.floor(Math.random() * 2) + 2;
-            const throw3 = Math.floor(Math.random() * 2) + 2;
-            return throw1 + throw2 + throw3;
-        }
+        // 2. 模拟金融数据
+        const stockData = { 'AAPL': { price: 175.42, change: 1.25, sector: 'Tech' }, 'GOOG': { price: 139.88, change: -0.55, sector: 'Tech' } };
+        const cryptoData = { 'BTC': 42000.50, 'ETH': 2200.75, 'DOGE': 0.085 };
+        const fxRates = { 'USD': { 'EUR': 0.92, 'JPY': 145.0, 'CNY': 7.15 }, 'EUR': { 'USD': 1.09 }, 'JPY': { 'USD': 0.0069 } };
 
-        // 爻的值和含义
-        const yaoMap = {
-            6: { symbol: 'X', isMoving: true, changesTo: 7, name: '老阴 (动)' }, // 变阳
-            7: { symbol: '—', isMoving: false, changesTo: 7, name: '少阳' },
-            8: { symbol: '--', isMoving: false, changesTo: 8, name: '少阴' },
-            9: { symbol: 'O', isMoving: true, changesTo: 8, name: '老阳 (动)' } // 变阴
-        };
-
-        // 获取爻的符号
-        function getYaoSymbol(yaoValue) {
-            return yaoMap[yaoValue] ? yaoMap[yaoValue].symbol : '??';
-        }
-
-        // 随机的模拟卦象名称和寓意 (简化版，仅用于模拟输出)
+        // 3. 模拟六爻占卜
+        function throwCoins() { return Math.floor(Math.random() * 2) + 2 + Math.floor(Math.random() * 2) + 2 + Math.floor(Math.random() * 2) + 2; }
+        const yaoMap = { 6: { symbol: 'X', isMoving: true, name: '老阴 (动)' }, 7: { symbol: '—', isMoving: false, name: '少阳' }, 8: { symbol: '--', isMoving: false, name: '少阴' }, 9: { symbol: 'O', isMoving: true, name: '老阳 (动)' } };
+        function getYaoSymbol(yaoValue) { return yaoMap[yaoValue] ? yaoMap[yaoValue].symbol : '??'; }
         const simplifiedHexagrams = [
             { code: 1, name: '乾为天 (创造)', message: '大吉。时机成熟，把握主动权，一切顺利。' },
-            { code: 2, name: '坤为地 (顺从)', message: '平稳。以柔克刚，跟随潮流，耐心等待。' },
-            { code: 3, name: '屯卦 (艰难)', message: '有阻碍。初期困难，需坚忍不拔，寻求外援。' },
-            { code: 4, name: '蒙卦 (启蒙)', message: '迷茫。需要老师或导师指导，不可贸然行事。' },
-            { code: 5, name: '需卦 (等待)', message: '等待时机。宜静不宜动，准备充分后再行动。' },
-            { code: 6, name: '讼卦 (争讼)', message: '凶险。避免争执，退让为宜，否则两败俱伤。' },
-            { code: 7, name: '师卦 (结集)', message: '聚合力量。需要团结一致，找到正确的领导者。' },
-            { code: 8, name: '比卦 (亲密)', message: '和谐。人际关系良好，适合合作和交友。' },
-            { code: 30, name: '离为火 (光明)', message: '顺利。前景光明，但需保持警惕，防止过度依赖。' },
-            { code: 64, name: '未济 (未完成)', message: '仍需努力。事情尚未完结，坚持到底才能成功。' }
+            { code: 3, name: '屯卦 (艰难)', message: '有阻碍。初期困难，需坚忍不拔。' },
+            { code: 5, name: '需卦 (等待)', message: '等待时机。宜静不宜动，准备充分。' },
+            { code: 30, name: '离为火 (光明)', message: '顺利。前景光明，但需保持警惕。' }
         ];
-
-        // 模拟生成完整的六爻 (6次投掷)
         function generateHexagram() {
-            let hexagram = [];
-            let changingHexagram = []; 
-            let movingYaoIndices = []; 
+            let hexagram = []; for (let i = 0; i < 6; i++) { hexagram.push(throwCoins()); }
+            return { hexagram, changingHexagram: hexagram.map(val => yaoMap[val].isMoving ? (val === 6 ? 7 : 8) : val) };
+        }
+        function analyzeHexagram(hexagram) {
+            const mainHex = simplifiedHexagrams[Math.floor(Math.random() * simplifiedHexagrams.length)];
+            return { hexagramName: mainHex.name, oracleMessage: mainHex.message };
+        }
 
-            for (let i = 0; i < 6; i++) {
-                const result = throwCoins(); 
-                hexagram.push(result);
-
-                if (yaoMap[result].isMoving) {
-                    movingYaoIndices.push(i);
-                    changingHexagram.push(yaoMap[result].changesTo);
-                } else {
-                    changingHexagram.push(result);
+        // 4. 二维码生成 (QR Code ASCII) - 修复了 `qr.isModule` 的语法错误
+        function qrCodeToAscii(text) {
+            try {
+                const qr = qrcode(0, 'L');
+                qr.addData(text);
+                qr.make();
+                
+                const modules = qr.getModuleCount();
+                let ascii = '';
+                
+                for (let y = 0; y < modules; y++) {
+                    for (let x = 0; x < modules; x++) {
+                        // 修正后的代码
+                        ascii += qr.isModule(x, y) ? '██' : '  '; 
+                    }
+                    ascii += '\n';
                 }
+                return ascii;
+            } catch (e) {
+                return 'qrterminal: 生成二维码失败。';
+            }
+        }
+
+        // 5. 密码生成 (PWGEN)
+        function generatePassword(length) {
+            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+";
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        }
+
+        // --- 动画/模拟进程辅助函数 (用于 sl, gkrellm, gifwrap, mplayer, xsnow) ---
+
+        function handleCtrlC() {
+             if (isCtrlCBlocked) {
+                clearAllTimeouts();
+                clearAllIntervals();
+                writeOutput("^C\n进程已终止。", 'error');
+                isCtrlCBlocked = false;
+             }
+        }
+        
+        // 1. GKrellM 模拟
+        function startGkrellm() {
+            let cpu = 50, mem = 30, net = 0;
+            const gkrellmElement = document.createElement('pre');
+            gkrellmElement.id = 'gkrellm-monitor';
+            output.appendChild(gkrellmElement);
+
+            const update = () => {
+                cpu = Math.max(1, Math.min(100, cpu + (Math.random() > 0.5 ? 5 : -5)));
+                mem = Math.max(10, Math.min(80, mem + (Math.random() > 0.5 ? 2 : -2)));
+                net += Math.floor(Math.random() * 10) + 1;
+                
+                const cpuBar = '█'.repeat(Math.floor(cpu / 5)).padEnd(20, '░');
+                const memBar = '█'.repeat(Math.floor(mem / 5)).padEnd(20, '░');
+
+                gkrellmElement.textContent = `
+--[ Web-CLI Monitor ]--
+CPU: ${cpu.toFixed(1)}% [${cpuBar}]
+MEM: ${mem.toFixed(1)}% [${memBar}]
+NET: Total: ${net} MB (↑ 0.5 MB/s)
+Uptime: ${Math.floor(Date.now() / 1000000)}m
+-----------------------
+                `.trim();
+                scrollToBottom();
+            };
+            
+            const intervalId = setInterval(update, 1000);
+            activeIntervals.push(intervalId);
+            isCtrlCBlocked = true;
+            update();
+            writeOutput("GKrellM 模拟运行中... 按 Ctrl+C 停止。");
+        }
+        
+        // 2. sl 蒸汽火车模拟
+        function startSl() {
+            const train = `
+        _o_o
+      _/\_/\_/\_
+   __I--I--I--I__
+  /______________\\
+ |________________|
+  \\@@@@@@@@@@@@@@/
+   '--'--'--'--' 
+            `;
+            const lines = train.split('\n');
+            let position = 0;
+            const terminalWidth = 80;
+            const slElement = document.createElement('pre');
+            slElement.id = 'sl-train-animation';
+            output.appendChild(slElement);
+            
+            const update = () => {
+                let frame = '';
+                for(const line of lines) {
+                    const spaces = ' '.repeat(position);
+                    frame += spaces + line + '\n';
+                }
+                slElement.textContent = frame.trim();
+                position++;
+                
+                if (position > terminalWidth) {
+                    position = -20; 
+                }
+                scrollToBottom();
+            };
+            
+            const intervalId = setInterval(update, 150);
+            activeIntervals.push(intervalId);
+            isCtrlCBlocked = true;
+            writeOutput("sl 蒸汽火车模拟运行中... 按 Ctrl+C 停止。");
+        }
+
+        // 3. gifwrap/cbonsai 模拟
+        function startSimpleAnimation(cmd, frames, speed = 300) {
+            let frameIndex = 0;
+            const animElement = document.createElement('pre');
+            animElement.id = `${cmd}-animation`;
+            output.appendChild(animElement);
+
+            const update = () => {
+                animElement.textContent = frames[frameIndex].trim();
+                frameIndex = (frameIndex + 1) % frames.length;
+                scrollToBottom();
+            };
+            
+            const intervalId = setInterval(update, speed);
+            activeIntervals.push(intervalId);
+            isCtrlCBlocked = true;
+            writeOutput(`${cmd} 模拟运行中... 按 Ctrl+C 停止。`);
+        }
+
+        function startGifwrap(args) {
+             const frames = ["  ( •_•)>⌐■-■ ", "   (⌐■_■)     "];
+            startSimpleAnimation('gifwrap', frames, 500);
+        }
+
+        function startCbonsai() {
+            const frames = [
+`    /\\
+   /  \\
+  /|  |\\
+   |__|
+    \/
+    `,
+`    /\\
+   /--\\
+  /|\\/|\\
+  |/--\\|
+   |__|
+    \/
+    `,
+`     /\\
+    /~~\\
+   /|/\\|\\
+  |/\\/\\/\\|
+   |---|
+     |
+`
+            ];
+            startSimpleAnimation('cbonsai', frames, 800);
+        }
+
+        // 4. mplayer 模拟
+        function startMplayer(url) {
+            let progress = 0;
+            const duration = 120;
+            const mplayerElement = document.createElement('pre');
+            mplayerElement.id = 'mplayer-progress';
+            output.appendChild(mplayerElement);
+
+            const update = () => {
+                if (progress >= duration) {
+                    mplayerElement.textContent = `Playing ${url} done.`;
+                    handleCtrlC(); 
+                    return;
+                }
+                
+                const percentage = Math.floor((progress / duration) * 100);
+                const barLength = Math.floor(percentage / 5);
+                const progressBar = `[${'#'.repeat(barLength)}${'-'.repeat(20 - barLength)}]`;
+                
+                mplayerElement.textContent = `
+MPlayer 1.0rc4 (simulated)
+Playing ${url} (Audio/Video).
+${progressBar} ${percentage}% Time: ${progress}s / ${duration}s
+                `.trim();
+                progress += 5;
+                scrollToBottom();
+            };
+            
+            const intervalId = setInterval(update, 500);
+            activeIntervals.push(intervalId);
+            isCtrlCBlocked = true;
+            writeOutput(`mplayer 模拟播放 ${url} 中... 按 Ctrl+C 停止。`);
+        }
+
+
+        // 5. xsnow 降雪模拟
+        function startXsnow() {
+            const container = document.getElementById('xsnow-container');
+            container.style.display = 'block';
+            isCtrlCBlocked = true;
+            
+            const createSnowflake = () => {
+                const snowflake = document.createElement('span');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = ['*', '•', '❅', '❄'][Math.floor(Math.random() * 4)];
+                
+                const size = Math.random() * 10 + 10; 
+                snowflake.style.fontSize = `${size}px`;
+                snowflake.style.left = `${Math.random() * 100}vw`;
+                snowflake.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                snowflake.style.animationDelay = `-${Math.random() * 10}s`;
+                snowflake.style.opacity = `${Math.random()}`;
+                
+                container.appendChild(snowflake);
+                setTimeout(() => {
+                    if (snowflake.parentElement === container) {
+                         snowflake.remove();
+                    }
+                }, parseFloat(snowflake.style.animationDuration) * 1000 + 1000); 
+            };
+
+            for (let i = 0; i < 50; i++) { createSnowflake(); }
+
+            const intervalId = setInterval(createSnowflake, 500);
+            activeIntervals.push(intervalId);
+            writeOutput("❄️ xsnow 降雪模拟已启动。按 Ctrl+C 停止。", 'welcome');
+        }
+
+
+        // --- 魔法功能实现 (Lumos, Alohomora, Expecto Patronum) ---
+
+        function castLumos(args) {
+            const defaultBg = '#000000';
+            const defaultShadow = '0 0 20px rgba(0, 255, 0, 0.3)';
+            const defaultText = '#00ff00';
+            const defaultPrompt = '#00ffff';
+            const lumosBg = '#ffffff';
+            const lumosShadow = '0 0 40px rgba(255, 255, 255, 0.8)';
+            const lumosText = '#0000ff';
+            const lumosPrompt = '#ff00ff';
+
+
+            if (args[0] && args[0].toLowerCase() === 'nox') {
+                terminalContainer.style.setProperty('box-shadow', defaultShadow);
+                terminalContainer.style.setProperty('background-color', defaultBg);
+                document.documentElement.style.setProperty('--terminal-text', defaultText);
+                document.documentElement.style.setProperty('--prompt-color', defaultPrompt);
+                isLumosActive = false;
+                writeOutput("✨ Nox! 光芒熄灭，终端恢复黑暗。", 'welcome');
+                return;
             }
             
-            // 为了模拟，如果所有爻都是静止的，我们随机指定一个爻变动 (使结果更有趣)
-            if (movingYaoIndices.length === 0) {
-                 const randomIndex = Math.floor(Math.random() * 6);
-                 hexagram[randomIndex] = (Math.random() > 0.5 ? 6 : 9); 
-                 movingYaoIndices.push(randomIndex);
-                 changingHexagram[randomIndex] = yaoMap[hexagram[randomIndex]].changesTo;
-            }
-
-
-            return { hexagram, changingHexagram, movingYaoIndices };
+            terminalContainer.style.setProperty('box-shadow', lumosShadow);
+            terminalContainer.style.setProperty('background-color', lumosBg);
+            document.documentElement.style.setProperty('--terminal-text', lumosText);
+            document.documentElement.style.setProperty('--prompt-color', lumosPrompt);
+            isLumosActive = true;
+            writeOutput("✨ Lumos! 终端被照亮，光芒万丈！试试 'cast nox' 关闭。", 'welcome');
         }
 
-        // 模拟分析卦象并给出寓意
-        function analyzeHexagram(hexagram) {
-            // 简单地基于随机选择的简化卦象
-            const mainHex = simplifiedHexagrams[Math.floor(Math.random() * simplifiedHexagrams.length)];
-            const changeHex = simplifiedHexagrams[Math.floor(Math.random() * simplifiedHexagrams.length)];
+        function castAlohomora() {
+            const targetNode = getCurrentDirNode();
+            let targetFile = null;
 
-            let message;
-            if (mainHex.code === changeHex.code || Math.random() < 0.2) { // 20% 概率无变卦
-                message = `卦象为【${mainHex.name}】。这代表您目前处于一个相对稳定的阶段。您的答案在于“${mainHex.message}”这一启示。`;
-                return {
-                    hexagramCode: mainHex.code,
-                    hexagramName: mainHex.name,
-                    oracleMessage: message
-                };
+            if (!targetNode || targetNode.type !== 'dir') {
+                 writeOutput(`Alohomora: 无法在此处施法。`, 'error');
+                 return;
+            }
+
+            for (const key in targetNode.contents) {
+                if (targetNode.contents[key].locked) {
+                    targetFile = targetNode.contents[key];
+                    break;
+                }
+            }
+
+            if (targetFile) {
+                targetFile.locked = false; // 解锁
+                writeOutput(`🔓 Alohomora! 文件 ${targetFile.name} 上的魔法锁已被解除！现在可以使用 'rm ${targetFile.name}' 删除了。`, 'welcome');
             } else {
-                message = `由【${mainHex.name}】变至【${changeHex.name}】。这预示着变化正在发生。当前的核心在于“${mainHex.message}”，而未来的方向将趋向于“${changeHex.message}”。`;
-                 return {
-                    hexagramCode: mainHex.code,
-                    hexagramName: mainHex.name,
-                    changingHexagramCode: changeHex.code,
-                    changingHexagramName: changeHex.name,
-                    oracleMessage: message
-                };
+                writeOutput(`Alohomora: 没有找到需要解锁的物品。`, 'error');
             }
         }
 
+        function castExpectoPatronum() {
+            const patronus = ['🦌 牡鹿', '🐺 巨狼', '🐈 猫咪', '🐉 东方神龙'][Math.floor(Math.random() * 4)];
+            const protectionMessage = `✨ Expecto Patronum! 您的守护神 (${patronus}) 出现，它散发着温暖的银色光芒，驱散了所有的黑暗和 Bug。`;
+            writeOutput(protectionMessage, 'welcome');
+        }
 
-        // --- 核心命令执行 ---                        
+
+        // --- 核心命令执行 (集成所有命令) ---            
         const commands = {
             'help': { description: '显示可用命令列表。', execute: () => {
-                    let helpOutput = '可用命令 (总计 ' + Object.keys(commands).length + ' 个):\n';
-                    for (const cmd in commands) {
-                        helpOutput += `  ${cmd.padEnd(12)} - ${commands[cmd].description}\n`;
-                    }
-                    writeOutput(helpOutput);
+                let helpOutput = '可用命令 (总计 ' + Object.keys(commands).length + ' 个):\n';
+                for (const cmd in commands) {
+                    helpOutput += `  ${cmd.padEnd(12)} - ${commands[cmd].description}\n`;
                 }
-            },
+                writeOutput(helpOutput);
+            }},
             'clear': { description: '清空终端屏幕。', execute: () => { output.innerHTML = ''; writeWelcome(); } },
             'ls': { description: '列出当前目录内容。', execute: () => {
-                    const node = getCurrentDirNode();
-                    if (!node || node.type !== 'dir') { writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error'); return; }                                                            
-                    const items = Object.values(node.contents).sort((a, b) => {
-                        if (a.type === 'dir' && b.type === 'file') return -1;
-                        if (a.type === 'file' && b.type === 'dir') return 1;
-                        return a.name.localeCompare(b.name);
-                    });
-                    items.forEach(item => {
-                        const typeClass = item.type === 'dir' ? 'dir' : 'file';
-                        const name = item.type === 'dir' ? item.name + '/' : item.name;
-                        const span = document.createElement('span');
-                        span.className = `output-item ${typeClass}`;
-                        span.textContent = name;
-                        output.appendChild(span);
-                        output.innerHTML += '&nbsp;&nbsp;&nbsp;'; 
-                    });
-                    output.appendChild(document.createElement('br'));
-                    scrollToBottom();
-                }
-            },
+                const node = getCurrentDirNode();
+                if (!node || node.type !== 'dir') { writeOutput(`错误: 无法读取目录 ${currentPath}`, 'error'); return; }                        
+                const items = Object.values(node.contents).sort((a, b) => {
+                    if (a.type === 'dir' && b.type === 'file') return -1;
+                    if (a.type === 'file' && b.type === 'dir') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                items.forEach(item => {
+                    const typeClass = item.type === 'dir' ? 'dir' : 'file';
+                    let name = item.type === 'dir' ? item.name + '/' : item.name;
+                    if (item.locked) { name += ' (Locked)'; }
+                    const span = document.createElement('span');
+                    span.className = `output-item ${typeClass}`;
+                    span.textContent = name;
+                    output.appendChild(span);
+                    output.innerHTML += '&nbsp;&nbsp;&nbsp;';
+                });
+                output.appendChild(document.createElement('br'));
+                scrollToBottom();
+            }},
             'cd': { description: '切换目录。用法: cd <目录名>', execute: (args) => {
-                    const target = args[0];
-                    if (!target) { currentPath = '/home/user'; updatePrompt(); return; }
-                    let newPath;
-                    if (target === '/') { newPath = '/'; } 
-                    else if (target.startsWith('/')) { newPath = target; } 
-                    else if (target === '..') {
-                        if (currentPath === '/') return;
-                        newPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-                        if (newPath === '') newPath = '/'; 
-                    } else { newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`; }
+                const target = args[0];
+                if (!target) { currentPath = '/home/user'; updatePrompt(); return; }
+                let newPath;
+                if (target === '/') { newPath = '/'; }
+                else if (target.startsWith('/')) { newPath = target; }
+                else if (target === '..') {
+                    if (currentPath === '/') return;
+                    newPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+                    if (newPath === '') newPath = '/';
+                } else { newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`; }
 
-                    newPath = newPath.replace(/\/\/+/g, '/');
-                    const node = getDirNode(newPath);
+                newPath = newPath.replace(/\/\/+/g, '/');
+                const node = getDirNode(newPath);
 
-                    if (!node) { writeOutput(`cd: 目录不存在: ${target}`, 'error'); } 
-                    else if (node.type !== 'dir') { writeOutput(`cd: 不是目录: ${target}`, 'error'); } 
-                    else {
-                        currentPath = newPath.endsWith('/') && newPath.length > 1 ? newPath.slice(0, -1) : newPath;
-                        updatePrompt();
-                    }
+                if (!node) { writeOutput(`cd: 目录不存在: ${target}`, 'error'); }
+                else if (node.type !== 'dir') { writeOutput(`cd: 不是目录: ${target}`, 'error'); }
+                else {
+                    currentPath = newPath.endsWith('/') && newPath.length > 1 ? newPath.slice(0, -1) : newPath;
+                    updatePrompt();
                 }
-            },
+            }},
             'fortune': { description: '显示一句随机的箴言或名言。', execute: () => {
-                    if (fortunes.length === 0) { writeOutput("fortune: 没有找到任何箴言。", 'error'); return; }
-                    const randomIndex = Math.floor(Math.random() * fortunes.length);
-                    const quote = fortunes[randomIndex];                                                            
-                    const line = '='.repeat(quote.length + 4);
-                    writeOutput(`\n${line}`);
-                    writeOutput(`| ${quote} |`);
-                    writeOutput(`${line}\n`);
-                }
-            },
+                const quote = fortunes[Math.floor(Math.random() * fortunes.length)];                        
+                const line = '='.repeat(quote.length + 4);
+                writeOutput(`\n${line}\n| ${quote} |\n${line}\n`);
+            }},
             'echo': { description: '在终端上打印文本。', execute: (args) => { writeOutput(args.join(' ')); } },
             'date': { description: '显示当前日期和时间。', execute: () => { writeOutput(new Date().toLocaleString()); } },
             'whoami': { description: '显示当前用户名。', execute: () => { writeOutput(CLI_USER); } },
-            
-            // --- 文件系统修正命令 ---
-            
-            'pwd': { 
-                description: '打印当前工作目录。', 
-                execute: () => { 
-                    writeOutput(currentPath); 
-                } 
-            },
-            'touch': { 
-                description: '在当前目录或指定路径创建空文件。', 
-                execute: (args) => { 
-                    if (args.length === 0) { 
-                        writeOutput('touch: 缺少文件操作数。', 'error'); 
-                        return;
-                    }
-                    const fileName = args[0];
-                    const currentNode = getCurrentDirNode();
-
-                    if (!currentNode || currentNode.type !== 'dir') {
-                        writeOutput(`touch: 无法访问: ${fileName}: No such file or directory`, 'error');
-                        return;
-                    }
-                    
-                    if (!currentNode.contents[fileName]) {
-                        currentNode.contents[fileName] = { name: fileName, type: 'file' };
-                    }
-                } 
-            },
-            'mkdir': { 
-                description: '创建一个新目录。用法: mkdir <目录名>', 
-                execute: (args) => { 
-                    if (args.length === 0) { 
-                        writeOutput('mkdir: 缺少目录名。', 'error'); 
-                        return;
-                    }
-                    const dirName = args[0];
-                    const currentNode = getCurrentDirNode();
-                    
-                    if (!currentNode || currentNode.type !== 'dir') {
-                        writeOutput(`mkdir: 无法访问: ${dirName}: No such file or directory`, 'error');
-                        return;
-                    }
-
-                    if (currentNode.contents[dirName]) {
-                        writeOutput(`mkdir: 目录已存在: ${dirName}`, 'error');
-                    } else {
-                        currentNode.contents[dirName] = { name: dirName, type: 'dir', contents: {} };
-                    }
-                } 
-            },
-            'rmdir': { 
-                description: '删除空目录。用法: rmdir <目录名>', 
-                execute: (args) => { 
-                    if (args.length === 0) { 
-                        writeOutput('rmdir: 缺少操作数。', 'error'); 
-                        return;
-                    }
-                    const dirName = args[0];
-                    const currentNode = getCurrentDirNode();
-
-                    if (!currentNode || !currentNode.contents[dirName]) {
-                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 目录不存在`, 'error');
-                        return;
-                    }
-                    
-                    const targetNode = currentNode.contents[dirName];
-
-                    if (targetNode.type !== 'dir') {
-                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 不是目录`, 'error');
-                        return;
-                    }
-                    
-                    if (Object.keys(targetNode.contents).length > 0) {
-                        writeOutput(`rmdir: 无法删除 ‘${dirName}’: 目录非空`, 'error');
-                    } else {
-                        delete currentNode.contents[dirName];
-                    }
-                } 
-            },
-            'rm': { 
-                description: '删除文件或目录(使用 -r 递归删除)。用法: rm [-r] <文件/目录>', 
-                execute: (args) => { 
-                    let recursive = false;
-                    let targetIndex = 0;
-
-                    if (args[0] === '-r') {
-                        recursive = true;
-                        targetIndex = 1;
-                    }
-                    
-                    const targetName = args[targetIndex];
-
-                    if (!targetName) {
-                        writeOutput('rm: 缺少操作数。', 'error'); 
-                        return;
-                    }
-
-                    const currentNode = getCurrentDirNode();
-                    if (!currentNode || !currentNode.contents[targetName]) {
-                        writeOutput(`rm: 无法删除 ‘${targetName}’: 文件或目录不存在`, 'error');
-                        return;
-                    }
-                    
-                    const targetNode = currentNode.contents[targetName];
-
-                    if (targetNode.type === 'dir' && !recursive) {
-                        writeOutput(`rm: 无法删除 ‘${targetName}’: 是目录 (使用 -r 递归删除)`, 'error');
-                        return;
-                    }
-                    
-                    // 模拟删除
-                    delete currentNode.contents[targetName];
-                } 
-            },
-            
+            'pwd': { description: '打印当前工作目录。', execute: () => { writeOutput(currentPath); } },
+            'touch': { description: '在当前目录或指定路径创建空文件。', execute: (args) => {
+                if (args.length === 0) { writeOutput('touch: 缺少文件操作数。', 'error'); return; }
+                const fileName = args[0];
+                const currentNode = getCurrentDirNode();
+                if (!currentNode.contents[fileName]) { currentNode.contents[fileName] = { name: fileName, type: 'file' }; }
+            }},
+            'mkdir': { description: '创建一个新目录。用法: mkdir <目录名>', execute: (args) => {
+                if (args.length === 0) { writeOutput('mkdir: 缺少目录名。', 'error'); return; }
+                const dirName = args[0];
+                const currentNode = getCurrentDirNode();
+                if (!currentNode.contents[dirName]) { currentNode.contents[dirName] = { name: dirName, type: 'dir', contents: {} }; }
+            }},
+            'rmdir': { description: '删除空目录。用法: rmdir <目录名>', execute: (args) => {
+                if (args.length === 0) { writeOutput('rmdir: 缺少操作数。', 'error'); return; }
+                const dirName = args[0];
+                const currentNode = getCurrentDirNode();
+                const targetNode = currentNode.contents[dirName];
+                if (!targetNode || targetNode.type !== 'dir') { writeOutput(`rmdir: 无法删除 ‘${dirName}’: 不是目录或不存在`, 'error'); return; }
+                if (Object.keys(targetNode.contents).length > 0) { writeOutput(`rmdir: 无法删除 ‘${dirName}’: 目录非空`, 'error'); }
+                else { delete currentNode.contents[dirName]; }
+            }},
+            'rm': { description: '删除文件或目录(使用 -r 递归删除)。用法: rm [-r] <文件/目录>', execute: (args) => {
+                let recursive = false; let targetIndex = 0;
+                if (args[0] === '-r') { recursive = true; targetIndex = 1; }
+                const targetName = args[targetIndex];
+                if (!targetName) { writeOutput('rm: 缺少操作数。', 'error'); return; }
+                const currentNode = getCurrentDirNode();
+                const targetNode = currentNode.contents[targetName];
+                if (!targetNode) { writeOutput(`rm: 无法删除 ‘${targetName}’: 文件或目录不存在`, 'error'); return; }
+                if (targetNode.locked) { writeOutput(`rm: 权限被拒绝: 文件 ‘${targetName}’ 被魔法锁定。`, 'error'); return; }
+                if (targetNode.type === 'dir' && !recursive) { writeOutput(`rm: 无法删除 ‘${targetName}’: 是目录 (使用 -r 递归删除)`, 'error'); return; }
+                delete currentNode.contents[targetName]; writeOutput(`已删除 ${targetName}`);
+            }},
             'linuxlogo': { description: '显示 logo 和系统信息。', execute: () => { writeOutput(`      /\\ /\\         OS: Web-CLI FunOS\n     ( ◕ ◕ )        Kernel: 5.15.0-js-web\n   <  / ^ \\  >      Uptime: ...\n    \\ \\_/ /       User: ${CLI_USER}\n     '---'        CPU: Browser Core (x86_64)`, 'welcome'); } },
-
-            // --- 尺子功能 (RULER) ---
-            'ruler': {
-                description: '生成一条指定长度的 ASCII 尺。用法: ruler [长度]',
-                execute: (args) => {
-                    const defaultLength = 80; 
-                    let length = defaultLength;
-                    
-                    if (args.length > 0) {
-                        const parsedLength = parseInt(args[0]);
-                        if (!isNaN(parsedLength) && parsedLength > 0) {
-                            // 限制最大长度以防止性能问题和终端宽度限制
-                            length = Math.min(parsedLength, 120); 
-                        } else if (!isNaN(parsedLength) && parsedLength <= 0) {
-                            writeOutput('ruler: 长度必须为正数。', 'error');
-                            return;
-                        } else {
-                            writeOutput('ruler: 无效的长度参数，使用默认长度 80。', 'error');
-                        }
+            'ruler': { description: '生成一条指定长度的 ASCII 尺。用法: ruler [长度]', execute: (args) => {
+                const defaultLength = 80;
+                let length = defaultLength;
+                
+                if (args.length > 0) {
+                    const parsedLength = parseInt(args[0]);
+                    if (!isNaN(parsedLength) && parsedLength > 0) {
+                        length = Math.min(parsedLength, 120);
+                    } else {
+                        writeOutput('ruler: 无效的长度参数，使用默认长度 80。', 'error');
                     }
+                }
 
-                    let indexLine = '';
-                    let scaleLine = '';
-                    let tempScale = 0;
+                let indexLine = '';
+                let scaleLine = '';
+                let tempScale = 0;
 
-                    // 生成刻度线和数字行
-                    for (let i = 0; i < length; i++) {
-                        if (i % 10 === 0) {
-                            // 每隔10个字符打印数字
-                            const numStr = String(tempScale);
-                            const currentNumLength = numStr.length;
-                            
-                            // 打印数字，如果数字长度大于剩余空间，则停止
-                            if (i + currentNumLength <= length) {
-                                indexLine += numStr;
-                                // 填充空格直到下一个刻度线或行尾
-                                const spacesToFill = 10 - currentNumLength;
-                                
-                                for (let j = 0; j < spacesToFill && (i + currentNumLength + j) < length; j++) {
-                                    indexLine += ' ';
-                                }
+                for (let i = 0; i < length; i++) {
+                    if (i % 10 === 0) {
+                        const numStr = String(tempScale);
+                        if (i + numStr.length <= length) {
+                            indexLine += numStr;
+                            indexLine += ' '.repeat(10 - numStr.length);
+                            i += (10 - 1); 
+                            scaleLine += '|' + '-'.repeat(9);
+                            tempScale += 10;
+                        } else {
+                            scaleLine += '|' + '-'.repeat(length - scaleLine.length - 1);
+                            break;
+                        }
+                    } else if (i % 5 === 0) {
+                        scaleLine += '+';
+                        indexLine += ' ';
+                    } else {
+                        scaleLine += '-';
+                        indexLine += ' ';
+                    }
+                }
+                scaleLine = scaleLine.substring(0, length);
+                indexLine = indexLine.substring(0, length);
+                
+                const rulerOutput = 
+                    `尺子长度: ${length} 个字符 (请使用全宽/等宽字体)\n` +
+                    `<span style="color:#ff8000;">${indexLine}</span>\n` +
+                    `<span style="color:#ff8000;">${scaleLine}</span>`;
 
-                                i += (10 - 1); // 因为 for 循环的 i++，所以这里减去 1
-                                scaleLine += '|' + '-'.repeat(9); // 10个字符的刻度
-                                tempScale += 10;
+                writeHtmlOutput(`<pre class="ruler-ascii">${rulerOutput}</pre>`);
+            }}, 
 
+            // --- 网络/工具模拟命令 ---
+            'curl': { description: '模拟 HTTP GET 请求。用法: curl <URL> (模拟延迟)', execute: (args) => {
+                if (!args[0]) { writeOutput('curl: 缺少 URL。', 'error'); return; }
+                writeOutput(`% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n`);
+                let progress = 0;
+                const url = args[0].replace(/^(https?:\/\/)?/i, 'https://');
+                
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 20) + 10;
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        writeOutput(`100   283  100   283    0     0   400k      0 --:--:-- --:--:-- --:--:-- 400k\n`);
+                        writeOutput(`<html><head><title>Simulated Response</title></head><body><h1>Success!</h1><p>Data from ${url} retrieved (simulated).</p></body></html>`);
+                    } else {
+                         writeOutput(`${progress.toString().padStart(3)}   283  ${progress.toString().padStart(3)}   ${Math.floor(283 * progress / 100).toString().padStart(4)}    0     0   400k      0 --:--:-- --:--:-- --:--:-- 400k`);
+                    }
+                    scrollToBottom();
+                }, 200);
+                activeIntervals.push(interval);
+            }},
+            'ping': { description: '测试网络连接。用法: ping <IP/域名> (模拟延迟, Ctrl+C 停止)', execute: (args) => {
+                 if (!args[0]) { writeOutput('ping: 缺少目标。', 'error'); return; }
+                 const target = args[0];
+                 let sequence = 0;
+                 writeOutput(`PING ${target} (192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}) 56(84) bytes of data.`);
+                 
+                 const intervalId = setInterval(() => {
+                    sequence++;
+                    const time = (Math.random() * 100 + 5).toFixed(2);
+                    writeOutput(`64 bytes from ${target}: icmp_seq=${sequence} ttl=64 time=${time} ms`);
+                 }, 1000);
+                 activeIntervals.push(intervalId);
+                 isCtrlCBlocked = true;
+                 writeOutput("Ping 模拟运行中... 按 Ctrl+C 停止。");
+            }},
+            'ncat': { description: '模拟网络连接和端口扫描。用法: ncat -z <IP> <port>', execute: (args) => {
+                if (args[0] === '-z' && args.length >= 3) {
+                    const ip = args[1];
+                    const port = parseInt(args[2]);
+                    if (isNaN(port)) { writeOutput('ncat: 无效的端口号。', 'error'); return; }
+                    
+                    const status = (port % 2 === 0 || Math.random() > 0.6) ? 'open' : 'closed';
+                    const delay = (Math.random() * 100 + 50).toFixed(2);
+
+                    setTimeout(() => {
+                        writeOutput(`Ncat: Version 7.93 (模拟)\nNcat: Connected to ${ip}:${port}.\nNcat: Port ${port} (${status}).\nNcat: Elapsed time: ${delay}ms.`);
+                    }, Math.random() * 500 + 200);
+                } else {
+                    writeOutput('ncat: 用法: ncat -z <IP> <port>', 'error');
+                }
+            }},
+            'display': { description: '在终端中模拟显示图像。用法: display [URL]', execute: (args) => {
+                const url = args[0] || 'https://picsum.photos/300/200';
+                writeHtmlOutput(`模拟图像显示: <img src="${url}" alt="模拟图像" style="max-width:300px; height:auto;">`);
+            }},
+            'makemagnet': { description: '模拟将下载链接/文件名转换为磁力链接。用法: makemagnet <文件名/URL>', execute: (args) => {
+                if (!args[0]) { writeOutput('makemagnet: 缺少文件名或 URL。', 'error'); return; }
+                const hash = Array.from({ length: 40 }, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+                writeOutput(`文件名: ${args[0].substring(0, 30)}...\n`);
+                writeOutput(`成功转换: magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(args[0].substring(0, 50))}\n`);
+            }},
+            'qrterminal': { description: '将文本或 URL 编码为 ASCII 二维码。用法: qrterminal <TEXT/URL>', execute: (args) => {
+                if (!args[0]) { writeOutput('qrterminal: 缺少要编码的文本或 URL。', 'error'); return; }
+                const asciiQr = qrCodeToAscii(args[0]);
+                writeHtmlOutput(`<pre class="qr-code-ascii">${asciiQr}</pre>`);
+                writeOutput(`已将内容编码为 ASCII 二维码: ${args[0].substring(0, 30)}...`);
+            }},
+            'pwgen': { description: '生成随机密码。用法: pwgen <长度> [数量] (默认长度16, 数量1)', execute: (args) => {
+                let length = parseInt(args[0]) || 16;
+                let count = parseInt(args[1]) || 1;
+                length = Math.min(Math.max(length, 8), 64);
+                count = Math.min(Math.max(count, 1), 10);
+                
+                let passwords = [];
+                for (let i = 0; i < count; i++) {
+                    passwords.push(generatePassword(length));
+                }
+                writeOutput(`生成的 ${count} 个 ${length} 位密码:\n${passwords.join('\n')}`, 'welcome');
+            }},
+
+            // --- 金融/聊天/占卜命令 ---
+            'crypto': { description: '显示主流加密货币的实时价格 (模拟数据)。用法: crypto', execute: () => {
+                let output = '模拟实时加密货币价格 (USD):\n';
+                for (const [coin, price] of Object.entries(cryptoData)) {
+                    const currentPrice = (price + (Math.random() * 10 - 5)).toFixed(2);
+                    output += `${coin.padEnd(6)}: $${currentPrice.padStart(8)}\n`;
+                }
+                writeOutput(output);
+            }},
+            'stock': { description: '显示模拟的股票实时行情。用法: stock <股票代码> (默认: AAPL)', execute: (args) => {
+                const code = (args[0] || 'AAPL').toUpperCase();
+                const data = stockData[code] || stockData['AAPL'];
+                const currentPrice = (data.price + (Math.random() * 2 - 1)).toFixed(2);
+                const currentChange = (data.change + (Math.random() * 0.5 - 0.25)).toFixed(2);
+                const sign = currentChange >= 0 ? '+' : '';
+                writeOutput(`股票代码: ${code}\n价格: $${currentPrice}\n涨跌: ${sign}${currentChange} (${data.sector} 行业)\n`);
+            }},
+            'fx': { description: '查询货币汇率或进行转换。用法: fx <FROM> <TO> [AMOUNT]', execute: (args) => {
+                const from = args[0] ? args[0].toUpperCase() : 'USD';
+                const to = args[1] ? args[1].toUpperCase() : 'EUR';
+                const amount = parseFloat(args[2]) || 1;
+
+                if (!fxRates[from] || !fxRates[from][to]) {
+                    writeOutput(`fx: 模拟数据库中找不到 ${from} 到 ${to} 的汇率。`, 'error');
+                    return;
+                }
+                
+                const rate = fxRates[from][to] + (Math.random() * 0.01 - 0.005);
+                const result = (amount * rate).toFixed(4);
+                writeOutput(`${amount} ${from} = ${result} ${to} (汇率: ${rate.toFixed(4)})`);
+            }},
+            'chat': { description: '启动AI聊天会话。输入 /quit 或 /exit 退出会话。', execute: () => {
+                isChatMode = true;
+                chatHistory = [];
+                updatePrompt();
+                writeOutput("💬 进入 AI 聊天会话。输入您的问题，输入 '/quit' 或 '/exit' 退出。");
+            }},
+            'divine': { description: '进行六爻占卜，模拟回答您提出的问题。用法: divine "我的事业运如何?"', execute: (args) => {
+                const question = args.length > 0 ? args.join(' ') : "命运之问";
+                writeOutput(`\n🔮 启动易学占卜模拟... 您的问题是: ${question}`);
+                const { hexagram, changingHexagram } = generateHexagram();
+                const analysis = analyzeHexagram(hexagram);
+                
+                let resultOutput = `\n--- 本卦 (${analysis.hexagramName}) ---\n`;
+                for (let i = 5; i >= 0; i--) {
+                    const yaoValue = hexagram[i];
+                    resultOutput += `${6 - i}: ${getYaoSymbol(yaoValue).padEnd(2)} (${yaoMap[yaoValue].name})\n`;
+                }
+                
+                resultOutput += `\n--- 占卜解读 ---\n`;
+                resultOutput += analysis.oracleMessage;
+                writeOutput(resultOutput, 'welcome');
+            }},
+
+            // --- 动画/媒体命令 ---
+            'mplayer': { description: '模拟媒体播放器。用法: mplayer <URL/文件> (Ctrl+C 停止)', execute: (args) => {
+                if (!args[0]) { writeOutput('mplayer: 缺少 URL 或文件。', 'error'); return; }
+                startMplayer(args[0]);
+            }},
+            'listen': { description: '尝试播放指定的音乐 URL。用法: listen <URL>', execute: (args) => {
+                if (!args[0]) { writeOutput('listen: 缺少 URL。', 'error'); return; }
+                writeOutput(`[Web-Audio] 尝试加载并播放: ${args[0]}...\n（由于浏览器安全限制，可能需要用户手动交互后才能播放。）`);
+                try {
+                    const audio = new Audio(args[0]);
+                    audio.play().catch(e => {
+                        writeOutput(`listen: 播放失败。错误信息: ${e.message}`, 'error');
+                    });
+                } catch (e) {
+                     writeOutput(`listen: 内部错误: ${e.message}`, 'error');
+                }
+            }},
+            'cbonsai': { description: '模拟 cbonsai 盆栽生长动画。Ctrl+C 退出。', execute: () => {
+                startCbonsai();
+            }},
+            'sl': { description: '运行一辆 ASCII 蒸汽火车穿越终端。Ctrl+C 退出。', execute: () => {
+                startSl();
+            }},
+            'gifwrap': { description: '模拟在终端中播放 ASCII 动画。Ctrl+C 退出。', execute: () => {
+                startGifwrap();
+            }},
+            'gkrellm': { description: '模拟 GKrellM 系统监视器。Ctrl+C 退出。', execute: () => {
+                 startGkrellm();
+            }},
+            'xsnow': { description: '模拟终端降雪效果。按 Ctrl+C 退出。', execute: () => {
+                startXsnow();
+            }},
+            
+            // --- 魔法 CAST 命令 (新增) ---
+            'cast': {
+                description: '施放魔法咒语。试试 lumos, alohomora, expecto patronum。',
+                execute: (args) => {
+                    const spell = args[0] ? args[0].toLowerCase() : '';
+                    const spellArgs = args.slice(1);
+                    
+                    switch (spell) {
+                        case 'lumos':
+                            castLumos(spellArgs);
+                            break;
+                        case 'alohomora':
+                            castAlohomora();
+                            break;
+                        case 'expecto':
+                            if (spellArgs[0] && spellArgs[0].toLowerCase() === 'patronum') {
+                                castExpectoPatronum();
                             } else {
-                                // 空间不足，只打印刻度线，并结束
-                                indexLine += ' '.repeat(length - indexLine.length);
-                                scaleLine += '|' + '-'.repeat(length - scaleLine.length - 1);
-                                break; 
+                                writeOutput(`cast: 未知或不完整的咒语: ${args.join(' ')}。完整咒语: expecto patronum。`, 'error');
                             }
-                            
-                        } else if (i % 5 === 0) {
-                            // 每隔5个字符打印中刻度
-                            scaleLine += '+';
-                            indexLine += ' ';
-                        } else {
-                            // 其他为短刻度
-                            scaleLine += '-';
-                            indexLine += ' ';
-                        }
+                            break;
+                        case 'nox':
+                            castLumos(['nox']);
+                            break;
+                        default:
+                            writeOutput(`cast: 未知咒语 '${spell}'。试试 'lumos', 'alohomora', 'expecto patronum'。`, 'error');
+                            break;
                     }
-
-                    // 确保最后长度匹配
-                    indexLine = indexLine.substring(0, length);
-                    scaleLine = scaleLine.substring(0, length);
-                    
-                    const rulerOutput = 
-                        `尺子长度: ${length} 个字符 (请使用全宽/等宽字体)\n` +
-                        `<span style="color:#ff8000;">${indexLine}</span>\n` +
-                        `<span style="color:#ff8000;">${scaleLine}</span>`;
-
-                    // 使用 writeHtmlOutput 并设置 class 以应用等宽字体
-                    writeHtmlOutput(`<div class="ruler-ascii">${rulerOutput}</div>`);
-                }
-            },
-
-            // --- 网络/多媒体修正命令 ---
-            
-            'curl': { 
-                description: '模拟 HTTP GET 请求。用法: curl <URL> (模拟延迟)', 
-                execute: (args) => { 
-                    const url = args[0] || 'https://www.example.com';
-                    const downloadDelay = 2000; // 模拟下载延迟 2秒
-                    
-                    writeOutput(`curl ${url}`);
-                    writeOutput(`  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                     Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0`);
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'CURLING... (等待下载)';
-                    promptSpan.style.color = '#00ff40'; 
-
-                    // 创建一个段落用于显示动态进度
-                    const updateCurlOutput = document.createElement('p');
-                    updateCurlOutput.style.whiteSpace = 'pre';
-                    updateCurlOutput.className = 'curl-output';
-                    output.appendChild(updateCurlOutput);
-                    scrollToBottom();
-                    
-                    // 模拟下载过程中的输出更新 (分两帧更新)
-                    const updateFrames = [
-                        ' 50   628   50   628    0     0    314      0 0:00:04 0:00:02 0:00:02   314',
-                        ' 80  1004   80  1004    0     0    502      0 0:00:02 0:00:01 0:00:01   502'
-                    ];
-                    
-                    let frameIndex = 0;
-                    const updateInterval = setInterval(() => {
-                        if (frameIndex < updateFrames.length) {
-                             updateCurlOutput.textContent = updateFrames[frameIndex];
-                             frameIndex++;
-                             scrollToBottom();
-                        }
-                    }, 500);
-
-
-                    setTimeout(() => {
-                        clearInterval(updateInterval); // 停止进度更新
-                        
-                        const finalOutput = `
-100  1256  100  1256    0     0  28984      0 --:--:-- --:--:-- --:--:-- 28984
-<!doctype html>
-<html>
-<head><title>Example Domain</title>...</head>
-<body><h1>Example Domain</h1>...</body>
-</html>`;
-                        
-                        updateCurlOutput.textContent = finalOutput.trim();
-
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        scrollToBottom();
-                    }, downloadDelay);
-                } 
-            },
-            'ping': { 
-                description: '测试网络连接。用法: ping <IP/域名> (模拟延迟, Ctrl+C 停止)', 
-                execute: (args) => { 
-                    if (pingIntervalId !== null) { writeOutput('ping 已经在运行。', 'error'); return; }
-
-                    const host = args[0] || '127.0.0.1';
-                    const delay = 1000; // 模拟每秒发送一个包
-                    let seq = 0;
-                    const maxSeq = 4;
-                    
-                    writeOutput(`PING ${host} (127.0.0.1) 56(84) bytes of data.`);
-                    input.disabled = true;
-                    promptSpan.innerText = `PING ${host}... (按 Ctrl+C 停止)`;
-                    promptSpan.style.color = '#ff8000'; 
-
-                    const pingPacket = () => {
-                        if (seq >= maxSeq) {
-                            clearInterval(pingIntervalId);
-                            pingIntervalId = null;
-
-                            const stats = `
-^C
---- ${host} ping statistics ---
-${maxSeq} packets transmitted, ${maxSeq} received, 0% packet loss, time ${maxSeq * delay}ms
-rtt min/avg/max/mdev = 0.038/0.041/0.045/0.003 ms
-`;
-                            writeOutput(stats.trim());
-                            
-                            input.disabled = false;
-                            updatePrompt();
-                            input.focus();
-                            promptSpan.style.color = 'var(--prompt-color)';
-                            return;
-                        }
-
-                        const time = (Math.random() * 50 + 30).toFixed(3);
-                        writeOutput(`64 bytes from ${host}: icmp_seq=${seq + 1} ttl=64 time=${time} ms`);
-                        seq++;
-                    };
-
-                    pingIntervalId = setInterval(pingPacket, delay); // 使用全局 ID
-                } 
-            },
-            'ncat': { 
-                description: '模拟网络连接和端口扫描。用法: ncat -z <IP> <port>', 
-                execute: (args) => { 
-                    const target = args[2] || 'localhost';
-                    const port = args[3] || '80';
-                    writeOutput(`ncat -z ${target} ${port}`);
-                    // 模拟网络延迟
-                    input.disabled = true;
-                    promptSpan.innerText = 'CONNECTING...';
-                    promptSpan.style.color = '#ff00ff'; 
-
-                    setTimeout(() => {
-                        if (Math.random() > 0.3) {
-                             writeOutput(`Ncat: Connected to ${target}:${port}.`);
-                        } else {
-                             writeOutput(`Ncat: Connection refused.`, 'error');
-                        }
-                        
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                    }, 500);
-                } 
-            },
-            'display': { 
-                description: '在终端中模拟显示图像。用法: display [URL]', 
-                execute: (args) => { 
-                    const imageUrl = args[0] || 'https://via.placeholder.com/300x150/00FF00/000000?text=Web-CLI+Image'; 
-                    
-                    writeOutput(`display: 正在尝试从 ${imageUrl} 加载图像...`, 'welcome');
-                    
-                    const img = document.createElement('img');
-                    img.src = imageUrl;
-                    img.alt = '模拟图像';
-                    img.style.maxWidth = '300px'; 
-                    img.style.height = 'auto';
-                    img.style.display = 'block'; 
-
-                    output.appendChild(img);
-                    scrollToBottom();
-
-                    writeOutput('图像加载完毕。', 'welcome');
-                } 
-            },
-
-            // --- makemagnet 命令 ---
-            'makemagnet': {
-                description: '模拟将下载链接/文件名转换为磁力链接。用法: makemagnet <文件名/URL>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('makemagnet: 缺少文件名或 URL 操作数。', 'error');
-                        return;
-                    }
-                    const source = args[0];
-                    // 模拟计算 SHA-1 Hash。
-                    const simulatedHash = 'A1B2C3D4E5F67890A1B2C3D4E5F67890A1B2C3D4'; 
-                    const fileName = source.split('/').pop().split('?')[0]; 
-                    
-                    // 构造标准的磁力链接格式
-                    const magnetLink = `magnet:?xt=urn:btih:${simulatedHash}&dn=${encodeURIComponent(fileName)}&tr=http://example.tracker/announce`;
-
-                    writeOutput(`正在处理: ${source}`);
-                    writeOutput('--- 正在模拟计算文件哈希值 (SHA-1)... ---', 'welcome');
-                    
-                    // 模拟生成延迟
-                    input.disabled = true;
-                    promptSpan.innerText = 'CALCULATING...';
-                    promptSpan.style.color = '#ff00ff'; 
-
-                    setTimeout(() => {
-                        writeOutput(`✅ 转换成功。模拟磁力链接已生成:`);
-                        writeOutput(magnetLink, 'dir'); 
-                        
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                    }, 1500); 
-                }
-            },
-            
-            // --- qrterminal 命令 ---
-            'qrterminal': {
-                description: '将文本或 URL 编码为 ASCII 二维码。用法: qrterminal <TEXT/URL>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('qrterminal: 缺少要编码的文本或 URL。', 'error');
-                        writeOutput('用法: qrterminal "Hello World!"', 'error');
-                        return;
-                    }
-
-                    const data = args.join(' ');
-                    
-                    // 模拟 ASCII 二维码输出
-                    const asciiQRCode = `
-█████████████████████████████████
-█▄ ▀▀▀█ ▀▄▀▀▄ ▄▄ ▄▀█ ▀ ▀▀ █▄█ ▀▄█
-█ ▄▀█▄▄ ▄▀█▄ █▄█ ▄ ▀▀▄▄█▀██▀ ▀▄█
-█▀ ▀▄█ ▀▀█▀█ █▀▀█▀ █▄▀▀█▄▄█ ▀ ▄█
-██▄██▀██▄ █▀▄ █▄▀█▀█▄█▀ ▄▄▄██▄ ▀█
-█▄█▄ ▀ ▄█▀▀▀█▄█▄ ▀ █▀█▄█▄█ ▄ ▀ ▀█
-█▀▀▀██▀ ▄▄▄▀ ▀█ ▄ ▀▄ ▄▄ █▀▄█▄ █▄█
-█ ▀ █▄ ▄ ▀▄█▀ █ ▄▀█ ▄▀▄▄ ▀▀ ▄▀ ▀█
-█▀ ▄▄ ▄ ▄▀▄▀▄▀▀▀█▀ █▀▀ ▄█ ▄▄█▄█▄█
-█ ▄▀ ▄█▀ ▄▄ █▄ ▀▀▄█▀▄ ▀▄ █ ▀▄▄ ▀█
-█ ▀▄█▄▀█ █▀▀ ▀▄▀█▀█ ▀ ▄█▄ ▀ ▀▄ ▄█
-█▀▀▀█ ▄▄ ▄▄▀ ▄▀▀ ▀▄ ▀▄ ▀▀▀▄▄ ▄▀ ▄█
-█████████████████████████████████
-`;
-                    
-                    writeOutput(`正在将 "${data}" 编码为二维码...`, 'welcome');
-                    
-                    // 模拟渲染延迟
-                    input.disabled = true;
-                    promptSpan.innerText = 'RENDERING QR CODE...';
-                    promptSpan.style.color = '#00ffc0'; 
-
-                    setTimeout(() => {
-                        writeOutput('生成成功:', 'welcome');
-                        
-                        // 输出 ASCII 二维码
-                        const qrDiv = document.createElement('div');
-                        qrDiv.className = 'qr-code-ascii';
-                        qrDiv.textContent = asciiQRCode;
-                        output.appendChild(qrDiv);
-                        
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        scrollToBottom();
-                    }, 800); 
-                }
-            },
-            
-            // --- pwgen 命令 ---
-            'pwgen': {
-                description: '生成随机密码。用法: pwgen <长度> [数量] (默认长度16, 数量1)',
-                execute: (args) => {
-                    let length = 16;
-                    let count = 1;
-
-                    // 解析参数
-                    if (args.length > 0 && !isNaN(parseInt(args[0]))) {
-                        length = parseInt(args[0]);
-                    }
-                    if (args.length > 1 && !isNaN(parseInt(args[1]))) {
-                        count = parseInt(args[1]);
-                    }
-
-                    // 限制合理范围
-                    length = Math.min(Math.max(8, length), 64); // 长度限制在 8 到 64
-                    count = Math.min(Math.max(1, count), 10);   // 数量限制在 1 到 10
-
-                    writeOutput(`正在生成 ${count} 个长度为 ${length} 的随机密码...`, 'welcome');
-
-                    const generatePassword = (len) => {
-                        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=';
-                        let password = '';
-                        
-                        // 确保包含至少一个大写、一个小写、一个数字、一个特殊字符 (提高安全性模拟)
-                        const requirements = [
-                            () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)],
-                            () => 'abcdefghijklmnopqrstuvwxyz'[Math.floor(Math.random() * 26)],
-                            () => '0123456789'[Math.floor(Math.random() * 10)],
-                            () => '!@#$%^&*()-_+='[Math.floor(Math.random() * 14)]
-                        ];
-
-                        // 插入必需的字符
-                        for (let i = 0; i < requirements.length && i < len; i++) {
-                            password += requirements[i]();
-                        }
-
-                        // 填充剩余长度
-                        while (password.length < len) {
-                            password += chars[Math.floor(Math.random() * chars.length)];
-                        }
-
-                        // 随机打乱密码 (确保必需的字符不总是在开头)
-                        password = password.split('').sort(() => 0.5 - Math.random()).join('');
-                        return password;
-                    };
-
-                    for (let i = 0; i < count; i++) {
-                        const password = generatePassword(length);
-                        writeOutput(password, 'dir');
-                    }
-                }
-            },
-            
-            // --- crypto 命令 ---
-            'crypto': {
-                description: '显示主流加密货币的实时价格 (模拟数据)。用法: crypto',
-                execute: () => {
-                    writeOutput('正在连接到 CoinGecko API...  请稍候...', 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'FETCHING DATA...';
-                    promptSpan.style.color = '#ff9900'; 
-
-                    setTimeout(() => {
-                        const data = [
-                            { symbol: 'BTC', name: 'Bitcoin', price: 68500.45, change: 1.56, marketCap: 1350 },
-                            { symbol: 'ETH', name: 'Ethereum', price: 3780.22, change: -0.87, marketCap: 454 },
-                            { symbol: 'SOL', name: 'Solana', price: 155.10, change: 5.92, marketCap: 70 },
-                            { symbol: 'DOGE', name: 'Dogecoin', price: 0.1543, change: 0.05, marketCap: 22 }
-                        ];
-
-                        const header = `| ${'Symbol'.padEnd(6)} | ${'Name'.padEnd(10)} | ${'Price (USD)'.padEnd(15)} | ${'24h Change'.padEnd(12)} | ${'Mkt Cap (B)'.padEnd(11)} |`;
-                        const separator = `+${'-'.repeat(8)}+${'-'.repeat(12)}+${'-'.repeat(17)}+${'-'.repeat(14)}+${'-'.repeat(13)}+`;
-                        let outputText = '\n' + separator + '\n' + header + '\n' + separator + '\n';
-                        
-                        data.forEach(item => {
-                            // 使用 toLocaleString 来格式化千位分隔符
-                            const priceFormatted = `$${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
-                            
-                            // 根据涨跌幅设置颜色
-                            const changeColor = item.change >= 0 ? 'color:#00ff00;' : 'color:#ff4500;';
-                            const changeSign = item.change >= 0 ? '+' : '';
-                            const changeText = `${changeSign}${item.change.toFixed(2)}%`;
-                            
-                            // 构造行，使用 <span> 标签应用颜色
-                            const line = 
-                                `| ${item.symbol.padEnd(6)} | ${item.name.padEnd(10)} | ${priceFormatted.padEnd(15)} | <span style="${changeColor}">${changeText.padEnd(12)}</span> | ${('$'+item.marketCap).padEnd(11)} |`;
-                            
-                            // 因为使用了 HTML 标签，这里不再使用 writeOutput，而是 writeHtmlOutput
-                            outputText += line + '\n';
-                        });
-
-                        outputText += separator;
-                        
-                        // 使用 writeHtmlOutput 并替换空格为 &nbsp; 以保持 ASCII 表格对齐
-                        writeHtmlOutput(outputText.replace(/ /g, '&nbsp;'));
-                        writeOutput(`数据更新时间: ${new Date().toLocaleTimeString()} (模拟)`);
-
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        
-                    }, 1500); // 模拟 1.5 秒的网络延迟
-                }
-            },
-
-            // --- stock 命令 (新增) ---
-            'stock': {
-                description: '显示模拟的股票实时行情。用法: stock <股票代码> (默认: AAPL)',
-                execute: (args) => {
-                    const symbol = args[0] ? args[0].toUpperCase() : 'AAPL';
-                    writeOutput(`正在连接到 NASDAQ/NYSE API... 查询股票代码: ${symbol}... 
-
-[Image of stock market candlestick chart]
- 请稍候...`, 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'FETCHING STOCK...';
-                    promptSpan.style.color = '#ffd700'; // Gold color for finance
-
-                    setTimeout(() => {
-                        // 模拟数据生成
-                        const basePrice = 150 + Math.random() * 50;
-                        const changePercent = (Math.random() * 8 - 4); // -4% to +4%
-                        const price = basePrice * (1 + changePercent / 100);
-                        const volume = Math.floor(Math.random() * 500) + 10;
-                        const market = (symbol === 'TSLA' || symbol === 'AAPL' || symbol === 'GOOG') ? 'NASDAQ' : 'NYSE';
-
-                        const changeColor = changePercent >= 0 ? 'color:#00ff00;' : 'color:#ff4500;';
-                        const changeSign = changePercent >= 0 ? '+' : '';
-                        
-                        const stockData = [
-                            { key: '股票代码', value: symbol },
-                            { key: '交易市场', value: market },
-                            { key: '最新价格', value: `$${price.toFixed(2)}` },
-                            { key: '涨跌幅 (24h)', value: `<span style="${changeColor}">${changeSign}${changePercent.toFixed(2)}%</span>` },
-                            { key: '交易量 (M)', value: `${volume.toFixed(1)}M` }
-                        ];
-
-                        const maxKeyLength = stockData.reduce((max, item) => Math.max(max, item.key.length), 0);
-                        
-                        let outputText = `\n--- 实时行情 (${symbol}) --- \n`;
-
-                        stockData.forEach(item => {
-                            // 保持键的对齐
-                            const line = `| ${item.key.padEnd(maxKeyLength)} : ${item.value} |`;
-                            outputText += line + '\n';
-                        });
-
-                        outputText += `-------------------------------`;
-                        
-                        // 使用 writeHtmlOutput 以便应用颜色
-                        writeHtmlOutput(outputText.replace(/ /g, '&nbsp;'));
-                        writeOutput(`数据源: ${market} (模拟)`);
-
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        
-                    }, 1200); // 模拟 1.2 秒的网络延迟
-                }
-            },
-            
-            // --- FX 命令 (模拟汇率查询和转换) ---
-            'fx': {
-                description: '查询货币汇率或进行转换。用法: fx <FROM> <TO> [AMOUNT]',
-                execute: (args) => {
-                    // 默认值
-                    let fromCode = (args[0] || 'USD').toUpperCase();
-                    let toCode = (args[1] || 'CNY').toUpperCase();
-                    let amount = parseFloat(args[2]) || 1.0;
-                    
-                    if (isNaN(amount) || amount <= 0) {
-                        writeOutput('fx: 数量 (AMOUNT) 必须是一个有效的正数。', 'error');
-                        return;
-                    }
-                    
-                    writeOutput(`正在连接到 ForeignExchange API... 查询 ${fromCode} 到 ${toCode} 的汇率... 请稍候... `, 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'FETCHING FX...';
-                    promptSpan.style.color = '#ffd700'; // 黄金色
-
-                    setTimeout(() => {
-                        // 1. 模拟实时汇率数据 (核心模拟逻辑)
-                        // 使用一个随机波动模拟汇率
-                        const volatility = (Math.random() * 0.05 + 0.95); 
-                        let rate = 0;
-
-                        if (fromCode === toCode) {
-                            rate = 1.0;
-                        } else if (fromCode === 'USD' && toCode === 'CNY') {
-                            rate = 7.15 * volatility;
-                        } else if (fromCode === 'USD' && toCode === 'EUR') {
-                            rate = 0.92 * volatility;
-                        } else if (fromCode === 'EUR' && toCode === 'USD') {
-                            rate = 1 / (0.92 * volatility);
-                        } else if (fromCode === 'CNY' && toCode === 'USD') {
-                            rate = 1 / (7.15 * volatility);
-                        } else {
-                            // 默认模拟一个近似 1:1 的汇率，并带随机波动
-                            rate = 1.0 * volatility;
-                        }
-
-                        // 2. 计算转换结果
-                        const convertedAmount = amount * rate;
-                        
-                        // 3. 格式化输出
-                        const rateFormatted = rate.toFixed(4); // 汇率保留4位小数
-                        const amountFormatted = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        const convertedFormatted = convertedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        
-                        const outputData = [
-                            { key: '查询货币对', value: `${fromCode} / ${toCode}` },
-                            { key: '实时汇率', value: `1 ${fromCode} = ${rateFormatted} ${toCode}` },
-                            { key: '转换数量', value: `${amountFormatted} ${fromCode}` },
-                            { key: '转换结果', value: `${convertedFormatted} ${toCode}` }
-                        ];
-
-                        const maxKeyLength = outputData.reduce((max, item) => Math.max(max, item.key.length), 0);
-                        
-                        let outputText = `\n--- 实时汇率查询结果 --- \n`;
-
-                        outputData.forEach(item => {
-                            // 保持键的对齐，并使用 <span> 突出结果
-                            const valueHtml = (item.key === '实时汇率' || item.key === '转换结果') 
-                                ? `<span style="color:#00ffff;">${item.value}</span>` 
-                                : item.value;
-                            
-                            const line = `| ${item.key.padEnd(maxKeyLength)} : ${valueHtml} |`;
-                            // 由于 valueHtml 中包含 HTML 标签，这里必须替换空格为 &nbsp; 才能保持对齐
-                            outputText += line.replace(/ /g, '&nbsp;') + '\n';
-                        });
-
-                        outputText += `-------------------------------`;
-                        
-                        writeHtmlOutput(outputText);
-                        writeOutput(`数据源: Web-CLI FX Cache (${new Date().toLocaleTimeString()} 模拟)`);
-
-                        // 恢复终端状态
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        
-                    }, 1000); // 模拟 1 秒的网络延迟
-                }
-            },
-            
-            // --- CHAT 命令 (模拟 AI 聊天) ---
-            'chat': {
-                description: '启动AI聊天会话。输入 /quit 或 /exit 退出会话。',
-                execute: () => {
-                    writeOutput('正在连接 AI 核心引擎 (v2.0)...', 'welcome');
-                    writeOutput('AI: 问候。我是 Web-CLI AI 助理。请问您有什么需要？输入 /quit 或 /exit 结束会话。', 'dir');
-                    
-                    // 禁用其他命令，进入聊天模式
-                    input.disabled = true; 
-                    promptSpan.innerText = 'AI-CHAT: ';
-                    promptSpan.style.color = '#ff69b4'; // Hot Pink for AI
-
-                    // 临时事件监听器，用于处理聊天输入
-                    const chatListener = (e) => {
-                        if (e.key === 'Enter') {
-                            const chatInput = input.value.trim();
-                            writeCommandHistory(chatInput); // 记录用户输入
-                            input.value = '';
-
-                            // 1. 检查退出命令
-                            if (chatInput === '/quit' || chatInput === '/exit') {
-                                writeOutput('AI: 收到退出请求。会话已结束。期待您的下次连接。', 'dir');
-                                
-                                // 清理
-                                input.removeEventListener('keydown', chatListener);
-                                input.disabled = false;
-                                updatePrompt();
-                                input.focus();
-                                promptSpan.style.color = 'var(--prompt-color)';
-                                return;
-                            }
-                            
-                            // 2. 模拟 AI 思考延迟
-                            input.disabled = true;
-                            promptSpan.innerText = 'AI-THINKING...';
-                            promptSpan.style.color = '#ff69b4'; 
-
-                            setTimeout(() => {
-                                let response = simulateAiResponse(chatInput);
-                                writeOutput('AI: ' + response, 'dir');
-                                
-                                // 恢复聊天模式
-                                input.disabled = false;
-                                promptSpan.innerText = 'AI-CHAT: ';
-                                promptSpan.style.color = '#ff69b4'; 
-                                input.focus();
-                                scrollToBottom();
-                            }, 1500 + Math.random() * 1000); // 1.5 到 2.5 秒的思考时间
-                        }
-                    };
-
-                    // 添加临时监听器
-                    input.addEventListener('keydown', chatListener);
-                    input.disabled = false;
-                    input.focus();
-                }
-            },
-
-            // --- DIVINE 命令 (模拟六爻占卜) ---
-            'divine': {
-                description: '进行六爻占卜，模拟回答您提出的问题。用法: divine "我的事业运如何?"',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('divine: 请提出您的问题 (例如: divine "我应该换工作吗?")', 'error');
-                        return;
-                    }
-                    const userQuestion = args.join(' ');
-
-                    writeOutput(`\n🔮 接收到您的提问: "${userQuestion}"`, 'welcome');
-                    writeOutput('   正在模拟投掷三枚铜钱，进行六爻占卜...', 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'DIVINING...';
-                    promptSpan.style.color = '#ffc0cb'; // Pink for mysticism
-
-                    // 1. 模拟延迟和进程
-                    setTimeout(() => {
-                        const castResult = generateHexagram();
-                        const analysis = analyzeHexagram(castResult.hexagram);
-                        
-                        // 2. 占卜结果输出
-                        writeOutput('\n--- 六爻占卜结果 ---');
-                        writeOutput('爻辞排列 (从下往上):', 'dir');
-                        
-                        // 输出爻的排列和动爻信息
-                        const hexagramDisplay = castResult.hexagram.map((yao, index) => {
-                            const isMoving = castResult.movingYaoIndices.includes(index);
-                            const yaoSymbol = getYaoSymbol(yao);
-                            const yaoText = `爻${index + 1}: ${yaoSymbol}`;
-                            const movingText = isMoving ? ` (动爻，变${getYaoSymbol(yaoMap[yao].changesTo)})` : '';
-                            return yaoText + movingText;
-                        }).reverse().join('\n');
-                        
-                        writeOutput(hexagramDisplay);
-
-                        // 3. 卦象解读
-                        writeOutput('\n--- 卦象解读 ---', 'dir');
-                        writeOutput(`主卦象: ${analysis.hexagramName}${analysis.hexagramCode ? ` (${analysis.hexagramCode})` : ''}`);
-                        if (analysis.changingHexagramName) {
-                            writeOutput(`变卦象: ${analysis.changingHexagramName}${analysis.changingHexagramCode ? ` (${analysis.changingHexagramCode})` : ''}`);
-                        }
-                        
-                        // 4. 给出模拟的启示
-                        writeOutput('\n--- 启示录 (The Oracle) ---', 'dir');
-                        writeOutput(analysis.oracleMessage, 'dir');
-                        
-                        writeOutput('\n占卜结束。命运在您自己的手中。', 'welcome');
-
-                        // 5. 恢复终端状态
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                        scrollToBottom();
-                        
-                    }, 2500); // 模拟 2.5 秒的占卜过程
-                }
-            },
-
-            // --- MPLATER 命令 (模拟媒体播放器) ---
-            'mplayer': {
-                description: '模拟媒体播放器。用法: mplayer <URL/文件> (Ctrl+C 停止)',
-                execute: (args) => {
-                    if (mplayerIntervalId !== null) { writeOutput('mplayer 已经在播放。', 'error'); return; }
-
-                    const mediaSource = args[0] || 'trailer.mp4';
-                    writeOutput(`正在启动 MPlayer SVN-r37509 (C) 2000-2015 MPlayer Team`, 'welcome');
-                    writeOutput(`播放文件: ${mediaSource}`, 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'PLAYING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#87ceeb'; // Light Blue/Cyan for media
-
-                    const durationSeconds = 90; // 模拟总时长 90 秒
-                    let currentTimeSeconds = 0;
-                    const updateInterval = 1000; // 每 1000ms (1秒) 更新一次
-                    
-                    // 创建一个用于动态更新进度的 DIV
-                    const mplayerDiv = document.createElement('div');
-                    mplayerDiv.id = 'mplayer-progress';
-                    mplayerDiv.style.whiteSpace = 'pre';
-                    output.appendChild(mplayerDiv);
-
-                    // 模拟 MPlayer 的初始化和解码输出
-                    writeOutput(`Video: no video`, 'output-text');
-                    writeOutput(`Audio: MP3 (44100 Hz, 2 channels)`, 'output-text');
-                    writeOutput(`Starting playback...`, 'output-text');
-
-                    // 格式化时间 (HH:MM:SS)
-                    const formatTime = (totalSeconds) => {
-                        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-                        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                        const s = String(Math.floor(totalSeconds % 60)).padStart(2, '0');
-                        return `${h}:${m}:${s}`;
-                    };
-
-                    const refreshMplayer = () => {
-                        if (currentTimeSeconds >= durationSeconds) {
-                            clearInterval(mplayerIntervalId);
-                            mplayerIntervalId = null;
-                            writeOutput('\n播放结束 (文件已到达末尾)。', 'welcome');
-                            
-                            // 恢复终端状态
-                            input.disabled = false;
-                            updatePrompt();
-                            input.focus();
-                            promptSpan.style.color = 'var(--prompt-color)';
-                            return;
-                        }
-
-                        const percent = Math.floor((currentTimeSeconds / durationSeconds) * 100);
-                        const progressBarWidth = 30;
-                        const filled = Math.round((currentTimeSeconds / durationSeconds) * progressBarWidth);
-                        const empty = progressBarWidth - filled;
-                        
-                        const progressBar = `[${'='.repeat(filled)}${'>'}${' '.repeat(empty)}]`;
-                        
-                        const currentTimestamp = formatTime(currentTimeSeconds);
-                        const durationTimestamp = formatTime(durationSeconds);
-                        
-                        // 模拟 MPlayer 实时更新的输出格式
-                        const outputLine = `A: ${currentTimeSeconds.toFixed(0).padStart(3, ' ')} / ${durationSeconds.toFixed(0)} (${percent}%) ${progressBar} ${currentTimestamp} / ${durationTimestamp}`;
-                        
-                        mplayerDiv.textContent = outputLine;
-                        scrollToBottom();
-
-                        currentTimeSeconds++;
-                    };
-
-                    // 使用全局变量来控制中断
-                    mplayerIntervalId = setInterval(refreshMplayer, updateInterval);
-                }
-            },
-
-            // --- LISTEN 命令 (模拟播放 + 真实链接) ---
-            'listen': {
-                description: '尝试播放指定的音乐 URL。用法: listen <URL>',
-                execute: (args) => {
-                    if (args.length === 0) {
-                        writeOutput('listen: 缺少 URL 操作数。', 'error');
-                        writeOutput('用法: listen https://example.com/song.mp3', 'error');
-                        return;
-                    }
-                    
-                    const url = args[0];
-                    writeOutput(`正在启动 AudioStream CLI 播放器 (PID ${Math.floor(Math.random() * 5000) + 100})...`, 'welcome');
-                    writeOutput(`尝试连接到流媒体源: ${url}`, 'welcome');
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'BUFFERING...';
-                    promptSpan.style.color = '#800080'; // Purple for audio
-
-                    setTimeout(() => {
-                        // 模拟检查流媒体状态
-                        if (!url.startsWith('http')) {
-                             writeOutput(`错误: 无效的 URL 格式。`, 'error');
-                        } else {
-                            // 实际生成可点击的链接
-                            const linkText = `点击此处 (在新标签页) 播放音乐: ${url}`;
-                            const htmlContent = `
-✅ <span style="color:#00ffff;">流媒体就绪。</span>
-<span style="color:#ffcc00;">[<a href="${url}" target="_blank" style="color:inherit; text-decoration:underline;">${linkText}</a>]</span>
-<span style="color:#00ff00;">Buffering: 100% (Playing: 00:00)</span>
-<span style="color:#ffffff;">----------------------------------------</span>
-`;
-                            writeHtmlOutput(htmlContent);
-                        }
-                        
-                        // 恢复终端状态
-                        input.disabled = false;
-                        updatePrompt();
-                        input.focus();
-                        promptSpan.style.color = 'var(--prompt-color)';
-                    }, 1500); // 模拟连接和缓冲延迟
-                }
-            },
-            
-            // CBONSAI 命令 (已修正为动画)
-            'cbonsai': {
-                description: '模拟 cbonsai 盆栽生长动画。Ctrl+C 退出。',
-                execute: () => {
-                    if (cbonsaiIntervalId !== null) { writeOutput('cbonsai 已经在生长。', 'error'); return; }
-
-                    output.innerHTML = ''; 
-                    writeOutput('正在种植盆栽 (C-Bonsai)...', 'welcome');
-                    
-                    const bonsaiDiv = document.createElement('div');
-                    bonsaiDiv.id = 'cbonsai-animation';
-                    bonsaiDiv.style.color = '#33cc33'; 
-                    bonsaiDiv.style.whiteSpace = 'pre'; 
-                    output.appendChild(bonsaiDiv);
-
-                    input.disabled = true;
-                    promptSpan.innerText = 'GROWING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#33cc33'; 
-                    
-                    const frames = [
-                        `
-                          .
-                         / \\
-                        /___\\
-                       |     |
-                       |_____|
-                        \\___/
-                         | |
-                         |_|
-                        
-`,
-                        `
-                          .
-                         / \\
-                        /___\\
-                       | @   |
-                       |_____|
-                        \\___/
-                         | |
-                         |_|
-`,
-                        `
-                          /\\
-                         /  \\
-                        / @  \\
-                       | / \\ |
-                       |_____|
-                        \\___/
-                         | |
-                         |_|
-`,
-                        `
-                      _.._
-                     / \\  \\
-                    /  @   \\
-                   | /\\ /\\ |
-                   |_______|
-                    \\___/
-                     | | |
-                     | | |
-`,
-                        `
-                      _..._
-                     ,dP""YMb,
-                    dP'  @  'YMb
-                   |    / \\    |
-                   |___/___\\___|
-                    \\_________ /
-                     |  |  |  |
-                     |  |  |  |
-`,
-                        `
-                      _..._
-                     ,d88""Y8b,
-                    d88' @  '88b
-                   |888 / \\ 888|
-                   |___/___\\___|
-                    \\_________ /
-                     |  |  |  |
-                     |  |  |  |
-`
-                    ];
-                    let currentFrame = 0;
-                    const TOTAL_FRAMES = frames.length;
-
-                    const growBonsai = () => {
-                        if (currentFrame >= TOTAL_FRAMES) {
-                            clearInterval(cbonsaiIntervalId);
-                            cbonsaiIntervalId = null;
-                            input.disabled = false;
-                            updatePrompt();
-                            input.focus();
-                            promptSpan.style.color = 'var(--prompt-color)';
-                            writeOutput('\nBonsai 生长完成！ 输入 Ctrl+C 即可清除画面。', 'welcome');
-                            return;
-                        }
-                        
-                        bonsaiDiv.textContent = frames[currentFrame];
-                        currentFrame++;
-                        scrollToBottom();
-                    };
-
-                    cbonsaiIntervalId = setInterval(growBonsai, 500);
-                }
-            },
-            
-            // SL 命令
-            'sl': {
-                description: '运行一辆 ASCII 蒸汽火车穿越终端。Ctrl+C 退出。',
-                execute: () => {
-                    if (slIntervalId !== null) { writeOutput('sl 已经在运行。', 'error'); return; }
-                    output.innerHTML = ''; 
-                    writeOutput('正在启动 SL 蒸汽火车...', 'welcome');
-                    const slDiv = document.createElement('p');
-                    slDiv.id = 'sl-train-animation';
-                    slDiv.style.color = '#ffff00'; 
-                    slDiv.style.whiteSpace = 'pre'; 
-                    output.appendChild(slDiv);
-                    input.disabled = true;
-                    promptSpan.innerText = 'SL RUNNING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#ff0000'; 
-                    const train = `
-    W W     WWWWWWWWWWWWWW
-  /|||||||||||||||||||\\
- /_ _________________ _\\
-| O O O O O O O O O O |
- \`--o-o--'--o-o--'-o-o-'\`
-`;
-                    const smokeFrames = ['  _',' _ ', '__', ' _ ','  __'];
-                    let smokeIndex = 0;
-                    let position = -40; 
-                    const refreshTrain = () => {
-                        const width = output.clientWidth;
-                        if (position > width / 6) { 
-                            clearInterval(slIntervalId);
-                            slIntervalId = null;
-                            output.innerHTML = ''; 
-                            writeOutput('蒸汽火车已通过。', 'welcome');
-                            input.disabled = false;
-                            updatePrompt();
-                            input.focus();
-                            promptSpan.style.color = 'var(--prompt-color)';
-                            return;
-                        }
-                        const currentSmoke = smokeFrames[smokeIndex].padEnd(4, ' ');
-                        const trainWithSmoke = train.replace('W W', currentSmoke); 
-                        smokeIndex = (smokeIndex + 1) % smokeFrames.length;
-                        slDiv.style.paddingLeft = position + 'px';
-                        slDiv.textContent = trainWithSmoke;
-                        position += 2; 
-                        scrollToBottom();
-                    };
-                    slIntervalId = setInterval(refreshTrain, 80);
-                }
-            },
-
-            // GIFWRAP 命令
-            'gifwrap': {
-                description: '模拟在终端中播放 ASCII 动画。Ctrl+C 退出。',
-                execute: () => {
-                    if (gifwrapIntervalId !== null) { writeOutput('gifwrap 已经在运行。', 'error'); return; }
-                    output.innerHTML = ''; 
-                    writeOutput('正在启动 GIFWRAP 动画...', 'welcome');
-                    const gifwrapDiv = document.createElement('div');
-                    gifwrapDiv.id = 'gifwrap-animation';
-                    output.appendChild(gifwrapDiv);
-                    input.disabled = true;
-                    promptSpan.innerText = 'ANIMATING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#ff8000'; 
-                    const frames = [
-                        `\n  (^_^)/\n   | |\n  / \\`,
-                        `\n  \\(^_^)/\n    | |\n   / \\`,
-                        `\n  /(^_^)\\\n   | |\n  / \\`,
-                        `\n  (^_^)\\\n   | |\n  / \\`
-                    ];
-                    let currentFrame = 0;
-                    const refreshAnimation = () => {
-                        currentFrame = (currentFrame + 1) % frames.length;
-                        gifwrapDiv.textContent = frames[currentFrame];
-                        scrollToBottom();
-                    };
-                    gifwrapIntervalId = setInterval(refreshAnimation, 150);
-                }
-            },
-            
-            // GKRELLM 命令
-            'gkrellm': {
-                description: '模拟 GKrellM 系统监视器。Ctrl+C 退出。',
-                execute: () => {
-                    if (gkrellmIntervalId !== null) { writeOutput('gkrellm 已经在运行。', 'error'); return; }
-                    output.innerHTML = '';
-                    writeOutput('正在启动 GKrellM 模拟器...', 'welcome');
-                    const gkrellmDiv = document.createElement('div');
-                    gkrellmDiv.id = 'gkrellm-monitor';
-                    output.appendChild(gkrellmDiv);
-                    input.disabled = true;
-                    promptSpan.innerText = 'MONITORING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#ff00ff'; 
-                    let cpuUsage = 15, memUsage = 60, netRx = 0.1, netTx = 0.05;
-                    const refreshMonitor = () => {
-                        cpuUsage = Math.min(100, Math.max(5, cpuUsage + (Math.random() * 8 - 4)));
-                        memUsage = Math.min(95, Math.max(50, memUsage + (Math.random() * 2 - 1)));
-                        netRx = Math.max(0.01, netRx + (Math.random() * 0.2 - 0.1));
-                        netTx = Math.max(0.01, netTx + (Math.random() * 0.1 - 0.05));
-                        const cpuBar = '█'.repeat(Math.round(cpuUsage / 10)).padEnd(10, '░');
-                        const memBar = '█'.repeat(Math.round(memUsage / 10)).padEnd(10, '░');
-                        const monitorAscii = `
-┌───────────────────────────┐
-│ Web-CLI GKrellM Simulator │
-├───────────────────────────┤
-│ CPU: [${cpuBar}] ${cpuUsage.toFixed(1).padEnd(5, ' ')}%     │
-│ Memory: [${memBar}] ${memUsage.toFixed(1).padEnd(5, ' ')}%    │
-│ Net I/F: Rx: ${netRx.toFixed(2).padEnd(5, '0')} MB/s        │
-└───────────────────────────┘
-`;
-                        gkrellmDiv.textContent = monitorAscii;
-                        scrollToBottom();
-                    };
-                    refreshMonitor();
-                    gkrellmIntervalId = setInterval(refreshMonitor, 1000);
-                }
-            },
-            
-            // XSNOW 命令 (Fixed 定位强化)
-            'xsnow': {
-                description: '模拟终端降雪效果。按 Ctrl+C 退出。',
-                execute: () => {
-                    if (xsnowIntervalId !== null) { 
-                        writeOutput('xsnow 已经在运行。请按 Ctrl+C 退出。', 'error'); 
-                        return; 
-                    }
-                    
-                    const snowContainer = document.getElementById('xsnow-container');
-                    snowContainer.innerHTML = ''; 
-                    snowContainer.style.display = 'block'; // 显示容器
-                    
-                    input.disabled = true;
-                    promptSpan.innerText = 'SNOWING... (按 Ctrl+C 停止)';
-                    promptSpan.style.color = '#87ceeb'; 
-                    
-                    let flakeCount = 0; 
-                    const MAX_FLAKES = 100; 
-                    const containerWidth = window.innerWidth;
-                    
-                    const createFlake = () => {
-                        if (xsnowIntervalId === null || flakeCount >= MAX_FLAKES) {
-                            // 保持定时器运行直到达到最大数量，然后停止生成
-                            if (flakeCount >= MAX_FLAKES) {
-                                clearInterval(xsnowIntervalId);
-                                xsnowIntervalId = setInterval(cleanupFlakes, 1000); // 切换到清理模式
-                            }
-                             return;
-                        }
-                        flakeCount++;
-                        
-                        const flake = document.createElement('span');
-                        flake.innerHTML = (Math.random() > 0.5 ? '&#10052;' : '&#10053;'); 
-                        flake.className = 'snowflake';
-                        
-                        const startX = Math.random() * 100; 
-                        const size = Math.random() * 0.8 + 0.4; 
-                        const duration = Math.random() * 10 + 5; 
-                        const delay = Math.random() * 10; 
-                        
-                        // 使用 vh 和 vw 确保动画基于视口
-                        flake.style.cssText = `
-                            position: absolute; /* 相对于 Fixed 的父容器 */
-                            top: -5vh; 
-                            left: ${startX}vw;
-                            font-size: ${size}rem;
-                            opacity: ${Math.random() * 0.5 + 0.5};
-                            pointer-events: none;
-                            z-index: 99999; 
-                            animation: fall ${duration}s linear infinite;
-                            animation-delay: -${delay}s; 
-                        `;
-                        
-                        snowContainer.appendChild(flake);
-                        
-                        // 移除动画结束后的元素 (防止 DOM 爆炸)
-                        // 使用一个稍微长一点的 timeout 来确保动画跑完
-                        setTimeout(() => {
-                            if (flake.parentNode) {
-                                flakeCount--;
-                                flake.remove();
-                            }
-                        }, (duration + delay) * 1000 + 1000); 
-                    };
-
-                    const cleanupFlakes = () => {
-                        // 在 Ctrl+C 时进行清理，这个函数在启动时并不执行
-                    };
-
-                    output.innerHTML = ''; 
-                    writeOutput('❄️ XSnow: 启动降雪模式 (Fixed 强化修复)...', 'welcome');
-                    scrollToBottom();
-                    
-                    xsnowIntervalId = setInterval(createFlake, 200); 
                 }
             }
         };
 
-        // --- 事件监听和初始化 ---
-        function handleInput() {
-            const commandLine = input.value.trim();
+        // --- 事件处理和主循环 ---
+        
+        function handleCommand() {
+            let commandLine = input.value.trim();
+            input.value = '';
+
             if (commandLine === '') return;
 
             writeCommandHistory(commandLine);
-            history.push(commandLine);
-            historyIndex = history.length; 
+            history.unshift(commandLine);
+            historyIndex = -1; 
 
-            const parts = commandLine.split(/\s+/);
-            const command = parts[0].toLowerCase();
-            const args = parts.slice(1);
-
-            const cmd = commands[command];
-            if (cmd) {
-                // 特效/动画命令
-                if (['curl', 'ping', 'ncat', 'gkrellm', 'gifwrap', 'sl', 'xsnow', 'cbonsai', 'display', 'makemagnet', 'qrterminal', 'pwgen', 'crypto', 'stock', 'mplayer', 'listen', 'fx', 'chat', 'divine', 'ruler'].includes(command)) {
-                    // 对于模拟延迟或动画命令，不要清空 input.value，直到它们完成或被中断
-                    cmd.execute(args);
-                } else {
-                    cmd.execute(args);
-                    input.value = '';
-                    input.focus();
+            if (isChatMode) {
+                if (commandLine.toLowerCase() === '/quit' || commandLine.toLowerCase() === '/exit') {
+                    isChatMode = false;
+                    updatePrompt();
+                    writeOutput("💬 退出 AI 聊天会话。");
+                    return;
                 }
-            } else {
-                writeOutput(`命令未找到: ${command}. 输入 'help' 查看命令。`, 'error');
-                input.value = '';
-                input.focus();
+                
+                chatHistory.push({ role: 'user', content: commandLine });
+                const aiResponse = simulateAiResponse(commandLine);
+                chatHistory.push({ role: 'ai', content: aiResponse });
+                writeOutput(`[AI Response]: ${aiResponse}`);
+                scrollToBottom();
+                return;
             }
-        }                
 
-        function writeWelcome() {
-            writeOutput('');
-            writeOutput('');
-            writeOutput('', '');
-            writeOutput('', ''); 
-            writeOutput('', ''); 
-            writeOutput('', ''); 
-            writeOutput('', '');
-            writeOutput('', '');
+            const parts = commandLine.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+            const command = parts[0];
+            const args = parts.slice(1).map(arg => arg.replace(/"/g, ''));
+            
+            const cmd = command.toLowerCase();
+
+            if (commands[cmd]) {
+                commands[cmd].execute(args);
+            } else {
+                if (cmd.length > 2) {
+                    const aiResponse = simulateAiResponse(commandLine);
+                    writeOutput(`[AI Response]: ${aiResponse}`);
+                } else {
+                    writeOutput(`-web-cli: ${command}: command not found. 试试 'help'。`, 'error');
+                }
+            }
+            scrollToBottom();
         }
 
-        input.addEventListener('keydown', (e) => {
-            
-            // 监听 Ctrl+C 组合键 (清理所有特效的关键部分)
-            if ((e.key === 'c' || e.key === 'C') && e.ctrlKey) {
-                
-                // 检查是否在 chat 模式下
-                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
-                    // 允许 chatListener 接收 Ctrl+C 后的输入，用户需要手动输入 /quit
-                    if (input.disabled) {
-                         // 清理 AI 思考中的状态，并提醒用户手动退出
-                         input.disabled = false;
-                         promptSpan.innerText = 'AI-CHAT: ';
-                         promptSpan.style.color = '#ff69b4';
-                         writeOutput('AI: 思考中断。请手动输入 /quit 退出聊天模式。', 'error');
-                         input.focus();
-                    }
-                    return; 
-                }
+        function writeWelcome() {
+            writeOutput("", '');
+            writeOutput("", '');
+            writeOutput("", ''); 
+            writeOutput("");
+        }
 
-                // ... (原有的 Ctrl+C 清理逻辑)
-                if (gkrellmIntervalId !== null || gifwrapIntervalId !== null || slIntervalId !== null || xsnowIntervalId !== null || cbonsaiIntervalId !== null || pingIntervalId !== null || mplayerIntervalId !== null) {
-                    e.preventDefault(); 
-                    
-                    // 清理所有定时器
-                    if (gkrellmIntervalId !== null) {
-                        clearInterval(gkrellmIntervalId);
-                        gkrellmIntervalId = null;
-                    }
-                    if (gifwrapIntervalId !== null) {
-                        clearInterval(gifwrapIntervalId);
-                        gifwrapIntervalId = null;
-                    }
-                    if (slIntervalId !== null) {
-                        clearInterval(slIntervalId);
-                        slIntervalId = null;
-                    }
-                    if (cbonsaiIntervalId !== null) { 
-                        clearInterval(cbonsaiIntervalId);
-                        cbonsaiIntervalId = null;
-                    }
-                    // 清理 ping 定时器
-                    if (pingIntervalId !== null) { 
-                        clearInterval(pingIntervalId);
-                        pingIntervalId = null;
-                    }
-                    // 清理 mplayer 定时器
-                    if (mplayerIntervalId !== null) { 
-                        clearInterval(mplayerIntervalId);
-                        mplayerIntervalId = null;
-                    }
-                    
-                    // 清理 xsnow 定时器和元素 (这次的清理逻辑)
-                    if (xsnowIntervalId !== null) {
-                        clearInterval(xsnowIntervalId);
-                        xsnowIntervalId = null;
-                        const snowContainer = document.getElementById('xsnow-container');
-                        if (snowContainer) {
-                            // 移除雪花容器内的所有子元素 (雪花)
-                            while (snowContainer.firstChild) {
-                                snowContainer.removeChild(snowContainer.firstChild);
-                            }
-                            // 隐藏容器本身
-                            snowContainer.style.display = 'none';
-                        }
-                    }
-                    
-                    output.innerHTML = ''; 
-                    writeOutput('^C', 'error'); 
-                    writeOutput('操作已中断。', 'welcome');
-                    
-                    input.disabled = false;
-                    updatePrompt();
-                    input.focus();
-                    promptSpan.style.color = 'var(--prompt-color)';
-                    input.value = ''; 
-                    return;
+        input.addEventListener('keydown', function(event) {
+            // Ctrl+C (Key 67)
+            if ((event.ctrlKey && event.key.toLowerCase() === 'c')) {
+                event.preventDefault(); 
+                handleCtrlC();
+            } else if (event.key === 'Enter') {
+                handleCommand();
+            } else if (event.key === 'Tab') {
+                event.preventDefault();
+                // 自动补全逻辑可以在这里添加
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (history.length > 0) {
+                    historyIndex = Math.min(historyIndex + 1, history.length - 1);
+                    input.value = history[historyIndex];
                 }
-            }
-
-            if (e.key === 'Enter') {
-                // 如果处于 AI-CHAT 模式，Enter 键已经在 chatListener 中处理，这里只拦截正常命令的执行
-                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
-                    // 如果在 AI-CHAT 模式，且输入框被禁用（即 AI 正在思考），则忽略 Enter
-                    if (input.disabled) {
-                        e.preventDefault();
-                    }
-                    return;
-                }
-                
-                if (input.disabled) {
-                    e.preventDefault();
-                    return;
-                } 
-                handleInput();
-            } else if (e.key === 'ArrowUp') {
-                // 如果处于 AI-CHAT 模式，禁用历史记录
-                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
-                    e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
+            } else if (event.key === 'ArrowDown') {
+                event.preventDefault();
                 if (historyIndex > 0) {
                     historyIndex--;
                     input.value = history[historyIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                 // 如果处于 AI-CHAT 模式，禁用历史记录
-                if (promptSpan.innerText.startsWith('AI-CHAT:')) {
-                    e.preventDefault();
-                    return;
-                }
-                e.preventDefault();
-                if (historyIndex < history.length - 1) {
-                    historyIndex++;
-                    input.value = history[historyIndex];
                 } else {
-                    historyIndex = history.length;
+                    historyIndex = -1;
                     input.value = '';
                 }
-            } else if (e.key === 'Tab') {
-                e.preventDefault();
-                if (!input.disabled && !promptSpan.innerText.startsWith('AI-CHAT:')) { // AI 模式下禁用补全
-                    autoComplete();
-                }
             }
         });
-
-        document.getElementById('terminal-container').addEventListener('click', () => {
-            if (!input.disabled) {
-                input.focus();
-            }
-        });
-
+        
         // 初始化
-        document.addEventListener('DOMContentLoaded', () => {
-            updatePrompt();
-            writeWelcome();
-            input.focus();
-        });
+        writeWelcome();
+        updatePrompt();
+        
     </script>
 </body>
-    </html>
+</html>
