@@ -3,95 +3,88 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>FC 直播观众端</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
-        body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; 
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
-        }
-        #remoteVideo {
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);        }
-        .control-panel {
-            position: absolute;
-            top: 20px;
-background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 10;
-        }
-        h2, p { margin: 5px 0; }
-        strong { color: #4CAF50; }
+        body { margin: 0;      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+ color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .video-container { flex: 1; position: relative;      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+ display: flex; align-items: center; justify-content: center; }
+        video { max-width: 100%; max-height: 100%; }
+        #play-hint { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 10; font-size: 1.2em; }
+        .panel { padding: 15px; background: #222; border-top: 1px solid #444; }
+        .emojis { display: flex; justify-content: space-around; font-size: 32px; margin-bottom: 15px; }
+        .emojis span { cursor: pointer; padding: 5px; transition: 0.1s; }
+        .emojis span:active { transform: scale(1.3); }
+        .chat-box { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; }
+        button { background: #E91E63; color: #fff; border: none; padding: 0 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        #status { font-size: 12px; color: #FFC107; text-align: center; margin-bottom: 5px; }
+        .disabled { opacity: 0.3; pointer-events: none; }
     </style>
 </head>
 <body>
-
-    <div class="control-panel">
-        <h2>📺 WebRTC 接收端</h2>
-        <p>您的直播 ID (请告知主播): <strong id="myId">等待中...</strong></p>
-        <p id="status">状态: 正在等待主播连接...</p>
+    <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline muted></video>
+        <div id="play-hint" onclick="enableAudio()">点击开启声音 🔊</div>
+    </div>
+    <div class="panel">
+        <div id="status">正在获取观众 ID...</div>
+        <div id="interactive-area" class="disabled">
+            <div class="emojis">
+                <span onclick="send('emoji', '🔥')">🔥</span>
+                <span onclick="send('emoji', '👍')">👍</span>
+                <span onclick="send('emoji', '😂')">😂</span>
+                <span onclick="send('emoji', '👏')">👏</span>
+            </div>
+            <div class="chat-box">
+                <input type="text" id="chatInput" placeholder="发条弹幕...">
+                <button onclick="sendChat()">发送</button>
+            </div>
+        </div>
     </div>
 
-    <video id="remoteVideo" autoplay playsinline></video>
-
     <script>
-        const remoteVideo = document.getElementById('remoteVideo');
-        const myIdEl = document.getElementById('myId');
-        const statusEl = document.getElementById('status');
-        let peer = null;
+        const video = document.getElementById('remoteVideo');
+        const status = document.getElementById('status');
+        const hint = document.getElementById('play-hint');
+        let dataConn = null, isStreamLoaded = false;
 
-        function startViewer() {
-            // 1. 初始化 PeerJS (指向本地 PeerServer)
-            peer = new Peer({
-                // !!! 关键修改: 指向本地 PeerServer
-                host: '127.0.0.1', 
-                port: 9000,
-                path: '/',
-                secure: false // 本地连接
+        const randomId = 'VIEWER_' + Math.floor(Math.random() * 8999 + 1000);
+        const peer = new Peer(randomId, { host: '127.0.0.1', port: 9000, path: '/' });
+
+        peer.on('open', id => {
+            status.innerHTML = `观众 ID: <b style="color:#00BCD4;">${id}</b> (请填入主播端)`;
+        });
+
+        peer.on('call', call => {
+            call.answer();
+            call.on('stream', stream => {
+                if (isStreamLoaded) return;
+                isStreamLoaded = true;
+                video.srcObject = stream;
+                video.play().then(() => { hint.style.display = 'flex'; });
             });
+        });
 
-            peer.on('open', (id) => {
-                myIdEl.textContent = id;
-                statusEl.textContent = "状态: 准备就绪，请将此 ID 告知主播";
-                myIdEl.style.color = '#FFC107';
+        peer.on('connection', conn => {
+            dataConn = conn;
+            dataConn.on('open', () => {
+                status.innerText = "✅ 互动通道已连接，可以发送表情和弹幕";
+                document.getElementById('interactive-area').classList.remove('disabled');
             });
+        });
 
-            // 2. 监听来自主播的呼叫
-            peer.on('call', (call) => {
-                statusEl.textContent = `状态: 收到来自 ${call.peer} 的呼叫，正在连接...`;
-                
-                call.answer(); 
+        function enableAudio() { video.muted = false; hint.style.display = 'none'; }
 
-                // 3. 接收视频流
-                call.on('stream', (remoteStream) => {
-                    remoteVideo.srcObject = remoteStream;
-                    remoteVideo.play().catch(e => {
-                        console.error("Video playback failed:", e);
-                        statusEl.textContent = "状态: 视频播放失败，请尝试点击屏幕！";
-                    });
-                    
-                    statusEl.textContent = "状态: 正在直播！";
-                    myIdEl.style.color = '#4CAF50';
-                });
-                
-                call.on('close', () => {
-                    statusEl.textContent = "状态: 直播已断开";
-                    remoteVideo.srcObject = null;
-                    myIdEl.style.color = '#FFC107';
-                });
-            });
-
-            peer.on('error', (err) => {
-                console.error("PeerJS 错误:", err);
-                statusEl.textContent = `P2P 错误: ${err.type} (请检查本地PeerServer是否运行)`;
-            });
+        function send(type, value) {
+            if (dataConn && dataConn.open) dataConn.send({ type, value });
         }
 
-        startViewer();
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            if (input.value.trim()) { send('chat', input.value); input.value = ''; }
+        }
     </script>
 </body>
 </html>
