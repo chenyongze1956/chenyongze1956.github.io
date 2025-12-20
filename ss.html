@@ -1,19 +1,22 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
     <style>
         :root {
             --muyu-red: #5d2a1d;
-            --muyu-light: #8b4513;
-            --gold: #;
+            --gold: #d4af37;
         }
 
         body {
             margin: 0; padding: 0;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            color: #000; height: 100vh; overflow: hidden;
+            /* 延续您要求的炫彩背景 */
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background-attachment: fixed;
+            color: #333; height: 100vh; overflow: hidden;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-family: "STKaiti", "Kaiti", serif;
             user-select: none; -webkit-tap-highlight-color: transparent;
@@ -22,61 +25,86 @@
         /* 佛光背景 */
         .buddha-halo {
             position: absolute; width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(212,175,55,0.12) 0%, rgba(0,0,0,0) 70%);
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
             border-radius: 50%; z-index: 0;
             animation: haloPulse 5s infinite ease-in-out;
         }
-
         @keyframes haloPulse {
             0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.3); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 0.6; }
         }
 
-        /* 功德计数 */
-        .header { position: absolute; top: 12%; text-align: center; z-index: 5; }
-        #score { font-size: 3rem; color: var(--gold); text-shadow: 0 0 15px rgba(0,0,0,0); display: block; }
-        
+        /* 顶部信息 */
+        .header { position: absolute; top: 10%; text-align: center; z-index: 5; }
+        #score { font-size: 3.5rem; color: #8b4513; text-shadow: 0 2px 4px rgba(0,0,0,0.1); display: block; font-weight: bold; }
+        #title { font-size: 1.2rem; color: #5d2a1d; margin-top: 5px; letter-spacing: 2px; background: rgba(255,255,255,0.3); padding: 2px 10px; border-radius: 10px; }
+
         /* 木鱼舞台 */
         .stage { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
-
-        /* 木鱼主体：使用渐变增加立体感 */
         .muyu-body {
             width: 220px; cursor: pointer; position: relative; z-index: 2;
-            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.8));
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.3));
             transition: transform 0.05s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         }
-
-        /* 鱼槌 */
         .mallet {
             position: absolute; top: 20px; right: 0; width: 120px;
-            transform-origin: bottom left; transform: rotate(20deg);
-            z-index: 3; pointer-events: none; transition: transform 0.05s;
+            transform-origin: bottom left; transform: rotate(25deg);
+            z-index: 3; pointer-events: none; transition: transform 0.08s;
         }
 
-        /* 敲击时的动画类 */
-        .tap-anim { transform: scale(0.92) translateY(5px); }
-        .mallet-anim { transform: rotate(-10deg) translateY(20px); }
+        /* 动画逻辑 */
+        .tap-anim { transform: scale(0.92) translateY(8px); }
+        .mallet-anim { transform: rotate(-5deg) translateY(25px); }
 
-        /* 功德文字飘散 */
+        /* 飘字效果 */
         .merit-text {
-            position: absolute; color: #000; font-size: 1.5rem; font-weight: bold;
-            pointer-events: none; z-index: 10; animation: floatUp 0.7s ease-out forwards;
+            position: absolute; color: #8b4513; font-size: 1.5rem; font-weight: bold;
+            pointer-events: none; z-index: 10; animation: floatUp 0.8s ease-out forwards;
         }
-
+        .zen-quote {
+            position: absolute; color: rgba(255,255,255,0.9); font-size: 1.1rem;
+            pointer-events: none; z-index: 9; animation: zenFade 2s ease-out forwards;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
         @keyframes floatUp {
             0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
+            100% { transform: translateY(-120px) scale(1.3); opacity: 0; }
+        }
+        @keyframes zenFade {
+            0% { opacity: 0; transform: scale(0.8); }
+            20% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: translateY(-40px); }
         }
 
-        .controls { position: absolute; bottom: 10%; display: flex; gap: 15px; }
+        /* 排行榜 */
+        #leaderboard {
+            position: absolute; right: -285px; top: 50%; transform: translateY(-50%);
+            width: 260px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            border-radius: 20px 0 0 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.1);
+            padding: 20px; transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100;
+        }
+        #leaderboard.active { right: 0; }
+        #lb-toggle {
+            position: absolute; left: -40px; top: 20px; width: 40px; height: 110px;
+            background: #8b4513; color: white; writing-mode: vertical-rl;
+            text-align: center; line-height: 40px; cursor: pointer; border-radius: 10px 0 0 10px;
+        }
+        .lb-title { color: #8b4513; font-weight: bold; border-bottom: 2px solid #8b4513; margin-bottom: 12px; }
+        .lb-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; padding: 4px; }
+        .lb-rank { font-weight: bold; width: 25px; color: #d4af37; }
+        .lb-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lb-score { font-family: monospace; font-weight: bold; margin-left: 5px; }
+        .me { background: #8b4513; color: white !important; border-radius: 5px; }
+
+        /* 按钮控制 */
+        .controls { position: absolute; bottom: 8%; display: flex; gap: 15px; z-index: 10; }
         button {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3);
-            color: var(--gold); padding: 12px 25px; border-radius: 30px; cursor: pointer;
-            backdrop-filter: blur(5px); transition: 0.3s;
+            background: rgba(255, 255, 255, 0.4); border: 1px solid #8b4513;
+            color: #8b4513; padding: 10px 20px; border-radius: 30px; cursor: pointer;
+            backdrop-filter: blur(5px); font-family: inherit; transition: 0.3s;
         }
-        button:hover { background: var(--gold); color: #000; border-color: var(--gold); }
-        .btn-active { background: var(--gold) !important; color: #000 !important; }
-
+        button:hover { background: #8b4513; color: #fff; }
+        .btn-active { background: #8b4513 !important; color: #fff !important; }
     </style>
 </head>
 <body>
@@ -85,10 +113,10 @@
 
     <div class="header">
         <span id="score">0</span>
-        <div style="letter-spacing: 4px; color: #888; margin-top: 10px;"></div>
+        <div id="title">加载修行中...</div>
     </div>
 
-    <div class="stage" id="main-area">
+    <div class="stage">
         <svg class="mallet" id="mallet" viewBox="0 0 100 100">
             <path d="M10,90 L40,40 C42,35 50,35 55,40 L90,10" stroke="#4a2e2a" stroke-width="8" fill="none" stroke-linecap="round"/>
             <circle cx="15" cy="85" r="12" fill="url(#malletGradient)"/>
@@ -117,79 +145,188 @@
                 <path d="M100,20 C40,20 10,70 10,110 C10,150 50,170 100,170 C150,170 190,150 190,110 C190,70 160,20 100,20 Z" fill="url(#muyuGrad)"/>
                 <path d="M40,120 Q100,150 160,120" stroke="url(#slitGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
                 <circle cx="155" cy="80" r="12" fill="rgba(0,0,0,0.3)"/>
-                <path d="M60,40 Q100,30 140,40" stroke="rgba(255,255,255,0.1)" stroke-width="2" fill="none"/>
             </svg>
         </div>
     </div>
 
+    <div id="leaderboard">
+        <div id="lb-toggle">✨ 功德排行榜</div>
+        <div class="lb-title">功德林 · 全球排行</div>
+        <div id="lb-list">正在连接云端...</div>
+    </div>
+
     <div class="controls">
-        <button id="auto-btn">禅定模式（自动）</button>
-        <button id="reset-btn">清空杂念</button>
+        <button id="auto-btn">自动敲击</button>
+        <button id="reset-btn">清空数据</button>
     </div>
 
     <audio id="sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
     <script>
+        // ==========================================
+        // 1. 凭证配置 (请务必在此填入您的信息)
+        // ==========================================
+        const CONFIG = {
+            appId: "f4gGtQqlb45awmS1FBfkfabx-gzGzoHsz",
+            appKey: "D9tMPPErPG45r8Zl0smoxFSd",
+            serverURL: "https://f4ggtqql.lc-cn-n1-shared.com"
+        };
+
+        // ==========================================
+        // 2. 初始化与变量
+        // ==========================================
+        if (typeof AV !== 'undefined' && CONFIG.appId.indexOf('替换') === -1) {
+            AV.init(CONFIG);
+        }
+
+        const LBSave = (typeof AV !== 'undefined') ? AV.Object.extend('Leaderboard') : null;
         let count = parseInt(localStorage.getItem('muyu_count')) || 0;
+        let myRecordId = localStorage.getItem('muyu_record_id');
+        let userName = localStorage.getItem('muyu_user_name') || `修行者${Math.floor(Math.random()*8999+1000)}`;
+        localStorage.setItem('muyu_user_name', userName);
+
         let autoTimer = null;
-        
+        const zenQuotes = ["放下执着", "心无挂碍", "随缘自在", "菩提树下", "法喜充满", "看破放下"];
+        const rankTitles = [
+            { threshold: 0, name: "初入禅境" },
+            { threshold: 100, name: "心领神悟" },
+            { threshold: 1000, name: "明心见性" },
+            { threshold: 10000, name: "功德无量" }
+        ];
+
         const scoreEl = document.getElementById('score');
+        const titleEl = document.getElementById('title');
         const muyu = document.getElementById('muyu');
         const mallet = document.getElementById('mallet');
         const sound = document.getElementById('sound');
         const autoBtn = document.getElementById('auto-btn');
+        const lbList = document.getElementById('lb-list');
 
-        scoreEl.innerText = count;
+        // ==========================================
+        // 3. 核心逻辑函数
+        // ==========================================
 
+        function updateDisplay() {
+            scoreEl.innerText = count;
+            const title = [...rankTitles].reverse().find(t => count >= t.threshold);
+            titleEl.innerText = `【${title.name}】`;
+        }
+
+        // [云端同步]
+        async function syncToCloud() {
+            if (typeof AV === 'undefined' || !LBSave) return;
+            try {
+                if (myRecordId) {
+                    const record = AV.Object.createWithoutData('Leaderboard', myRecordId);
+                    record.set('score', count);
+                    await record.save();
+                } else {
+                    const lb = new LBSave();
+                    lb.set('name', userName);
+                    lb.set('score', count);
+                    const res = await lb.save();
+                    myRecordId = res.id;
+                    localStorage.setItem('muyu_record_id', myRecordId);
+                }
+            } catch (e) { console.warn("云同步暂不可用", e); }
+        }
+
+        // [拉取排行]
+        async function fetchRank() {
+            if (typeof AV === 'undefined') return;
+            try {
+                const query = new AV.Query('Leaderboard');
+                query.descending('score').limit(8);
+                const results = await query.find();
+                lbList.innerHTML = results.map((item, index) => {
+                    const d = item.attributes;
+                    const isMe = item.id === myRecordId;
+                    return `<div class="lb-item ${isMe?'me':''}">
+                        <span class="lb-rank">${index+1}</span>
+                        <span class="lb-name">${d.name}</span>
+                        <span class="lb-score">${d.score}</span>
+                    </div>`;
+                }).join('');
+            } catch (e) { lbList.innerText = "暂无排行数据"; }
+        }
+
+        // [执行敲击]
         function doTap() {
             count++;
-            scoreEl.innerText = count;
             localStorage.setItem('muyu_count', count);
+            updateDisplay();
 
-            // 触发动画
+            // 视觉反馈
             muyu.classList.add('tap-anim');
             mallet.classList.add('mallet-anim');
-            
-            // 播放音效
             sound.currentTime = 0;
             sound.play().catch(()=>{});
 
             // 飘字
-            const text = document.createElement('div');
-            text.className = 'merit-text';
-            text.innerText = '功德+1';
-            text.style.left = (window.innerWidth/2 + (Math.random()*60 - 30)) + 'px';
-            text.style.top = (window.innerHeight/2 - 50) + 'px';
-            document.body.appendChild(text);
+            const mText = document.createElement('div');
+            mText.className = 'merit-text';
+            mText.innerText = '功德+1';
+            mText.style.left = (window.innerWidth/2 + (Math.random()*60 - 30)) + 'px';
+            mText.style.top = (window.innerHeight/2 - 60) + 'px';
+            document.body.appendChild(mText);
+
+            if (count % 8 === 0) {
+                const zText = document.createElement('div');
+                zText.className = 'zen-quote';
+                zText.innerText = zenQuotes[Math.floor(Math.random()*zenQuotes.length)];
+                zText.style.left = (Math.random()*50 + 25) + '%';
+                zText.style.top = (Math.random()*30 + 15) + '%';
+                document.body.appendChild(zText);
+                setTimeout(() => zText.remove(), 2000);
+            }
 
             setTimeout(() => {
                 muyu.classList.remove('tap-anim');
                 mallet.classList.remove('mallet-anim');
-                text.remove();
+                mText.remove();
             }, 100);
+
+            // 每10次同步一次云端
+            if (count % 10 === 0) syncToCloud();
         }
 
-        muyu.addEventListener('mousedown', doTap);
+        // ==========================================
+        // 4. 事件绑定
+        // ==========================================
+
+        muyu.addEventListener('mousedown', (e) => { e.preventDefault(); doTap(); });
+
+        document.getElementById('lb-toggle').onclick = () => {
+            document.getElementById('leaderboard').classList.toggle('active');
+            fetchRank();
+        };
 
         autoBtn.onclick = () => {
             if (autoTimer) {
                 clearInterval(autoTimer);
                 autoTimer = null;
-                autoBtn.innerText = "禅定模式（自动）";
+                autoBtn.innerText = "自动敲击";
                 autoBtn.classList.remove('btn-active');
             } else {
                 autoTimer = setInterval(doTap, 1000);
-                autoBtn.innerText = "搞趣中...";
+                autoBtn.innerText = "修行中...";
                 autoBtn.classList.add('btn-active');
             }
         };
 
         document.getElementById('reset-btn').onclick = () => {
-            if(confirm('清空所有功德？')) {
+            if(confirm('重置功德？')) {
                 count = 0;
-                scoreEl.innerText = 0;
-                localStorage.setItem('muyu_count', 0);
+                localStorage.clear();
+                location.reload();
             }
+        };
+
+        // 启动
+        window.onload = () => {
+            updateDisplay();
+            fetchRank();
+            setInterval(fetchRank, 30000); // 30秒刷一次排行
         };
     </script>
 </body>
