@@ -1,415 +1,244 @@
-<link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>  
 
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
+<html lang="zh-CN">
+<head>
     <meta charset="UTF-8">
-    <title>CSS infinite scroll gallery</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Saira:ital@0;1&family=Sour+Gummy:wdth,wght@125,300&display=swap" rel="stylesheet"><link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>动画场景搜索 (全屏适配版)</title>
+    <script src="peerjs.js"></script> <style>
+        /* 1. 全屏背景设计 */
+        body {
+            margin: 0;
+            padding: 0;
+            /* 确保背景铺满，不随内容滚动而断开 */
+            min-height: 100vh;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
 
-  </head>
-    
-  <body>
-  <html style="--n: 18">
-  <body>
-    <svg width="0" height="0" aria-hidden="true">
-      <filter id="grain">
-        <feTurbulence type="fractalNoise" baseFrequency="7.13"></feTurbulence>
-        <feColorMatrix type="saturate" values="0"></feColorMatrix>
-        <feComponentTransfer>
-          <feFuncA type="linear" slope=".02"></feFuncA>
-        </feComponentTransfer>
-        <feBlend in2="SourceGraphic"></feBlend>
-      </filter>
-    </svg>
-    <header>
-      
-    </header>
-    <main class="scene">
-      <section class="assembly">
-        <article style="--i: 0; --url: url(https://od.lk/s/NDBfMTMyMDgzNDAzXw/2YSBqg8jt6ggv6z.thumb.300_0.jpeg); --pos: 47% 35%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzNDAzXw/2YSBqg8jt6ggv6z.thumb.300_0.jpeg" alt="lion couple kissing on a brown rock"/>
-            <figcaption>by <a href="https://unsplash.com/photos/lion-lying-on-brown-rock-MUeeyzsjiY8" target="_blank">Clément Roy</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 1; --url: url(https://od.lk/s/NDBfMTMyMDgzMTk4Xw/joyful-anime-celebration-stockcake.jpg); --pos: 75% 65%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzMTk4Xw/joyful-anime-celebration-stockcake.jpg" alt="herd of Sri Lankan elephants walking away from a river"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzMTk4Xw/joyful-anime-celebration-stockcake.jpg" target="_blank">Alex Azabache</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 2; --url: url(https://od.lk/s/NDBfMTMyMDgzMjAyXw/vibrant-anime-girl-stockcake.jpg); --pos: 53% 43%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzMjAyXw/vibrant-anime-girl-stockcake.jpg" alt="close-up of a black cockatoo"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzMjAyXw/vibrant-anime-girl-stockcake.jpg" target="_blank">David Clode</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 3; --url: url(https://od.lk/s/NDBfMTMyMDgzMjgzXw/girl-8937918_640.png); --pos: 65% 65%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzMjgzXw/girl-8937918_640.png" alt="camel and her new born calf walking in the Sahara desert"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzMjgzXw/girl-8937918_640.png" target="_blank">Moaz Tobok</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 4; --url: url(https://od.lk/s/NDBfMTMyMDgzOTg0Xw/224238-176131695800f0.jpg); --pos: 50% 25%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzOTg0Xw/224238-176131695800f0.jpg" alt="polar bear on the snow, by the water, raised on the hind legs, front paws together"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzOTg0Xw/224238-176131695800f0.jpg" target="_blank">Hans-Jurgen Mager</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 5; --url: url(https://od.lk/s/NDBfMTMyMDg0MDgxXw/111651-1760325411ba16.jpg); --pos: 47%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MDgxXw/111651-1760325411ba16.jpg" alt="waterbuck in a field, looking at the camera"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MDgxXw/111651-1760325411ba16.jpg" target="_blank">Jonathan Gensicke</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 6; --url: url(https://od.lk/s/NDBfMTMyMDg0MjM3Xw/ccc.jpg); --pos: 47%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MjM3Xw/ccc.jpg" alt="giant panda hanging from a tree branch"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MjM3Xw/ccc.jpg" target="_blank">Jiachen Lin</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 7; --url: url(https://od.lk/s/NDBfMTMyMDg0MjYwXw/180353-17581034332154.jpg); --pos: 65% 35%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MjYwXw/180353-17581034332154.jpg" alt="zebra standing on wheat field, looking back towards the camera"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MjYwXw/180353-17581034332154.jpg" target="_blank">Jeff Griffith</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 8; --url: url(https://od.lk/s/NDBfMTMyMDg0MjU5Xw/151918-17575751585f18.jpg)">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MjU5Xw/151918-17575751585f18.jpg" alt="cheetah sitting in the grass under a blue sky"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MjU5Xw/151918-17575751585f18.jpg" target="_blank">Mike Bird</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 9; --url: url(https://od.lk/s/NDBfMTMyMDgzODY3Xw/164056-1763023256ff48.jpg); --pos: 35%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzODY3Xw/164056-1763023256ff48.jpg" alt="king penguin with a fluffy brown chick on grey rocks"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzODY3Xw/164056-1763023256ff48.jpg" target="_blank">Martin Wettstein</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 10; --url: url(https://od.lk/s/NDBfMTMyMDgzODY2Xw/201508-1749903308a7b5.jpg)">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzODY2Xw/201508-1749903308a7b5.jpg" alt="a red panda in a tree"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzODY2Xw/201508-1749903308a7b5.jpg" target="_blank">Niels Baars</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 11; --url: url(https://od.lk/s/NDBfMTMyMDgzODY0Xw/224738-176131725837dc.jpg); --pos: 43% 47%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzODY0Xw/224738-176131725837dc.jpg" alt="pensive young leopard on a rock"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzODY0Xw/224738-176131725837dc.jpg" target="_blank">Andy Silby</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 12; --url: url(https://od.lk/s/NDBfMTMyMDgzODYzXw/224804-17613172847665.jpg); --pos: 65% 35%">
-          <header>
-            <h2></h2><em</em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzODYzXw/224804-17613172847665.jpg" alt="two hyacinth macaws on a tree branch"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzODYzXw/224804-17613172847665.jpg" target="_blank">Juliana e Mariana Amorim</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 13; --url: url(https://od.lk/s/NDBfMTMyMDgzODY1Xw/153932-1762155572e2fa.jpg)">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzODY1Xw/153932-1762155572e2fa.jpg" alt="kangaroo in the grass"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzODY1Xw/153932-1762155572e2fa.jpg" target="_blank">Jordyn Montague</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 14; --url: url(https://od.lk/s/NDBfMTMyMDgzOTgxXw/220927-1760018967f2ea.jpg); --pos: 50% 25%">
-          <header>
-            <h2</h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzOTgxXw/220927-1760018967f2ea.jpg" alt="snow leopard sitting on top of a rock, its big fluffy tail hanging down"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzOTgxXw/220927-1760018967f2ea.jpg" target="_blank">Simon Schwyter</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 15; --url: url(https://od.lk/s/NDBfMTMyMDg0MDc4Xw/220338-17549210181986.jpg)">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MDc4Xw/220338-17549210181986.jpg" alt="close-up of a pensive male orangutan"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MDc4Xw/220338-17549210181986.jpg" target="_blank">Fahrul Razi</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 16; --url: url(https://od.lk/s/NDBfMTMyMDgzOTgzXw/201220-17613079404139.jpg); --pos: 57%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDgzOTgzXw/201220-17613079404139.jpg" alt="close-up of a pensive tiger lying on the ground"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDgzOTgzXw/201220-17613079404139.jpg" target="_blank">Frida Lannerström</a></figcaption>
-          </figure>
-        </article>
-        <article style="--i: 17; --url: url(https://od.lk/s/NDBfMTMyMDg0MDgwXw/220739-176001885936b1.jpg); --pos: 43% 35%">
-          <header>
-            <h2></h2><em></em>
-          </header>
-          <figure><img src="https://od.lk/s/NDBfMTMyMDg0MDgwXw/220739-176001885936b1.jpg" alt="brown bear in the forest, sticking tongue out"/>
-            <figcaption>by <a href="https://od.lk/s/NDBfMTMyMDg0MDgwXw/220739-176001885936b1.jpg" target="_blank">Alexandru-Bogdan Ghita</a></figcaption>
-          </figure>
-        </article>
-      </section>
-    </main>
-    <footer></footer>
-    <!-- just support info-->
-    <aside>
-      <p class="box-info-scrollani">Sorry, your browser does not appear to support scroll-driven animation. As of January 2025, this is supported in Firefox if the <kbd>layout.css.scroll-driven-animations.enabled</kbd> flag is set to true in <kbd>about:config</kbd> and in Chromium browsers. Safari support is coming, but it hasn't arrived yet.</p>
-    </aside>
-  </body>
-</html>
-    <script  src="./script.js"></script>
+        /* 背景动画，增加动态感 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-  </body>
-  
-</html>
+        /* 2. 响应式容器：磨砂玻璃效果 */
+        .container {
+            /* 适配移动端宽度 */
+            width: 90%;
+            max-width: 550px;
+            margin: 20px auto;
+            
+            /* 半透明白色背景 */
+            background: rgba(255, 255, 255, 0.85);
+            /* 磨砂滤镜 */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            text-align: center;
+            box-sizing: border-box;
+        }
 
+        h1 { 
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #444; 
+        }
 
-<style>
+        /* 上传区域适配 */
+        .upload-area {
+            border: 2px dashed rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover { border-color: #007bff; background: #fff; }
 
-@property --k {
-	syntax: '<number>';
-	initial-value: -1;
-	inherits: true
-}
+        #previewImage {
+            max-width: 100%;
+            max-height: 250px;
+            margin-top: 10px;
+            border-radius: 10px;
+            display: none;
+            object-fit: contain;
+        }
 
-@property --ang {
-	syntax: '<angle>';
-	initial-value: 0deg;
-	inherits: false
-}
+        /* 按钮美化 */
+        #searchBtn {
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        #searchBtn:hover { background: #0056b3; transform: translateY(-2px); }
+        #searchBtn:active { transform: translateY(0); }
+        #searchBtn:disabled { background: #ccc; transform: none; }
 
-* { margin: 0 }
+        .loading { display: none; margin: 15px 0; color: #007bff; font-weight: bold; }
 
-html {
-	scrollbar-width: none;
-	height: calc(var(--n)*100%)
-}
+        /* 结果卡片适配 */
+        #resultArea {
+            margin-top: 25px;
+            text-align: left;
+            display: none;
+        }
+        .result-card {
+            background: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .meta-info h3 { margin: 0; font-size: 1.1rem; color: #000; }
+        .similarity { float: right; color: #28a745; font-weight: bold; }
 
-body, header, main, section, 
-article, figure { display: grid }
+        video {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 15px;
+            background: #000;
+        }
 
-body {
-	--dir: 0;
-	grid-template-rows: max-content 1fr max-content;
-	position: fixed;
-	width: 100%;
-	height: 100%;
-	height: 100%;
-	color: #dedede;
-	font: clamp(.625em, 3vmin, 1.5em)/ 1.25 saira, sans-serif;
-	animation: k 1s linear;
-	animation-timeline: scroll();
-  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-	
-	&::before {
-		position: fixed;
-		inset: 0;
-		z-index: -1;
-		    background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
-		filter: url(#grain);
-		content: ''
-	}
-	
-	@media (max-aspect-ratio: 2/ 3) { --dir: 1 }
-}
-
-@keyframes k { to { --k: 1 } }
-
-svg[height='0'][aria-hidden='true'] { position: fixed }
-
-header {
-	place-content: center;
-	place-items: center;
-	padding: .5em;
-	text-align: center;
-	text-wrap: balance
-}
-
-em { max-width: 32em }
-
-main {
-	overflow: hidden;
-	perspective: 50em
-}
-
-section, article { transform-style: preserve-3d }
-
-section {
-	--r: calc(2 + var(--dir))/ 3;
-	--w: clamp(4em, min(50vh, 25vw), 18em);
-	--z: calc(var(--f, 1.25)*-.5*var(--w)/tan(.5turn/var(--n)));
-	place-self: center;
-	translate: 0 0 var(--z);
-	rotate: var(--dir) calc(1 - var(--dir)) 0 calc((var(--k) + .5)*-1turn);
-}
-
-article, header, figure, img, figcaption { grid-area: 1/ 1 }
-
-article {
-	/* item progress value */
-	--j: var(--i)/var(--n);
-	/* linear difference between this item's progress value  
-	 * and progress value of highlighted item in front - 
-	 * it's a value in the [0, 1] interval */
-	--dif-lin: calc(var(--j) - mod(var(--k) + 1, 1));
-	/* absolute value of linear difference */
-	--abs-lin: abs(var(--dif-lin));
-	/* difference between middle & absolute linear difference */
-	--dif-mid: calc(.5 - var(--abs-lin));
-	--abs-mid: abs(var(--dif-mid));
-	/* relative distance to from this item 
-	 * to highlighted one in front */
-	--dif-arc: calc(2*(.5 - var(--abs-mid)));
-	/* relative distance limit */
-	--lim: .35;
-	--sel: max(0, calc((var(--lim) - var(--dif-arc))/var(--lim)));
-	--out: calc(1 - var(--sel));
-	--hov: 0;
-	width: var(--w);
-	aspect-ratio: var(--r);
-	transform: 
-		rotate3d(var(--dir), calc(1 - var(--dir)), 0, calc(var(--j)*1turn))
-		translatez(var(--z))
-		rotate(calc(var(--dir)*.5turn));
-	
-	header { rotate: y calc((1 + var(--hov))*.5turn) }
-	
-	&:hover, &:focus-within { --hov: round(var(--sel)) }
-	
-	@supports not (scale: abs(-1)) {
-		--abs-lin: max(var(--dif-lin), -1*var(--dif-lin));
-		--abs-mid: max(var(--dif-mid), -1*var(--dif-mid))
-	}
-}
-
-article header, figure {
-	--ang: calc(-45deg + var(--hov)*180deg);
-	overflow: hidden;
-	position: relative;
-	border: solid 4px #0000;
-	border-radius: .5em;
-	backface-visibility: hidden;
-	box-shadow: 5px 5px 13px #000;
-	background: 
-		var(--url) 50%/ cover padding-box, 
-		linear-gradient(#666 0 0) padding-box, 
-		repeating-conic-gradient(from var(--ang), 
-				#0000 0% 15%, 
-				color-mix(in srgb, 
-					#f48c06 calc(var(--sel)*100%), #333) 20% 30%, 
-				#0000 35% 50%) 
-			border-box #121212;
-	background-blend-mode: multiply, normal, normal;
-	isolation: isolate;
-	/* prevent edge glitching on article hover */
-	pointer-events: none;
-	transition: .35s ease-out;
-	transition-property: rotate, --ang;
-	
-	&::after {
-		position: absolute;
-		inset: 0;
-		opacity: var(--out);
-		background: #03071e;
-		mix-blend-mode: color;
-		pointer-events: none;
-		content: ''
-	}
-}
-
-/* reverse from parent */
-h2, em, img, a { pointer-events: auto }
-
-h2, em, figcaption {
-	opacity: round(up, var(--sel));
-	text-shadow: 1px 1px 1px #0006
-}
-
-h2 { font-size: 1.125em }
-
-figure { rotate: y calc(var(--hov)*.5turn) }
-
-img {
-	width: 100%;
-	height: 100%;
-	aspect-ratio: var(--r);
-	object-fit: cover;
-	object-position: var(--pos)
-}
-
-figcaption {
-	align-self: end;
-	padding: .5em;
-	background: #fff3;
-	color: #040404;
-	font: Max(.75rem, .75em) caveat, cursive;
-	text-align: right;
-	backdrop-filter: blur(5px) brightness(1.5);
-	
-	a { color: #370617 }
-}
-
-/* just support info boxes if it lacks support */
-aside {
-	position: fixed;
-	bottom: 0;
-	padding: .5em;
-}
-
-.box-info-scrollani {
-	margin: .5em;
-	border-left: solid 5px #dc3055;
-	padding: .75em;
-	box-shadow: 2px 2px 5px hsla(0, 0%, 0%, .35);
-	background: #851d40;
-	color: #fff;
-	font: 1em/ 1.25 ubuntu, trebuchet ms, arial, sans-serif;
-	
-	@supports (animation-timeline: scroll()) { display: none }
-}
-
-kbd {
-	padding: 2px;
-	background: hsla(0, 0%, 0%, .35);
-	font: 1.1em/ 1.2 ubuntu mono, consolas, monaco, monospace
-}
+        /* 移动端细调 */
+        @media (max-width: 480px) {
+            .container { padding: 15px; width: 95%; }
+            h1 { font-size: 1.2rem; }
+            .upload-label { font-size: 14px; }
+        }
     </style>
+</head>
+<body>
 
-<script>
+    <div class="container">
+        <h1>🔍 动画场景搜索</h1>
+        <p style="color: #666; font-size: 0.9rem;">上传截图，精准识别动画来源</p>
 
-function f(k) {
-	if(Math.abs(k) > .5)
-		scrollTo(0, .5*(k - Math.sign(k) + 1)*(document.documentElement.offsetHeight - window.innerHeight))
-}
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <span class="upload-label">📸 点击或拖拽图片到这里</span>
+            <input type="file" id="fileInput" accept="image/*">
+            <br>
+            <img id="previewImage" alt="预览图">
+        </div>
 
-f(-1);
+        <button id="searchBtn" disabled>开始识别</button>
 
-addEventListener('scroll', e => f(+getComputedStyle(document.body).getPropertyValue('--k')))
+        <div class="loading" id="loadingText">⚡ 正在全力搜索中...</div>
+        <div id="errorMsg" style="color:red; display:none; margin-top:10px;"></div>
+
+        <div id="resultArea">
+            <div class="result-card">
+                <div class="meta-info">
+                    <span class="similarity" id="similarityScore"></span>
+                    <h3 id="animeTitle">载入中...</h3>
+                    <p style="font-size: 0.85rem; color: #555;">
+                        第 <span id="episodeNum">-</span> 集 | 时间: <span id="timeRange">-</span>
+                    </p>
+                </div>
+                <video id="resultVideo" controls autoplay loop muted playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 逻辑保持不变，只需确保 ID 对应
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const searchBtn = document.getElementById('searchBtn');
+        const loadingText = document.getElementById('loadingText');
+        const resultArea = document.getElementById('resultArea');
+        const errorMsg = document.getElementById('errorMsg');
+        const uploadLabel = document.querySelector('.upload-label');
+
+        let selectedFile = null;
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                selectedFile = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'inline-block';
+                    uploadLabel.style.display = 'none';
+                }
+                reader.readAsDataURL(selectedFile);
+                searchBtn.disabled = false;
+                resultArea.style.display = 'none';
+            }
+        });
+
+        searchBtn.addEventListener('click', async function() {
+            loadingText.style.display = 'block';
+            searchBtn.disabled = true;
+            errorMsg.style.display = 'none';
+            
+            try {
+                const formData = new FormData();
+                formData.append("image", selectedFile);
+
+                const response = await fetch("https://api.trace.moe/search?cutBorders&anilistInfo", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error("API请求失败，请稍后再试");
+
+                const data = await response.json();
+                if (data.result && data.result.length > 0) {
+                    displayResult(data.result[0]);
+                } else {
+                    throw new Error("未找到匹配场景");
+                }
+            } catch (error) {
+                errorMsg.innerText = error.message;
+                errorMsg.style.display = 'block';
+            } finally {
+                loadingText.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        });
+
+        function displayResult(result) {
+            resultArea.style.display = 'block';
+            document.getElementById('similarityScore').innerText = (result.similarity * 100).toFixed(2) + '%';
+            
+            let title = "未知动画";
+            if (result.anilist && result.anilist.title) {
+                title = result.anilist.title.chinese || result.anilist.title.english || result.anilist.title.romaji;
+            }
+            document.getElementById('animeTitle').innerText = title;
+            document.getElementById('episodeNum').innerText = result.episode || "1";
+            document.getElementById('timeRange').innerText = formatTime(result.from);
+
+            const videoPlayer = document.getElementById('resultVideo');
+            videoPlayer.src = result.video;
+            videoPlayer.play();
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
     </script>
+</body>
+</html>
