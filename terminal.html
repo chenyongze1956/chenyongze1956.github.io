@@ -3,46 +3,47 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Web Terminal CLI v5.4 - Full Edition</title>
     <style>
-        :root {
-            --bg-color: #0d0d0d;
-            --text-color: #00ff41; 
-            --prompt-color: #00e5ff; 
-            --error-color: #ff3d00;
-        }
-        * { box-sizing: border-box; }
+        :root { --bg: #0d0d0d; --text: #00ff41; --prompt: #00e5ff; --err: #ff3d00; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
- display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: 'Consolas', 'Monaco', monospace; overflow: hidden; }
-        #terminal {
-            background-color: var(--bg-color);
-            width: 95%; max-width: 1000px; height: 90vh;
-            border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
-            display: flex; flex-direction: column; border: 1px solid #333; position: relative;
-        }
-        #output { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.6; white-space: pre-wrap; color: var(--text-color); font-size: 14px; }
-        #input-line { display: flex; padding: 15px 25px; background: #050505; border-top: 1px solid #222; }
-        #prompt { color: var(--prompt-color); margin-right: 12px; font-weight: bold; }
-        #cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--text-color); outline: none; font-size: 1rem; width: 100%; }
+ display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; }
         
-        /* 动效 */
-        .visualizer { display: flex; align-items: flex-end; height: 35px; gap: 4px; margin: 10px 0; }
-        .bar { width: 6px; background: var(--text-color); animation: fluctuate 0.5s infinite alternate; }
-        @keyframes fluctuate { from { height: 5px; } to { height: 35px; } }
-        .success { color: #00e676; } .error { color: var(--error-color); } .welcome { color: #ffd600; }
-        .qr-box { background: #fff; color: #000; padding: 5px; display: inline-block; font-size: 7px; line-height: 1; margin: 10px 0; border: 4px solid #fff; }
-        #snow-zone { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100; }
-        .flake { position: absolute; color: #fff; animation: fall linear forwards; top: -10%; }
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+        #terminal { 
+            background: var(--bg); 
+            width: 100%; 
+            max-width: 1000px; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+            transition: box-shadow 0.5s ease, border-color 0.5s ease;
+        }
+
+        @media (min-width: 768px) { 
+            #terminal { height: 90vh; border-radius: 12px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.8); } 
+        }
+
+        #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text); font-size: 14px; -webkit-overflow-scrolling: touch; }
+        #input-line { display: flex; align-items: flex-start; padding: 12px 20px; background: #050505; border-top: 1px solid #222; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+        #prompt { color: var(--prompt); margin-right: 10px; font-weight: bold; white-space: nowrap; font-size: 14px; }
+        #cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--text); outline: none; font-size: 16px; font-family: inherit; width: 100%; padding: 0; }
+        
+        /* 样式类 */
+        .success { color: #00e676; } .error { color: var(--err); } .welcome { color: #ffd600; }
+        .visualizer { display: flex; align-items: flex-end; height: 30px; gap: 4px; margin: 10px 0; }
+        .bar { width: 5px; background: var(--text); animation: fluctuate 0.5s infinite alternate; }
+        @keyframes fluctuate { from { height: 5px; } to { height: 30px; } }
     </style>
 </head>
-<body>
-    <div id="snow-zone"></div>
+<body onclick="document.getElementById('cmd-input').focus()">
     <div id="terminal">
         <div id="output"></div>
         <div id="input-line">
             <span id="prompt">admin@web-cli:~$</span>
-            <input type="text" id="cmd-input" autofocus spellcheck="false" autocomplete="off">
+            <input type="text" id="cmd-input" spellcheck="false" autocomplete="off" autocapitalize="none">
         </div>
     </div>
 
@@ -52,165 +53,153 @@
         const input = document.getElementById('cmd-input');
         const promptText = document.getElementById('prompt');
         const terminal = document.getElementById('terminal');
-        const snowZone = document.getElementById('snow-zone');
 
         let state = {
             path: '/home/admin',
-            user: 'admin',
-            isMusicLocked: true,
             files: ['README.txt', 'Documents/', 'Downloads/', 'music.mp3'],
-            history: [],
-            hIdx: -1,
-            isChat: false,
-            intervals: []
+            history: [], hIdx: -1, isMusicLocked: true, isChat: false, intervals: []
         };
 
         const write = (txt, cls = '') => {
             const p = document.createElement('p'); p.className = cls;
             p.textContent = txt; output.appendChild(p);
-            output.scrollTop = output.scrollHeight; return p;
+            setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
+            return p;
         };
 
-        const stopAll = () => { state.intervals.forEach(clearInterval); state.intervals = []; snowZone.innerHTML = ''; };
+        const stopAll = () => { state.intervals.forEach(clearInterval); state.intervals = []; };
 
         const cmds = {
-            // --- 文件系统 (已修复 rmdir 逻辑) ---
-            'help': { desc: '列出所有 35 个命令', exec: () => {
-                let list = '🔧 系统可用命令补全列表:\n';
+            'help': { desc: '所有命令列表', exec: () => {
+                let list = '🔧 系统可用指令:\n';
                 Object.keys(cmds).sort().forEach(c => list += `  ${c.padEnd(12)} - ${cmds[c].desc}\n`);
                 write(list);
             }},
-            'ls': { desc: '查看文件', exec: () => {
-                const list = state.files.map(f => (f === 'music.mp3' && state.isMusicLocked) ? `${f}(🔒)` : f);
-                write(list.join('  ') || "(空)");
+            'ls': { desc: '列出文件', exec: () => {
+                const display = state.files.map(f => (f==='music.mp3' && state.isMusicLocked) ? `${f}(🔒)` : f);
+                write(display.join('  ') || "(空)");
             }},
             'mkdir': { desc: '创建目录', exec: (a) => {
-                if(!a[0]) return write("mkdir: 缺少操作数", "error");
+                if(!a[0]) return write("mkdir: 缺失参数", "error");
                 const dir = a[0].endsWith('/') ? a[0] : a[0] + '/';
                 if(!state.files.includes(dir)) state.files.push(dir);
-                write(`目录 '${dir}' 已创建。`);
+                write(`目录 '${dir}' 创建成功。`);
             }},
-            'rmdir': { desc: '删除空目录', exec: (a) => {
-                if(!a[0]) return write("rmdir: 缺少操作数", "error");
-                // 核心修复：自动补全斜杠
+            'rmdir': { desc: '删除目录', exec: (a) => {
+                if(!a[0]) return write("rmdir: 缺失参数", "error");
                 const target = a[0].endsWith('/') ? a[0] : a[0] + '/';
                 const idx = state.files.indexOf(target);
-                if(idx === -1) return write(`rmdir: 删除 '${a[0]}' 失败: 目录不存在`, "error");
+                if(idx === -1) return write(`rmdir: '${a[0]}' 目录不存在`, "error");
                 state.files.splice(idx, 1);
-                write(`目录 '${target}' 已成功移除。`, "success");
-            }},
-            'rm': { desc: '删除文件 (rm -r 删目录)', exec: (a) => {
-                let recursive = false; let target = "";
-                a.forEach(arg => { if(arg.startsWith('-r')) recursive = true; else if(!target) target = arg; });
-                if(!target) return write("rm: 缺少操作数", "error");
-                const match = state.files.find(f => f === target || f === target + '/');
-                if(!match) return write(`rm: '${target}' 不存在`, "error");
-                if(match.endsWith('/') && !recursive) return write(`rm: '${target}' 是目录，请使用 -r`, "error");
-                if(match === 'music.mp3' && state.isMusicLocked) return write("❌ 权限拒绝：文件被魔法锁定。", "error");
-                state.files = state.files.filter(f => f !== match);
-                write(`已删除 '${match}'。`);
+                write(`目录 '${target}' 已移除。`, "success");
             }},
             'touch': { desc: '创建文件', exec: (a) => {
-                if(!a[0]) return write("touch: 缺少操作数", "error");
+                if(!a[0]) return write("touch: 缺失参数", "error");
                 if(!state.files.includes(a[0])) state.files.push(a[0]);
                 write(`文件 '${a[0]}' 已创建。`);
             }},
-            'cd': { desc: '切换目录', exec: (a) => { state.path = a[0] || '/home/admin'; promptText.textContent = `${state.user}@web-cli:${state.path}$`; }},
-            'pwd': { desc: '当前路径', exec: () => write(state.path) },
-            'whoami': { desc: '当前用户', exec: () => write(state.user) },
-
-            // --- 系统工具 ---
-            'clear': { desc: '清空屏幕', exec: () => { output.innerHTML = ''; writeWelcome(); stopAll(); }},
-            'date': { desc: '显示日期', exec: () => write(new Date().toLocaleString()) },
-            'echo': { desc: '打印文本', exec: (a) => write(a.join(' ')) },
-            'fortune': { desc: '随机箴言', exec: () => write(["最好的重构是删除代码。", "Bug 只是未声明的特性。", "简单就是美。"][Math.floor(Math.random()*3)], "welcome") },
-            'linuxlogo': { desc: 'Logo', exec: () => write("  .---. \n / o o \\ \n \\  >  / \n  `---' \nv5.1", "welcome") },
-            'pwgen': { desc: '生成密码', exec: () => write(Math.random().toString(36).slice(-12), "success") },
-            'gkrellm': { desc: '系统监视', exec: () => write(`CPU: 14% | RAM: 3.2G | TEMP: 40°C`) },
-            
-            // --- 网络模拟 ---
-            'ping': { desc: '网络测试', exec: (a) => {
-                let c=0; const i = setInterval(()=>{ write(`64 bytes from ${a[0]||'8.8.8.8'}: seq=${c++} time=12ms`); if(c>=4)clearInterval(i); }, 800); state.intervals.push(i);
+            'rm': { desc: '删除 (-r 删目录)', exec: (a) => {
+                let isR = a.includes('-r'); let name = a.find(i => !i.startsWith('-'));
+                if(!name) return write("rm: 缺失参数", "error");
+                const match = state.files.find(f => f === name || f === name + '/');
+                if(!match) return write(`rm: '${name}' 不存在`, "error");
+                if(match.endsWith('/') && !isR) return write("这是目录，请使用 -r", "error");
+                if(match === 'music.mp3' && state.isMusicLocked) return write("权限拒绝：文件被锁定。", "error");
+                state.files = state.files.filter(f => f !== match);
+                write(`已移除 '${match}'。`);
             }},
+            'cd': { desc: '切换路径', exec: (a) => { state.path = a[0] || '/home/admin'; promptText.textContent = `admin@web-cli:${state.path}$`; }},
+            'pwd': { desc: '显示路径', exec: () => write(state.path) },
+            'whoami': { desc: '当前用户', exec: () => write('admin') },
+            'clear': { desc: '清空屏幕', exec: () => { output.innerHTML = ''; writeWelcome(); stopAll(); }},
+            'date': { desc: '系统日期', exec: () => write(new Date().toLocaleString()) },
+            'echo': { desc: '打印文本', exec: (a) => write(a.join(' ')) },
+            'pwgen': { desc: '随机密码', exec: () => write(Math.random().toString(36).slice(-10), "success") },
+            'fortune': { desc: '随机箴言', exec: () => write(["Stay Hungry, Stay Foolish.", "Code is Poetry."][Math.floor(Math.random()*2)], "welcome") },
+            'linuxlogo': { desc: '显示Logo', exec: () => write("  .---. \n / o o \\ \n \\  >  / \n  `---' \nv5.4", "welcome") },
+            'ping': { desc: '网络测试', exec: (a) => write(`64 bytes from ${a[0]||'8.8.8.8'}: seq=0 time=12ms`) },
             'curl': { desc: 'HTTP请求', exec: (a) => write(`GET ${a[0]||'localhost'}... 200 OK`) },
-            'ncat': { desc: '端口扫描', exec: (a) => write(`扫描 ${a[0]||'127.0.0.1'}... 端口 80, 443 开启。`) },
-            'makemagnet': { desc: '磁力生成', exec: () => write("magnet:?xt=urn:btih:" + Math.random().toString(16).slice(2, 42)) },
-
-            // --- 实用工具 ---
+            'history': { desc: '命令历史', exec: () => write(state.history.slice(0, 10).join('\n')) },
             'crypto': { desc: '加密币价', exec: () => write(`BTC: $${(69000+Math.random()*500).toFixed(2)}`) },
-            'stock': { desc: '实时股价', exec: () => write(`NVDA: $128.4 (+2.1%)`) },
-            'fx': { desc: '汇率', exec: () => write("1 USD = 7.24 CNY") },
-            'qrterminal': { desc: '生成二维码', exec: (a) => {
-                if(!a[0]) return write("用法: qrterminal <内容>");
+            'stock': { desc: '实时股价', exec: () => write(`NVDA: $128.4 (+2.5%)`) },
+            'divine': { desc: '六爻占卜', exec: () => write("【大吉】今日宜发布代码。", "welcome") },
+            'sl': { desc: '小火车', exec: () => {
+                let p=0; const line = write(""); 
+                const i = setInterval(()=>{ line.textContent = " ".repeat(p)+"=OO=o-o- 呜！！"; p++; if(p>40)clearInterval(i); }, 80); state.intervals.push(i);
+            }},
+            'cast': { desc: '施放咒语', exec: (a) => {
+                const s = (a[0]||'').toLowerCase();
+                if(s === 'alohomora') { state.isMusicLocked=false; write("🔓 解锁成功：music.mp3 可访问。", "success"); }
+                else if(s === 'lumos') { 
+                    terminal.style.boxShadow = '0 0 80px rgba(0, 229, 255, 0.6)';
+                    terminal.style.borderColor = '#00e5ff';
+                    write("✨ 荧光闪烁！", "success");
+                }
+                else if(s === 'nox') { 
+                    terminal.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
+                    terminal.style.borderColor = '#333';
+                    write("🌚 诺克斯！");
+                }
+                else write("咒语：alohomora / lumos / nox");
+            }},
+            'chat': { desc: 'AI 交互', exec: () => { state.isChat = true; promptText.textContent = "AI >"; write("💬 AI 已连接。/quit 退出。"); }},
+            'listen': { desc: '可视化', exec: () => {
+                let bars = ''; for(let i=0; i<12; i++) bars += `<div class="bar" style="animation-delay: ${Math.random()}s"></div>`;
+                const d = document.createElement('div'); d.className='visualizer'; d.innerHTML=bars; output.appendChild(d);
+            }},
+            'qrterminal': { desc: '二维码', exec: (a) => {
+                if(!a[0]) return write("用法: qrterminal 内容");
                 const qr = qrcode(0, 'M'); qr.addData(a[0]); qr.make();
                 let row = ''; const size = qr.getModuleCount();
                 for (let r=0; r<size; r++) { for (let c=0; c<size; c++) row += qr.isDark(r,c) ? '██' : '  '; row += '\n'; }
-                const pre = document.createElement('pre'); pre.className='qr-box'; pre.textContent = row; output.appendChild(pre);
+                const pre = document.createElement('pre'); pre.style.fontSize="6px"; pre.style.lineHeight="1"; pre.textContent = row; output.appendChild(pre);
             }},
-
-            // --- 特效/魔法 ---
-            'cast': { desc: '魔法咒语', exec: (a) => {
-                const s = (a[0]||'').toLowerCase();
-                if(s === 'alohomora') { state.isMusicLocked = false; write("🔓 魔法生效：music.mp3 已解锁。", "success"); }
-                else if(s === 'lumos') { terminal.style.boxShadow = '0 0 100px #00e5ff'; write("✨ 荧光闪烁！"); }
-                else if(s === 'nox') { terminal.style.boxShadow = '0 20px 50px rgba(0,0,0,0.9)'; write("🌚 诺克斯！"); }
-                else write("可用: alohomora, lumos, nox");
-            }},
-            'xsnow': { desc: '降雪', exec: () => {
-                const i = setInterval(() => {
-                    const f = document.createElement('div'); f.className='flake'; f.textContent='❄';
-                    f.style.left=Math.random()*100+'vw'; f.style.animationDuration=Math.random()*3+2+'s';
-                    snowZone.appendChild(f); setTimeout(()=>f.remove(), 4000);
-                }, 150); state.intervals.push(i); write("❄️ 降雪已开启。");
-            }},
-            'sl': { desc: '小火车', exec: () => {
-                let p=0; const line = write(""); 
-                const i = setInterval(()=>{ line.textContent = " ".repeat(p)+"=OO=o-o- 呜呜！！"; p++; if(p>50)clearInterval(i); }, 80); state.intervals.push(i);
-            }},
-            'cbonsai': { desc: '盆栽', exec: () => write("    &&& &&  & &&\n && &\\/&\\|& ()|/ @, &&\n   &\\/(/&/&||/& /_/)_&/_&\n            | |", "success") },
-            'divine': { desc: '占卜', exec: () => write("求得【地火明夷】卦：艰苦奋斗，必有后福。", "welcome") },
-            'gifwrap': { desc: 'ASCII动画', exec: () => write(" (o^▽^o) -> (o_O) -> (o^▽^o) ") },
-            
-            // --- 媒体 ---
-            'listen': { desc: '可视化', exec: () => {
-                let bars = ''; for(let i=0; i<15; i++) bars += `<div class="bar" style="animation-delay: ${Math.random()}s"></div>`;
-                const d = document.createElement('div'); d.className='visualizer'; d.innerHTML=bars; output.appendChild(d);
-            }},
-            'mplayer': { desc: '播放器', exec: () => write("Streaming: [████████░░] 80%") },
-            'chat': { desc: 'AI模式', exec: () => { state.isChat = true; promptText.textContent = `AI_SYSTEM >`; write("💬 AI 已连接。/quit 退出。"); }},
-            'display': { desc: '图像', exec: (a) => { const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/200/100'; output.appendChild(img); }},
-            'ruler': { desc: '刻度尺', exec: (a) => write("-".repeat(a[0]||40)+"\n0...10...20...30...40") }
+            'df': { desc: '磁盘占用', exec: () => write("Filesystem  Used  Available  Use%\n/dev/sda1   42G   158G       21%") },
+            'top': { desc: '进程监控', exec: () => write("PID  USER  %CPU  MEM  COMMAND\n101  admin 0.5   25M  node") },
+            'uptime': { desc: '运行时间', exec: () => write("up 12 days, 4:23, 1 user") },
+            'uname': { desc: '系统内核', exec: () => write("Web-Linux 5.4-x86_64-JS") },
+            'exit': { desc: '退出系统', exec: () => { output.innerHTML = ''; write("系统已关闭。"); input.disabled=true; }},
+            'ncat': { desc: '扫描端口', exec: (a) => write(`Scanning ${a[0]||'127.0.0.1'}... Port 80 OPEN.`) },
+            'fx': { desc: '汇率转换', exec: () => write("1 USD = 7.24 CNY") },
+            'display': { desc: '图片显示', exec: (a) => { const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/200/100'; img.style.maxWidth="100%"; output.appendChild(img); }},
+            'ruler': { desc: '刻度尺', exec: () => write("0...10...20...30...40...50") }
         };
 
-        const writeWelcome = () => {
-            write("", "");
-            write(" ", "");
+        function writeWelcome() {
             write("", "");
             write("");
-        };
+        }
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim(); input.value = ''; if (!val) return;
                 state.history.unshift(val); state.hIdx = -1;
                 const l = document.createElement('p');
-                l.innerHTML = `<span style="color:var(--prompt-color)">${promptText.textContent}</span> ${val}`;
+                l.innerHTML = `<span style="color:var(--prompt)">${promptText.textContent}</span> ${val}`;
                 output.appendChild(l);
                 
                 if (state.isChat) {
-                    if (val === '/quit') { state.isChat = false; promptText.textContent = `${state.user}@web-cli:${state.path}$`; write("AI 离线。"); }
-                    else write("AI: 系统指令接收中...");
+                    if (val === '/quit') { state.isChat = false; promptText.textContent = `admin@web-cli:${state.path}$`; write("AI 下线。"); }
+                    else write("AI: 系统逻辑正常，请继续操作。");
                     return;
                 }
                 const args = val.split(' ').filter(v => v !== "");
                 const cmd = args.shift().toLowerCase();
                 if (cmds[cmd]) cmds[cmd].exec(args); 
                 else write(`-bash: ${cmd}: command not found.`, 'error');
-            } else if (e.key === 'ArrowUp') { if (state.hIdx < state.history.length - 1) input.value = state.history[++state.hIdx]; }
-            else if (e.key === 'ArrowDown') { input.value = state.hIdx > 0 ? state.history[--state.hIdx] : (state.hIdx = -1, ""); }
+                output.scrollTop = output.scrollHeight;
+            } else if (e.key === 'ArrowUp') {
+                if (state.hIdx < state.history.length - 1) input.value = state.history[++state.hIdx];
+            }
+        });
+
+        window.visualViewport.addEventListener('resize', () => {
+            document.body.style.height = window.visualViewport.height + 'px';
+            output.scrollTop = output.scrollHeight;
         });
 
         writeWelcome();
+        input.focus();
     </script>
 </body>
 </html>
