@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Web Terminal CLI v5.4 - Full Edition</title>
+    <title>Web Terminal CLI v5.5 - Hacker Mode</title>
     <style>
         :root { --bg: #0d0d0d; --text: #00ff41; --prompt: #00e5ff; --err: #ff3d00; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
- display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; }
+display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; }
         
         #terminal { 
             background: var(--bg); 
@@ -19,7 +19,7 @@
             display: flex; 
             flex-direction: column; 
             position: relative;
-            transition: box-shadow 0.5s ease, border-color 0.5s ease;
+            transition: all 0.5s ease;
         }
 
         @media (min-width: 768px) { 
@@ -31,8 +31,8 @@
         #prompt { color: var(--prompt); margin-right: 10px; font-weight: bold; white-space: nowrap; font-size: 14px; }
         #cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--text); outline: none; font-size: 16px; font-family: inherit; width: 100%; padding: 0; }
         
-        /* 样式类 */
         .success { color: #00e676; } .error { color: var(--err); } .welcome { color: #ffd600; }
+        .hacker-text { color: #00ff41; font-weight: bold; text-shadow: 0 0 5px #00ff41; }
         .visualizer { display: flex; align-items: flex-end; height: 30px; gap: 4px; margin: 10px 0; }
         .bar { width: 5px; background: var(--text); animation: fluctuate 0.5s infinite alternate; }
         @keyframes fluctuate { from { height: 5px; } to { height: 30px; } }
@@ -69,6 +69,14 @@
 
         const stopAll = () => { state.intervals.forEach(clearInterval); state.intervals = []; };
 
+        // 黑客模式打字效果
+        const hackerWrite = async (lines) => {
+            for (let line of lines) {
+                await new Promise(r => setTimeout(r, Math.random() * 200 + 50));
+                write(">> " + line, "hacker-text");
+            }
+        };
+
         const cmds = {
             'help': { desc: '所有命令列表', exec: () => {
                 let list = '🔧 系统可用指令:\n';
@@ -80,8 +88,7 @@
                 write(display.join('  ') || "(空)");
             }},
             'mkdir': { desc: '创建目录', exec: (a) => {
-                if(!a[0]) return write("mkdir: 缺失参数", "error");
-                const dir = a[0].endsWith('/') ? a[0] : a[0] + '/';
+                const dir = a[0] ? (a[0].endsWith('/') ? a[0] : a[0] + '/') : 'new_folder/';
                 if(!state.files.includes(dir)) state.files.push(dir);
                 write(`目录 '${dir}' 创建成功。`);
             }},
@@ -104,32 +111,16 @@
                 const match = state.files.find(f => f === name || f === name + '/');
                 if(!match) return write(`rm: '${name}' 不存在`, "error");
                 if(match.endsWith('/') && !isR) return write("这是目录，请使用 -r", "error");
-                if(match === 'music.mp3' && state.isMusicLocked) return write("权限拒绝：文件被锁定。", "error");
                 state.files = state.files.filter(f => f !== match);
                 write(`已移除 '${match}'。`);
             }},
             'cd': { desc: '切换路径', exec: (a) => { state.path = a[0] || '/home/admin'; promptText.textContent = `admin@web-cli:${state.path}$`; }},
             'pwd': { desc: '显示路径', exec: () => write(state.path) },
-            'whoami': { desc: '当前用户', exec: () => write('admin') },
             'clear': { desc: '清空屏幕', exec: () => { output.innerHTML = ''; writeWelcome(); stopAll(); }},
             'date': { desc: '系统日期', exec: () => write(new Date().toLocaleString()) },
-            'echo': { desc: '打印文本', exec: (a) => write(a.join(' ')) },
-            'pwgen': { desc: '随机密码', exec: () => write(Math.random().toString(36).slice(-10), "success") },
-            'fortune': { desc: '随机箴言', exec: () => write(["Stay Hungry, Stay Foolish.", "Code is Poetry."][Math.floor(Math.random()*2)], "welcome") },
-            'linuxlogo': { desc: '显示Logo', exec: () => write("  .---. \n / o o \\ \n \\  >  / \n  `---' \nv5.4", "welcome") },
-            'ping': { desc: '网络测试', exec: (a) => write(`64 bytes from ${a[0]||'8.8.8.8'}: seq=0 time=12ms`) },
-            'curl': { desc: 'HTTP请求', exec: (a) => write(`GET ${a[0]||'localhost'}... 200 OK`) },
-            'history': { desc: '命令历史', exec: () => write(state.history.slice(0, 10).join('\n')) },
-            'crypto': { desc: '加密币价', exec: () => write(`BTC: $${(69000+Math.random()*500).toFixed(2)}`) },
-            'stock': { desc: '实时股价', exec: () => write(`NVDA: $128.4 (+2.5%)`) },
-            'divine': { desc: '六爻占卜', exec: () => write("【大吉】今日宜发布代码。", "welcome") },
-            'sl': { desc: '小火车', exec: () => {
-                let p=0; const line = write(""); 
-                const i = setInterval(()=>{ line.textContent = " ".repeat(p)+"=OO=o-o- 呜！！"; p++; if(p>40)clearInterval(i); }, 80); state.intervals.push(i);
-            }},
-            'cast': { desc: '施放咒语', exec: (a) => {
+            'cast': { desc: '施放咒语 (lumos/nox/alohomora)', exec: (a) => {
                 const s = (a[0]||'').toLowerCase();
-                if(s === 'alohomora') { state.isMusicLocked=false; write("🔓 解锁成功：music.mp3 可访问。", "success"); }
+                if(s === 'alohomora') { state.isMusicLocked=false; write("🔓 锁已弹开。", "success"); }
                 else if(s === 'lumos') { 
                     terminal.style.boxShadow = '0 0 80px rgba(0, 229, 255, 0.6)';
                     terminal.style.borderColor = '#00e5ff';
@@ -140,29 +131,49 @@
                     terminal.style.borderColor = '#333';
                     write("🌚 诺克斯！");
                 }
-                else write("咒语：alohomora / lumos / nox");
+                else write("可用：lumos, nox, alohomora");
             }},
-            'chat': { desc: 'AI 交互', exec: () => { state.isChat = true; promptText.textContent = "AI >"; write("💬 AI 已连接。/quit 退出。"); }},
-            'listen': { desc: '可视化', exec: () => {
-                let bars = ''; for(let i=0; i<12; i++) bars += `<div class="bar" style="animation-delay: ${Math.random()}s"></div>`;
-                const d = document.createElement('div'); d.className='visualizer'; d.innerHTML=bars; output.appendChild(d);
+            'chat': { desc: '黑客交互模式', exec: () => { 
+                state.isChat = true; 
+                promptText.textContent = "HACKER@SYSTEM >"; 
+                write("--- 建立加密隧道 ---", "success");
+                write("状态: 已进入黑客模式。输入任何内容开始渗透，/quit 退出。");
             }},
-            'qrterminal': { desc: '二维码', exec: (a) => {
+            'qrterminal': { desc: '生成二维码', exec: (a) => {
                 if(!a[0]) return write("用法: qrterminal 内容");
                 const qr = qrcode(0, 'M'); qr.addData(a[0]); qr.make();
                 let row = ''; const size = qr.getModuleCount();
                 for (let r=0; r<size; r++) { for (let c=0; c<size; c++) row += qr.isDark(r,c) ? '██' : '  '; row += '\n'; }
                 const pre = document.createElement('pre'); pre.style.fontSize="6px"; pre.style.lineHeight="1"; pre.textContent = row; output.appendChild(pre);
             }},
-            'df': { desc: '磁盘占用', exec: () => write("Filesystem  Used  Available  Use%\n/dev/sda1   42G   158G       21%") },
-            'top': { desc: '进程监控', exec: () => write("PID  USER  %CPU  MEM  COMMAND\n101  admin 0.5   25M  node") },
-            'uptime': { desc: '运行时间', exec: () => write("up 12 days, 4:23, 1 user") },
-            'uname': { desc: '系统内核', exec: () => write("Web-Linux 5.4-x86_64-JS") },
-            'exit': { desc: '退出系统', exec: () => { output.innerHTML = ''; write("系统已关闭。"); input.disabled=true; }},
-            'ncat': { desc: '扫描端口', exec: (a) => write(`Scanning ${a[0]||'127.0.0.1'}... Port 80 OPEN.`) },
-            'fx': { desc: '汇率转换', exec: () => write("1 USD = 7.24 CNY") },
-            'display': { desc: '图片显示', exec: (a) => { const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/200/100'; img.style.maxWidth="100%"; output.appendChild(img); }},
-            'ruler': { desc: '刻度尺', exec: () => write("0...10...20...30...40...50") }
+            'sl': { desc: '小火车', exec: () => {
+                let p=0; const line = write(""); 
+                const i = setInterval(()=>{ line.textContent = " ".repeat(p)+"=OO=o-o- 呜！！"; p++; if(p>40)clearInterval(i); }, 80); state.intervals.push(i);
+            }},
+            'listen': { desc: '频谱分析', exec: () => {
+                let bars = ''; for(let i=0; i<12; i++) bars += `<div class="bar" style="animation-delay: ${Math.random()}s"></div>`;
+                const d = document.createElement('div'); d.className='visualizer'; d.innerHTML=bars; output.appendChild(d);
+            }},
+            'whoami': { desc: '当前用户', exec: () => write('admin') },
+            'pwgen': { desc: '密码生成', exec: () => write(Math.random().toString(36).slice(-10), "success") },
+            'fortune': { desc: '随机箴言', exec: () => write("Hack the planet.") },
+            'ping': { desc: '网络测试', exec: (a) => write(`PING ${a[0]||'8.8.8.8'}: 64 bytes, time=12ms`) },
+            'curl': { desc: '抓取网页', exec: (a) => write(`Requesting ${a[0]||'local'}... 200 OK`) },
+            'history': { desc: '历史记录', exec: () => write(state.history.join('\n')) },
+            'crypto': { desc: '币价', exec: () => write(`BTC: $${(69000+Math.random()*100).toFixed(2)}`) },
+            'stock': { desc: '股价', exec: () => write(`NVDA: $128.4`) },
+            'divine': { desc: '占卜', exec: () => write("【大吉】渗透必成。") },
+            'df': { desc: '磁盘', exec: () => write("/dev/sda1 42G 21%") },
+            'top': { desc: '进程', exec: () => write("PID: 101 node 0.5%CPU") },
+            'uptime': { desc: '运行时间', exec: () => write("up 12 days") },
+            'uname': { desc: '内核', exec: () => write("Hacker-Linux") },
+            'exit': { desc: '退出', exec: () => { output.innerHTML = 'Logged out.'; input.disabled=true; }},
+            'ncat': { desc: '端口扫描', exec: () => write("Port 80, 443 OPEN") },
+            'fx': { desc: '汇率', exec: () => write("1 USD = 7.24 CNY") },
+            'display': { desc: '显示图像', exec: (a) => { const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/100'; output.appendChild(img); }},
+            'ruler': { desc: '尺子', exec: () => write("0...10...20") },
+            'linuxlogo': { desc: 'Logo', exec: () => write("  .---. \n / o o \\ \n v5.5") },
+            'echo': { desc: '回显', exec: (a) => write(a.join(' ')) }
         };
 
         function writeWelcome() {
@@ -170,17 +181,31 @@
             write("");
         }
 
-        input.addEventListener('keydown', (e) => {
+        input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim(); input.value = ''; if (!val) return;
                 state.history.unshift(val); state.hIdx = -1;
+                
                 const l = document.createElement('p');
                 l.innerHTML = `<span style="color:var(--prompt)">${promptText.textContent}</span> ${val}`;
                 output.appendChild(l);
                 
                 if (state.isChat) {
-                    if (val === '/quit') { state.isChat = false; promptText.textContent = `admin@web-cli:${state.path}$`; write("AI 下线。"); }
-                    else write("AI: 系统逻辑正常，请继续操作。");
+                    if (val === '/quit') { 
+                        state.isChat = false; 
+                        promptText.textContent = `admin@web-cli:${state.path}$`; 
+                        write("--- 隧道已关闭 ---", "error"); 
+                    } else {
+                        // 黑客模式随机逻辑
+                        const hacks = [
+                            "正在绕过防火墙...",
+                            "正在注入 SQL 负载...",
+                            "拦截数据包 [SUCCESS]",
+                            "正在同步密钥矩阵...",
+                            "权限提升: Root 访问已授权。"
+                        ];
+                        await hackerWrite([hacks[Math.floor(Math.random()*hacks.length)], "目标响应: " + btoa(val).slice(0,10) + "..."]);
+                    }
                     return;
                 }
                 const args = val.split(' ').filter(v => v !== "");
