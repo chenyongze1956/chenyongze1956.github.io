@@ -4,41 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Web Terminal CLI v5.5 - Hacker Mode</title>
     <style>
         :root { --bg: #0d0d0d; --text: #00ff41; --prompt: #00e5ff; --err: #ff3d00; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; }
+        body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; position: relative; }
         
+        #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; display: none; }
+
         #terminal { 
-            background: var(--bg); 
-            width: 100%; 
-            max-width: 1000px; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative;
-            transition: all 0.5s ease;
+            background: rgba(13, 13, 13, 0.9); width: 100%; max-width: 1000px; height: 100%; 
+            display: flex; flex-direction: column; position: relative; z-index: 2;
+            transition: all 0.3s ease; backdrop-filter: blur(4px);
         }
 
         @media (min-width: 768px) { 
             #terminal { height: 90vh; border-radius: 12px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.8); } 
         }
 
-        #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text); font-size: 14px; -webkit-overflow-scrolling: touch; }
-        #input-line { display: flex; align-items: flex-start; padding: 12px 20px; background: #050505; border-top: 1px solid #222; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-        #prompt { color: var(--prompt); margin-right: 10px; font-weight: bold; white-space: nowrap; font-size: 14px; }
-        #cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--text); outline: none; font-size: 16px; font-family: inherit; width: 100%; padding: 0; }
+        #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text); font-size: 14px; }
+        #input-line { display: flex; align-items: flex-start; padding: 12px 20px; background: rgba(5, 5, 5, 1); border-top: 1px solid #222; }
+        #prompt { color: var(--prompt); margin-right: 10px; font-weight: bold; white-space: nowrap; }
+        #cmd-input { flex-grow: 1; background: transparent; border: none; color: var(--text); outline: none; font-size: 16px; font-family: inherit; width: 100%; }
         
         .success { color: #00e676; } .error { color: var(--err); } .welcome { color: #ffd600; }
         .hacker-text { color: #00ff41; font-weight: bold; text-shadow: 0 0 5px #00ff41; }
-        .visualizer { display: flex; align-items: flex-end; height: 30px; gap: 4px; margin: 10px 0; }
-        .bar { width: 5px; background: var(--text); animation: fluctuate 0.5s infinite alternate; }
-        @keyframes fluctuate { from { height: 5px; } to { height: 30px; } }
+        .visualizer { display: flex; align-items: flex-end; height: 20px; gap: 3px; margin: 5px 0; }
+        .bar { width: 4px; background: var(--text); animation: fluctuate 0.5s infinite alternate; }
+        @keyframes fluctuate { from { height: 4px; } to { height: 20px; } }
     </style>
 </head>
 <body onclick="document.getElementById('cmd-input').focus()">
+    <canvas id="snow-canvas"></canvas>
     <div id="terminal">
         <div id="output"></div>
         <div id="input-line">
@@ -53,127 +49,154 @@ display: flex; justify-content: center; align-items: center; height: 100vh; marg
         const input = document.getElementById('cmd-input');
         const promptText = document.getElementById('prompt');
         const terminal = document.getElementById('terminal');
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
 
         let state = {
             path: '/home/admin',
             files: ['README.txt', 'Documents/', 'Downloads/', 'music.mp3'],
-            history: [], hIdx: -1, isMusicLocked: true, isChat: false, intervals: []
+            history: [], hIdx: -1, isMusicLocked: true, isChat: false,
+            snowing: false, snowInterval: null
         };
+
+        // --- 雪花逻辑 ---
+        let particles = [];
+        function createSnow() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<100; i++) particles.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, d: Math.random()*1});
+        }
+        function drawSnow() {
+            if(!state.snowing) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white"; ctx.beginPath();
+            particles.forEach(p => {
+                ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                p.y += Math.cos(p.d) + 1 + p.r/2; p.x += Math.sin(p.d) * 2;
+                if(p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+            });
+            ctx.fill(); requestAnimationFrame(drawSnow);
+        }
 
         const write = (txt, cls = '') => {
             const p = document.createElement('p'); p.className = cls;
             p.textContent = txt; output.appendChild(p);
-            setTimeout(() => { output.scrollTop = output.scrollHeight; }, 10);
+            output.scrollTop = output.scrollHeight;
             return p;
         };
 
-        const stopAll = () => { state.intervals.forEach(clearInterval); state.intervals = []; };
-
-        // 黑客模式打字效果
         const hackerWrite = async (lines) => {
             for (let line of lines) {
-                await new Promise(r => setTimeout(r, Math.random() * 200 + 50));
+                await new Promise(r => setTimeout(r, 100));
                 write(">> " + line, "hacker-text");
             }
         };
 
         const cmds = {
-            'help': { desc: '所有命令列表', exec: () => {
+            'help': { desc: '指令列表', exec: () => {
                 let list = '🔧 系统可用指令:\n';
                 Object.keys(cmds).sort().forEach(c => list += `  ${c.padEnd(12)} - ${cmds[c].desc}\n`);
                 write(list);
             }},
             'ls': { desc: '列出文件', exec: () => {
-                const display = state.files.map(f => (f==='music.mp3' && state.isMusicLocked) ? `${f}(🔒)` : f);
-                write(display.join('  ') || "(空)");
+                const list = state.files.map(f => (f === 'music.mp3' && state.isMusicLocked) ? 'music.mp3(🔒)' : (f === 'music.mp3' ? 'music.mp3(🎵)' : f));
+                write(list.join('    ') || "(空目录)");
             }},
             'mkdir': { desc: '创建目录', exec: (a) => {
-                const dir = a[0] ? (a[0].endsWith('/') ? a[0] : a[0] + '/') : 'new_folder/';
+                const name = a[0] || 'new_folder';
+                const dir = name.endsWith('/') ? name : name + '/';
                 if(!state.files.includes(dir)) state.files.push(dir);
-                write(`目录 '${dir}' 创建成功。`);
+                write(`目录 ${dir} 创建成功。`);
             }},
             'rmdir': { desc: '删除目录', exec: (a) => {
-                if(!a[0]) return write("rmdir: 缺失参数", "error");
-                const target = a[0].endsWith('/') ? a[0] : a[0] + '/';
+                const target = a[0] ? (a[0].endsWith('/') ? a[0] : a[0]+'/') : '';
                 const idx = state.files.indexOf(target);
-                if(idx === -1) return write(`rmdir: '${a[0]}' 目录不存在`, "error");
-                state.files.splice(idx, 1);
-                write(`目录 '${target}' 已移除。`, "success");
+                if(idx > -1) { state.files.splice(idx, 1); write(`目录 ${target} 已移除。`, "success"); }
+                else write(`错误: 目录 ${target} 不存在`, "error");
             }},
             'touch': { desc: '创建文件', exec: (a) => {
-                if(!a[0]) return write("touch: 缺失参数", "error");
+                if(!a[0]) return write("缺失文件名", "error");
                 if(!state.files.includes(a[0])) state.files.push(a[0]);
-                write(`文件 '${a[0]}' 已创建。`);
+                write(`文件 ${a[0]} 创建成功。`);
             }},
-            'rm': { desc: '删除 (-r 删目录)', exec: (a) => {
+            'rm': { desc: '移除文件 (-r 删目录)', exec: (a) => {
                 let isR = a.includes('-r'); let name = a.find(i => !i.startsWith('-'));
-                if(!name) return write("rm: 缺失参数", "error");
                 const match = state.files.find(f => f === name || f === name + '/');
-                if(!match) return write(`rm: '${name}' 不存在`, "error");
-                if(match.endsWith('/') && !isR) return write("这是目录，请使用 -r", "error");
+                if(!match) return write("文件不存在", "error");
+                if(match === 'music.mp3' && state.isMusicLocked) return write("🚫 权限拒绝: 文件被魔法锁定", "error");
+                if(match.endsWith('/') && !isR) return write("这是一个目录，请用 rm -r", "error");
                 state.files = state.files.filter(f => f !== match);
-                write(`已移除 '${match}'。`);
+                write(`已删除 ${match}`);
             }},
-            'cd': { desc: '切换路径', exec: (a) => { state.path = a[0] || '/home/admin'; promptText.textContent = `admin@web-cli:${state.path}$`; }},
-            'pwd': { desc: '显示路径', exec: () => write(state.path) },
-            'clear': { desc: '清空屏幕', exec: () => { output.innerHTML = ''; writeWelcome(); stopAll(); }},
-            'date': { desc: '系统日期', exec: () => write(new Date().toLocaleString()) },
-            'cast': { desc: '施放咒语 (lumos/nox/alohomora)', exec: (a) => {
+            'cd': { desc: '切换路径', exec: (a) => {
+                state.path = a[0] || '/home/admin';
+                promptText.textContent = `admin@web-cli:${state.path}$`;
+                write(`已切换到: ${state.path}`);
+            }},
+            'pwd': { desc: '当前路径', exec: () => write(state.path) },
+            'clear': { desc: '清屏', exec: () => { output.innerHTML = ''; writeWelcome(); }},
+            'cast': { desc: '咒语 (lumos/nox/alohomora)', exec: (a) => {
                 const s = (a[0]||'').toLowerCase();
-                if(s === 'alohomora') { state.isMusicLocked=false; write("🔓 锁已弹开。", "success"); }
-                else if(s === 'lumos') { 
-                    terminal.style.boxShadow = '0 0 80px rgba(0, 229, 255, 0.6)';
-                    terminal.style.borderColor = '#00e5ff';
-                    write("✨ 荧光闪烁！", "success");
-                }
-                else if(s === 'nox') { 
-                    terminal.style.boxShadow = '0 20px 50px rgba(0,0,0,0.8)';
-                    terminal.style.borderColor = '#333';
-                    write("🌚 诺克斯！");
-                }
-                else write("可用：lumos, nox, alohomora");
+                if(s === 'alohomora') {
+                    state.isMusicLocked = false;
+                    write("🔓 咒语生效: music.mp3 已解锁!", "success");
+                    cmds.ls.exec();
+                } else if(s === 'lumos') {
+                    terminal.style.boxShadow = '0 0 80px #00e5ff'; terminal.style.borderColor = '#00e5ff';
+                    write("✨ Lumos! 终端已点亮。", "success");
+                } else if(s === 'nox') {
+                    terminal.style.boxShadow = '0 20px 50px black'; terminal.style.borderColor = '#333';
+                    write("🌚 Nox. 光亮熄灭。");
+                } else write("可用: lumos, nox, alohomora");
             }},
-            'chat': { desc: '黑客交互模式', exec: () => { 
-                state.isChat = true; 
-                promptText.textContent = "HACKER@SYSTEM >"; 
-                write("--- 建立加密隧道 ---", "success");
-                write("状态: 已进入黑客模式。输入任何内容开始渗透，/quit 退出。");
+            'chat': { desc: '黑客模式', exec: () => { 
+                state.isChat = true; promptText.textContent = "HACKER@SYS >"; 
+                write("--- 建立隧道: 127.0.0.1 -> SECRET_SRV ---", "success");
+            }},
+            'snow': { desc: '下雪效果 (on/off)', exec: (a) => {
+                if(a[0] === 'on') { state.snowing = true; canvas.style.display = 'block'; createSnow(); drawSnow(); write("❄️ 降雪开始..."); }
+                else { state.snowing = false; canvas.style.display = 'none'; write("☀️ 天气晴朗。"); }
             }},
             'qrterminal': { desc: '生成二维码', exec: (a) => {
                 if(!a[0]) return write("用法: qrterminal 内容");
                 const qr = qrcode(0, 'M'); qr.addData(a[0]); qr.make();
+                const pre = document.createElement('pre'); pre.style.cssText="font-size:6px; line-height:1; letter-spacing:0;";
                 let row = ''; const size = qr.getModuleCount();
                 for (let r=0; r<size; r++) { for (let c=0; c<size; c++) row += qr.isDark(r,c) ? '██' : '  '; row += '\n'; }
-                const pre = document.createElement('pre'); pre.style.fontSize="6px"; pre.style.lineHeight="1"; pre.textContent = row; output.appendChild(pre);
+                pre.textContent = row; output.appendChild(pre);
             }},
-            'sl': { desc: '小火车', exec: () => {
-                let p=0; const line = write(""); 
-                const i = setInterval(()=>{ line.textContent = " ".repeat(p)+"=OO=o-o- 呜！！"; p++; if(p>40)clearInterval(i); }, 80); state.intervals.push(i);
+            'crypto': { desc: '币价', exec: () => write(`BTC: $${(96000 + Math.random()*1000).toFixed(2)} | ETH: $3421.50`) },
+            'date': { desc: '日期', exec: () => write(new Date().toString()) },
+            'df': { desc: '磁盘', exec: () => write("Filesystem     Used  Avail  Use%\n/dev/disk1s1   89G   120G   42%") },
+            'display': { desc: '图片', exec: (a) => {
+                const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/200/100';
+                img.style.maxWidth="200px"; img.style.marginTop="10px"; output.appendChild(img);
             }},
-            'listen': { desc: '频谱分析', exec: () => {
-                let bars = ''; for(let i=0; i<12; i++) bars += `<div class="bar" style="animation-delay: ${Math.random()}s"></div>`;
-                const d = document.createElement('div'); d.className='visualizer'; d.innerHTML=bars; output.appendChild(d);
+            'divine': { desc: '占卜', exec: () => write("🔮 卦象显示: 宜敲代码，忌修Bug。", "welcome") },
+            'echo': { desc: '回显', exec: (a) => write(a.join(' ')) },
+            'exit': { desc: '退出', exec: () => { document.body.innerHTML = '<h1 style="color:#00ff41;text-align:center;margin-top:20%">Terminal Session Ended.</h1>'; }},
+            'fortune': { desc: '随机', exec: () => write("Fortune: Your code will compile on the first try.") },
+            'fx': { desc: '汇率', exec: () => write("1 USD = 7.2452 CNY | 1 JPY = 0.048 CNY") },
+            'history': { desc: '历史', exec: () => write(state.history.join('\n')) },
+            'linuxlogo': { desc: 'Logo', exec: () => write("  .---. \n / o o \\ \n \\  >  / \n  `---' \n Web-CLI v5.7") },
+            'listen': { desc: '频谱', exec: () => {
+                const d = document.createElement('div'); d.className='visualizer';
+                for(let i=0; i<15; i++) d.innerHTML += `<div class="bar" style="animation-delay:${Math.random()}s"></div>`;
+                output.appendChild(d);
             }},
-            'whoami': { desc: '当前用户', exec: () => write('admin') },
-            'pwgen': { desc: '密码生成', exec: () => write(Math.random().toString(36).slice(-10), "success") },
-            'fortune': { desc: '随机箴言', exec: () => write("Hack the planet.") },
-            'ping': { desc: '网络测试', exec: (a) => write(`PING ${a[0]||'8.8.8.8'}: 64 bytes, time=12ms`) },
-            'curl': { desc: '抓取网页', exec: (a) => write(`Requesting ${a[0]||'local'}... 200 OK`) },
-            'history': { desc: '历史记录', exec: () => write(state.history.join('\n')) },
-            'crypto': { desc: '币价', exec: () => write(`BTC: $${(69000+Math.random()*100).toFixed(2)}`) },
-            'stock': { desc: '股价', exec: () => write(`NVDA: $128.4`) },
-            'divine': { desc: '占卜', exec: () => write("【大吉】渗透必成。") },
-            'df': { desc: '磁盘', exec: () => write("/dev/sda1 42G 21%") },
-            'top': { desc: '进程', exec: () => write("PID: 101 node 0.5%CPU") },
-            'uptime': { desc: '运行时间', exec: () => write("up 12 days") },
-            'uname': { desc: '内核', exec: () => write("Hacker-Linux") },
-            'exit': { desc: '退出', exec: () => { output.innerHTML = 'Logged out.'; input.disabled=true; }},
-            'ncat': { desc: '端口扫描', exec: () => write("Port 80, 443 OPEN") },
-            'fx': { desc: '汇率', exec: () => write("1 USD = 7.24 CNY") },
-            'display': { desc: '显示图像', exec: (a) => { const img = document.createElement('img'); img.src = a[0]||'https://picsum.photos/100'; output.appendChild(img); }},
-            'ruler': { desc: '尺子', exec: () => write("0...10...20") },
-            'linuxlogo': { desc: 'Logo', exec: () => write("  .---. \n / o o \\ \n v5.5") },
-            'echo': { desc: '回显', exec: (a) => write(a.join(' ')) }
+            'ncat': { desc: '扫描', exec: (a) => write(`Scanning ${a[0]||'localhost'}... Port 80: OPEN, Port 443: OPEN`) },
+            'ping': { desc: '测试', exec: (a) => write(`PING ${a[0]||'google.com'} (142.250.190.46): 56 data bytes\n64 bytes: icmp_seq=0 ttl=116 time=14.2 ms`) },
+            'pwgen': { desc: '密码', exec: () => write("Generated: " + Math.random().toString(36).slice(2, 12), "success") },
+            'ruler': { desc: '尺子', exec: () => write("0...10...20...30...40...50...60...70...80") },
+            'sl': { desc: '火车', exec: () => {
+                let p=0; const l = write(""); 
+                const i = setInterval(() => { l.textContent = " ".repeat(p) + "🚂 █▆▄▃  "; p++; if(p>30) clearInterval(i); }, 100);
+            }},
+            'stock': { desc: '股价', exec: () => write("AAPL: $234.12 (+1.2%) | TSLA: $310.05 (-0.4%)") },
+            'top': { desc: '进程', exec: () => write("PID  COMMAND      %CPU  MEM\n1    init         0.0   2.1MB\n42   node_runtime 12.5  145MB") },
+            'uname': { desc: '内核', exec: () => write("Darwin Kernel Version 23.0.0: Web-Browser-JS-Edition") },
+            'uptime': { desc: '运行', exec: () => write("up 4:23, 1 user, load averages: 1.24 1.02 0.98") },
+            'whoami': { desc: '当前用户', exec: () => write("admin") }
         };
 
         function writeWelcome() {
@@ -184,47 +207,28 @@ display: flex; justify-content: center; align-items: center; height: 100vh; marg
         input.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim(); input.value = ''; if (!val) return;
-                state.history.unshift(val); state.hIdx = -1;
-                
+                state.history.unshift(val);
                 const l = document.createElement('p');
                 l.innerHTML = `<span style="color:var(--prompt)">${promptText.textContent}</span> ${val}`;
                 output.appendChild(l);
                 
                 if (state.isChat) {
-                    if (val === '/quit') { 
-                        state.isChat = false; 
-                        promptText.textContent = `admin@web-cli:${state.path}$`; 
-                        write("--- 隧道已关闭 ---", "error"); 
-                    } else {
-                        // 黑客模式随机逻辑
-                        const hacks = [
-                            "正在绕过防火墙...",
-                            "正在注入 SQL 负载...",
-                            "拦截数据包 [SUCCESS]",
-                            "正在同步密钥矩阵...",
-                            "权限提升: Root 访问已授权。"
-                        ];
-                        await hackerWrite([hacks[Math.floor(Math.random()*hacks.length)], "目标响应: " + btoa(val).slice(0,10) + "..."]);
-                    }
+                    if (val === '/quit') { state.isChat = false; promptText.textContent = `admin@web-cli:${state.path}$`; write("--- 隧道关闭 ---", "error"); }
+                    else await hackerWrite(["加密通信中...", "已获取数据包: " + btoa(val).slice(0,12)]);
                     return;
                 }
                 const args = val.split(' ').filter(v => v !== "");
                 const cmd = args.shift().toLowerCase();
                 if (cmds[cmd]) cmds[cmd].exec(args); 
-                else write(`-bash: ${cmd}: command not found.`, 'error');
+                else write(`-bash: ${cmd}: command not found`, 'error');
                 output.scrollTop = output.scrollHeight;
             } else if (e.key === 'ArrowUp') {
                 if (state.hIdx < state.history.length - 1) input.value = state.history[++state.hIdx];
             }
         });
 
-        window.visualViewport.addEventListener('resize', () => {
-            document.body.style.height = window.visualViewport.height + 'px';
-            output.scrollTop = output.scrollHeight;
-        });
-
-        writeWelcome();
-        input.focus();
+        window.addEventListener('resize', () => { if(state.snowing) createSnow(); });
+        writeWelcome(); input.focus();
     </script>
 </body>
 </html>
