@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: "STKaiti", "Kaiti", "PingFang SC", serif; 
+        }
+
+        /* 仿古绢本材质 */
+        .silk-scroll {
+            position: relative;
+            width: 80%;
+            max-width: 800px;
+            background: #fdfaf2; /* 宣纸白 */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="3"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.08"/></svg>');
+            padding: 80px 60px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            border-radius: 4px;
+            overflow: hidden;
+
+
+
+                background: #fdfaf2; /* 宣纸白 */
+            border: 2px solid #8b4513; 
+            outline: 10px solid #fdfaf2; /* 模拟画卷边缘 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative; 
+color: #8b4513;
+        
+        }
+
+        /* 模拟笔墨浓淡的标题 */
+        .wang-title {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 4.5rem;
+color: #a0522d;
+            text-align: center;
+            margin-bottom: 50px;
+            letter-spacing: 10px;
+            /* 模拟墨色洇散 */
+            filter: drop-shadow(0 0 1px rgba(0,0,0,0.5));
+
+
+                                    font-size:3.6rem;
+
+        }
+
+        /* 王羲之风格正文：厚重而灵动 */
+        .wang-body {
+            font-family: 'Ma Shan Zheng', serif;
+            font-size: 1.8rem;
+color: #a0522d;
+
+
+
+            
+        writing-mode: vertical-rl; /* 坚持竖排版 */
+            height: 550px;
+            margin: 0 auto;
+            line-height: 2.5;
+            letter-spacing: 0.2em;
+            text-align: justify;
+            /* 模拟入纸三分的骨力 */
+            text-shadow: 0.2px 0.2px 0px #000;
+        }
+
+        /* 增加文字间起伏的错落感 */
+        .wang-body p {
+            margin: 0;
+            position: relative;
+        }
+
+        /* 装饰：古印 */
+        .seal-red {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            border: 3px solid #b72d2d;
+            color: #b72d2d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            transform: rotate(-5deg);
+            opacity: 0.8;
+            -webkit-mask-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='); /* 模拟磨损 */
+        }
+
+        /* 背景水墨装饰 */
+        .bamboo-shadow {
+            position: absolute;
+            top: 0; right: 0;
+            width: 300px; height: 100%;
+            background: linear-gradient(to left, rgba(40,50,40,0.05), transparent);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="silk-scroll">
+        <div class="bamboo-shadow"></div>
+        <h1 class="wang-title">雅集序</h1>
+
+        <div class="wang-body">
+            <p>青草醉摇芳甸，野花漫舞春风 。</p>
+            <p>围坐石几对弈，泉水潺潺履下 。</p>
+            <p>穿梭竹林之间，逍遥自在无羁 。</p>
+            <p>微风酒香交融，一杯沉醉开怀 。</p>
+            <p>琵琶随性拨弄，竹笛随声附和 。</p>
+            <p>音符流离倾泻，愉悦有感而发 。</p>
+            <p>情谊如泉回响，林间醉醒相映 。</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
