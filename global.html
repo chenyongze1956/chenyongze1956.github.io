@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silent Antique Globe</title>
+    <style>
+        /* --- 整体空间氛围 --- */
+        body {
+            margin: 0;
+            padding: 0;
+            /* 深沉的黑褐色背景，像在深夜的书房 */
+     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .scene {
+            perspective: 1000px;
+        }
+
+        /* --- 🌍 古董地球仪本体 --- */
+        .antique-globe {
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            position: relative;
+            
+            /* 1. 基础底色：羊皮纸色（防止图片没加载时变白） */
+            background-color: #d4c4a9;
+
+            /* 2. 核心纹理：更换为更稳定的维基百科古地图图片 */
+            /* 这张图是18世纪的复古世界地图，非常精美 */
+            background-image: url('https://od.lk/s/NDBfMTMzNTczODM1Xw/%E2%80%94Pngtree%E2%80%94a%20map%20of%20the%20world_15940708.png');
+            
+            /* 3. 背景平铺设置 */
+            background-size: cover;
+            background-repeat: repeat-x; /* 水平重复以实现旋转 */
+
+            /* 4. 姿态：23.5度真实地轴倾斜 */
+            transform: rotateZ(23.5deg);
+            
+            /* 5. 动画：60秒匀速安静旋转 */
+            animation: rotate-globe 60s linear infinite;
+
+            /* 6. 复古光影：强化立体感 */
+            box-shadow: 
+                /* 核心内阴影：制造球体的厚重感和暗部 */
+                inset -40px -40px 80px rgba(0, 0, 0, 0.9), 
+                /* 边缘微光：模拟老旧涂层在灯光下的反射 */
+                inset 10px 10px 40px rgba(255, 255, 255, 0.1),
+                /* 外部环境光 */
+                0 0 50px rgba(0, 0, 0, 0.5);
+
+            /* 7. 滤镜：整体泛黄旧化处理 */
+            filter: sepia(30%) contrast(1.1) brightness(0.8);
+        }
+
+        /* --- 旋转动画：背景图水平滚动 --- */
+        @keyframes rotate-globe {
+            from { background-position: 0 0; }
+            to { background-position: 1024px 0; } /* 这里的数值匹配图片宽度 */
+        }
+
+        /* --- 额外装饰：地面的微弱倒影 --- */
+        .reflection {
+            position: absolute;
+            bottom: -60px;
+            width: 300px;
+            height: 30px;
+            background: radial-gradient(ellipse at center, rgba(139, 90, 43, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scene" style="display: flex; flex-direction: column; align-items: center;">
+        <div class="antique-globe"></div>
+        <div class="reflection"></div>
+    </div>
+
+</body>
+</html>
