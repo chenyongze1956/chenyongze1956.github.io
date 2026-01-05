@@ -4,18 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>动画场景搜索 (全屏适配版)</title>
-    <script src="peerjs.js"></script> <style>
+    <style>
         /* 1. 全屏背景设计 */
         body {
             margin: 0;
             padding: 0;
-            /* 确保背景铺满，不随内容滚动而断开 */
             min-height: 100vh;
             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
@@ -24,7 +21,6 @@
             color: #333;
         }
 
-        /* 背景动画，增加动态感 */
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -33,17 +29,12 @@
 
         /* 2. 响应式容器：磨砂玻璃效果 */
         .container {
-            /* 适配移动端宽度 */
             width: 90%;
             max-width: 550px;
             margin: 20px auto;
-            
-            /* 半透明白色背景 */
             background: rgba(255, 255, 255, 0.85);
-            /* 磨砂滤镜 */
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            
             padding: 25px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
@@ -51,23 +42,28 @@
             box-sizing: border-box;
         }
 
-        h1 { 
-            margin-top: 0;
-            font-size: 1.5rem;
-            color: #444; 
-        }
+        h1 { margin-top: 0; font-size: 1.5rem; color: #444; }
 
-        /* 上传区域适配 */
+        /* 3. 上传/拖拽区域设计 */
         .upload-area {
             border: 2px dashed rgba(0,0,0,0.2);
-            padding: 20px;
+            padding: 35px 20px;
             border-radius: 15px;
             cursor: pointer;
             background: rgba(255,255,255,0.5);
             transition: all 0.3s ease;
             margin-bottom: 20px;
+            position: relative;
         }
-        .upload-area:hover { border-color: #007bff; background: #fff; }
+
+        /* 拖拽文件经过时的状态 */
+        .upload-area.drag-over {
+            border-color: #007bff;
+            background: rgba(0, 123, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-label { font-size: 1rem; color: #555; display: block; }
 
         #previewImage {
             max-width: 100%;
@@ -76,6 +72,7 @@
             border-radius: 10px;
             display: none;
             object-fit: contain;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         /* 按钮美化 */
@@ -89,78 +86,77 @@
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            transition: transform 0.2s, background 0.3s;
+            transition: all 0.2s;
         }
-        #searchBtn:hover { background: #0056b3; transform: translateY(-2px); }
-        #searchBtn:active { transform: translateY(0); }
-        #searchBtn:disabled { background: #ccc; transform: none; }
+        #searchBtn:hover { background: #0056b3; }
+        #searchBtn:disabled { background: #ccc; cursor: not-allowed; }
 
-        .loading { display: none; margin: 15px 0; color: #007bff; font-weight: bold; }
+        .loading { display: none; margin: 15px 0; color: #007bff; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
-        /* 结果卡片适配 */
+        /* 4. 结果展示区域 */
         #resultArea {
             margin-top: 25px;
             text-align: left;
             display: none;
         }
         .result-card {
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95);
             padding: 15px;
             border-radius: 15px;
             border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
         }
-        .meta-info h3 { margin: 0; font-size: 1.1rem; color: #000; }
-        .similarity { float: right; color: #28a745; font-weight: bold; }
+        .meta-info h3 { margin: 0; font-size: 1.1rem; color: #000; line-height: 1.4; }
+        .similarity { float: right; color: #28a745; font-weight: bold; font-size: 0.9rem; }
 
         video {
             width: 100%;
             border-radius: 10px;
             margin-top: 15px;
             background: #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* 移动端细调 */
         @media (max-width: 480px) {
             .container { padding: 15px; width: 95%; }
             h1 { font-size: 1.2rem; }
-            .upload-label { font-size: 14px; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>🔍 动画场景搜索</h1>
-        <p style="color: #666; font-size: 0.9rem;">上传截图，精准识别动画来源</p>
+        <h1>🔍 动画识别播放器</h1>
+        <p style="color: #666; font-size: 0.85rem; margin-bottom: 20px;">拖入图片，立即找到动画来源并播放</p>
 
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <span class="upload-label">📸 点击或拖拽图片到这里</span>
-            <input type="file" id="fileInput" accept="image/*">
-            <br>
+        <div class="upload-area" id="dropZone">
+            <span class="upload-label">📸 点击上传 或 拖入图片到这里</span>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
             <img id="previewImage" alt="预览图">
         </div>
 
         <button id="searchBtn" disabled>开始识别</button>
 
-        <div class="loading" id="loadingText">⚡ 正在全力搜索中...</div>
-        <div id="errorMsg" style="color:red; display:none; margin-top:10px;"></div>
+        <div class="loading" id="loadingText">⚡ 正在分析场景，请稍候...</div>
+        <div id="errorMsg" style="color:#dc3545; display:none; margin-top:10px; font-size: 0.9rem; font-weight: bold;"></div>
 
         <div id="resultArea">
             <div class="result-card">
                 <div class="meta-info">
                     <span class="similarity" id="similarityScore"></span>
-                    <h3 id="animeTitle">载入中...</h3>
-                    <p style="font-size: 0.85rem; color: #555;">
-                        第 <span id="episodeNum">-</span> 集 | 时间: <span id="timeRange">-</span>
+                    <h3 id="animeTitle">识别中...</h3>
+                    <p style="font-size: 0.85rem; color: #666; margin: 8px 0 0 0;">
+                        第 <span id="episodeNum">-</span> 集 | 时间点: <span id="timeRange">-</span>
                     </p>
                 </div>
-                <video id="resultVideo" controls autoplay loop muted playsinline></video>
+                <video id="resultVideo" controls autoplay loop playsinline></video>
             </div>
         </div>
     </div>
 
     <script>
-        // 逻辑保持不变，只需确保 ID 对应
+        const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const previewImage = document.getElementById('previewImage');
         const searchBtn = document.getElementById('searchBtn');
@@ -168,12 +164,51 @@
         const resultArea = document.getElementById('resultArea');
         const errorMsg = document.getElementById('errorMsg');
         const uploadLabel = document.querySelector('.upload-label');
+        const videoPlayer = document.getElementById('resultVideo');
 
         let selectedFile = null;
 
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files && e.target.files[0]) {
-                selectedFile = e.target.files[0];
+        // --- 1. 拖拽逻辑实现 ---
+
+        // 阻止默认行为（防止浏览器直接打开图片文件）
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        // 拖拽视觉反馈
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
+        });
+
+        // 处理放下文件
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        }, false);
+
+        // 处理点击上传
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        // --- 2. 核心处理流程 ---
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                selectedFile = files[0];
+                
+                if (!selectedFile.type.startsWith('image/')) {
+                    alert('请上传图片文件哦！');
+                    return;
+                }
+
+                // 渲染本地预览
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     previewImage.src = e.target.result;
@@ -181,16 +216,22 @@
                     uploadLabel.style.display = 'none';
                 }
                 reader.readAsDataURL(selectedFile);
+
                 searchBtn.disabled = false;
                 resultArea.style.display = 'none';
-            }
-        });
 
-        searchBtn.addEventListener('click', async function() {
+                // 【自动触发识别】
+                startSearch();
+            }
+        }
+
+        async function startSearch() {
             loadingText.style.display = 'block';
             searchBtn.disabled = true;
             errorMsg.style.display = 'none';
-            
+            resultArea.style.display = 'none';
+            videoPlayer.pause(); // 停止当前正在播放的视频
+
             try {
                 const formData = new FormData();
                 formData.append("image", selectedFile);
@@ -200,13 +241,13 @@
                     body: formData,
                 });
 
-                if (!response.ok) throw new Error("API请求失败，请稍后再试");
+                if (!response.ok) throw new Error("API 请求太频繁，请稍后再试");
 
                 const data = await response.json();
                 if (data.result && data.result.length > 0) {
                     displayResult(data.result[0]);
                 } else {
-                    throw new Error("未找到匹配场景");
+                    throw new Error("未能识别出该场景，换一张试试？");
                 }
             } catch (error) {
                 errorMsg.innerText = error.message;
@@ -215,12 +256,18 @@
                 loadingText.style.display = 'none';
                 searchBtn.disabled = false;
             }
-        });
+        }
+
+        // 手动点击识别按钮也有效
+        searchBtn.addEventListener('click', startSearch);
 
         function displayResult(result) {
             resultArea.style.display = 'block';
-            document.getElementById('similarityScore').innerText = (result.similarity * 100).toFixed(2) + '%';
             
+            // 显示匹配度
+            document.getElementById('similarityScore').innerText = (result.similarity * 100).toFixed(1) + '% 匹配';
+            
+            // 解析标题（优先显示中文）
             let title = "未知动画";
             if (result.anilist && result.anilist.title) {
                 title = result.anilist.title.chinese || result.anilist.title.english || result.anilist.title.romaji;
@@ -229,11 +276,20 @@
             document.getElementById('episodeNum').innerText = result.episode || "1";
             document.getElementById('timeRange').innerText = formatTime(result.from);
 
-            const videoPlayer = document.getElementById('resultVideo');
+            // 视频播放控制
             videoPlayer.src = result.video;
-            videoPlayer.play();
+            videoPlayer.load(); // 重新加载视频源
+            
+            // 自动播放处理（兼容浏览器策略）
+            const playPromise = videoPlayer.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("自动播放被拦截，点击视频可手动播放");
+                });
+            }
         }
 
+        // 格式化时间函数
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
