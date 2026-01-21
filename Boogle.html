@@ -1,13 +1,168 @@
 
-<link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
 <!DOCTYPE html>
-<html>
-<center>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Boogle - 多功能搜索门户</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+
+    
+    
+    <style>
+        :root {
+            --bg: #fff;
+            --text: #000;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Product Sans", Arial, sans-serif;
+            background-color: var(--bg);
+            cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;
+        }
+
+        /* 顶部导航栏 */
+        header ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 10px;
+            overflow: hidden;
+        }
+        header li { float: right; }
+        header li a {
+            color: #000;
+            display: block;
+            text-align: center;
+            padding: 10px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        header li a:hover { text-decoration: underline; }
+        .kkk { height: 24px; vertical-align: middle; }
+        .signbutton {
+            background-color: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 7px 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 主体布局 */
+        .main-container {
+            text-align: center;
+            margin-top: 8%;
+        }
+
+        /* 彩虹跳动 Logo */
+        .bounce { margin-bottom: 30px; }
+        .letter {
+            display: inline-block;
+            font: normal bold 5.5rem "Product Sans", sans-serif;
+            animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;
+        }
+        .letter:nth-child(1) { color: #4285f4; animation-delay: 0s; }
+        .letter:nth-child(2) { color: #ea4335; animation-delay: 0.08s; }
+        .letter:nth-child(3) { color: #fbbc05; animation-delay: 0.16s; }
+        .letter:nth-child(4) { color: #4285f4; animation-delay: 0.25s; }
+        .letter:nth-child(5) { color: #34a853; animation-delay: 0.33s; }
+        .letter:nth-child(6) { color: #ea4335; animation-delay: 0.41s; }
+
+        @keyframes bounce {
+            0% { transform: translate3d(0, 0, 0); text-shadow: rgba(0,0,0,0.2) 0 0 0.05em; }
+            100% { transform: translate3d(0, -0.5em, 0); text-shadow: rgba(0,0,0,0.2) 0 0.5em 0.3em; }
+        }
+
+        /* 搜索框容器 */
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            width: 580px;
+            max-width: 90%;
+            margin: 0 auto;
+            border: 1px solid #dfe1e5;
+            border-radius: 30px;
+            padding: 5px 15px;
+            transition: box-shadow 0.3s;
+            background: #fff;
+        }
+        .search-wrapper:hover, .search-wrapper:focus-within {
+            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+        }
+        .searchbar {
+            flex-grow: 1;
+            height: 40px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 0 10px;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .icon-btn img { height: 20px; vertical-align: middle; }
+
+        /* 按钮组 */
+        .buttons { margin-top: 25px; }
+        .button {
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            color: #3c4043;
+            font-size: 14px;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover { border: 1px solid #dadce0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+
+        /* 提示说明 */
+        .hint { color: #70757a; font-size: 12px; margin-top: 15px; }
+
+        /* 樱花飘落效果 */
+        .snowflake {
+            position: fixed;
+            top: -10%;
+            z-index: 9999;
+            user-select: none;
+            animation-name: snowflakes-fall, snowflakes-shake;
+            animation-duration: 10s, 3s;
+            animation-timing-function: linear, ease-in-out;
+            animation-iteration-count: infinite, infinite;
+        }
+        @keyframes snowflakes-fall { 0% { top: -10%; } 100% { top: 100%; } }
+        @keyframes snowflakes-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(80px); } }
+
+        /* 访客计数器 */
+        #visitorCounterContainer { margin-top: 30px; }
+
+        .grid{          height:23px;          position:relative;          bottom:0px;    }  
+
+        
+    </style>
+</head>
+<body>
+
+    <div class="snowflakes">
+        <div class="snowflake" style="left:10%; animation-delay:1s,1s">🌸</div>
+        <div class="snowflake" style="left:30%; animation-delay:4s,2s">🌸</div>
+        <div class="snowflake" style="left:50%; animation-delay:8s,3s">🌸</div>
+        <div class="snowflake" style="left:70%; animation-delay:2s,1s">🌸</div>
+        <div class="snowflake" style="left:90%; animation-delay:3s,1.5s">🌸</div>
+    </div>
+
     <header>
         <ul>
-            <li><a class="links" href="https://accounts.google.com/v3/signin/identifier?dsh=S1812573153%3A1655944654029516&flowEntry=ServiceLogin&flowName=WebLiteSignIn&ifkv=AX3vH39E0iYVTmn-NoMNM_C35EPrno8LWsRx2Qhr0HApkVLZ-Zc_Vql8ouaSQOiXzthrpOPAV5"><button class="signbutton" type="button">Sign in</button></a></li>
-            <li><a href="https://chenyongze1956.github.io/qrcode.html">
-                <img class="grid" src="https://cdn3.iconfinder.com/data/icons/navigation-and-settings/24/Material_icons-01-11-512.png" title="Boogle apps"></a></li>
+         
+              
+        
             <li><a href="https://chenyongze1956.github.io/mrs.xhtml">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyMTU2MDM5Xw/game.png">&nbsp;</a></li>
             <li><a href="https://chenyongze1956.github.io/music.html">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyNDU1MjM0Xw/musical-note.png">&nbsp;</a></li>
             <li><a href="https://chenyongze1956.github.io/paint.html">&nbsp;<img class="kkk" alt="Google" src="https://i.ibb.co/qLRb2t1S/chemistry.png">&nbsp;</a></li>
@@ -27,150 +182,101 @@
 
 
 
-
+            
         </ul>
     </header>
-    <p></p><p></p>
-    <div class="bounce">
-        <span class="letter">B</span><span class="letter">o</span><span class="letter">o</span><span class="letter">g</span><span class="letter">l</span><span class="letter">e</span>
-        
-        <div id="bb" class="bar">
-            <input id="ff" class="searchbar" type="search" name="q" title="Search" placeholder=">_">
-            
-            <button id="voiceSearchIcon" class="voice-button" type="button" title="Voice Search"> 
-                <img class="voice" src="https://i.ibb.co/XfqjTFtL/micro-phone.png" alt="Voice Search">
-            </button>
-            
-            <a href="https://chenyongze1956.github.io/camera.html"> 
-                <img class="voice" src="https://i.ibb.co/SZXQzxJ/camera.png" title="take photo">
-            </a>
+
+    <div class="main-container">
+        <div class="bounce">
+            <span class="letter">B</span><span class="letter">o</span><span class="letter">o</span><span class="letter">g</span><span class="letter">l</span><span class="letter">e</span>
         </div>
-        
-        <div id="micButton" class="buttons">
-            <button id="kk" class="button" type="button" onclick="searchQuery()">Boogle Search</button>
-            <button id="vvv" class="button" type="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">I'm Feeling Lucky</button>
+
+        <form id="search-form" onsubmit="return handleSearch(event)">
+            <div class="search-wrapper">
+                <input id="search-input" class="searchbar" type="search" placeholder="输入内容或 'b 关键词' 指令..." autocomplete="off">
+                
+                <button id="mic-btn" class="icon-btn" type="button" title="语音搜索">
+                    <img src="https://i.ibb.co/XfqjTFtL/micro-phone.png" alt="Mic">
+                </button>
+                
+                <a href="https://chenyongze1956.github.io/camera.html" class="icon-btn">
+                    <img src="https://i.ibb.co/SZXQzxJ/camera.png" alt="Camera">
+                </a>
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="button">Boogle Search</button>
+                <button type="button" class="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">I'm Feeling Lucky</button>
+            </div>
+        </form>
+
+        <div class="hint">
+            💡 快捷指令：输入 <b>b</b> (百度), <b>w</b> (维基), <b>m</b> (地图) + 空格再输入内容
         </div>
-    </div>
-    
-    <div id="visitorCounterContainer" style="text-align: center; margin-top: 15px;">
-        <img src="https://visitor-badge.laobi.icu/badge?page_id=chenyongze1956.Booglexp&left_text=总访问量&color=4285f4&style=flat" alt="Visitor Count">
-        <span style="font-size: 16px; color: #707070;"></span>
+
+        <div id="visitorCounterContainer">
+            <img src="https://visitor-badge.laobi.icu/badge?page_id=chenyongze1956.Booglexp&left_text=总访问量&color=4285f4&style=flat" alt="Visitor Count">
+        </div>
     </div>
 
     <script>
-    // ** 移除 CountAPI 相关的 JS 逻辑 **
-    
-    document.addEventListener("DOMContentLoaded", setupEvents, true); 
+        const searchInput = document.getElementById('search-input');
 
-    function setupEvents(){        
-        var searchBarContainer = document.getElementById("bb");        
-        if (searchBarContainer) {            
-            searchBarContainer.addEventListener('keyup', yesFunction, false);        
-        }    
-    } 
+        // 核心跳转逻辑（整合快捷指令）
+        function handleSearch(e) {
+            e.preventDefault();
+            const fullQuery = searchInput.value.trim();
+            if (!fullQuery) return false;
 
-    function searchQuery() {        
-        var ff = document.getElementById("ff").value;        
-        if (ff) {            
-            window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(ff); 
-        }    
-    }        
+            let url = "";
+            const spaceIndex = fullQuery.indexOf(" ");
+            const prefix = spaceIndex !== -1 ? fullQuery.substring(0, spaceIndex).toLowerCase() : "";
+            const keyword = spaceIndex !== -1 ? fullQuery.substring(spaceIndex + 1) : fullQuery;
 
-    function yesFunction(e){        
-        if (e.keyCode === 13){ 
-             searchQuery();        
-        }    
-    }
-    
-    // ** 语音识别功能核心逻辑 (绑定到 voiceSearchIcon 按钮) **
-    const searchInput = document.getElementById('ff');    
-    const voiceSearchIcon = document.getElementById('voiceSearchIcon'); 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            switch(prefix) {
+                case 'b': // 百度
+                    url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`;
+                    break;
+                case 'w': // 维基百科
+                    url = `https://zh.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(keyword)}`;
+                    break;
+                case 'm': // 地图
+                    url = `https://www.google.com/maps/search/${encodeURIComponent(keyword)}`;
+                    break;
+                default: // 默认使用 Google
+                    url = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
+            }
 
-    if (SpeechRecognition && voiceSearchIcon) {        
-        const recognition = new SpeechRecognition();        
-        recognition.continuous = false;         
-        recognition.interimResults = false;         
-        recognition.lang = 'zh-CN'; 
-
-        voiceSearchIcon.addEventListener('click', () => {           
-            // ** 调试信息：确认点击被捕获 **
-            console.log('--- 麦克风按钮点击，尝试启动语音识别 ---');
-            try {
-                recognition.start();                
-            } catch (error) {                
-                console.warn('启动失败，检查 HTTPS 和权限:', error);            
-            }        
-        });
-        
-        recognition.onresult = (event) => {            
-            const last = event.results.length - 1;
-            const transcript = event.results[last][0].transcript;
-            searchInput.value = transcript;             
-            searchQuery(); 
-        };                
-        
-        recognition.onspeechend = () => {            
-            recognition.stop();        
-        };
-        
-        recognition.onerror = (event) => {            
-            console.error(`语音识别错误: ${event.error}. 请确保使用 HTTPS 并授予权限.`);        
-        };    
-    } else {
-        if (voiceSearchIcon) {
-             voiceSearchIcon.title = '当前浏览器不支持语音搜索';
+            window.location.href = url;
+            return false;
         }
-    }
+
+        // 语音识别逻辑
+        const micBtn = document.getElementById('mic-btn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN';
+
+            micBtn.addEventListener('click', () => {
+                recognition.start();
+                micBtn.style.opacity = "0.5";
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                searchInput.value = transcript;
+                micBtn.style.opacity = "1";
+                // 自动触发搜索
+                document.getElementById('search-form').dispatchEvent(new Event('submit'));
+            };
+
+            recognition.onerror = () => { micBtn.style.opacity = "1"; };
+        } else {
+            micBtn.title = "浏览器不支持语音识别";
+            micBtn.style.display = "none";
+        }
     </script>
-        
-    <style>
-    /* ************* CSS 样式 (为简洁起见，省略重复样式) ************** */
-    
-    /* 搜索栏容器样式修正，确保 Flexbox 布局 */
-    #bb{
-        display: flex; 
-        align-items: center; 
-        padding: 0 10px; 
-        margin:0 auto;          
-        width:575px;          
-        border-radius:30px;          
-        border:1px solid #dcdcdc;
-        /* ... 其他背景和动画样式 ... */
-    }    
-    .searchbar{
-        flex-grow: 1; 
-        height:45px;          
-        border:none;          
-        width:auto; 
-        font-size:16px;          
-        outline: none;
-        padding-left: 5px;
-    }
-
-    /* 语音按钮样式修正 */
-    .voice-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0 5px;
-        height: 45px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 5px;
-        position: relative; 
-    }
-
-    /* 语音/相机图标样式修正，确保它们正确地在搜索栏内 */        
-    .voice{          
-        height:20px;          
-        position:static; 
-        top: auto; 
-        left: auto;
-    }        
-
-    /* ... 保持所有动画和主题样式不变 ... */
-    
-    #ss{                                }    @keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}                  #vvv{        color:linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    }                  #kk{        color:;        }                         ul {          list-style-type: none;          overflow: hidden;    }    #bb{        font-family: Comic Sans MS, cursive, sans-serif;        -webkit-text-stroke-width: 1px;            -webkit-text-fill-color: transparent;                     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);                      animation: rainbow-color-change 3s linear infinite alternate;    }    #ff{        color:red;        font-family: Comic Sans MS, cursive, sans-serif;             -webkit-text-stroke-width: 1px;            -webkit-text-fill-color: transparent;        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);                          animation: rainbow-color-change 3s linear infinite alternate;    }    #ff::placeholder {              color:black; /* Or any other color like 'red', 'blue', 'rgb(0, 128, 0)', etc. */             font-family: Comic Sans MS, cursive, sans-serif;        animation: rainbow-color-change 3s linear infinite alternate;    }                            li {          float: right;    }        li a {          color: #000;          display: block;          text-align: center;          padding: 10px 10px;          text-decoration: none;          font-size:14px;    }        li a:hover {          text-decoration: underline;    }    .grid{          height:23px;          position:relative;          bottom:0px;    }        .kkk{          height:23px;          position:relative;          bottom:0px;    }                 .signbutton{          background-color: gray;          color: #fff;          border:none;          border-radius:3px;          padding:7px 10px;          position:relative;          bottom:7px;          font-weight:bold;    }        .logo{          margin-top:200px;          margin-bottom:20px;    }        .bar:hover{          box-shadow: 1px 1px 8px 1px #dcdcdc;    }        .bar:focus-within{          box-shadow: 1px 1px 8px 1px #dcdcdc;          outline:none;    }        .buttons{          margin-top:30px;    }        .button{          background-color: #f5f5f5;          border:none;          color:#707070;          font-size:15px;          padding: 10px 20px;          margin:5px;          border-radius:4px;          outline:none;    }        .button:hover{          border: 1px solid #c8c8c8;          padding: 9px 19px;          color:#808080;    }        .button:focus{          border:1px solid #4885ed;          padding: 9px 19px;    }    /* Start https://www.cursors-4u.com */ * {cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.ani), url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;} /* End https://www.cursors-4u.com */    </style>    <style>    body {    }    #cat {            width:100px;            height:100px;          max-width: 300px;          margin: 0 auto;            position:fixed;            left:84%;            top:80%;        -webkit-animation: haha-face  2s linear infinite;                  animation: haha-face  2s linear infinite;      }    #cauda {          width: 42px;          height: 49px;          -webkit-animation: cauda 6s linear infinite;                  animation: cauda 6s linear infinite;          transform-origin: right bottom;          transform-box: fill-box;    }    @-webkit-keyframes cauda {          0% {    transform: rotate(-10deg);  }          50% {    transform: rotate(30deg);  }          100% {    transform: rotate(-10deg);  }    }    @keyframes cauda {          0% {    transform: rotate(-10deg);  }          50% {    transform: rotate(30deg);  }          100% {    transform: rotate(-10deg);  }    }      @keyframes rainbow-color-change {            0%, 100% { color: #ff0000; } /* Red */            14% { color: #ff8b00; } /* Orange */            28% { color: #e8ff00; } /* Yellow */            42% { color: #5dff00; } /* Green */            56% { color: #00b9ff; } /* Blue */            70% { color: #5d00ff; } /* Indigo */            84% { color: #e800ff; } /* Violet */    }                @keyframes haha-face {          10% {    transform: translateY(25px);  }          20% {    transform: translateY(15px);  }          30% {    transform: translateY(25px);  }          40% {    transform: translateY(15px);  }          50% {    transform: translateY(25px);  }          60% {    transform: translateY(0);  }          70% {    transform: translateY(-10px);  }          80% {    transform: translateY(0);  }          90% {    transform: translateY(-10px);  }    }                    #ss{        -webkit-animation: haha-face 2s linear infinite;                  animation: haha-face 2s linear infinite;    }    @keyframes angry-face {          35%, 60% {    transform: translateX(0) translateY(10px) scale(0.9);  }          40% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }          45% {    transform: translateX(5px) translateY(10px) scale(0.9);  }          50% {    transform: translateX(-5px) translateY(10px) scale(0.9);  }          55% {    transform: translateX(5px) translateY(10px) scale(0.9);  }    }                </style>    <audio src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="autoplay"   id="MusicPlayer">    <embed src="https://od.lk/s/NDBfMTMyMjMwMjEzXw/l6rvt-lmxmv.mp3" autoplay="true" width="450" height="300" name="MusicPlayer" id="MusicPlayer"></audio>    <div class="snowflakes">      <div class="snowflake">    </div>      <div class="snowflake"> 🌸  </div>      <div class="snowflake"> 🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div>      <div class="snowflake">  🌸  </div></div>        <style>    body{    }                         /* customizable snowflake styling */        .snowflake {          color: #fff;          font-size: 1em;          font-family: Arial;          text-shadow: 0 0 1px #000;    }        @-webkit-keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}        @-webkit-keyframes snowflakes-shake{0%{-webkit-transform:translateX(0px);transform:translateX(0px)}50%{-webkit-transform:translateX(80px);transform:translateX(80px)}100%{-webkit-transform:translateX(0px);transform:translateX(0px)}}        @keyframes snowflakes-fall{0%{top:-10%}100%{top:100%}}        @keyframes snowflakes-shake{0%{transform:translateX(0px)}50%{transform:translateX(80px)}100%{transform:translateX(0px)}}        .snowflake{        position:fixed;        top:-10%;        z-index:9999;        -webkit-user-select:none;        -moz-user-select:none;        -ms-user-select:none;        user-select:none;        cursor:default;        -webkit-animation-name:snowflakes-fall,snowflakes-shake;        -webkit-animation-duration:10s,3s;        -webkit-animation-timing-function:linear,ease-in-out;        -webkit-animation-iteration-count:infinite,infinite;        -webkit-animation-play-state:running,running;        animation-name:snowflakes-fall,snowflakes-shake;        animation-duration:10s,3s;        animation-timing-function:linear,ease-in-out;        animation-iteration-count:infinite,infinite;        animation-play-state:running,running    }        .snowflake:nth-of-type(0){left:1%;-webkit-animation-delay:0s,0s;animation-delay:0s,0s}        .snowflake:nth-of-type(1){left:10%;-webkit-animation-delay:1s,1s;animation-delay:1s,1s}        .snowflake:nth-of-type(2){left:20%;-webkit-animation-delay:6s,.5s;animation-delay:6s,.5s}        .snowflake:nth-of-type(3){left:30%;-webkit-animation-delay:4s,2s;animation-delay:4s,2s}        .snowflake:nth-of-type(4){left:40%;-webkit-animation-delay:2s,2s;animation-delay:2s,2s}        .snowflake:nth-of-type(5){left:50%;-webkit-animation-delay:8s,3s;animation-delay:8s,3s}        .snowflake:nth-of-type(6){left:60%;-webkit-animation-delay:6s,2s;animation-delay:6s,2s}        .snowflake:nth-of-type(7){left:70%;-webkit-animation-delay:2.5s,1s;animation-delay:2.5s,1s}        .snowflake:nth-of-type(8){left:80%;-webkit-animation-delay:1s,0s;animation-delay:1s,0s}        .snowflake:nth-of-type(9){left:90%;-webkit-animation-delay:3s,1.5s;animation-delay:3s,1.5s}        /* Demo Purpose Only*/        .demo {          font-family: 'Raleway', sans-serif;	        color:#fff;            display: block;            margin: 0 auto;            padding: 15px 0;            text-align: center;    }        .demo a{          font-family: 'Raleway', sans-serif;        color: #000;		    }        </style></div><style>html,body {}.bounce {  position:relative;    }.letter {  -webkit-animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;          animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;  display: inline-block;  transform: translate3d(0, 0, 0);  margin-top: 0.5em;  text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  font: normal bold 6rem "Product Sans", sans-serif;}.letter:nth-child(1) {  -webkit-animation-delay: 0s;          animation-delay: 0s;  color: #4285f4;}.letter:nth-child(2) {  -webkit-animation-delay: 0.0833333333s;          animation-delay: 0.0833333333s;  color: #ea4335;}.letter:nth-child(3) {  -webkit-animation-delay: 0.1666666667s;          animation-delay: 0.1666666667s;  color: #fbbc05;}.letter:nth-child(4) {  -webkit-animation-delay: 0.25s;          animation-delay: 0.25s;  color: #4285f4;}.letter:nth-child(5) {  -webkit-animation-delay: 0.3333333333s;          animation-delay: 0.3333333333s;  color: #34a853;}.letter:nth-child(6) {  -webkit-animation-delay: 0.4166666667s;          animation-delay: 0.4166666667s;  color: #ea4335;}@-webkit-keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}@keyframes bounce {  0% {    transform: translate3d(0, 0, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 0 0.05em;  }  100% {    transform: translate3d(0, -1em, 0);    text-shadow: rgba(0, 0, 0, 0.4) 0 1em 0.35em;  }}
- :root {            --bg: #fff;            --text: black;            --primaryBg: #c0c0c0;            --primaryText: #1b1b1b;            --btnHover: #5d5d5d33;        }        body[data-theme="dark"] {            --bg: #121212;            --text: #ffffff;            --primaryBg: #222;            --primaryText: white;            --btnHover: #ffffff33;        }  body {                       background-color: var(--bg);                  }        </style></center></html>
+</body>
+</html>
