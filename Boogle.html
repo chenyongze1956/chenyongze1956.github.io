@@ -4,13 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Boogle - 多功能搜索门户</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
 
-
-    
-    
     <style>
         :root {
             --bg: #fff;
@@ -21,50 +18,56 @@
             padding: 0;
             font-family: "Product Sans", Arial, sans-serif;
             background-color: var(--bg);
+            /* 手机端通常不显示自定义光标，保留电脑端效果 */
             cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;
+            overflow-x: hidden; /* 防止左右晃动 */
         }
 
-        /* 顶部导航栏 */
+        /* 顶部导航栏 - 响应式调整 */
         header ul {
             list-style-type: none;
             margin: 0;
             padding: 10px;
-            overflow: hidden;
+            display: flex;
+            flex-wrap: wrap; /* 手机端图标多时自动换行 */
+            justify-content: flex-end;
         }
-        header li { float: right; }
+        header li { 
+            display: inline-block;
+        }
         header li a {
             color: #000;
             display: block;
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             text-decoration: none;
             font-size: 14px;
         }
-        header li a:hover { text-decoration: underline; }
-        .kkk { height: 24px; vertical-align: middle; }
-        .signbutton {
-            background-color: #4285f4;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            padding: 7px 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        .kkk { height: 22px; vertical-align: middle; }
 
         /* 主体布局 */
         .main-container {
             text-align: center;
-            margin-top: 8%;
+            padding: 0 15px;
+            margin-top: 15vh; /* 使用视口高度单位，电脑手机都美观 */
         }
 
-        /* 彩虹跳动 Logo */
-        .bounce { margin-bottom: 30px; }
+        /* 彩虹跳动 Logo - 响应式字体 */
+        .bounce { margin-bottom: 25px; white-space: nowrap; }
         .letter {
             display: inline-block;
-            font: normal bold 5.5rem "Product Sans", sans-serif;
+            font: normal bold 4.5rem "Product Sans", sans-serif; /* 默认略小 */
             animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;
         }
+        /* 电脑端 Logo 大小 */
+        @media (min-width: 768px) {
+            .letter { font-size: 6rem; }
+        }
+        /* 手机端 Logo 更小一点 */
+        @media (max-width: 480px) {
+            .letter { font-size: 3.5rem; }
+        }
+
         .letter:nth-child(1) { color: #4285f4; animation-delay: 0s; }
         .letter:nth-child(2) { color: #ea4335; animation-delay: 0.08s; }
         .letter:nth-child(3) { color: #fbbc05; animation-delay: 0.16s; }
@@ -73,25 +76,26 @@
         .letter:nth-child(6) { color: #ea4335; animation-delay: 0.41s; }
 
         @keyframes bounce {
-            0% { transform: translate3d(0, 0, 0); text-shadow: rgba(0,0,0,0.2) 0 0 0.05em; }
-            100% { transform: translate3d(0, -0.5em, 0); text-shadow: rgba(0,0,0,0.2) 0 0.5em 0.3em; }
+            0% { transform: translate3d(0, 0, 0); text-shadow: rgba(0,0,0,0.1) 0 0 0.05em; }
+            100% { transform: translate3d(0, -0.4em, 0); text-shadow: rgba(0,0,0,0.1) 0 0.4em 0.2em; }
         }
 
-        /* 搜索框容器 */
+        /* 搜索框容器 - 关键响应式设计 */
         .search-wrapper {
             display: flex;
             align-items: center;
             width: 580px;
-            max-width: 90%;
+            max-width: 100%; /* 手机端宽度占满 */
             margin: 0 auto;
             border: 1px solid #dfe1e5;
-            border-radius: 30px;
-            padding: 5px 15px;
+            border-radius: 24px;
+            padding: 2px 12px;
             transition: box-shadow 0.3s;
             background: #fff;
+            box-sizing: border-box;
         }
         .search-wrapper:hover, .search-wrapper:focus-within {
-            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+            box-shadow: 0 1px 6px rgba(32,33,36,0.2);
         }
         .searchbar {
             flex-grow: 1;
@@ -99,15 +103,18 @@
             border: none;
             outline: none;
             font-size: 16px;
-            padding: 0 10px;
+            padding: 0 8px;
+            width: 10px; /* 强制 flex 均匀分布 */
         }
         .icon-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
         }
-        .icon-btn img { height: 20px; vertical-align: middle; }
+        .icon-btn img { height: 20px; }
 
         /* 按钮组 */
         .buttons { margin-top: 25px; }
@@ -116,36 +123,34 @@
             border: 1px solid #f8f9fa;
             color: #3c4043;
             font-size: 14px;
-            padding: 10px 20px;
-            margin: 5px;
+            padding: 10px 18px;
+            margin: 4px;
             border-radius: 4px;
             cursor: pointer;
         }
-        .button:hover { border: 1px solid #dadce0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        /* 手机端按钮稍微大一点方便点击 */
+        @media (max-width: 480px) {
+            .button { padding: 12px 15px; width: 45%; }
+        }
 
-        /* 提示说明 */
-        .hint { color: #70757a; font-size: 12px; margin-top: 15px; }
+        .hint { color: #70757a; font-size: 12px; margin-top: 15px; line-height: 1.5; }
 
-        /* 樱花飘落效果 */
+        /* 樱花飘落 */
         .snowflake {
             position: fixed;
             top: -10%;
             z-index: 9999;
             user-select: none;
+            pointer-events: none; /* 防止点击雪花无法点击下面的按钮 */
             animation-name: snowflakes-fall, snowflakes-shake;
             animation-duration: 10s, 3s;
             animation-timing-function: linear, ease-in-out;
             animation-iteration-count: infinite, infinite;
         }
         @keyframes snowflakes-fall { 0% { top: -10%; } 100% { top: 100%; } }
-        @keyframes snowflakes-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(80px); } }
+        @keyframes snowflakes-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(50px); } }
 
-        /* 访客计数器 */
-        #visitorCounterContainer { margin-top: 30px; }
-
-        .grid{          height:23px;          position:relative;          bottom:0px;    }  
-
-        
+        #visitorCounterContainer { margin-top: 30px; padding-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -160,29 +165,22 @@
 
     <header>
         <ul>
-         
-              
-        
-            <li><a href="https://chenyongze1956.github.io/mrs.xhtml">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyMTU2MDM5Xw/game.png">&nbsp;</a></li>
-            <li><a href="https://chenyongze1956.github.io/music.html">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyNDU1MjM0Xw/musical-note.png">&nbsp;</a></li>
-            <li><a href="https://chenyongze1956.github.io/paint.html">&nbsp;<img class="kkk" alt="Google" src="https://i.ibb.co/qLRb2t1S/chemistry.png">&nbsp;</a></li>
-            <li><a href="https://chenyongze1956.github.io/video.html">&nbsp;<img class="kkk" alt="Google" src="https://i.ibb.co/4ZGX1cw2/playstation-logotype-1.png">&nbsp;</a></li>
-            <li><a href="https://chenyongze1956.github.io/fc emulator.html">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyOTU5OTg3Xw/xoxo.png">&nbsp;</a></li>
-            <li><a href="https://chenyongze1956.github.io/starrysky.html">&nbsp;<img class="kkk" alt="Google" src="https://od.lk/s/NDBfMTMyNzExMTA1Xw/star.png">&nbsp;</a></li>
+            <li><a href="https://chenyongze1956.github.io/mrs.xhtml"><img class="kkk" src="https://od.lk/s/NDBfMTMyMTU2MDM5Xw/game.png" alt="Game"></a></li>
+            <li><a href="https://chenyongze1956.github.io/music.html"><img class="kkk" src="https://od.lk/s/NDBfMTMyNDU1MjM0Xw/musical-note.png" alt="Music"></a></li>
+            <li><a href="https://chenyongze1956.github.io/paint.html"><img class="kkk" src="https://i.ibb.co/qLRb2t1S/chemistry.png" alt="Paint"></a></li>
+            <li><a href="https://chenyongze1956.github.io/video.html"><img class="kkk" src="https://i.ibb.co/4ZGX1cw2/playstation-logotype-1.png" alt="Video"></a></li>
+            <li><a href="https://chenyongze1956.github.io/fc emulator.html"><img class="kkk" src="https://od.lk/s/NDBfMTMyOTU5OTg3Xw/xoxo.png" alt="FC"></a></li>
+            <li><a href="https://chenyongze1956.github.io/starrysky.html"><img class="kkk" src="https://od.lk/s/NDBfMTMyNzExMTA1Xw/star.png" alt="Star"></a></li>
             <li><a href="https://chenyongze1956.github.io/crypto.html">C</a></li>
-            <li id="vvv"><a href="https://chenyongze1956.github.io/post.html">P</a></li>
-            <li id="vvv"><a href="https://chenyongze1956.github.io/gg.html">A</a></li>
-            <li id="vvv"><a href="https://chenyongze1956.github.io/viewer.html">R</a></li>
-             <li id="vvv"><a href="https://westering-semiautonomous-genna.ngrok-free.dev/wasmpsx-main/PS.html">S</a></li>
-            <li id="vvv"><a href="https://chenyongze1956.github.io/garelly.html">G</a></li>
-            <li id="vvv"><a href="https://westering-semiautonomous-genna.ngrok-free.dev/fortune.html">Z</a></li>
-         <li id="vvv"><a href="https://chenyongze1956.github.io/ss.html">B</a></li>
-         <li id="vvv"><a href="https://chenyongze1956.github.io/poetry.html">Y</a></li>
+            <li><a href="https://chenyongze1956.github.io/post.html">P</a></li>
+            <li><a href="https://chenyongze1956.github.io/gg.html">A</a></li>
+            <li><a href="https://chenyongze1956.github.io/viewer.html">R</a></li> 
+            <li><a href="https://westering-semiautonomous-genna.ngrok-free.dev/wasmpsx-main/PS.html">S</a></li>
+            <li><a href="https://chenyongze1956.github.io/garelly.html">G</a></li>
+            <li><a href="https://westering-semiautonomous-genna.ngrok-free.dev/fortune.html">Z</a></li>
+            <li><a href="https://chenyongze1956.github.io/ss.html">B</a></li>
+            <li><a href="https://chenyongze1956.github.io/poetry.html">Y</a></li>
             <li><a href="https://chenyongze1956.github.io/global.html">O</a></li>
-
-
-
-            
         </ul>
     </header>
 
@@ -193,25 +191,23 @@
 
         <form id="search-form" onsubmit="return handleSearch(event)">
             <div class="search-wrapper">
-                <input id="search-input" class="searchbar" type="search" placeholder="输入内容或 'b 关键词' 指令..." autocomplete="off">
-                
+                <input id="search-input" class="searchbar" type="search" placeholder="输入内容或 'b 指令'..." autocomplete="off">
                 <button id="mic-btn" class="icon-btn" type="button" title="语音搜索">
                     <img src="https://i.ibb.co/XfqjTFtL/micro-phone.png" alt="Mic">
                 </button>
-                
                 <a href="https://chenyongze1956.github.io/camera.html" class="icon-btn">
                     <img src="https://i.ibb.co/SZXQzxJ/camera.png" alt="Camera">
                 </a>
             </div>
-
             <div class="buttons">
                 <button type="submit" class="button">Boogle Search</button>
-                <button type="button" class="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">I'm Feeling Lucky</button>
+                <button type="button" class="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">Feeling Lucky</button>
             </div>
         </form>
 
         <div class="hint">
-            💡 快捷指令：输入 <b>b</b> (百度), <b>w</b> (维基), <b>m</b> (地图) + 空格再输入内容
+            💡 快捷指令：<b>b</b> 百度 | <b>w</b> 维基 | <b>m</b> 地图<br>
+            用法：输入前缀 + 空格 + 关键词
         </div>
 
         <div id="visitorCounterContainer">
@@ -222,7 +218,6 @@
     <script>
         const searchInput = document.getElementById('search-input');
 
-        // 核心跳转逻辑（整合快捷指令）
         function handleSearch(e) {
             e.preventDefault();
             const fullQuery = searchInput.value.trim();
@@ -234,16 +229,16 @@
             const keyword = spaceIndex !== -1 ? fullQuery.substring(spaceIndex + 1) : fullQuery;
 
             switch(prefix) {
-                case 'b': // 百度
+                case 'b':
                     url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`;
                     break;
-                case 'w': // 维基百科
+                case 'w':
                     url = `https://zh.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(keyword)}`;
                     break;
-                case 'm': // 地图
+                case 'm':
                     url = `https://www.google.com/maps/search/${encodeURIComponent(keyword)}`;
                     break;
-                default: // 默认使用 Google
+                default:
                     url = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
             }
 
@@ -261,20 +256,19 @@
 
             micBtn.addEventListener('click', () => {
                 recognition.start();
-                micBtn.style.opacity = "0.5";
+                micBtn.style.opacity = "0.3";
             });
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 searchInput.value = transcript;
                 micBtn.style.opacity = "1";
-                // 自动触发搜索
-                document.getElementById('search-form').dispatchEvent(new Event('submit'));
+                handleSearch(new Event('submit'));
             };
 
             recognition.onerror = () => { micBtn.style.opacity = "1"; };
+            recognition.onspeechend = () => { recognition.stop(); micBtn.style.opacity = "1"; };
         } else {
-            micBtn.title = "浏览器不支持语音识别";
             micBtn.style.display = "none";
         }
     </script>
