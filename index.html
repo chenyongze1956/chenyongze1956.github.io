@@ -1,116 +1,181 @@
-<div class="window" id="time">
-  <div class="logo">
-    <p class="top">Boogle</p>
-    <p class="mid">Boogle<span>XP</span></p>
-    <p class="bottom">Amateur Beta</p>
-  </div>
-  <div class="container">
-    <div class="box"></div>
-    <div class="box"></div>
-    <div class="box"></div>
-  </div>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        /* 导入圆润可爱的字体 */
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
+        body {
+            /* 柔和的马卡龙渐变背景 */
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', cursive;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 可爱的白色圆角卡片 */
+        .window {
+ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3);
+            text-align: center;
+            width: 320px;
+            position: relative;
+            border: 4px solid #fff;
+        }
+
+        /* 装饰用的小爱心/星星（使用伪元素） */
+        .window::before {
+            content: '🌸';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            font-size: 30px;
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .top-title {
+            font-size: 24px;
+            color: #ff8a80;
+            margin-bottom: 5px;
+        }
+
+        .main-title {
+            font-size: 42px;
+            color: #ffb1bb;
+            margin: 10px 0;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .sub-title {
+            font-size: 20px;
+            color: #81c784;
+            letter-spacing: 2px;
+        }
+
+        /* 圆润可爱的进度条容器 */
+        .container {
+            width: 240px;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            margin: 30px auto 15px;
+            padding: 4px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 渐变流光进度条 */
+        .box-wrapper {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .box {
+            width: 80px;
+            height: 100%;
+            background: linear-gradient(90deg, #ffc1cc, #ffecb3, #b2ebf2);
+            border-radius: 20px;
+            position: absolute;
+            animation: loader 1.5s infinite ease-in-out;
+        }
+
+        .status-text {
+            font-size: 16px;
+            color: #90a4ae;
+            margin-top: 10px;
+        }
+
+        #countdown-num {
+            color: #ff80ab;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        @keyframes loader {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(250px); }
+        }
+
+        a {
+            color: #4fc3f7;
+            text-decoration: none;
+            border-bottom: 2px dashed #4fc3f7;
+        }
+
+        /* 漂浮装饰 */
+        .decor {
+            position: absolute;
+            font-size: 20px;
+            animation: float 3s infinite ease-in-out;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="window">
+    <div class="logo">
+        <div class="top-title">BoogleXp Adventure</div>
+        <div class="main-title">太赞了！</div>
+        <div class="sub-title">真的太棒了～</div>
+    </div>
+
+    <div class="container">
+        <div class="box-wrapper">
+            <div class="box"></div>
+        </div>
+    </div>
+
+    <div class="status-text">
+        <span id="status-msg">正在努力加载奇迹中...</span>
+        <br><br>
+        <span id="countdown-num">5</span> 秒后进入世界
+    </div>
 </div>
 
-<style>
-@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,700');
-body{
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-  font-family: 'Roboto', sans-serif; 
-  color: #fff;
-}
-.window{
-  position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-right: -50%;
-    transform: translate(-50%, -50%)
- 
-}
-.container{
-  width: 150px;
-  height: 10px;
-  border: 2px solid #b2b2b2;
-  border-radius: 7px;
-  margin: 0 auto;
-  padding: 2px 1px;
-  overflow: hidden;
-  font-size: 0;
-}
-.box{
-  width: 9px;
-  height: 100%;
-  background: linear-gradient(to bottom, #2838c7 0%,#5979ef 17%,#869ef3 32%,#869ef3 45%,#5979ef 59%,#2838c7 100%);
-  display: inline-block;
-  margin-right: 2px;
-  animation: loader 2s infinite;
-  animation-timing-function: linear;
-}
-.logo{
-  width: 220px;
-  margin: 50px auto;
-}
-.logo p{
-  margin: 0;
-  padding: 0;  
-}
-.top{
-  font-size: 16px;
-  font-weight: 300;
-  line-height: 16px;
-}
-.top:after{
-  content:"\00a9";
-  font-size: 10px;
-  position: relative;
-  top: -5px;
-  margin-left: 2px;
-}
-.mid{
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 36px;  
-}
-.mid span{
-  font-size: 22px;
-  display: inline-block;
-  vertical-align: top;
-  color: #FF6821;
-  margin-top: -8px;
-}
-.logo .bottom{
-  font-size: 30px;
-  font-weight: 300;
-  line-height: 30px;
-  margin-left: 5px;
-  
-}
-@keyframes loader{
-  0%{
-    transform: translate(-30px);
-  }
-  100%{
-    transform: translate(150px);
-  }
-}
-
-
-    </style>
-
-
-  
 <script type="text/javascript">
     var num = 5;
+    var numDisplay = document.getElementById('countdown-num');
+    var msgDisplay = document.getElementById('status-msg');
+
+    // 随机加载文案，增加可爱感
+    var messages = ["正在收集阳光...", "正在召唤...", "正在计算获胜概率...", "奇迹快要发生啦！"];
+
     function countDown() {
-        if (num >= 0) {
-            var str = '';
-            str += '系统将在 ' + num + ' 秒钟后自动返回 <a href="http://">首页<\/a>';
-            document.getElementById('time')
+        if (num > 0) {
+            numDisplay.innerText = num;
+            // 每秒随机换个可爱文案
+            msgDisplay.innerText = messages[Math.floor(Math.random() * messages.length)];
             num--;
             setTimeout(countDown, 1000);
-        }
-        else {
-            window.location.href = "https://chenyongze1956.github.io/login.html";        
+        } else {
+            numDisplay.innerText = "0";
+            msgDisplay.innerText = "出发啦！";
+            window.location.href = "https://chenyongze1956.github.io/login.html";
         }
     }
+
     window.onload = countDown;
 </script>
+
+</body>
+</html>
