@@ -1,261 +1,159 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* 1. 全屏背景与双向居中 */
+        /* 沉浸式影院背景 */
         body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh; /* 锁定视口高度 */
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            
-            /* 居中魔法 */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center; 
-            
-            color: #333;
-            overflow: hidden; /* 防止背景滚动 */
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', cursive;            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex; align-items: center; justify-content: center; color: #fff;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* 2. 容器：增加最大高度限制以支持内部滚动 */
         .container {
-            width: 90%;
-            max-width: 550px;
-            max-height: 90vh; /* 防止超过屏幕 */
-            overflow-y: auto; /* 内容多了可以内部滚动 */
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            text-align: center;
-            box-sizing: border-box;
-            scrollbar-width: thin; /* 窄滚动条 */
-        }
-        
-        /* 隐藏滚动条美化 */
-        .container::-webkit-scrollbar { width: 5px; }
-        .container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
-
-        h1 { margin-top: 0; font-size: 1.5rem; color: #444; }
-
-        /* 3. 上传区域 */
-        .upload-area {
-            border: 2px dashed rgba(255, 126, 95, 0.4);
-            padding: 30px 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            background: rgba(255,255,255,0.5);
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
+            width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px); padding: 30px; border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .upload-area.drag-over {
-            border-color: #ff7e5f;
-            background: rgba(255, 126, 95, 0.1);
-            transform: scale(1.02);
+        h2 { color: #e94560; margin-bottom: 25px; letter-spacing: 2px; }
+
+        /* 搜索框设计 */
+        .search-box {
+            display: flex; gap: 10px; margin-bottom: 25px;
         }
 
-        #previewImage {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            display: none;
-            margin-top: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        input[type="text"] {
+            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #333;
+            background: rgba(0,0,0,0.3); color: #fff; outline: none;
+            transition: 0.3s; font-size: 1rem;
         }
 
-        /* 4. 结果展示 */
-        .result-card {
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 20px;
-            margin-top: 15px;
-            text-align: left;
-            animation: slideUp 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        input[type="text"]:focus { border-color: #e94560; box-shadow: 0 0 10px rgba(233, 69, 96, 0.3); }
+
+        button {
+            padding: 0 20px; background: #e94560; color: white; border: none;
+            border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        button:hover { background: #ff5e78; transform: translateY(-2px); }
+        button:active { transform: translateY(0); }
+
+        /* 结果展示区 */
+        #resultArea {
+            background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px;
+            text-align: left; display: none; animation: fadeIn 0.5s ease;
         }
 
-        .similarity { float: right; color: #28a745; font-weight: bold; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        video {
-            width: 100%;
-            border-radius: 12px;
-            margin-top: 10px;
-            background: #000;
-        }
+        .m-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .rating { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
+        .desc { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 15px; }
 
-        /* 5. 角色列表 */
-        #characterSection { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-        .char-title { font-size: 0.95rem; font-weight: bold; color: #ff7e5f; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
-        
-        #characterList {
-            display: flex;
-            overflow-x: auto;
-            gap: 12px;
-            padding-bottom: 5px;
-            scrollbar-width: none;
-        }
-        #characterList::-webkit-scrollbar { display: none; }
-
-        .char-card { flex: 0 0 90px; text-align: center; }
-        .char-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #ffed86; }
-        .char-name { font-size: 0.75rem; font-weight: bold; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .va-name { font-size: 0.65rem; color: #777; }
-
-        #searchBtn {
-            width: 100%;
-            background: #ff7e5f;
-            color: white;
-            border: none;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        #searchBtn:disabled { background: #ccc; }
-        .loading { display: none; margin: 15px 0; color: #ff7e5f; font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        /* 演员列表 */
+        .cast-title { font-size: 0.9rem; color: #e94560; font-weight: bold; margin-bottom: 10px; }
+        .cast-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 5px; scrollbar-width: none; }
+        .cast-item { flex: 0 0 65px; text-align: center; font-size: 0.7rem; }
+        .cast-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #333; margin-bottom: 5px; }
+        .cast-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 动画百科播放器</h1>
-        <div class="upload-area" id="dropZone">
-            <span class="upload-label">📸 点击或拖入截图识别角色</span>
-            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-            <img id="previewImage">
-        </div>
 
-        <button id="searchBtn" disabled>开始全量识别</button>
-        <div class="loading" id="loadingText">✨ 正在连接 AniList 数据库...</div>
-
-        <div id="resultArea" style="display: none;">
-            <div class="result-card">
-                <span class="similarity" id="similarityScore"></span>
-                <h3 id="animeTitle" style="margin:0;">-</h3>
-                <p style="font-size: 0.85rem; color: #666; margin: 5px 0 10px 0;">
-                    第 <span id="episodeNum">-</span> 集 | 时间: <span id="timeRange">-</span>
-                </p>
-                <video id="resultVideo" controls autoplay loop playsinline></video>
-                <div id="characterSection">
-                    <div class="char-title">✨ 主要角色及 CV</div>
-                    <div id="characterList"></div>
-                </div>
-            </div>
-        </div>
+<div class="container">
+    <h2>🎬 影迷百科搜索</h2>
+    
+    <div class="search-box">
+        <input type="text" id="keywordInput" placeholder="输入影视剧名称...">
+        <button id="searchBtn">搜索</button>
     </div>
 
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const previewImage = document.getElementById('previewImage');
-        const searchBtn = document.getElementById('searchBtn');
-        const loadingText = document.getElementById('loadingText');
-        const resultArea = document.getElementById('resultArea');
-        const videoPlayer = document.getElementById('resultVideo');
-        const charList = document.getElementById('characterList');
+    <div id="resultArea">
+        <div class="m-header">
+            <b id="mTitle" style="font-size: 1.3rem;"></b>
+            <span id="mRating" class="rating"></span>
+        </div>
+        <div style="font-size: 0.75rem; color: #888; margin-bottom: 10px;" id="mYear"></div>
+        <p id="mDesc" class="desc"></p>
+        
+        <div class="cast-title">🌟 领衔主演</div>
+        <div class="cast-scroll" id="castList"></div>
+    </div>
+</div>
 
-        let selectedFile = null;
+<script>
+    const TMDB_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
+    const keywordInput = document.getElementById('keywordInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultArea = document.getElementById('resultArea');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
-            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); });
-        });
-        dropZone.addEventListener('dragenter', () => dropZone.classList.add('drag-over'));
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    // 监听回车键
+    keywordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startSearch();
+    });
 
-        function handleFiles(files) {
-            if (files[0]) {
-                selectedFile = files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    previewImage.src = e.target.result;
-                    previewImage.style.display = 'inline-block';
-                    document.querySelector('.upload-label').style.display = 'none';
-                };
-                reader.readAsDataURL(selectedFile);
-                searchBtn.disabled = false;
-                startSearch();
+    searchBtn.onclick = startSearch;
+
+    async function startSearch() {
+        const kw = keywordInput.value.trim();
+        if (!kw) return;
+        
+        searchBtn.innerText = "...";
+        searchBtn.disabled = true;
+
+        try {
+            // 1. 搜索影视资料
+            const resp = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
+            const data = await resp.json();
+            
+            if (data.results && data.results.length > 0) {
+                const item = data.results[0];
+                await showResult(item);
+            } else {
+                alert("未找到相关影视，换个词试试？");
             }
+        } catch (e) {
+            alert("网络异常，请稍后再试");
+        } finally {
+            searchBtn.innerText = "搜索";
+            searchBtn.disabled = false;
         }
+    }
 
-        async function startSearch() {
-            loadingText.style.display = 'block';
-            searchBtn.disabled = true;
-            resultArea.style.display = 'none';
-            try {
-                const formData = new FormData();
-                formData.append("image", selectedFile);
-                const resp = await fetch("https://api.trace.moe/search?cutBorders&anilistInfo", { method: "POST", body: formData });
-                const data = await resp.json();
-                if (data.result && data.result.length > 0) {
-                    const res = data.result[0];
-                    displayBaseInfo(res);
-                    if(res.anilist.id) fetchExtraInfo(res.anilist.id);
-                }
-            } catch (e) { alert("识别失败，请检查网络"); }
-            finally { loadingText.style.display = 'none'; searchBtn.disabled = false; }
-        }
+    async function showResult(item) {
+        resultArea.style.display = 'block';
+        document.getElementById('mTitle').innerText = item.title || item.name;
+        document.getElementById('mRating').innerText = "★ " + (item.vote_average || 0).toFixed(1);
+        document.getElementById('mYear').innerText = "上线日期: " + (item.release_date || item.first_air_date || "未知");
+        document.getElementById('mDesc').innerText = item.overview || "该作品暂无中文简介。";
 
-        function displayBaseInfo(res) {
-            resultArea.style.display = 'block';
-            document.getElementById('similarityScore').innerText = (res.similarity * 100).toFixed(1) + '%';
-            document.getElementById('animeTitle').innerText = res.anilist.title.chinese || res.anilist.title.native;
-            document.getElementById('episodeNum').innerText = res.episode || "1";
-            document.getElementById('timeRange').innerText = Math.floor(res.from/60) + ":" + Math.floor(res.from%60).toString().padStart(2,'0');
-            videoPlayer.src = res.video;
-        }
+        // 2. 获取演员数据
+        const type = item.media_type === 'tv' ? 'tv' : 'movie';
+        const cResp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
+        const cData = await cResp.json();
+        
+        const list = document.getElementById('castList');
+        list.innerHTML = '';
+        
+        // 只取前 8 位演员
+        cData.cast.slice(0, 8).forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'cast-item';
+            const img = p.profile_path 
+                ? 'https://image.tmdb.org/t/p/w200' + p.profile_path 
+                : 'https://via.placeholder.com/60/333/fff?text=?';
+            div.innerHTML = `
+                <img src="${img}" class="cast-img">
+                <div class="cast-name">${p.name}</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+</script>
 
-        async function fetchExtraInfo(id) {
-            const query = `query ($id: Int) { Media (id: $id) { characters (sort: ROLE, perPage: 6) { edges { node { name { full } image { medium } } voiceActors (language: JAPANESE) { name { full } } } } } }`;
-            try {
-                const response = await fetch('https://graphql.anilist.co', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, variables: { id } })
-                });
-                const data = await response.json();
-                renderChars(data.data.Media.characters.edges);
-            } catch (err) { console.log("角色信息加载失败"); }
-        }
-
-        function renderChars(edges) {
-            charList.innerHTML = '';
-            edges.forEach(edge => {
-                const div = document.createElement('div');
-                div.className = 'char-card';
-                div.innerHTML = `
-                    <img src="${edge.node.image.medium}" class="char-img">
-                    <div class="char-name">${edge.node.name.full}</div>
-                    <div class="va-name">${edge.voiceActors[0] ? edge.voiceActors[0].name.full : 'CV 未知'}</div>
-                `;
-                charList.appendChild(div);
-            });
-        }
-    </script>
 </body>
 </html>
