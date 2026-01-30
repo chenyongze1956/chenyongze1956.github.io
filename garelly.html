@@ -5,82 +5,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* 沉浸式影院背景 */
+        /* 沉浸式动态背景 */
         body {
+
+              /* 柔和的马卡龙渐变背景 */
+                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
             margin: 0; padding: 0; width: 100vw; height: 100vh;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', cursive;            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-size: cover; background-position: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             display: flex; align-items: center; justify-content: center; color: #fff;
+            transition: background 0.8s ease; 
         }
-
         .container {
-            width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px); padding: 30px; border-radius: 24px;
+            width: 90%; max-width: 450px; background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px); padding: 30px; border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
-
-        h2 { color: #e94560; margin-bottom: 25px; letter-spacing: 2px; }
-
-        /* 搜索框设计 */
-        .search-box {
-            display: flex; gap: 10px; margin-bottom: 25px;
-        }
-
+        .search-box { display: flex; gap: 10px; margin-bottom: 25px; }
         input[type="text"] {
-            flex: 1; padding: 15px; border-radius: 12px; border: 1px solid #333;
-            background: rgba(0,0,0,0.3); color: #fff; outline: none;
-            transition: 0.3s; font-size: 1rem;
+            flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #444;
+            background: rgba(0,0,0,0.5); color: #fff; outline: none; font-size: 1rem;
         }
-
-        input[type="text"]:focus { border-color: #e94560; box-shadow: 0 0 10px rgba(233, 69, 96, 0.3); }
-
         button {
             padding: 0 20px; background: #e94560; color: white; border: none;
-            border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
+            border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;
         }
+        button:hover { background: #ff5e78; transform: scale(1.05); }
 
-        button:hover { background: #ff5e78; transform: translateY(-2px); }
-        button:active { transform: translateY(0); }
-
-        /* 结果展示区 */
-        #resultArea {
-            background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px;
-            text-align: left; display: none; animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .m-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .rating { color: #f1c40f; font-weight: bold; font-size: 1.1rem; }
-        .desc { font-size: 0.85rem; color: #ccc; line-height: 1.6; margin-bottom: 15px; }
+        #resultArea { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; text-align: left; display: none; }
+        .rating { color: #f1c40f; font-weight: bold; font-size: 1.2rem; }
+        .desc { font-size: 0.85rem; color: #ddd; line-height: 1.6; margin: 15px 0; max-height: 100px; overflow-y: auto; }
+        
+        /* 播放源样式优化 */
+        .provider-section { margin-bottom: 20px; padding: 12px; background: rgba(0, 210, 255, 0.1); border-radius: 12px; }
+        .provider-title { font-size: 0.8rem; color: #00d2ff; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .provider-list { display: flex; gap: 12px; flex-wrap: wrap; }
+        .provider-link { transition: transform 0.2s; display: inline-block; }
+        .provider-link:hover { transform: translateY(-3px) scale(1.1); }
+        .provider-img { width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
 
         /* 演员列表 */
-        .cast-title { font-size: 0.9rem; color: #e94560; font-weight: bold; margin-bottom: 10px; }
-        .cast-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 5px; scrollbar-width: none; }
-        .cast-item { flex: 0 0 65px; text-align: center; font-size: 0.7rem; }
-        .cast-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #333; margin-bottom: 5px; }
-        .cast-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #eee; }
+        .cast-scroll { display: flex; overflow-x: auto; gap: 12px; scrollbar-width: none; }
+        .cast-item { flex: 0 0 60px; text-align: center; font-size: 0.7rem; }
+        .cast-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(233, 69, 96, 0.4); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🎬 影迷百科搜索</h2>
-    
+    <h2 style="color: #e94560; margin-top: 0;">🎬 影迷百科搜索</h2>
     <div class="search-box">
-        <input type="text" id="keywordInput" placeholder="输入影视剧名称...">
+        <input type="text" id="keywordInput" placeholder="输入影视剧、动漫名称...">
         <button id="searchBtn">搜索</button>
     </div>
 
     <div id="resultArea">
-        <div class="m-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <b id="mTitle" style="font-size: 1.3rem;"></b>
             <span id="mRating" class="rating"></span>
         </div>
-        <div style="font-size: 0.75rem; color: #888; margin-bottom: 10px;" id="mYear"></div>
-        <p id="mDesc" class="desc"></p>
+        <div id="mYear" style="font-size: 0.75rem; color: #888; margin-top: 4px;"></div>
         
-        <div class="cast-title">🌟 领衔主演</div>
+        <p id="mDesc" class="desc"></p>
+
+        <div id="providerSection" class="provider-section" style="display: none;">
+            <div class="provider-title">📺 立即播放 (点击平台图标跳转)</div>
+            <div class="provider-list" id="providerList"></div>
+        </div>
+        
+        <div style="font-size: 0.85rem; color: #e94560; font-weight: bold; margin-bottom: 10px;">🌟 领衔主演</div>
         <div class="cast-scroll" id="castList"></div>
     </div>
 </div>
@@ -89,35 +83,26 @@
     const TMDB_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
     const keywordInput = document.getElementById('keywordInput');
     const searchBtn = document.getElementById('searchBtn');
-    const resultArea = document.getElementById('resultArea');
-
-    // 监听回车键
-    keywordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') startSearch();
-    });
 
     searchBtn.onclick = startSearch;
+    keywordInput.onkeypress = (e) => e.key === 'Enter' && startSearch();
 
     async function startSearch() {
         const kw = keywordInput.value.trim();
         if (!kw) return;
-        
         searchBtn.innerText = "...";
         searchBtn.disabled = true;
 
         try {
-            // 1. 搜索影视资料
             const resp = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
             const data = await resp.json();
-            
             if (data.results && data.results.length > 0) {
-                const item = data.results[0];
-                await showResult(item);
+                await showResult(data.results[0]);
             } else {
-                alert("未找到相关影视，换个词试试？");
+                alert("未找到相关影视内容");
             }
         } catch (e) {
-            alert("网络异常，请稍后再试");
+            alert("网络连接失败");
         } finally {
             searchBtn.innerText = "搜索";
             searchBtn.disabled = false;
@@ -125,35 +110,66 @@
     }
 
     async function showResult(item) {
+        const resultArea = document.getElementById('resultArea');
         resultArea.style.display = 'block';
+
+        // 1. 设置高清背景图
+        if (item.backdrop_path) {
+            document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://image.tmdb.org/t/p/original${item.backdrop_path}')`;
+        }
+
         document.getElementById('mTitle').innerText = item.title || item.name;
         document.getElementById('mRating').innerText = "★ " + (item.vote_average || 0).toFixed(1);
-        document.getElementById('mYear').innerText = "上线日期: " + (item.release_date || item.first_air_date || "未知");
-        document.getElementById('mDesc').innerText = item.overview || "该作品暂无中文简介。";
+        document.getElementById('mYear').innerText = "📅 " + (item.release_date || item.first_air_date || "年份未知");
+        document.getElementById('mDesc').innerText = item.overview || "暂无详细简介内容。";
 
-        // 2. 获取演员数据
         const type = item.media_type === 'tv' ? 'tv' : 'movie';
+
+        // 2. 获取播放源并生成跳转链接
+        const pResp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/watch/providers?api_key=${TMDB_KEY}`);
+        const pData = await pResp.json();
+        
+        const regionData = pData.results?.CN; // 默认中国区
+        const providers = regionData?.flatrate || []; 
+        const jumpLink = regionData?.link; // JustWatch 聚合跳转链接
+
+        const providerSection = document.getElementById('providerSection');
+        const providerList = document.getElementById('providerList');
+        providerList.innerHTML = '';
+        
+        if (providers.length > 0) {
+            providerSection.style.display = 'block';
+            providers.forEach(p => {
+                const a = document.createElement('a');
+                a.href = jumpLink;
+                a.target = "_blank";
+                a.className = "provider-link";
+
+                const img = document.createElement('img');
+                img.className = 'provider-img';
+                img.src = `https://image.tmdb.org/t/p/original${p.logo_path}`;
+                img.title = `在 ${p.provider_name} 观看`;
+                
+                a.appendChild(img);
+                providerList.appendChild(a);
+            });
+        } else {
+            providerSection.style.display = 'none';
+        }
+
+        // 3. 渲染演员表
         const cResp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
         const cData = await cResp.json();
-        
         const list = document.getElementById('castList');
         list.innerHTML = '';
-        
-        // 只取前 8 位演员
         cData.cast.slice(0, 8).forEach(p => {
             const div = document.createElement('div');
             div.className = 'cast-item';
-            const img = p.profile_path 
-                ? 'https://image.tmdb.org/t/p/w200' + p.profile_path 
-                : 'https://via.placeholder.com/60/333/fff?text=?';
-            div.innerHTML = `
-                <img src="${img}" class="cast-img">
-                <div class="cast-name">${p.name}</div>
-            `;
+            const img = p.profile_path ? 'https://image.tmdb.org/t/p/w200' + p.profile_path : 'https://via.placeholder.com/55/333/fff?text=?';
+            div.innerHTML = `<img src="${img}" class="cast-img"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>`;
             list.appendChild(div);
         });
     }
 </script>
-
 </body>
 </html>
