@@ -4,21 +4,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>赞助支持 | Chenyongze's Blog</title>
     <link rel="stylesheet" href="https://joy2.jstools.net/static/layui/css/layui.css">
     <style>
-        body {  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
-        .donate-container { max-width: 600px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); }
-        .donate-header h1 { color: #333; margin-bottom: 10px; }
-        .donate-header p { color: #666; line-height: 1.6; }
-        .qr-codes { display: flex; justify-content: space-around; flex-wrap: wrap; margin-top: 30px; }
-        .qr-item { margin: 10px; }
-        .qr-item img { width: 200px; height: 200px; border: 1px solid #eee; border-radius: 4px; padding: 5px; }
-        .qr-item p { margin-top: 10px; font-weight: bold; color: #555; }
+        /* 全屏柔和渐变背景动画 */
+        body { 
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 响应式容器 - 毛玻璃效果 */
+        .donate-container { 
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            text-align: center;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .donate-header h1 { color: #333; font-size: 1.8rem; margin-bottom: 15px; }
+        .donate-header p { color: #666; line-height: 1.8; font-size: 1rem; }
+
+        /* 响应式二维码布局 */
+        .qr-codes { 
+            display: flex; 
+            justify-content: center; 
+            flex-wrap: wrap; 
+            margin-top: 30px; 
+        }
+
+        .qr-item { 
+            margin: 15px;
+            flex: 0 1 220px; /* 固定基础宽度，防止拉伸不均 */
+            text-align: center;
+        }
+
+        /* 核心修改：强制图片容器等大 */
+        .qr-img-wrapper {
+            width: 220px; 
+            height: 220px; /* 强制正方形 */
+            background: #fff;
+            border-radius: 16px;
+            padding: 10px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            box-sizing: border-box;
+        }
+
+        .qr-item img { 
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 关键：保持比例并缩放在容器内，不被裁剪 */
+            display: block;
+        }
+
+        .qr-img-wrapper:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .qr-item p { margin-top: 15px; font-weight: 600; font-size: 1.1rem; }
         .alipay { color: #1677ff; }
         .wechat { color: #07c160; }
-        .footer-msg { margin-top: 30px; font-size: 13px; color: #999; }
-        .btn-back { margin-top: 20px; }
+
+        .footer-msg { margin-top: 30px; font-size: 0.85rem; color: #999; font-style: italic; }
+
+        @media (max-width: 480px) {
+            .qr-item { flex: 0 1 180px; }
+            .qr-img-wrapper { width: 180px; height: 180px; }
+        }
     </style>
 </head>
 <body>
@@ -27,29 +104,28 @@
     <div class="donate-header">
         <h1>☕ 请我喝杯咖啡</h1>
         <p>如果你觉得我的分享或工具对你有帮助，欢迎赞助支持。</p>
-        <p>每一份支持都是我持续更新的动力！</p>
+        <p>您的支持是我持续更新的动力！</p>
     </div>
 
     <div class="qr-codes">
         <div class="qr-item">
-            <img src="https://i.ibb.co/LhdqqkhC/177025151674.jpg" alt="支付宝收款码">
+            <div class="qr-img-wrapper">
+                <img src="https://i.ibb.co/LhdqqkhC/177025151674.jpg" alt="支付宝收款码">
+            </div>
             <p class="alipay">支付宝</p>
         </div>
         <div class="qr-item">
-            <img src="https://i.ibb.co/q3zY0VbK/image.png" alt="微信收款码">
+            <div class="qr-img-wrapper">
+                <img src="https://i.ibb.co/q3zY0VbK/image.png" alt="微信收款码">
+            </div>
             <p class="wechat">微信支付</p>
         </div>
     </div>
 
     <div class="footer-msg">
-        <p>* 请在捐助时备注你的昵称，我会铭记在心。</p>
+        <p>* 捐助时请备注您的昵称，万分感谢。</p>
     </div>
-
-    
 </div>
 
 </body>
 </html>
-
-
-
