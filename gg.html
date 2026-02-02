@@ -6,202 +6,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --paper-bg: #fdfaf2;
-            --ink-color: #3b2a26;
-            --seal-red: #b72d2d;
-            --mole-black: #1a1a1a;
+        :root { 
+            --paper: #fdfaf2; 
+            --ink: #3b2a26; 
+            --gold: #c5a059; 
+            --red: #b72d2d; 
         }
-        /* 禁止手机端不必要的缩放和高亮 */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
-        body {
-            margin: 0; padding: 0;
-            background: #0d0d0d;
-            display: flex; justify-content: center;
+        body { 
+            margin: 0; 
+            /* 优化后的柔和渐变背景 */
+            background: linear-gradient(135deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--ink); 
+            font-family: "STKaiti", "Kaiti", serif; 
+            display: flex; 
+            justify-content: center; 
             min-height: 100vh;
-            font-family: "STKaiti", "Kaiti", serif;
-            overflow-x: hidden;
         }
-        .silk-scroll {
-            position: relative; 
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .scroll { 
             width: 95%; 
-            max-width: 1200px; 
-            margin: 20px auto;
-            background: var(--paper-bg);
-            background-image: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="3"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.06"/></svg>');
-            padding: clamp(15px, 4vw, 40px);
-            border: 2px solid #8b4513;
-            outline: clamp(4px, 1vw, 8px) solid var(--paper-bg);
-            box-shadow: 0 30px 70px rgba(0,0,0,0.8);
+            max-width: 900px; 
+            background: var(--paper); 
+            margin: 20px auto; 
+            border: 3px solid #8b4513; 
+            padding: clamp(15px, 5vw, 40px); 
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5); 
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
         }
-        .wang-title {
-            font-family: 'Zhi Mang Xing', cursive;
-            font-size: clamp(1.8rem, 5vw, 3.2rem);
-            color: #a0522d;
-            text-align: center;
-            margin-bottom: clamp(15px, 3vw, 40px);
-            letter-spacing: 0.2em;
+
+        .title { 
+            font-family: 'Zhi Mang Xing', cursive; 
+            text-align: center; 
+            font-size: clamp(2rem, 8vw, 3.5rem); 
+            color: #8b4513; 
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .trio-map { 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 20px 0; 
+            border-bottom: 1px solid rgba(139,69,19,0.1);
+            gap: 10px;
         }
 
-        /* 响应式栅格系统 */
-        .main-layout {
-            display: flex;
-            flex-direction: row; /* 默认电脑端并排 */
-            justify-content: space-around;
-            align-items: flex-start;
-            gap: 20px;
+        .star-node { 
+            text-align: center; 
+            cursor: pointer; 
+            flex: 1;
         }
 
-        /* 面相绘图区 */
-        .chart-side {
-            flex: 0 0 auto;
-            position: relative;
-            width: 360px; /* 基础宽度 */
-            max-width: 100%;
-        }
-        .face-box {
-            position: relative;
-            width: 360px;
-            height: 550px;
-            background: radial-gradient(circle, rgba(139,69,19,0.04) 0%, transparent 85%);
-            border: 1px solid rgba(139,69,19,0.2);
-            border-radius: 50% 50% 48% 48%;
-            margin: 0 auto;
-        }
-
-        /* 点位交互：增大手机点击范围 */
-        .point {
-            position: absolute;
-            width: 20px; height: 20px;
-            cursor: pointer;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
-        .point::before { /* 核心视觉点 */
-            content: '';
-            position: absolute; top: 50%; left: 50%;
-            width: 12px; height: 12px;
-            background: var(--seal-red);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px rgba(183, 45, 45, 0.5);
+        .icon { 
+            width: clamp(60px, 15vw, 80px); 
+            height: clamp(60px, 15vw, 80px); 
+            border-radius: 50%; 
+            border: 2px solid var(--gold); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 1.5rem; 
+            background: white; 
+            margin: 0 auto 10px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: 0.3s;
         }
-        .point.mole::before { background: var(--mole-black); box-shadow: 0 0 8px rgba(0,0,0,0.6); }
-        .point:active::before { scale: 1.5; }
-        .point::after {
-            content: attr(data-label);
-            position: absolute; top: 22px; left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            font-size: 13px; color: #5d2b1f; font-weight: bold;
+
+        .star-node:active .icon, .star-node:hover .icon {
+            transform: scale(1.1);
+            border-color: var(--red);
         }
 
-        /* 文本展示区 */
-        .text-side {
-            flex: 1;
-            min-height: 500px;
-            border-left: 1px solid rgba(139,69,19,0.1);
-            padding-left: clamp(15px, 3vw, 30px);
-            display: flex;
-            justify-content: center;
-        }
-        .oracle-box {
-            writing-mode: vertical-rl; /* 电脑端默认竖排 */
-            height: 550px;
-            font-family: 'Ma Shan Zheng', serif;
-            font-size: clamp(1.2rem, 2.5vw, 1.6rem);
-            line-height: 2.3;
-            letter-spacing: 0.15em;
-            color: var(--ink-color);
-        }
-        .oracle-line { opacity: 0; clip-path: inset(0 0 100% 0); margin-left: 15px; }
-        .active { opacity: 1; animation: inkDrop 1.2s forwards; }
+        .label { font-size: 0.9rem; font-weight: bold; color: #5d2b1f; }
 
-        @keyframes inkDrop { to { clip-path: inset(0 0 0 0); } }
+        .eye { background: var(--red); color: white; border-color: var(--red); animation: pulse 2s infinite; }
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(183,45,45,0.6); } 
+            70% { box-shadow: 0 0 0 10px rgba(183,45,45,0); } 
+            100% { box-shadow: 0 0 0 0 rgba(183,45,45,0); } 
+        }
 
-        /* 移动端适配 */
-        @media (max-width: 850px) {
-            .main-layout { flex-direction: column; align-items: center; }
-            .chart-side { width: 100%; height: auto; scale: 0.9; } /* 缩小手机端面相图占比 */
-            .text-side {
+        .desc-box { 
+            min-height: 250px; 
+            padding: 20px 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+        }
+
+        .oracle-text { 
+            writing-mode: vertical-rl; /* 默认电脑端竖排 */
+            font-family: 'Ma Shan Zheng', serif; 
+            font-size: clamp(1.1rem, 4vw, 1.6rem); 
+            line-height: 2.2; 
+            letter-spacing: 0.1em; 
+            height: 400px;
+            max-width: 100%;
+        }
+
+        .line { opacity: 0; transition: 0.8s; margin-left: 10px; }
+        .active { opacity: 1; }
+
+        /* 移动端核心适配 */
+        @media (max-width: 650px) {
+            .trio-map { padding: 10px 0; }
+            .oracle-text { 
+                writing-mode: horizontal-tb; /* 手机端转为横排 */
+                height: auto; 
                 width: 100%;
-                border-left: none;
-                border-top: 1px solid rgba(139,69,19,0.1);
-                padding-left: 0;
-                padding-top: 20px;
-                min-height: auto;
+                line-height: 1.8;
             }
-            .oracle-box {
-                writing-mode: horizontal-tb; /* 手机端转横排 */
-                height: auto;
-                width: 100%;
-                padding: 10px;
+            .line { 
+                margin-left: 0; 
+                margin-bottom: 15px; 
+                border-bottom: 1px dashed rgba(139,69,19,0.2);
+                padding-bottom: 5px;
             }
-            .oracle-line {
-                margin-left: 0;
-                margin-bottom: 12px;
-                white-space: normal;
-                border-bottom: 1px solid rgba(139,69,19,0.05);
-                padding-bottom: 8px;
-            }
+            .scroll { margin: 10px; padding: 20px; }
         }
     </style>
 </head>
 <body>
-
-<div class="silk-scroll">
-    <h1 class="wang-title">面相演义</h1>
-    
-    <div class="main-layout">
-        <div class="chart-side">
-            <div class="face-box">
-                <div class="point" style="top: 10%; left: 50%;" data-label="天中" data-desc="八字：戊辰辛丑，湿土生金|演禽：角木蛟坐命，气压群星|太乙：阳遁六十八局，主算十七|格局：祖德深厚，基石永固。"></div>
-                <div class="point mole" style="top: 18%; left: 32%;" data-label="福堂痣" data-desc="痣相：偏财受阻，因果磨砺|博弈：求财先艰后易，宜守定力|因果：避‘吞剥’之灾，忌急躁进场。"></div>
-                <div class="point" style="top: 38%; left: 50%;" data-label="印堂" data-desc="命宫：巳位文昌，太乙命位|相理：平整如镜，智虑深远|因果：胸怀丘壑，御狼性于无形。"></div>
-                <div class="point" style="top: 43%; left: 33%;" data-label="左眼" data-desc="神魂：驯兽师之眼，藏锋内敛|演禽：神聚则禽星各司其位|八字：食神生财，谋略即是财富。"></div>
-                <div class="point" style="top: 43%; left: 67%;" data-label="右眼" data-desc="神魂：洞察变数，客算难欺|相法：目若点漆，福寿双全|因果：看透虚妄，则全局皆为棋子。"></div>
-                
-                <div class="point" style="top: 72%; left: 50%;" data-label="准头" data-desc="财帛：酉位大簇，定算十六|八字：辰酉六合，开锁见金之象|因果：财富定数极大，库纳四方。"></div>
-                <div class="point mole" style="top: 74%; left: 58%;" data-label="财帛痣" data-desc="痣相：定数财中的分配损耗|逻辑：主动分利于恶狼，化害为权|结论：不争蝇头小利，方能稳坐中军。"></div>
-
-                <div class="point" style="top: 92%; left: 50%;" data-label="地阁" data-desc="晚运：北岳归藏，定算十六满盈|八字：晚年财运亨通，地库方圆|结论：驯狼者终享太平，众禽归心。"></div>
-            </div>
+<div class="scroll">
+    <h1 class="title"></h1>
+    <div class="trio-map">
+        <div class="star-node" onclick="show('bro2')">
+            <div class="icon">鸭</div>
+            <div class="label">二弟：毕月乌</div>
         </div>
+        <div class="star-node" onclick="show('me')">
+            <div class="icon eye">燕</div>
+            <div class="label">长兄：女土蝠</div>
+        </div>
+        <div class="star-node" onclick="show('bro3')">
+            <div class="icon">猪</div>
+            <div class="label">三弟：室火猪</div>
+        </div>
+    </div>
 
-        <div class="text-side">
-            <div class="oracle-box" id="displayText">
-                <p style="opacity: 0.4;"></p>
-            </div>
+    <div class="desc-box">
+        <div id="display" class="oracle-text">
+            <p class="line active"></p>
         </div>
     </div>
 </div>
 
 <script>
-    const points = document.querySelectorAll('.point');
-    const displayArea = document.getElementById('displayText');
+    const data = {
+        me: ["主将：女土蝠（海燕）", "状态：得地、带刀、纳福", "梦兆：马粪化肥，本钱归库", "天职：以高空视角，为弟定风指路"],
+        bro2: ["主将：毕月乌（水鸭）", "状态：得地、受风、带福", "局势：表面平静，水下焦虑", "互动：需借长兄之刀，斩断杂风"],
+        bro3: ["主将：室火猪（野猪）", "状态：入井、陷落、带伤", "性格：讷于言而极犟", "救应：需借长兄肥气，破井而出"]
+    };
 
-    points.forEach(point => {
-        point.addEventListener('click', function(e) {
-            const desc = this.getAttribute('data-desc').split('|');
-            displayArea.innerHTML = '';
-            
-            desc.forEach((text, i) => {
-                const p = document.createElement('p');
-                p.className = 'oracle-line';
-                p.innerText = text;
-                displayArea.appendChild(p);
-                setTimeout(() => p.classList.add('active'), i * 600);
-            });
-
-            // 移动端震动效果
-            if (navigator.vibrate) navigator.vibrate(25);
+    function show(key) {
+        const box = document.getElementById('display');
+        box.innerHTML = '';
+        data[key].forEach((text, i) => {
+            const p = document.createElement('p');
+            p.className = 'line';
+            p.innerText = text;
+            box.appendChild(p);
+            // 快速触发动画
+            setTimeout(() => p.classList.add('active'), i * 300);
         });
-    });
+        // 手机震动反馈
+        if (navigator.vibrate) navigator.vibrate(20);
+    }
 </script>
-
 </body>
 </html>
