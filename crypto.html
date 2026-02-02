@@ -4,16 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Hub Pro - Trend Analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#3B82F6', success: '#10B981', danger: '#EF4444', stockUp: '#FF3B30', stockDown: '#34C759' },
+                    colors: { primary: '#3B82F6', success: '#10B981', danger: '#EF4444' },
                     boxShadow: { 'custom': '0 4px 20px rgba(0, 0, 0, 0.08)' }
                 }
             }
@@ -23,6 +22,10 @@
         @layer utilities {
             .glass-card { @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-custom; }
             .active-currency { @apply bg-primary text-white scale-105 shadow-md; }
+            .price-up { animation: flash-green 0.7s ease-out; }
+            .price-down { animation: flash-red 0.7s ease-out; }
+            @keyframes flash-green { 0% { background-color: rgba(16, 185, 129, 0.3); } 100% { background-color: transparent; } }
+            @keyframes flash-red { 0% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
         }
     </style>
 </head>
@@ -32,66 +35,63 @@
         <div class="glass-card rounded-2xl p-4 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-2">
                 <i class="fa fa-line-chart text-primary text-xl"></i>
-                <h1 class="text-xl font-bold">FINANCE <span class="text-primary">HUB</span></h1>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">FINANCE <span class="text-primary">HUB</span></h1>
             </div>
             
             <div class="flex items-center gap-4">
+                <div id="ws-status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5">
+                    <span id="ws-dot" class="w-2 h-2 rounded-full bg-gray-400"></span>
+                    <span id="ws-text" class="text-[10px] font-bold text-gray-500 uppercase">Initializing</span>
+                </div>
                 <div class="flex bg-black/5 p-1 rounded-xl" id="currency-toggle">
                     <button class="px-4 py-1 rounded-lg text-xs font-bold transition-all active-currency" data-curr="usd">USD $</button>
                     <button class="px-4 py-1 rounded-lg text-xs font-bold transition-all" data-curr="cny">CNY ¥</button>
                 </div>
-                <div id="update-timer" class="text-xs font-mono font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">30s</div>
             </div>
         </div>
     </header>
 
     <main class="container mx-auto space-y-6">
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                <div class="flex justify-between text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-wider"><span>上证指数 (SH)</span><span id="sh-time">--:--</span></div>
-                <div class="flex items-baseline gap-2">
-                    <h2 id="sh-price" class="text-3xl font-bold font-mono">----.--</h2>
-                    <span id="sh-change" class="text-sm font-bold">--.--%</span>
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-red-500">
+                <p class="text-[10px] font-bold text-gray-400 uppercase">上证指数 (SH)</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <h2 id="sh-price" class="text-3xl font-bold font-mono text-danger">----.--</h2>
+                    <span id="sh-change" class="text-sm font-bold text-danger">--.--%</span>
                 </div>
-                <div class="absolute bottom-0 left-0 h-1 bg-red-500 w-full opacity-20"></div>
             </div>
-            <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                <div class="flex justify-between text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-wider"><span>深证成指 (SZ)</span><span id="sz-time">--:--</span></div>
-                <div class="flex items-baseline gap-2">
-                    <h2 id="sz-price" class="text-3xl font-bold font-mono">----.--</h2>
-                    <span id="sz-change" class="text-sm font-bold">--.--%</span>
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-green-500">
+                <p class="text-[10px] font-bold text-gray-400 uppercase">深证成指 (SZ)</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <h2 id="sz-price" class="text-3xl font-bold font-mono text-success">----.--</h2>
+                    <span id="sz-change" class="text-sm font-bold text-success">--.--%</span>
                 </div>
-                <div class="absolute bottom-0 left-0 h-1 bg-green-500 w-full opacity-20"></div>
             </div>
-            <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-                <div class="flex justify-between text-gray-500 text-[10px] font-bold mb-2 uppercase tracking-wider"><span>创业板指 (CYB)</span><span id="cyb-time">--:--</span></div>
-                <div class="flex items-baseline gap-2">
-                    <h2 id="cyb-price" class="text-3xl font-bold font-mono">----.--</h2>
-                    <span id="cyb-change" class="text-sm font-bold">--.--%</span>
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-purple-500">
+                <p class="text-[10px] font-bold text-gray-400 uppercase">创业板指 (CYB)</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <h2 id="cyb-price" class="text-3xl font-bold font-mono text-purple-600">----.--</h2>
+                    <span id="cyb-change" class="text-sm font-bold text-purple-600">--.--%</span>
                 </div>
-                <div class="absolute bottom-0 left-0 h-1 bg-purple-500 w-full opacity-20"></div>
             </div>
         </section>
 
         <section class="glass-card rounded-2xl p-6">
             <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-4">
-                    <img id="chart-icon" src="" class="w-10 h-10 rounded-full hidden border-2 border-white shadow-sm">
-                    <div>
-                        <h2 id="chart-title" class="text-xl font-bold">Asset Trend</h2>
-                        <div id="chart-price" class="text-primary font-bold text-2xl font-mono">0.00</div>
-                    </div>
+                <div>
+                    <h2 id="chart-title" class="text-xl font-bold text-gray-800 italic">Select an asset to view trend</h2>
+                    <div id="chart-price" class="text-2xl font-mono font-bold text-primary mt-1">---</div>
                 </div>
+                <div id="rate-info" class="text-[10px] font-bold text-gray-400 bg-white/50 px-3 py-1 rounded-lg">Rate: 1 USD ≈ 7.25 CNY</div>
             </div>
-            <div class="relative h-[250px] md:h-[350px]">
-                <canvas id="priceChart"></canvas>
+            <div class="relative h-[300px] w-full">
+                <canvas id="trendChart"></canvas>
             </div>
         </section>
 
         <section class="glass-card rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-gray-100 bg-white/50 flex justify-between items-center">
-                <h2 class="font-bold flex items-center gap-2"><i class="fa fa-bitcoin text-orange-400"></i> Crypto List</h2>
-                <div id="exchange-rate-info" class="text-[10px] text-gray-400 font-bold">RATE: 1 USD ≈ 7.2 CNY</div>
+            <div class="p-4 border-b border-gray-100 bg-white/50 flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                <span><i class="fa fa-bolt text-yellow-500"></i> Market Live (Click to load chart)</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
@@ -105,22 +105,191 @@
     </main>
 
     <script>
-        const CRYPTO_API = 'https://api.coingecko.com/api/v3';
+        const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker/solusdt@ticker/dogeusdt@ticker';
+        const BINANCE_REST_API = 'https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","DOGEUSDT"]';
         const STOCK_API = 'https://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006';
         
-        let countdown = 30;
-        let currentCoin = 'bitcoin';
-        let currentCurrency = 'usd'; // 默认美元
-        let exchangeRate = 7.25; // 默认汇率
-        let priceChart = null;
-        let cryptoDataList = [];
+        let currentCurrency = 'usd';
+        let exchangeRate = 7.25;
+        let cryptoData = {}; 
+        let pollTimer = null;
+        let ws = null;
+        let trendChart = null;
+        let selectedSym = 'btc';
+
+        // CoinGecko ID 映射用于获取历史趋势
+        const coinIds = { btc: 'bitcoin', eth: 'ethereum', bnb: 'binancecoin', sol: 'solana', doge: 'dogecoin' };
 
         document.addEventListener('DOMContentLoaded', () => {
             initChart();
-            updateAll();
+            fetchExchangeRate();
+            fetchStockData();
+            initConnection();
             setupCurrencyToggle();
-            setInterval(handleTimer, 1000);
+            setInterval(fetchStockData, 10000);
+            
+            // 默认加载 BTC 图表
+            setTimeout(() => fetchTrendData('btc'), 1000);
         });
+
+        function initChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(24).fill(''), // 模拟 24 小时
+                    datasets: [{
+                        label: 'Price',
+                        data: [],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        async function fetchTrendData(sym) {
+            selectedSym = sym;
+            const coinId = coinIds[sym];
+            document.getElementById('chart-title').innerText = `${sym.toUpperCase()} / USDT Trend (24h)`;
+            
+            try {
+                const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
+                const data = await res.json();
+                const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
+                
+                // 抽样，降低数据点密度
+                const prices = data.prices.filter((_, i) => i % 6 === 0).map(p => p[1] * rate);
+                trendChart.data.labels = prices.map(() => '');
+                trendChart.data.datasets[0].data = prices;
+                trendChart.update();
+            } catch (e) {
+                console.error("Trend data fetch failed", e);
+            }
+        }
+
+        function initConnection() {
+            if (ws) ws.close();
+            const statusDot = document.getElementById('ws-dot');
+            const statusText = document.getElementById('ws-text');
+
+            ws = new WebSocket(BINANCE_WS_URL);
+            ws.onopen = () => {
+                statusDot.className = 'w-2 h-2 rounded-full bg-success animate-pulse';
+                statusText.innerText = 'WebSocket Live';
+                clearInterval(pollTimer);
+            };
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleMarketData(message.data || message);
+            };
+            ws.onerror = () => {
+                statusDot.className = 'w-2 h-2 rounded-full bg-yellow-500';
+                statusText.innerText = 'Polling Active';
+                startPolling();
+            };
+            ws.onclose = () => { if (!pollTimer) setTimeout(initConnection, 10000); };
+        }
+
+        async function startPolling() {
+            if (pollTimer) return;
+            const fetchData = async () => {
+                try {
+                    const res = await fetch(BINANCE_REST_API);
+                    const data = await res.json();
+                    data.forEach(item => {
+                        handleMarketData({ s: item.symbol, c: item.lastPrice, P: item.priceChangePercent });
+                    });
+                } catch (e) {}
+            };
+            fetchData();
+            pollTimer = setInterval(fetchData, 5000);
+        }
+
+        function handleMarketData(data) {
+            const symbol = data.s.toLowerCase().replace('usdt', '');
+            const price = parseFloat(data.c);
+            const change = parseFloat(data.P);
+            const oldPrice = cryptoData[symbol]?.price || price;
+            const direction = price > oldPrice ? 'up' : (price < oldPrice ? 'down' : '');
+            cryptoData[symbol] = { price, change, direction };
+            updateUI(symbol);
+            
+            if(symbol === selectedSym) {
+                const unit = currentCurrency === 'usd' ? '$' : '¥';
+                const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
+                document.getElementById('chart-price').innerText = unit + (price * rate).toLocaleString();
+            }
+        }
+
+        function updateUI(sym) {
+            const tbody = document.getElementById('crypto-table-body');
+            let row = document.getElementById(`row-${sym}`);
+            const data = cryptoData[sym];
+
+            if (!row) {
+                row = document.createElement('tr');
+                row.id = `row-${sym}`;
+                row.className = "hover:bg-primary/5 cursor-pointer transition-colors";
+                row.onclick = () => fetchTrendData(sym); // 点击行更新图表
+                tbody.appendChild(row);
+            }
+
+            const unit = currentCurrency === 'usd' ? '$' : '¥';
+            const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
+            const displayPrice = (data.price * rate).toLocaleString(undefined, { minimumFractionDigits: 2 });
+            const flashClass = data.direction === 'up' ? 'price-up' : (data.direction === 'down' ? 'price-down' : '');
+
+            row.innerHTML = `
+                <td class="px-6 py-4 font-bold text-gray-700 uppercase tracking-tight">${sym} / usdt</td>
+                <td class="px-6 py-4 text-right font-mono font-bold ${flashClass}">${unit}${displayPrice}</td>
+                <td class="px-6 py-4 text-right ${data.change >= 0 ? 'text-success' : 'text-danger'}">
+                    ${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%
+                </td>
+            `;
+
+            setTimeout(() => {
+                const td = row.querySelectorAll('td')[1];
+                if(td) td.classList.remove('price-up', 'price-down');
+            }, 600);
+        }
+
+        async function fetchExchangeRate() {
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                const data = await res.json();
+                exchangeRate = data.rates.CNY;
+                document.getElementById('rate-info').innerText = `Rate: 1 USD ≈ ${exchangeRate.toFixed(2)} CNY`;
+            } catch (e) {}
+        }
+
+        async function fetchStockData() {
+            try {
+                const res = await fetch(STOCK_API);
+                const text = await res.text();
+                const stocks = text.split(';');
+                const update = (raw, id) => {
+                    const d = raw.split('~');
+                    if(d.length < 6) return;
+                    document.getElementById(`${id}-price`).innerText = d[3];
+                    document.getElementById(`${id}-change`).innerText = (parseFloat(d[5]) >= 0 ? '+' : '') + d[5] + '%';
+                };
+                update(stocks[0], 'sh'); update(stocks[1], 'sz'); update(stocks[2], 'cyb');
+            } catch (e) {}
+        }
 
         function setupCurrencyToggle() {
             document.querySelectorAll('#currency-toggle button').forEach(btn => {
@@ -128,137 +297,9 @@
                     document.querySelectorAll('#currency-toggle button').forEach(b => b.classList.remove('active-currency'));
                     btn.classList.add('active-currency');
                     currentCurrency = btn.dataset.curr;
-                    refreshUI(); // 切换时立即刷新界面，不等待 API
+                    Object.keys(cryptoData).forEach(updateUI);
+                    fetchTrendData(selectedSym); // 切换货币同步更新图表
                 };
-            });
-        }
-
-        async function updateAll() {
-            await fetchExchangeRate();
-            await fetchStockData();
-            await fetchCryptoData();
-        }
-
-        async function fetchExchangeRate() {
-            try {
-                // 使用公共汇率接口，如失败则维持默认值
-                const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-                const data = await res.json();
-                exchangeRate = data.rates.CNY;
-                document.getElementById('exchange-rate-info').innerText = `RATE: 1 USD ≈ ${exchangeRate.toFixed(2)} CNY`;
-            } catch (e) { console.warn("Exchange rate fetch failed, using default."); }
-        }
-
-        function handleTimer() {
-            countdown--;
-            document.getElementById('update-timer').innerText = countdown + 's';
-            if (countdown <= 0) { updateAll(); countdown = 30; }
-        }
-
-        // --- A 股逻辑 (A股始终显示人民币数值，无需按美元换算，但价格颜色逻辑保持) ---
-        async function fetchStockData() {
-            try {
-                const res = await fetch(STOCK_API);
-                const text = await res.text();
-                const stocks = text.split(';');
-                const updateUI = (dataStr, prefix) => {
-                    const d = dataStr.split('~');
-                    if(d.length < 6) return;
-                    const price = d[3], changeRate = d[5];
-                    const isUp = parseFloat(changeRate) >= 0;
-                    document.getElementById(`${prefix}-price`).innerText = price;
-                    document.getElementById(`${prefix}-change`).innerText = (isUp ? '+' : '') + changeRate + '%';
-                    document.getElementById(`${prefix}-price`).className = `text-3xl font-bold font-mono ${isUp ? 'text-danger' : 'text-success'}`;
-                    document.getElementById(`${prefix}-change`).className = `text-sm font-bold ${isUp ? 'text-danger' : 'text-success'}`;
-                    document.getElementById(`${prefix}-time`).innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                };
-                updateUI(stocks[0], 'sh'); updateUI(stocks[1], 'sz'); updateUI(stocks[2], 'cyb');
-            } catch (e) { showMockStocks(); }
-        }
-
-        function showMockStocks() {
-            const mock = (id, p, c) => {
-                const elP = document.getElementById(`${id}-price`);
-                elP.innerText = p; elP.className = "text-3xl font-bold font-mono text-danger";
-                document.getElementById(`${id}-change`).innerText = "+" + c + "%";
-                document.getElementById(`${id}-change`).className = "text-sm font-bold text-danger";
-                document.getElementById(`${id}-time`).innerText = "DEMO";
-            };
-            mock('sh', '3052.12', '0.45'); mock('sz', '9394.05', '0.62'); mock('cyb', '1806.11', '0.15');
-        }
-
-        // --- Crypto 逻辑 (支持汇率换算) ---
-        async function fetchCryptoData() {
-            try {
-                const res = await fetch(`${CRYPTO_API}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1`);
-                cryptoDataList = await res.json();
-                refreshUI();
-            } catch (e) { console.error("Crypto API error"); }
-        }
-
-        function refreshUI() {
-            renderTable(cryptoDataList);
-            const activeCoin = cryptoDataList.find(c => c.id === currentCoin);
-            if(activeCoin) updateChartUI(activeCoin);
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('crypto-table-body');
-            const symbol = currentCurrency === 'usd' ? '$' : '¥';
-            const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-
-            tbody.innerHTML = data.map(coin => {
-                const convertedPrice = (coin.current_price * rate).toLocaleString(undefined, { minimumFractionDigits: 2 });
-                return `
-                <tr class="hover:bg-primary/5 cursor-pointer transition-colors" onclick="selectCoin('${coin.id}')">
-                    <td class="px-6 py-4 flex items-center gap-3">
-                        <img src="${coin.image}" class="w-6 h-6 rounded-full">
-                        <span class="font-bold">${coin.symbol.toUpperCase()}</span>
-                    </td>
-                    <td class="px-6 py-4 text-right font-mono font-bold">${symbol}${convertedPrice}</td>
-                    <td class="px-6 py-4 text-right ${coin.price_change_percentage_24h >= 0 ? 'text-success' : 'text-danger'}">
-                        ${coin.price_change_percentage_24h.toFixed(2)}%
-                    </td>
-                </tr>
-                `;
-            }).join('');
-        }
-
-        async function selectCoin(coinId) {
-            currentCoin = coinId;
-            const coin = cryptoDataList.find(c => c.id === coinId);
-            updateChartUI(coin);
-            
-            const res = await fetch(`${CRYPTO_API}/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
-            const data = await res.json();
-            const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-            priceChart.data.datasets[0].data = data.prices.map(p => ({ x: p[0], y: p[1] * rate }));
-            priceChart.update();
-        }
-
-        function updateChartUI(coin) {
-            const symbol = currentCurrency === 'usd' ? '$' : '¥';
-            const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-            document.getElementById('chart-title').innerText = coin.name + " Trend";
-            document.getElementById('chart-price').innerText = symbol + (coin.current_price * rate).toLocaleString();
-            const icon = document.getElementById('chart-icon');
-            icon.src = coin.image; icon.classList.remove('hidden');
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
-            priceChart = new Chart(ctx, {
-                type: 'line',
-                data: { datasets: [{ borderColor: '#3B82F6', borderWidth: 3, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', data: [], pointRadius: 0, tension: 0.3 }] },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    scales: { 
-                        x: { type: 'time', display: true, grid: { display: false }, ticks: { font: { size: 10 } } }, 
-                        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } } 
-                    }, 
-                    plugins: { legend: { display: false } } 
-                }
             });
         }
     </script>
