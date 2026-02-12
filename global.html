@@ -1,88 +1,211 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silent Antique Globe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Responsive Antique Globe & Cats</title>
     <style>
-        /* --- 整体空间氛围 --- */
+        /* --- 响应式尺寸变量 --- */
+        :root {
+            --globe-size: 400px;
+            --cat-size: 100px;
+            --corner-dist: 30px;
+            --hint-size: 14px;
+        }
+
+        /* 当屏幕宽度小于 600px 时（手机端）自动切换尺寸 */
+        @media screen and (max-width: 600px) {
+            :root {
+                --globe-size: 280px;  /* 缩小地球仪 */
+                --cat-size: 65px;    /* 缩小猫咪 */
+                --corner-dist: 15px; /* 猫咪离边缘近一点 */
+                --hint-size: 12px;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
-            /* 深沉的黑褐色背景，像在深夜的书房 */
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
+            animation: candle-flicker 8s ease-in-out infinite;
+            -webkit-tap-highlight-color: transparent; /* 去除手机端点击高亮蓝框 */
+        }
+
+        @keyframes candle-flicker {
+            0%, 100% { filter: brightness(1) contrast(1); }
+            50% { filter: brightness(0.95) contrast(1.1); }
         }
 
         .scene {
             perspective: 1000px;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            width: var(--globe-size);
         }
 
-        /* --- 🌍 古董地球仪本体 --- */
+        /* --- 🌍 地球仪 --- */
         .antique-globe {
-            width: 400px;
-            height: 400px;
+            width: var(--globe-size);
+            height: var(--globe-size);
             border-radius: 50%;
             position: relative;
-            
-            /* 1. 基础底色：羊皮纸色（防止图片没加载时变白） */
             background-color: #d4c4a9;
-
-            /* 2. 核心纹理：更换为更稳定的维基百科古地图图片 */
-            /* 这张图是18世纪的复古世界地图，非常精美 */
-            background-image: url('https://i.ibb.co/tTZchYYB/Pngtree-a-map-of-the-world-15940708.png');
-            
-            /* 3. 背景平铺设置 */
+            background-image: url('https://od.lk/s/NDBfMTMzNTczODM1Xw/%E2%80%94Pngtree%E2%80%94a%20map%20of%20the%20world_15940708.png');
             background-size: cover;
-            background-repeat: repeat-x; /* 水平重复以实现旋转 */
-
-            /* 4. 姿态：23.5度真实地轴倾斜 */
+            background-repeat: repeat-x;
             transform: rotateZ(23.5deg);
-            
-            /* 5. 动画：60秒匀速安静旋转 */
             animation: rotate-globe 60s linear infinite;
+            transition: filter 0.5s ease, animation-duration 0.8s ease;
 
-            /* 6. 复古光影：强化立体感 */
             box-shadow: 
-                /* 核心内阴影：制造球体的厚重感和暗部 */
                 inset -40px -40px 80px rgba(0, 0, 0, 0.9), 
-                /* 边缘微光：模拟老旧涂层在灯光下的反射 */
                 inset 10px 10px 40px rgba(255, 255, 255, 0.1),
-                /* 外部环境光 */
-                0 0 50px rgba(0, 0, 0, 0.5);
-
-            /* 7. 滤镜：整体泛黄旧化处理 */
+                0 0 50px rgba(0, 0, 0, 0.4);
             filter: sepia(30%) contrast(1.1) brightness(0.8);
         }
 
-        /* --- 旋转动画：背景图水平滚动 --- */
-        @keyframes rotate-globe {
-            from { background-position: 0 0; }
-            to { background-position: 1024px 0; } /* 这里的数值匹配图片宽度 */
+        /* 电脑端悬停效果 */
+        @media (hover: hover) {
+            .scene:hover .antique-globe {
+                animation-duration: 15s;
+                filter: sepia(10%) contrast(1.2) brightness(1);
+            }
         }
 
-        /* --- 额外装饰：地面的微弱倒影 --- */
-        .reflection {
-            position: absolute;
-            bottom: -60px;
-            width: 300px;
-            height: 30px;
-            background: radial-gradient(ellipse at center, rgba(139, 90, 43, 0.2) 0%, transparent 70%);
+        @keyframes rotate-globe {
+            from { background-position: 0 0; }
+            to { background-position: 1024px 0; }
+        }
+
+        /* --- 🐱 猫咪 --- */
+        .cat-corner {
+            position: fixed;
+            width: var(--cat-size);
+            height: var(--cat-size);
             border-radius: 50%;
-            filter: blur(5px);
+            overflow: hidden;
+            border: 3px solid #;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background-color: white;
+            z-index: 100;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .cat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .top-left { top: var(--corner-dist); left: var(--corner-dist); animation: cat-bounce 2.5s infinite; }
+        .top-right { top: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.2s; }
+        .bottom-left { bottom: var(--corner-dist); left: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.4s; }
+        .bottom-right { bottom: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.6s; }
+
+        @keyframes cat-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* --- 尘埃背景 --- */
+        .motes-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .mote {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: float-mote infinite linear;
+        }
+
+        @keyframes float-mote {
+            0% { transform: translateY(0); opacity: 0; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+
+        .reflection {
+            margin: 15px auto 0;
+            width: 80%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(8px);
+        }
+
+        .hint {
+            margin-top: 10px;
+            color: rgba(255,255,255,0.7);
+            font-family: serif;
+            font-size: var(--hint-size);
+            font-style: italic;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
-    <div class="scene" style="display: flex; flex-direction: column; align-items: center;">
+    <div class="motes-container" id="motes"></div>
+
+    <div class="scene" onclick="randomExplore()">
         <div class="antique-globe"></div>
         <div class="reflection"></div>
+        <div class="hint">Tap Globe to Explore</div>
     </div>
 
+    <div class="cat-corner top-left">
+        <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
+    </div>
+    <div class="cat-corner top-right">
+        <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
+    </div>
+    <div class="cat-corner bottom-left">
+        <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
+    </div>
+    <div class="cat-corner bottom-right">
+        <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
+    </div>
+
+    <script>
+        // 生成尘埃效果（根据屏幕大小调整数量）
+        const moteCount = window.innerWidth < 600 ? 20 : 40;
+        const container = document.getElementById('motes');
+        for (let i = 0; i < moteCount; i++) {
+            let mote = document.createElement('div');
+            mote.className = 'mote';
+            let size = Math.random() * 3 + 'px';
+            mote.style.width = size;
+            mote.style.height = size;
+            mote.style.left = Math.random() * 100 + '%';
+            mote.style.top = Math.random() * 100 + '%';
+            mote.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            container.appendChild(mote);
+        }
+
+        function randomExplore() {
+            const pages = [
+                'https://chenyongze1956.github.io/music.html',
+                'https://chenyongze1956.github.io/video.html',
+                'https://chenyongze1956.github.io/terminal.html',
+                'https://chenyongze1956.github.io/garelly.html'
+            ];
+            window.location.href = pages[Math.floor(Math.random() * pages.length)];
+        }
+    </script>
 </body>
 </html>
+
+
+
