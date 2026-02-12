@@ -4,22 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Responsive Antique Globe & Cats</title>
+    <title>Perfect Fit - Globe & Anime Icons</title>
     <style>
-        /* --- 响应式尺寸变量 --- */
+        /* --- 响应式尺寸变量：精准控制 --- */
         :root {
             --globe-size: 400px;
-            --cat-size: 100px;
-            --corner-dist: 30px;
+            --cat-size: 110px;    /* 稍微加大一点，让细节清晰 */
+            --corner-dist: 25px;
             --hint-size: 14px;
         }
 
-        /* 当屏幕宽度小于 600px 时（手机端）自动切换尺寸 */
         @media screen and (max-width: 600px) {
             :root {
-                --globe-size: 280px;  /* 缩小地球仪 */
-                --cat-size: 65px;    /* 缩小猫咪 */
-                --corner-dist: 15px; /* 猫咪离边缘近一点 */
+                --globe-size: 260px;
+                --cat-size: 70px;   /* 手机端缩小头像避免遮挡中心 */
+                --corner-dist: 12px;
                 --hint-size: 12px;
             }
         }
@@ -34,12 +33,12 @@
             align-items: center;
             overflow: hidden;
             animation: candle-flicker 8s ease-in-out infinite;
-            -webkit-tap-highlight-color: transparent; /* 去除手机端点击高亮蓝框 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         @keyframes candle-flicker {
-            0%, 100% { filter: brightness(1) contrast(1); }
-            50% { filter: brightness(0.95) contrast(1.1); }
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(0.92) contrast(1.05); }
         }
 
         .scene {
@@ -56,28 +55,18 @@
             width: var(--globe-size);
             height: var(--globe-size);
             border-radius: 50%;
-            position: relative;
             background-color: #d4c4a9;
             background-image: url('https://od.lk/s/NDBfMTMzNTczODM1Xw/%E2%80%94Pngtree%E2%80%94a%20map%20of%20the%20world_15940708.png');
             background-size: cover;
             background-repeat: repeat-x;
             transform: rotateZ(23.5deg);
             animation: rotate-globe 60s linear infinite;
-            transition: filter 0.5s ease, animation-duration 0.8s ease;
-
+            transition: filter 0.5s ease;
             box-shadow: 
-                inset -40px -40px 80px rgba(0, 0, 0, 0.9), 
+                inset -40px -40px 80px rgba(0, 0, 0, 0.8), 
                 inset 10px 10px 40px rgba(255, 255, 255, 0.1),
-                0 0 50px rgba(0, 0, 0, 0.4);
+                0 0 50px rgba(0, 0, 0, 0.3);
             filter: sepia(30%) contrast(1.1) brightness(0.8);
-        }
-
-        /* 电脑端悬停效果 */
-        @media (hover: hover) {
-            .scene:hover .antique-globe {
-                animation-duration: 15s;
-                filter: sepia(10%) contrast(1.2) brightness(1);
-            }
         }
 
         @keyframes rotate-globe {
@@ -85,38 +74,48 @@
             to { background-position: 1024px 0; }
         }
 
-        /* --- 🐱 猫咪 --- */
+        /* --- 🐱 动漫头像：核心修正部分 --- */
         .cat-corner {
             position: fixed;
             width: var(--cat-size);
             height: var(--cat-size);
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid #;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            background-color: white;
+            /* 修正颜色代码，增加厚重感 */
+            border: 4px solid #; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            background-color: #fff;
             z-index: 100;
-            transition: transform 0.3s;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
         }
 
         .cat-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            /* 关键：确保长方形图片在圆形容器中自动裁剪且不拉伸 */
+            object-fit: cover; 
+            /* 针对 Umaru GIF 的位置微调，确保脸部居中 */
+            object-position: center top; 
         }
 
         .top-left { top: var(--corner-dist); left: var(--corner-dist); animation: cat-bounce 2.5s infinite; }
-        .top-right { top: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.2s; }
-        .bottom-left { bottom: var(--corner-dist); left: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.4s; }
-        .bottom-right { bottom: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.6s; }
+        .top-right { top: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.3s; }
+        .bottom-left { bottom: var(--corner-dist); left: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.6s; }
+        .bottom-right { bottom: var(--corner-dist); right: var(--corner-dist); animation: cat-bounce 2.5s infinite 0.9s; }
+
+        .cat-corner:hover {
+            transform: scale(1.1) rotate(5deg);
+            border-color: #ffed86;
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+        }
 
         @keyframes cat-bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-10px); }
         }
 
-        /* --- 尘埃背景 --- */
+        /* --- 背景美化 --- */
         .motes-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -126,32 +125,33 @@
 
         .mote {
             position: absolute;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             animation: float-mote infinite linear;
         }
 
         @keyframes float-mote {
-            0% { transform: translateY(0); opacity: 0; }
+            0% { transform: translateY(10vh); opacity: 0; }
+            20% { opacity: 0.4; }
             100% { transform: translateY(-100vh); opacity: 0; }
         }
 
         .reflection {
-            margin: 15px auto 0;
+            margin: 20px auto 0;
             width: 80%;
-            height: 20px;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, transparent 70%);
+            height: 15px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, transparent 70%);
             border-radius: 50%;
-            filter: blur(8px);
+            filter: blur(6px);
         }
 
         .hint {
             margin-top: 10px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.8);
             font-family: serif;
             font-size: var(--hint-size);
             font-style: italic;
-            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -171,7 +171,7 @@
     <div class="cat-corner top-right">
         <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
     </div>
-    <div class="cat-corner bottom-left">
+    <div class="cat-corner bottom-left" >
         <img class="cat-img" src="https://i.ibb.co/C5MTYsBB/himouto-umaru-chan-reaction-s-GIF.gif">
     </div>
     <div class="cat-corner bottom-right">
@@ -179,18 +179,21 @@
     </div>
 
     <script>
-        // 生成尘埃效果（根据屏幕大小调整数量）
-        const moteCount = window.innerWidth < 600 ? 20 : 40;
+        // 根据移动端/电脑端动态生成微粒数量
+        const isMobile = window.innerWidth < 600;
+        const moteCount = isMobile ? 15 : 35;
         const container = document.getElementById('motes');
+        
         for (let i = 0; i < moteCount; i++) {
             let mote = document.createElement('div');
             mote.className = 'mote';
-            let size = Math.random() * 3 + 'px';
+            let size = (Math.random() * 3 + 1) + 'px';
             mote.style.width = size;
             mote.style.height = size;
             mote.style.left = Math.random() * 100 + '%';
-            mote.style.top = Math.random() * 100 + '%';
-            mote.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            mote.style.top = (Math.random() * 100 + 100) + '%';
+            mote.style.animationDuration = (Math.random() * 8 + 7) + 's';
+            mote.style.animationDelay = (Math.random() * 5) + 's';
             container.appendChild(mote);
         }
 
@@ -206,6 +209,3 @@
     </script>
 </body>
 </html>
-
-
-
