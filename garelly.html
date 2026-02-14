@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -21,7 +20,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.8);
             max-height: 90vh; overflow-y: auto;
         }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 10px; }
         input[type="text"] {
             flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #444;
             background: rgba(0,0,0,0.5); color: #fff; outline: none; font-size: 1rem;
@@ -32,9 +31,17 @@
         }
         button:hover { background: #ff5e78; transform: scale(1.05); }
 
+        /* 搜索历史样式 */
+        .history-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center; }
+        .history-tag { 
+            padding: 4px 12px; background: rgba(255,255,255,0.1); border-radius: 20px; 
+            font-size: 0.75rem; cursor: pointer; transition: 0.2s; 
+        }
+        .history-tag:hover { background: #e94560; }
+
         #resultArea { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; text-align: left; display: none; }
         .rating { color: #f1c40f; font-weight: bold; font-size: 1.2rem; }
-        .desc { font-size: 0.85rem; color: #ddd; line-height: 1.6; margin: 15px 0; max-height: 80px; overflow-y: auto; }
+        .desc { font-size: 0.85rem; color: #ddd; line-height: 1.6; margin: 15px 0; max-height: 100px; overflow-y: auto; }
         
         /* 播放源样式 */
         .section-box { margin-bottom: 15px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); }
@@ -43,14 +50,12 @@
         .provider-img { width: 35px; height: 35px; border-radius: 8px; transition: 0.2s; }
         .provider-img:hover { transform: scale(1.1); }
 
-        /* 快捷按钮 */
         .quick-btn { 
             padding: 5px 12px; border-radius: 6px; font-size: 0.7rem; 
             text-decoration: none; color: white; font-weight: bold; transition: 0.2s;
         }
         .quick-btn:hover { opacity: 0.8; transform: translateY(-2px); }
 
-        /* 演员列表 */
         .cast-scroll { display: flex; overflow-x: auto; gap: 12px; scrollbar-width: none; }
         .cast-item { flex: 0 0 60px; text-align: center; font-size: 0.7rem; }
         .cast-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(233, 69, 96, 0.4); }
@@ -64,6 +69,7 @@
         <input type="text" id="keywordInput" placeholder="输入影视剧、动漫名称...">
         <button id="searchBtn">搜索</button>
     </div>
+    <div class="history-container" id="historyContainer"></div>
 
     <div id="resultArea">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -92,6 +98,24 @@
     const TMDB_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
     const keywordInput = document.getElementById('keywordInput');
     const searchBtn = document.getElementById('searchBtn');
+    const historyContainer = document.getElementById('historyContainer');
+
+    // 加载搜索历史
+    let searchHistory = JSON.parse(localStorage.getItem('search_history')) || [];
+
+    function renderHistory() {
+        historyContainer.innerHTML = '';
+        searchHistory.forEach(item => {
+            const span = document.createElement('span');
+            span.className = 'history-tag';
+            span.innerText = item;
+            span.onclick = () => {
+                keywordInput.value = item;
+                startSearch();
+            };
+            historyContainer.appendChild(span);
+        });
+    }
 
     searchBtn.onclick = startSearch;
     keywordInput.onkeypress = (e) => e.key === 'Enter' && startSearch();
@@ -99,8 +123,17 @@
     async function startSearch() {
         const kw = keywordInput.value.trim();
         if (!kw) return;
+        
         searchBtn.innerText = "...";
         searchBtn.disabled = true;
+
+        // 保存历史逻辑
+        if (!searchHistory.includes(kw)) {
+            searchHistory.unshift(kw);
+            if (searchHistory.length > 5) searchHistory.pop();
+            localStorage.setItem('search_history', JSON.stringify(searchHistory));
+            renderHistory();
+        }
 
         try {
             const resp = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
@@ -124,7 +157,7 @@
 
         // 1. 设置背景图
         if (item.backdrop_path) {
-            document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://image.tmdb.org/t/p/original${item.backdrop_path}')`;
+            document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://image.tmdb.org/t/p/original${item.backdrop_path}')`;
         }
 
         const title = item.title || item.name;
@@ -141,8 +174,8 @@
         const platforms = [
             { name: '腾讯', url: 'https://v.qq.com/x/search/?q=', color: '#ff5c24' },
             { name: '爱奇艺', url: 'https://www.iqiyi.com/search/', color: '#00d015' },
-            { name: '优酷', url: 'https://so.youku.com/search_video/q_', color: '#06b0f0' },
-            { name: 'B站', url: 'https://search.bilibili.com/all?keyword=', color: '#fb7299' }
+            { name: 'B站', url: 'https://search.bilibili.com/all?keyword=', color: '#fb7299' },
+            { name: '豆瓣', url: 'https://www.douban.com/search?q=', color: '#007722' }
         ];
         platforms.forEach(p => {
             const a = document.createElement('a');
@@ -157,32 +190,30 @@
         // 3. 获取点播源
         const pResp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/watch/providers?api_key=${TMDB_KEY}`);
         const pData = await pResp.json();
-        const regionData = pData.results?.CN;
+        const regionData = pData.results?.CN || pData.results?.US; // 优先国内，次选美区
         
-        // 合并 flatrate, rent, buy 并去重
-        const all = [...(regionData?.flatrate || []), ...(regionData?.rent || []), ...(regionData?.buy || [])];
-        const unique = Array.from(new Map(all.map(p => [p.provider_id, p])).values());
-
         const providerSection = document.getElementById('providerSection');
         const providerList = document.getElementById('providerList');
         providerList.innerHTML = '';
 
-        if (unique.length > 0) {
-            providerSection.style.display = 'block';
-            unique.forEach(p => {
-                const a = document.createElement('a');
-                a.href = regionData.link;
-                a.target = "_blank";
-                const img = document.createElement('img');
-                img.className = 'provider-img';
-                img.src = `https://image.tmdb.org/t/p/original${p.logo_path}`;
-                img.title = p.provider_name;
-                a.appendChild(img);
-                providerList.appendChild(a);
-            });
-        } else {
-            providerSection.style.display = 'none';
-        }
+        if (regionData) {
+            const all = [...(regionData.flatrate || []), ...(regionData.rent || []), ...(regionData.buy || [])];
+            const unique = Array.from(new Map(all.map(p => [p.provider_id, p])).values());
+            if (unique.length > 0) {
+                providerSection.style.display = 'block';
+                unique.forEach(p => {
+                    const a = document.createElement('a');
+                    a.href = regionData.link;
+                    a.target = "_blank";
+                    const img = document.createElement('img');
+                    img.className = 'provider-img';
+                    img.src = `https://image.tmdb.org/t/p/original${p.logo_path}`;
+                    img.title = p.provider_name;
+                    a.appendChild(img);
+                    providerList.appendChild(a);
+                });
+            } else { providerSection.style.display = 'none'; }
+        } else { providerSection.style.display = 'none'; }
 
         // 4. 演员
         const cResp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
@@ -197,6 +228,9 @@
             list.appendChild(div);
         });
     }
+
+    // 初始渲染历史记录
+    renderHistory();
 </script>
 </body>
 </html>
