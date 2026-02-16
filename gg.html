@@ -6,184 +6,274 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --paper: #fdfaf2; 
-            --ink: #3b2a26; 
+        :root {
+            --gold: #000;
+            --blood: #b72d2d;
+            --space: #0d0d0f;
+            --glass: rgba(255, 255, 255, 0.05);
+              --paper: #fdfaf2; 
+            --ink:#8b4513; 
             --gold: #c5a059; 
             --red: #b72d2d; 
+            
         }
-        
-        body { 
-            margin: 0; 
-            /* 优化后的柔和渐变背景 */
-            background: linear-gradient(135deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            color: var(--ink); 
-            font-family: "STKaiti", "Kaiti", serif; 
-            display: flex; 
-            justify-content: center; 
+
+        body {
+            margin: 0;
+   background: linear-gradient(135deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            color: #8b4513;
+            font-family: 'PingFang SC', "Microsoft YaHei", serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
+            
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
 
-        .scroll { 
-            width: 95%; 
-            max-width: 900px; 
-            background: var(--paper); 
+            
+           background-color: #f4e9d4;
             margin: 20px auto; 
             border: 3px solid #8b4513; 
             padding: clamp(15px, 5vw, 40px); 
             box-shadow: 0 15px 50px rgba(0,0,0,0.5); 
+          color:#8b4513;
+
+            
+
+   background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        url("https://www.transparenttextures.com/patterns/parchment.png"); /* 羊皮纸纹理遮罩 */
+
+    /* 3. 书页阴影：外层大阴影模拟厚度，内阴影（inset）模拟边缘卷曲和氧化变深 */
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.3),
+        inset 0 0 60px rgba(139, 69, 19, 0.2), /* 边缘泛黄 */
+        inset 5px 5px 15px rgba(139, 69, 19, 0.1); 
+
+    /* 4. 纸张边缘：稍微加一点圆角，模拟磨损 */
+    border-radius: 2px;
+    
+    /* 5. 关键：使用滤镜增加暖色调和对比度 */
+    filter: sepia(0.2) contrast(1.1);
+            
+
+ width: 90%; max-width: 600px; padding: 40px; 
+            
+            .corner { position: absolute; width: 30px; height: 30px; border: 1.5px solid rgba(139, 69, 19, 0.4); z-index: 2; }
+        }
+
+        /* 顶部标题：居中对齐 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .title {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: clamp(2rem, 8vw, 3rem);
+            color: var(--ink);
+            margin: 10px 0;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .subtitle {
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        /* 泊宫网格：自适应移动端 */
+        .bogong-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
             border-radius: 4px;
+        }
+
+        .card:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .card.active {
+            border-color: var(--blood);
+            background: rgba(183, 45, 45, 0.15);
+            box-shadow: 0 0 15px rgba(183, 45, 45, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .star-main { font-family: 'Zhi Mang Xing'; font-size: 1.8rem; margin: 5px 0; }
+        .star-sub { font-size: 1rem; color: var(--gold); }
+        .card-label { font-size: 0.65rem; opacity: 0.5; margin-bottom: 5px; }
+
+        /* 中央解码展示区 */
+        .display-panel {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 40px 20px;
+            box-sizing: border-box;
+            min-height: 350px;
             display: flex;
             flex-direction: column;
+            align-items: center; /* 确保内容在中央 */
+            justify-content: center;
         }
 
-        .title { 
-            font-family: 'Zhi Mang Xing', cursive; 
-            text-align: center; 
-            font-size: clamp(2rem, 8vw, 3.5rem); 
-            color: #8b4513; 
-            margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        
-        .trio-map { 
-            display: flex; 
-            justify-content: space-around; 
-            padding: 20px 0; 
-            border-bottom: 1px solid rgba(139,69,19,0.1);
-            gap: 10px;
-        }
-
-        .star-node { 
-            text-align: center; 
-            cursor: pointer; 
-            flex: 1;
-        }
-
-        .icon { 
-            width: clamp(60px, 15vw, 80px); 
-            height: clamp(60px, 15vw, 80px); 
-            border-radius: 50%; 
-            border: 2px solid var(--gold); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-weight: bold; 
-            font-size: 1.5rem; 
-            background: white; 
-            margin: 0 auto 10px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: 0.3s;
-        }
-
-        .star-node:active .icon, .star-node:hover .icon {
-            transform: scale(1.1);
-            border-color: var(--red);
-        }
-
-        .label { font-size: 0.9rem; font-weight: bold; color: #5d2b1f; }
-
-        .eye { background: var(--red); color: white; border-color: var(--red); animation: pulse 2s infinite; }
-        @keyframes pulse { 
-            0% { box-shadow: 0 0 0 0 rgba(183,45,45,0.6); } 
-            70% { box-shadow: 0 0 0 10px rgba(183,45,45,0); } 
-            100% { box-shadow: 0 0 0 0 rgba(183,45,45,0); } 
-        }
-
-        .desc-box { 
-            min-height: 250px; 
-            padding: 20px 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-start;
-        }
-
-        .oracle-text { 
-            writing-mode: vertical-rl; /* 默认电脑端竖排 */
-            font-family: 'Ma Shan Zheng', serif; 
-            font-size: clamp(1.1rem, 4vw, 1.6rem); 
-            line-height: 2.2; 
-            letter-spacing: 0.1em; 
-            height: 400px;
+        .oracle-box {
+            display: flex;
+            flex-direction: column; /* 手机端默认横排居中 */
+            align-items: center;
+            text-align: center;
             max-width: 100%;
         }
 
-        .line { opacity: 0; transition: 0.8s; margin-left: 10px; }
-        .active { opacity: 1; }
+        .oracle-line {
+            font-family: 'Ma Shan Zheng', serif;
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            line-height: 1.8;
+            margin-bottom: 15px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.6s ease;
+            color: #8b4513;
+        }
 
-        /* 移动端核心适配 */
-        @media (max-width: 650px) {
-            .trio-map { padding: 10px 0; }
-            .oracle-text { 
-                writing-mode: horizontal-tb; /* 手机端转为横排 */
-                height: auto; 
-                width: 100%;
-                line-height: 1.8;
+        .active-line {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 电脑端恢复竖排美感 */
+        @media (min-width: 769px) {
+            .oracle-box {
+                flex-direction: row-reverse; /* 竖排从右向左 */
+                writing-mode: vertical-rl;
+                height: 400px;
+                text-align: left;
             }
-            .line { 
-                margin-left: 0; 
-                margin-bottom: 15px; 
-                border-bottom: 1px dashed rgba(139,69,19,0.2);
-                padding-bottom: 5px;
+            .oracle-line {
+                margin-bottom: 0;
+                margin-left: 25px;
+                line-height: 2.5;
             }
-            .scroll { margin: 10px; padding: 20px; }
+        }
+
+        /* 手机端适配：泊宫卡片变两行 */
+        @media (max-width: 768px) {
+            .bogong-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-<div class="scroll">
-    <h1 class="title"></h1>
-    <div class="trio-map">
-        <div class="star-node" onclick="show('bro2')">
-            <div class="icon">鸭</div>
-            <div class="label">二弟：毕月乌</div>
+
+<div class="container">
+
+    <div class="header">
+        <div class="subtitle">出生时间:1988-12-18</div>
+        <h1 class="title">泊宫解释</h1>
+    </div>
+
+    <div class="bogong-grid">
+        <div class="card" onclick="decode('left_sub', this)">
+            <div class="card-label">副将(左)</div>
+            <div class="star-main">娄</div>
+            <div class="star-sub">岸</div>
         </div>
-        <div class="star-node" onclick="show('me')">
-            <div class="icon eye">燕</div>
-            <div class="label">长兄：女土蝠</div>
+        
+        <div class="card active" onclick="decode('main', this)">
+            <div class="card-label">主将(正)</div>
+            <div class="star-main">女</div>
+            <div class="star-sub">刀</div>
         </div>
-        <div class="star-node" onclick="show('bro3')">
-            <div class="icon">猪</div>
-            <div class="label">三弟：室火猪</div>
+
+        <div class="card" onclick="decode('guest', this)">
+            <div class="card-label">客将(正)</div>
+            <div class="star-main">翼</div>
+            <div class="star-sub">月</div>
+        </div>
+
+        <div class="card" onclick="decode('right_sub', this)">
+            <div class="card-label">副将(右)</div>
+            <div class="star-main">昴</div>
+            <div class="star-sub">草</div>
         </div>
     </div>
 
-    <div class="desc-box">
-        <div id="display" class="oracle-text">
-            <p class="line active"></p>
+    <div class="display-panel">
+        <div id="oracleOutput" class="oracle-box">
+            <p class="oracle-line active-line"></p>
         </div>
     </div>
 </div>
 
 <script>
-    const data = {
-        me: ["主将：女土蝠（海燕）", "状态：得地、带刀、纳福", "梦兆：马粪化肥，本钱归库", "天职：以高空视角，为弟定风指路"],
-        bro2: ["主将：毕月乌（水鸭）", "状态：得地、受风、带福", "局势：表面平静，水下焦虑", "互动：需借长兄之刀，斩断杂风"],
-        bro3: ["主将：室火猪（野猪）", "状态：入井、陷落、带伤", "性格：讷于言而极犟", "救应：需借长兄肥气，破井而出"]
+    const dataset = {
+        main: [
+            "主星女土蝠，化象海燕",
+            "得地纳福，泊宫女刀",
+           
+        ],
+        left_sub: [
+            "副将娄金狗，化象犴",
+            "得地带伤，泊宫娄岸",
+        
+        ],
+        guest: [
+            "客将翼火蛇，化象龙",
+            "泊宫翼月，化龙入休",
+          
+        ],
+        right_sub: [
+            "副将昴日鸡，化象鸡",
+            "泊宫昴草，泛化入休",
+           
+        ]
     };
 
-    function show(key) {
-        const box = document.getElementById('display');
-        box.innerHTML = '';
-        data[key].forEach((text, i) => {
+    function decode(key, el) {
+        // 更新卡片状态
+        document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+
+        const output = document.getElementById('oracleOutput');
+        output.innerHTML = '';
+        
+        dataset[key].forEach((text, i) => {
             const p = document.createElement('p');
-            p.className = 'line';
+            p.className = 'oracle-line';
             p.innerText = text;
-            box.appendChild(p);
-            // 快速触发动画
-            setTimeout(() => p.classList.add('active'), i * 300);
+            output.appendChild(p);
+            // 延迟显示动画
+            setTimeout(() => p.classList.add('active-line'), i * 250);
         });
-        // 手机震动反馈
-        if (navigator.vibrate) navigator.vibrate(20);
+
+        // 震动反馈
+        if (navigator.vibrate) navigator.vibrate(15);
     }
 </script>
+
 </body>
 </html>
