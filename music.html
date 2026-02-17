@@ -11,612 +11,224 @@
             --player-bg-light: #4c4c4c;
             --button-bg-color: #6a6a6a;
             --button-active-color: #929292;
-            --led-color: #ff4500; /* OrangeRed for LED */
+            --led-color: #ff4500;
             --tape-window-bg: #1c1c1c;
             --tape-reel-color: #333;
-            --tape-label-color: #eee;
-            --tape-tape-color: #000;
-            --accent-color: #007bff; /* Blue for highlights like progress */
+            --accent-color: #007bff;
             --font-pixel: 'Press Start 2P', cursive;
             --font-regular: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
         body {
             font-family: var(--font-regular);
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden;
         }
         .cassette-player {
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            border-radius: 15px;
-            padding: 25px;
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            border-radius: 15px; padding: 25px;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), inset 0 -5px 10px rgba(0, 0, 0, 0.6);
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            border: 2px solid #555;
-            position: relative;
-            overflow: hidden;
+            width: 90%; max-width: 500px; text-align: center; border: 2px solid #555; position: relative;
         }
-        /* --- 顶部信息和标题 --- */
-        .player-header {
-            margin-bottom: 20px;
+        .player-header h1 { 
+            font-family: var(--font-pixel); color: #eee; font-size: 1.2rem; 
+            text-shadow: 2px 2px 5px #000; margin-bottom: 20px; min-height: 1.5rem;
         }
-        .player-header h1 {
-            font-family: var(--font-pixel);
-            color: #eee;
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
-        }
-        .track-info h3 {
-            font-family: var(--font-regular);
-            color: #ccc;
-            font-size: 0.9rem;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* --- 磁带窗口 --- */
+        
         .tape-window {
             background-color: var(--tape-window-bg);
-            border: 2px solid #555;
-            border-radius: 5px;
-            height: 120px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+            border: 2px solid #555; border-radius: 5px; height: 120px;
+            margin-bottom: 25px; display: flex; justify-content: space-around;
+            align-items: center; padding: 10px; position: relative; overflow: hidden;
         }
+        #visualizerCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.5; }
         .tape-reel {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--tape-reel-color);
-            border: 2px solid #666;
-            position: relative;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+            width: 50px; height: 50px; border-radius: 50%; background: var(--tape-reel-color);
+            border: 2px solid #666; position: relative; z-index: 2;
         }
-        .tape-reel::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 15px;
-            height: 15px;
-            background-color: #999;
-            border-radius: 50%;
-            border: 1px solid #777;
-        }
-        .tape-reel.playing {
-            animation: rotateReel 0.5s linear infinite;
-        }
-        @keyframes rotateReel {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .tape-reel-tape {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--tape-tape-color);
-            z-index: 1;
-            overflow: hidden;
-            transition: width 0.2s, height 0.2s;
-        }
-        /* --- 模拟磁带带体 --- */
-        .tape-strip {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            height: 15px;
-            background-color: var(--tape-tape-color);
-            border-radius: 3px;
-            z-index: 0;
-        }
-        .tape-strip::before, .tape-strip::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            bottom: -2px;
-            width: 3px;
-            background-color: #666;
-            border-radius: 1px;
-        }
-        .tape-strip::before { left: 0; }
-        .tape-strip::after { right: 0; }
+        .tape-reel.playing { animation: rotateReel 2s linear infinite; }
+        @keyframes rotateReel { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* --- 时间显示 (LED 风格) --- */
         #timeDisplay {
-            font-family: var(--font-pixel);
-            color: var(--led-color);
-            background-color: #0d0d0d;
-            border: 2px solid #555;
-            padding: 8px 12px;
-            margin: 0 auto 20px auto;
-            border-radius: 4px;
-            box-shadow: inset 0 0 8px rgba(255, 69, 0, 0.5), 0 0 5px rgba(255, 69, 0, 0.2);
-            font-size: 1.1rem;
-            width: fit-content;
-            letter-spacing: 2px;
-            text-shadow: 0 0 5px var(--led-color);
-            display: block;
+            font-family: var(--font-pixel); color: var(--led-color); background: #0d0d0d;
+            padding: 8px 12px; margin-bottom: 20px; border-radius: 4px; font-size: 0.9rem;
+            display: inline-block; box-shadow: inset 0 0 8px rgba(255, 69, 0, 0.5);
         }
-        /* --- URL 输入区域 (V4: Load URL 按钮略微调整样式以区分) --- */
-        .url-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px; /* 减小间距 */
-        }
-        #audioUrlInput {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border: 2px solid #666;
-            border-radius: 8px;
-            background-color: #333;
-            color: #eee;
-            font-size: 0.9rem;
-            outline: none;
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-            transition: border-color 0.2s;
-        }
-        #audioUrlInput::placeholder {
-            color: #aaa;
-        }
-        #audioUrlInput:focus {
-            border-color: var(--accent-color);
-        }
-        #loadBtn {
-            padding: 10px 20px;
-            background: linear-gradient(to bottom, #444, #333);
-            color: #fff;
-            border: 2px solid #666;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            box-shadow: 0 3px 0 #222, inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.1s ease;
-            flex-shrink: 0;
-            font-size: 0.9rem; /* 调整字体大小以适应空间 */
-        }
-        #loadBtn:active {
-            box-shadow: 0 0 0 #222, inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transform: translateY(3px);
-            background: linear-gradient(to top, #444, #333);
-        }
-        /* --- 本地文件按钮 (使用 control-btn 样式) --- */
-        .local-file-group {
-            margin-bottom: 25px;
-        }
-        #openLocalFileBtn {
-            /* 继承 control-btn 样式，但颜色可以略有不同 */
-            background-color: #4a4a4a;
-            border-color: #777;
-            padding: 10px 10px; /* 调整内边距 */
-            font-size: 1rem;
-        }
-        /* --- 播放器按钮组 --- */
-        .player-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        /* 通用按钮样式保持不变 */
-        .control-btn {
-            background: linear-gradient(to bottom, var(--button-bg-color), #5a5a5a);
-            color: #eee;
-            border: 2px solid #888;
-            border-radius: 8px;
-            padding: 12px 10px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-weight: bold;
-            box-shadow: 0 4px 0 #444, inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transition: all 0.1s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .control-btn:active {
-            box-shadow: 0 0 0 #444, inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            transform: translateY(4px);
-            background: linear-gradient(to top, var(--button-bg-color), #5a5a5a);
-        }
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            box-shadow: 0 4px 0 #444;
-            transform: none;
-        }
-        /* Specific button colors/styles */
-        #playBtn { background-color: #28a745; border-color: #38c755; }
-        #playBtn:active { background-color: #1e7e34; }
-        #playBtn:disabled { background-color: #28a745; opacity: 0.4;}
-        #pauseBtn { background-color: #ffc107; border-color: #ffd117; color: #333; }
-        #pauseBtn:active { background-color: #e0a800; }
-        #pauseBtn:disabled { background-color: #ffc107; opacity: 0.4;}
-        #stopBtn { background-color: #dc3545; border-color: #ff4555; }
-        #stopBtn:active { background-color: #c82333; }
-        #stopBtn:disabled { background-color: #dc3545; opacity: 0.4;}
-        /* --- 进度条和音量 --- */
-        .sliders-group { margin-top: 15px; }
-        .slider-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .slider-wrapper label { color: #ccc; font-size: 0.8rem; width: 40px; text-align: right; flex-shrink: 0; }
-        .custom-slider {
-            -webkit-appearance: none; width: 100%; height: 8px; background: #444; border-radius: 4px; outline: none; transition: background 0.2s ease; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-        }
-        .custom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-color); cursor: pointer; border: 2px solid #eee; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); transition: background 0.2s ease, transform 0.1s ease;
-        }
-        .custom-slider:disabled::-webkit-slider-thumb { background: #777; cursor: not-allowed;}
 
-        #progressBar { background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) 0%, #444 0%, #444 100%); }
-        #volumeSlider { background: linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) 100%, #444 100%, #444 100%); }
-        /* Toast notifications */
-        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1; bottom: 30px; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; }
-        #toast.show { visibility: visible; opacity: 1; }
+        .player-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .control-btn { 
+            padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; 
+            color: #fff; background: #555; transition: 0.2s; box-shadow: 0 4px 0 #222;
+        }
+        .control-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #222; }
+        #playBtn { background: #28a745; }
+        #pauseBtn { background: #ffc107; color: #333; }
+        #stopBtn { background: #dc3545; }
+
+        .slider-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: #ccc; font-size: 0.8rem; }
+        input[type="range"] { flex: 1; cursor: pointer; accent-color: var(--accent-color); }
+        input[type="file"] { display: none; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; padding: 10px 20px; border-radius: 20px; display: none; z-index: 100; }
     </style>
 </head>
 <body>
-    <div class="cassette-player">
-        <div class="player-header">
-            <div class="track-info">
-                <h3 id="currentTrackTitle">加载自定义音乐...</h3>
-            </div>
-        </div>
-        <div class="tape-window">
-            <div class="tape-reel left">
-                 <div class="tape-reel-tape" id="tapeFillLeft"></div>
-            </div>
-            <div class="tape-strip"></div>
-            <div class="tape-reel right">
-                 <div class="tape-reel-tape" id="tapeFillRight"></div>
-            </div>
-        </div>
-        <div id="timeDisplay">00:00 / 00:00</div>
-        
-        <div class="url-input-group">
-            <input type="url" id="audioUrlInput" placeholder="输入音频（MP3/WAV）链接"
-                   value="https://storage.googleapis.com/codeskulptor-assets/sound900.mp3"> 
-            <button id="loadBtn">加载 URL</button>
-        </div>
-        
-        <div class="local-file-group">
-            <input type="file" id="localFileInput" accept="audio/*" style="display: none;">
-            <button id="openLocalFileBtn" class="control-btn" style="width: 100%;">
-                📂 打开本地文件
-            </button>
-        </div>
 
-        <audio id="audioPlayer"></audio>
-        
-        <div class="player-buttons">
-            <button id="playBtn" class="control-btn">▶ 播放</button>
-            <button id="pauseBtn" class="control-btn" disabled>⏸ 暂停</button>
-            <button id="stopBtn" class="control-btn" disabled>■ 停止</button>
-        </div>
-        <div class="sliders-group">
-            <div class="slider-wrapper">
-                <label for="progressBar">进度</label>
-                <input type="range" id="progressBar" class="custom-slider" value="0" min="0" max="100" disabled>
-            </div>
-            <div class="slider-wrapper">
-                <label for="volumeSlider">音量</label>
-                <input type="range" id="volumeSlider" class="custom-slider" min="0" max="100" value="100" disabled>
-            </div>
-        </div>
+<div class="cassette-player">
+    <div class="player-header"><h1 id="currentTrackTitle">READY</h1></div>
+    <div class="tape-window">
+        <canvas id="visualizerCanvas"></canvas>
+        <div class="tape-reel left"></div>
+        <div style="width: 40%; height: 10px; background: #333; z-index: 2; border-radius: 2px;"></div>
+        <div class="tape-reel right"></div>
     </div>
-    <div id="toast"></div>
-    <script>
-        // --- 核心元素引用 ---
-        const audio = document.getElementById('audioPlayer');
-        const urlInput = document.getElementById('audioUrlInput');
-        const loadBtn = document.getElementById('loadBtn');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const progressBar = document.getElementById('progressBar');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const currentTrackTitleEl = document.getElementById('currentTrackTitle');
-        const volumeSlider = document.getElementById('volumeSlider');
-        
-        // 磁带转轮元素
-        const tapeReelLeft = document.querySelector('.tape-reel.left');
-        const tapeReelRight = document.querySelector('.tape-reel.right');
-        const tapeFillLeft = document.getElementById('tapeFillLeft');
-        const tapeFillRight = document.getElementById('tapeFillRight');
-        
-        // V4 新增引用
-        const openLocalFileBtn = document.getElementById('openLocalFileBtn');
-        const localFileInput = document.getElementById('localFileInput');
+    <div id="timeDisplay">00:00 / 00:00</div>
+    <input type="file" id="localFileInput" accept="audio/*">
+    <button onclick="document.getElementById('localFileInput').click()" class="control-btn" style="width:100%; background: #4a4a4a; margin-bottom: 10px;">📂 打开本地文件</button>
+    <audio id="audioPlayer"></audio>
+    <div class="player-buttons">
+        <button id="playBtn" class="control-btn">▶ 播放</button>
+        <button id="pauseBtn" class="control-btn">⏸ 暂停</button>
+        <button id="stopBtn" class="control-btn">■ 停止</button>
+    </div>
+    <div class="sliders-group">
+        <div class="slider-wrapper"><label>进度</label><input type="range" id="progressBar" value="0"></div>
+        <div class="slider-wrapper"><label>音量</label><input type="range" id="volumeSlider" value="100"></div>
+    </div>
+</div>
+<div id="toast"></div>
 
-        let currentAudioUrl = '';
-        let isPlaying = false; 
+<script>
+    const audio = document.getElementById('audioPlayer');
+    const canvas = document.getElementById('visualizerCanvas');
+    const ctx = canvas.getContext('2d');
+    const trackTitle = document.getElementById('currentTrackTitle');
+    
+    let audioCtx, analyser, source, dataArray, hissNode, hissGain;
 
-        // 启用/禁用所有播放器控制按钮
-        function setControlsDisabled(disabled) {
-            playBtn.disabled = disabled;
-            pauseBtn.disabled = disabled;
-            stopBtn.disabled = disabled;
-            progressBar.disabled = disabled;
-            volumeSlider.disabled = disabled;
+    // --- 🔊 音效合成逻辑 ---
+    
+    // 1. 合成机械按键音 "Click"
+    function playClickSound() {
+        if (!audioCtx) initAudioContext();
+        const osc = audioCtx.createOscillator();
+        const clickGain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+        clickGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(clickGain);
+        clickGain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    // 2. 合成磁带底噪 "Tape Hiss" (白噪声)
+    function createHiss() {
+        const bufferSize = 2 * audioCtx.sampleRate,
+        noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+        output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
         }
+        hissNode = audioCtx.createBufferSource();
+        hissNode.buffer = noiseBuffer;
+        hissNode.loop = true;
+        hissGain = audioCtx.createGain();
+        hissGain.gain.value = 0; // 默认静音
+        hissNode.connect(hissGain);
+        hissGain.connect(audioCtx.destination);
+        hissNode.start();
+    }
 
-        // --- 0. 音量初始化及控制 ---
-        const savedVolume = localStorage.getItem('playerVolume');
-        if (savedVolume !== null) {
-            const initialVolume = parseFloat(savedVolume);
-            audio.volume = initialVolume;
-            volumeSlider.value = initialVolume * 100;
-        } else {
-            audio.volume = 1.0; 
+    function setHiss(volume) {
+        if (hissGain) hissGain.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.1);
+    }
+
+    // --- 核心逻辑 ---
+    function initAudioContext() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        source = audioCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        analyser.fftSize = 128;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        createHiss();
+        draw();
+    }
+
+    function draw() {
+        requestAnimationFrame(draw);
+        const WIDTH = canvas.width = canvas.offsetWidth;
+        const HEIGHT = canvas.height = canvas.offsetHeight;
+        if (analyser) analyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        const barWidth = (WIDTH / dataArray.length) * 2.5;
+        let x = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            const barHeight = (dataArray[i] / 255) * HEIGHT;
+            ctx.fillStyle = `rgb(${barHeight+50}, 150, 255)`;
+            ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
         }
+    }
 
-        volumeSlider.addEventListener('input', () => {
-            const volumeLevel = volumeSlider.value / 100;
-            audio.volume = volumeLevel;
-            localStorage.setItem('playerVolume', volumeLevel);
-            // 更新音量滑块的填充颜色
-            const progress = volumeSlider.value;
-            volumeSlider.style.background = `linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) ${progress}%, #444 ${progress}%, #444 100%)`;
-        });
-        volumeSlider.dispatchEvent(new Event('input')); 
+    document.getElementById('playBtn').onclick = () => {
+        if (!audio.src) return showToast("请先选择本地文件");
+        playClickSound();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        audio.play();
+        setHiss(0.02); // 开启轻微底噪
+        document.querySelectorAll('.tape-reel').forEach(r => r.classList.add('playing'));
+    };
 
-        // --- 磁带转轮动画控制 ---
-        function startTapeAnimation() {
-            tapeReelLeft.classList.add('playing');
-            tapeReelRight.classList.add('playing');
+    document.getElementById('pauseBtn').onclick = () => {
+        playClickSound();
+        audio.pause();
+        setHiss(0); // 关闭底噪
+        document.querySelectorAll('.tape-reel').forEach(r => r.classList.remove('playing'));
+    };
+
+    document.getElementById('stopBtn').onclick = () => {
+        playClickSound();
+        audio.pause(); audio.currentTime = 0;
+        setHiss(0);
+        document.querySelectorAll('.tape-reel').forEach(r => r.classList.remove('playing'));
+    };
+
+    document.getElementById('localFileInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            playClickSound();
+            audio.src = URL.createObjectURL(file);
+            trackTitle.innerText = file.name.toUpperCase();
         }
+    };
 
-        function stopTapeAnimation() {
-            tapeReelLeft.classList.remove('playing');
-            tapeReelRight.classList.remove('playing');
-        }
+    audio.ontimeupdate = () => {
+        if (isNaN(audio.duration)) return;
+        document.getElementById('progressBar').value = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('timeDisplay').innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+    };
 
-        function updateTapeFill() {
-            if (!audio.duration || isNaN(audio.duration) || audio.duration === Infinity) return;
-            const progress = audio.currentTime / audio.duration; // 0 to 1
-            const minSize = 20; 
-            const maxSize = 40; 
-            const leftFillDiameter = maxSize - (progress * (maxSize - minSize));
-            const rightFillDiameter = minSize + (progress * (maxSize - minSize));
+    document.getElementById('progressBar').oninput = (e) => {
+        if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
+    };
 
-            tapeFillLeft.style.width = `${leftFillDiameter}px`;
-            tapeFillLeft.style.height = `${leftFillDiameter}px`;
-            tapeFillRight.style.width = `${rightFillDiameter}px`;
-            tapeFillRight.style.height = `${rightFillDiameter}px`;
-        }
+    document.getElementById('volumeSlider').oninput = (e) => {
+        audio.volume = e.target.value / 100;
+    };
 
-        // --- 1. URL 加载逻辑 ---
-        function loadAudio() {
-            const url = urlInput.value.trim();
-            if (!url) {
-                showToast("请输入有效的音频 URL。");
-                return;
-            }
+    function formatTime(s) {
+        const m = Math.floor(s / 60); const sec = Math.floor(s % 60);
+        return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+    }
 
-            // 清理并重置状态
-            stopAudio(); 
-            setControlsDisabled(true);
-            
-            // V4: 确保释放上一个本地 URL
-            if (audio.src && audio.src.startsWith('blob:')) {
-                 URL.revokeObjectURL(audio.src);
-            }
-
-            // 设置新的源并加载
-            audio.src = url;
-            audio.load();
-            currentAudioUrl = url;
-            
-            currentTrackTitleEl.textContent = '正在加载元数据...';
-            progressBar.value = 0;
-            timeDisplay.textContent = '00:00 / 00:00';
-            updateTapeFill(); 
-
-            showToast("音频链接已加载，等待元数据...");
-        }
-
-        // V4 新增：本地文件加载函数
-        function loadLocalFile(file) {
-            if (!file) {
-                showToast("未选择任何文件。");
-                return;
-            }
-            if (!file.type.startsWith('audio/')) {
-                showToast("请选择一个有效的音频文件 (MP3, WAV等)。");
-                return;
-            }
-
-            // 清理并重置状态
-            stopAudio(); 
-            setControlsDisabled(true);
-
-            // 使用 URL.createObjectURL 创建本地文件的 URL
-            const fileUrl = URL.createObjectURL(file);
-            audio.src = fileUrl;
-            audio.load();
-            currentAudioUrl = fileUrl; 
-
-            // 更新标题，显示文件名
-            currentTrackTitleEl.textContent = `文件: ${file.name}`;
-            progressBar.value = 0;
-            timeDisplay.textContent = '00:00 / 00:00';
-            updateTapeFill(); 
-
-            showToast(`本地文件 "${file.name}" 已加载。`);
-        }
-        
-        // --- 2. 播放/暂停/停止逻辑 (保持不变) ---
-        function playAudio() {
-            if (audio.readyState >= 2) { 
-                audio.play()
-                    .then(() => {
-                        isPlaying = true;
-                        playBtn.disabled = true;
-                        pauseBtn.disabled = false;
-                        stopBtn.disabled = false;
-                        startTapeAnimation();
-                    })
-                    .catch(e => {
-                        console.error("播放失败 (可能需要用户交互):", e);
-                        showToast("播放失败：浏览器限制或资源错误。请再次点击播放按钮。");
-                        playBtn.disabled = false; 
-                    });
-            } else { 
-                 showToast("音频文件未准备好，请稍等或检查链接。");
-            }
-        }
-
-        function pauseAudio() {
-            if (!audio.paused) {
-                audio.pause();
-                isPlaying = false;
-                playBtn.disabled = false;
-                pauseBtn.disabled = true;
-                stopBtn.disabled = false;
-                stopTapeAnimation();
-            }
-        }
-
-        function stopAudio() {
-            audio.pause();
-            audio.currentTime = 0;
-            isPlaying = false;
-            playBtn.disabled = false;
-            pauseBtn.disabled = true;
-            stopBtn.disabled = true;
-            stopTapeAnimation();
-            updateTapeFill(); 
-            progressBar.value = 0;
-            timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
-        }
-
-        // --- 3. 时间和进度条同步逻辑 (保持不变) ---
-        function formatTime(seconds) {
-            if (isNaN(seconds) || seconds === Infinity || seconds < 0) return "00:00";
-            const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
-            const remainingSeconds = String(Math.floor(seconds % 60)).padStart(2, '0');
-            return `${minutes}:${remainingSeconds}`;
-        }
-
-        audio.addEventListener('loadedmetadata', () => {
-            if (audio.duration && audio.duration !== Infinity) {
-                progressBar.max = audio.duration;
-                timeDisplay.textContent = `00:00 / ${formatTime(audio.duration)}`;
-                // 如果是从 URL 加载的，只显示时长
-                if (!currentTrackTitleEl.textContent.startsWith('文件:')) {
-                    currentTrackTitleEl.textContent = `已加载 (${formatTime(audio.duration)})`;
-                }
-                setControlsDisabled(false); 
-                pauseBtn.disabled = true; 
-                stopBtn.disabled = true; 
-                updateTapeFill(); 
-                showToast("加载完成，可以播放了。");
-            } else { 
-                currentTrackTitleEl.textContent = `加载成功 (时长未知)`;
-                setControlsDisabled(false); 
-                pauseBtn.disabled = true; 
-                stopBtn.disabled = true; 
-                progressBar.disabled = true; 
-                timeDisplay.textContent = `00:00 / --:--`;
-                showToast("音频加载成功，但无法获取时长信息。");
-            }
-        });
-
-        audio.addEventListener('error', (e) => {
-            console.error('音频加载错误:', e.target.error);
-            let errorMessage = "音频加载失败，请检查 URL。";
-            if (e.target.error.code === 4) { 
-                 errorMessage = "加载失败：文件不存在或服务器限制 (CORS/404)。";
-            }
-            showToast(errorMessage);
-            currentTrackTitleEl.textContent = '加载失败！';
-            setControlsDisabled(true);
-            stopTapeAnimation();
-        });
-
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration && audio.duration !== Infinity) {
-                progressBar.value = audio.currentTime; 
-                const progressPercentage = (audio.currentTime / audio.duration) * 100;
-                progressBar.style.background = `linear-gradient(to right, var(--accent-color) 0%, var(--accent-color) ${progressPercentage}%, #444 ${progressPercentage}%, #444 100%)`;
-                timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
-                updateTapeFill(); 
-            }
-        });
-
-        audio.addEventListener('ended', () => {
-            stopAudio(); 
-            showToast("播放结束。");
-        });
-
-        progressBar.addEventListener('input', () => {
-            audio.currentTime = progressBar.value; 
-            updateTapeFill(); 
-        });
-
-        // --- 4. 事件绑定及辅助函数 (V4 新增本地文件绑定) ---
-        loadBtn.addEventListener('click', loadAudio);
-        playBtn.addEventListener('click', playAudio);
-        pauseBtn.addEventListener('click', pauseAudio);
-        stopBtn.addEventListener('click', stopAudio);
-
-        urlInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loadAudio();
-            }
-        });
-        
-        // V4 事件 1: 点击按钮时，触发隐藏的文件输入框
-        openLocalFileBtn.addEventListener('click', () => {
-            localFileInput.click();
-        });
-
-        // V4 事件 2: 当文件输入框选择文件后，调用加载函数
-        localFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // 释放上一个本地文件的 URL (如果有的话)
-                if (audio.src && audio.src.startsWith('blob:')) {
-                    URL.revokeObjectURL(audio.src);
-                }
-                loadLocalFile(file);
-            }
-            // 清空文件输入框的值，以便下次选择相同文件也能触发 change 事件
-            e.target.value = null; 
-        });
-
-        function showToast(message) {
-            const toast = document.getElementById("toast");
-            toast.innerText = message;
-            toast.className = "show";
-            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
-        }
-
-        // 页面加载时自动加载默认 URL
-        document.addEventListener('DOMContentLoaded', () => {
-            setControlsDisabled(true); 
-            loadAudio();
-        });
-    </script>
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2000);
+    }
+</script>
 </body>
-    </html>
+</html>
