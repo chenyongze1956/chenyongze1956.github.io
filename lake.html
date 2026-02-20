@@ -1,189 +1,133 @@
+
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --water: #0a1118;
-            --lotus: #ff69b4;
-            --flame: #ffcc00;
-            --ink: #000;
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--water);
-            font-family: 'Ma Shan Zheng', serif;
-            color:#000;
-        }
-
-        /* 湖面背景：深邃渐变配合波纹动效 */
-        #lake {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-        }
-
-        /* 顶部演禽护持：做旧质感 */
-        .header {
-            position: absolute;
-            top: 20px;
-            width: 100%;
-            text-align: center;
-            color: var(--ink);
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .title {
-            font-size: 2rem;
-            margin: 0;
-            letter-spacing: 5px;
-            text-shadow: 0 0 10px rgba(228, 213, 183, 0.5);
-        }
-
-        .star-info {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
-        /* 莲灯容器 */
-        .lantern {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            pointer-events: none;
-            animation: drift 70s linear infinite;
-        }
-
-        /* 莲花瓣 */
-        .lotus-shape {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            fill: var(--lotus);
-            filter: drop-shadow(0 0 5px rgba(255, 105, 180, 0.5));
-            opacity: 0.8;
-        }
-
-        /* 烛火 */
-        .flame {
-            position: absolute;
-            top: 15px;
-            left: 26px;
-            width: 8px;
-            height: 12px;
-            background: var(--flame);
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            box-shadow: 0 0 15px 5px rgba(255, 204, 0, 0.8);
-            animation: flicker 1s infinite alternate;
-        }
-
-        /* 底部倒影 */
-        .reflection {
-            position: absolute;
-            bottom: -10px;
-            left: 10px;
-            width: 40px;
-            height: 10px;
-            background: rgba(255, 204, 0, 0.2);
-            filter: blur(5px);
-            border-radius: 50%;
-        }
-
-        /* 动画：漂流 */
-        @keyframes drift {
-            from { transform: translate(0, 0) rotate(0deg); }
-            to { transform: translate(-100px, -50px) rotate(10deg); opacity: 0; }
-        }
-
-        /* 动画：烛火摇曳 */
-        @keyframes flicker {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.2); opacity: 1; }
-        }
-
-        /* 提示文字 */
-        .hint {
-            position: absolute;
-            bottom: 30px;
-            width: 100%;
-            text-align: center;
-color: #7b3221; font-family: 'Zhi Mang Xing'
-    opacity:1;
-            font-size: 1.4rem;
-        }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);; font-family: 'Courier New', Courier, monospace; }
+        canvas { border: 4px solid #fff;  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .info { position: absolute; top: 10px; color: white; text-align: center; pointer-events: none; }
     </style>
 </head>
 <body>
+    <div class="info">点击屏幕或按空格键跳跃</div>
+    <canvas id="birdCanvas" width="320" height="480"></canvas>
 
-<div id="lake">
-    <div class="header">
-        <h1 class="title"></h1>
-        <div class="star-info"></div>
-    </div>
+    <script>
+        const canvas = document.getElementById('birdCanvas');
+        const ctx = canvas.getContext('2d');
 
-    <div class="hint">点击彩虹湖，放下一盏莲灯</div>
-</div>
+        // 游戏状态
+        let birdY = 200;
+        let birdX = 50;
+        let velocity = 0;
+        let gravity = 0.25;
+        let jump = -4.5;
+        let score = 0;
+        let pipes = [];
+        let frame = 0;
+        let gameOver = false;
 
-<script>
-    const lake = document.getElementById('lake');
+        // 初始化水管
+        function createPipe() {
+            const gap = 120;
+            const minPipeHeight = 50;
+            const height = Math.floor(Math.random() * (canvas.height - gap - 2 * minPipeHeight)) + minPipeHeight;
+            pipes.push({ x: canvas.width, y: height, gap: gap, passed: false });
+        }
 
-    // 创建莲灯的函数
-    function createLantern(x, y) {
-        const lantern = document.createElement('div');
-        lantern.className = 'lantern';
-        lantern.style.left = x - 30 + 'px';
-        lantern.style.top = y - 30 + 'px';
+        function draw() {
+            // 1. 背景
+            ctx.fillStyle = "#70c5ce";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 随机缩放，增加层次感
-        const scale = 0.5 + Math.random() * 0.8;
-        lantern.style.transform = `scale(${scale})`;
+            // 2. 小鸟 (参考 GBA 版配色)
+            ctx.fillStyle = "#f7d010"; // 黄色身体
+            ctx.fillRect(birdX, birdY, 30, 24);
+            ctx.strokeStyle = "#000";
+            ctx.strokeRect(birdX, birdY, 30, 24);
+            ctx.fillStyle = "white"; // 眼睛
+            ctx.fillRect(birdX + 20, birdY + 5, 8, 8);
 
-        // 莲花 SVG
-        lantern.innerHTML = `
-            <svg class="lotus-shape" viewBox="0 0 100 100">
-                <path d="M50 20 C60 40 90 50 50 80 C10 50 40 40 50 20 Z" />
-                <path d="M50 25 C70 45 95 65 50 85 C5 65 30 45 50 25 Z" opacity="0.6"/>
-                <path d="M50 30 C80 50 100 70 50 90 C0 70 20 50 50 30 Z" opacity="0.4"/>
-            </svg>
-            <div class="flame"></div>
-            <div class="reflection"></div>
-        `;
+            if (!gameOver) {
+                velocity += gravity;
+                birdY += velocity;
+                frame++;
 
-        lake.appendChild(lantern);
+                if (frame % 90 === 0) createPipe();
+            }
 
-        // 30秒后移除，防止页面卡顿
-        setTimeout(() => {
-            lantern.remove();
-        }, 20000);
-    }
+            // 3. 水管 (经典绿色)
+            pipes.forEach((pipe, index) => {
+                pipe.x -= 2;
+                ctx.fillStyle = "#73bf2e";
+                // 上水管
+                ctx.fillRect(pipe.x, 0, 50, pipe.y);
+                ctx.strokeRect(pipe.x, 0, 50, pipe.y);
+                // 下水管
+                ctx.fillRect(pipe.x, pipe.y + pipe.gap, 50, canvas.height);
+                ctx.strokeRect(pipe.x, pipe.y + pipe.gap, 50, canvas.height);
 
-    // 点击监听
-    lake.addEventListener('click', (e) => {
-        createLantern(e.clientX, e.clientY);
-        
-        // 手机震动反馈
-        if (navigator.vibrate) navigator.vibrate(10);
-    });
+                // 碰撞检测
+                if (birdX + 30 > pipe.x && birdX < pipe.x + 50) {
+                    if (birdY < pipe.y || birdY + 24 > pipe.y + pipe.gap) {
+                        gameOver = true;
+                    }
+                }
 
-    // 初始自动生成几盏
-    for(let i=0; i<=-1; i++) {
-        setTimeout(() => {
-            createLantern(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
-        }, i * 1000);
-    }
-</script>
+                // 计分
+                if (!pipe.passed && pipe.x + 50 < birdX) {
+                    score++;
+                    pipe.passed = true;
+                }
 
+                if (pipe.x + 50 < 0) pipes.splice(index, 1);
+            });
+
+            // 边界检测
+            if (birdY + 24 > canvas.height || birdY < 0) gameOver = true;
+
+            // 4. 分数显示
+            ctx.fillStyle = "white";
+            ctx.font = "30px Arial";
+            ctx.fillText(score, canvas.width / 2 - 10, 50);
+
+            if (gameOver) {
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white";
+                ctx.fillText("GAME OVER", 70, 240);
+                ctx.font = "20px Arial";
+                ctx.fillText("点击重赛", 120, 280);
+            } else {
+                requestAnimationFrame(draw);
+            }
+        }
+
+        function reset() {
+            birdY = 200;
+            velocity = 0;
+            pipes = [];
+            score = 0;
+            frame = 0;
+            gameOver = false;
+            draw();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (gameOver) reset();
+                else velocity = jump;
+            }
+        });
+
+        canvas.addEventListener('mousedown', () => {
+            if (gameOver) reset();
+            else velocity = jump;
+        });
+
+        createPipe();
+        draw();
+    </script>
 </body>
 </html>
