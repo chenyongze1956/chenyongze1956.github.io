@@ -1,132 +1,191 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pixel Bird - Cross Platform</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);; font-family: 'Courier New', Courier, monospace; }
-        canvas { border: 4px solid #fff;  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .info { position: absolute; top: 10px; color: white; text-align: center; pointer-events: none; }
+        * {
+            /* 禁止移动端点击高亮和长按菜单 */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden; 
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas { 
+            background-color: #70c5ce; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .info { 
+            position: absolute; 
+            top: 20px; 
+            color: white; 
+            text-align: center; 
+            pointer-events: none; 
+            text-shadow: 2px 2px 4px #000;
+            font-size: 18px;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
-    <div class="info">点击屏幕或按空格键跳跃</div>
-    <canvas id="birdCanvas" width="320" height="480"></canvas>
+    <div id="game-container">
+        <div class="info" id="msg">点击屏幕或按空格键跳跃</div>
+        <canvas id="birdCanvas"></canvas>
+    </div>
 
     <script>
         const canvas = document.getElementById('birdCanvas');
         const ctx = canvas.getContext('2d');
+        const msg = document.getElementById('msg');
+
+        // 逻辑分辨率（固定比例，无论屏幕多大，内部坐标系统不变）
+        const LOGICAL_WIDTH = 320;
+        const LOGICAL_HEIGHT = 480;
 
         // 游戏状态
-        let birdY = 200;
-        let birdX = 50;
-        let velocity = 0;
-        let gravity = 0.25;
-        let jump = -4.5;
-        let score = 0;
-        let pipes = [];
-        let frame = 0;
-        let gameOver = false;
+        let birdY, birdX, velocity, score, pipes, frame, gameOver;
+        const gravity = 0.25;
+        const jump = -4.5;
 
-        // 初始化水管
+        // 初始化/重置游戏
+        function reset() {
+            birdY = 200;
+            birdX = 50;
+            velocity = 0;
+            score = 0;
+            pipes = [];
+            frame = 0;
+            gameOver = false;
+            msg.style.opacity = "1";
+            if(pipes.length === 0) createPipe();
+        }
+
+        // 屏幕适配：调整 Canvas 的物理大小
+        function resizeCanvas() {
+            const windowRatio = window.innerWidth / window.innerHeight;
+            const gameRatio = LOGICAL_WIDTH / LOGICAL_HEIGHT;
+
+            if (windowRatio < gameRatio) {
+                canvas.style.width = '100vw';
+                canvas.style.height = (100 / gameRatio) + 'vw';
+            } else {
+                canvas.style.height = '100vh';
+                canvas.style.width = (100 * gameRatio) + 'vh';
+            }
+            // 内部渲染分辨率保持不变
+            canvas.width = LOGICAL_WIDTH;
+            canvas.height = LOGICAL_HEIGHT;
+        }
+
         function createPipe() {
-            const gap = 120;
-            const minPipeHeight = 50;
-            const height = Math.floor(Math.random() * (canvas.height - gap - 2 * minPipeHeight)) + minPipeHeight;
-            pipes.push({ x: canvas.width, y: height, gap: gap, passed: false });
+            const gap = 110;
+            const minH = 50;
+            const h = Math.floor(Math.random() * (LOGICAL_HEIGHT - gap - 2 * minH)) + minH;
+            pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false });
+        }
+
+        function handleAction(e) {
+            if(e) e.preventDefault();
+            if (gameOver) {
+                reset();
+                requestAnimationFrame(draw);
+            } else {
+                velocity = jump;
+                msg.style.opacity = "0"; // 开始玩了就隐藏提示
+            }
         }
 
         function draw() {
-            // 1. 背景
             ctx.fillStyle = "#70c5ce";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-            // 2. 小鸟 (参考 GBA 版配色)
-            ctx.fillStyle = "#f7d010"; // 黄色身体
+            // 小鸟绘制
+            ctx.fillStyle = "#f7d010";
             ctx.fillRect(birdX, birdY, 30, 24);
             ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
             ctx.strokeRect(birdX, birdY, 30, 24);
-            ctx.fillStyle = "white"; // 眼睛
-            ctx.fillRect(birdX + 20, birdY + 5, 8, 8);
+            ctx.fillStyle = "white";
+            ctx.fillRect(birdX + 20, birdY + 5, 8, 8); // 眼睛
 
             if (!gameOver) {
                 velocity += gravity;
                 birdY += velocity;
                 frame++;
-
                 if (frame % 90 === 0) createPipe();
             }
 
-            // 3. 水管 (经典绿色)
-            pipes.forEach((pipe, index) => {
-                pipe.x -= 2;
+            // 水管
+            pipes.forEach((p, i) => {
+                p.x -= 2;
                 ctx.fillStyle = "#73bf2e";
-                // 上水管
-                ctx.fillRect(pipe.x, 0, 50, pipe.y);
-                ctx.strokeRect(pipe.x, 0, 50, pipe.y);
-                // 下水管
-                ctx.fillRect(pipe.x, pipe.y + pipe.gap, 50, canvas.height);
-                ctx.strokeRect(pipe.x, pipe.y + pipe.gap, 50, canvas.height);
+                ctx.fillRect(p.x, 0, 50, p.y); // 上
+                ctx.strokeRect(p.x, 0, 50, p.y);
+                ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT); // 下
+                ctx.strokeRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
 
-                // 碰撞检测
-                if (birdX + 30 > pipe.x && birdX < pipe.x + 50) {
-                    if (birdY < pipe.y || birdY + 24 > pipe.y + pipe.gap) {
-                        gameOver = true;
-                    }
+                if (birdX + 25 > p.x && birdX < p.x + 45) {
+                    if (birdY < p.y || birdY + 20 > p.y + p.gap) gameOver = true;
                 }
-
-                // 计分
-                if (!pipe.passed && pipe.x + 50 < birdX) {
+                if (!p.passed && p.x + 50 < birdX) {
                     score++;
-                    pipe.passed = true;
+                    p.passed = true;
                 }
-
-                if (pipe.x + 50 < 0) pipes.splice(index, 1);
+                if (p.x + 50 < 0) pipes.splice(i, 1);
             });
 
-            // 边界检测
-            if (birdY + 24 > canvas.height || birdY < 0) gameOver = true;
+            if (birdY + 24 > LOGICAL_HEIGHT || birdY < 0) gameOver = true;
 
-            // 4. 分数显示
+            // 分数
             ctx.fillStyle = "white";
-            ctx.font = "30px Arial";
-            ctx.fillText(score, canvas.width / 2 - 10, 50);
+            ctx.font = "bold 40px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(score, LOGICAL_WIDTH / 2, 60);
 
             if (gameOver) {
-                ctx.fillStyle = "rgba(0,0,0,0.5)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "rgba(0,0,0,0.6)";
+                ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
                 ctx.fillStyle = "white";
-                ctx.fillText("GAME OVER", 70, 240);
+                ctx.font = "30px Arial";
+                ctx.fillText("GAME OVER", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 - 20);
                 ctx.font = "20px Arial";
-                ctx.fillText("点击重赛", 120, 280);
+                ctx.fillText("点击屏幕重试", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 + 30);
             } else {
                 requestAnimationFrame(draw);
             }
         }
 
-        function reset() {
-            birdY = 200;
-            velocity = 0;
-            pipes = [];
-            score = 0;
-            frame = 0;
-            gameOver = false;
-            draw();
-        }
+        // 事件监听：涵盖空格、鼠标点击、手机触摸
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleAction(); });
+        canvas.addEventListener('mousedown', handleAction);
+        canvas.addEventListener('touchstart', handleAction);
+        window.addEventListener('resize', resizeCanvas);
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                if (gameOver) reset();
-                else velocity = jump;
-            }
-        });
-
-        canvas.addEventListener('mousedown', () => {
-            if (gameOver) reset();
-            else velocity = jump;
-        });
-
-        createPipe();
+        // 启动
+        resizeCanvas();
+        reset();
         draw();
     </script>
 </body>
