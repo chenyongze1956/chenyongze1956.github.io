@@ -4,65 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pixel Bird - Full Rainbow Edition</title>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
-            user-select: none;
-            box-sizing: border-box;
-        }
+        * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; box-sizing: border-box; }
         body { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            /* 网页外部背景 */
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; 
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            overflow: hidden; 
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; 
         }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        #game-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        canvas { 
-            border: 6px solid #fff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            max-width: 95%;
-            max-height: 95%;
-            object-fit: contain;
-        }
-        .info { 
-            position: absolute; 
-            top: 40px; 
-            color: #fff; 
-            text-align: center; 
-            pointer-events: none; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            font-size: 20px;
-            font-weight: bold;
-            z-index: 10;
-        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        #game-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        canvas { border: 6px solid #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 95%; max-height: 95%; object-fit: contain; }
+        .info { position: absolute; top: 50px; color: #fff; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 18px; font-weight: bold; z-index: 10; transition: opacity 0.5s; }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div class="info" id="msg">点击屏幕开始挑战</div>
+        <div class="info" id="msg">点击屏幕跳跃 (音效已开启)</div>
         <canvas id="birdCanvas"></canvas>
     </div>
 
@@ -73,14 +30,42 @@
 
         const LOGICAL_WIDTH = 320;
         const LOGICAL_HEIGHT = 480;
+        const LEVEL_STEP = 10;
 
         let birdY, birdX, velocity, score, pipes, frame, gameOver, gradientOffset = 0;
-        const gravity = 0.25;
-        const jump = -4.8;
+        let highScore = localStorage.getItem('pixelBirdHighScore') || 0; 
+        let pipeSpeed = 2;
+
+        // --- 音效系统 (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(freq, type, duration, vol) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = type; // square, triangle, sine, sawtooth
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if (type === 'sawtooth') oscillator.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
+            if (type === 'square') oscillator.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + duration);
+            
+            gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        const sounds = {
+            jump: () => playSound(400, 'square', 0.1, 0.1),
+            score: () => playSound(800, 'triangle', 0.3, 0.15),
+            hit: () => playSound(150, 'sawtooth', 0.4, 0.2)
+        };
+        // ------------------------------
 
         function reset() {
             birdY = 200; birdX = 50; velocity = 0; score = 0;
-            pipes = []; frame = 0; gameOver = false;
+            pipes = []; frame = 0; gameOver = false; pipeSpeed = 2;
             msg.style.opacity = "1";
             if(pipes.length === 0) createPipe();
         }
@@ -89,36 +74,37 @@
             const gameRatio = LOGICAL_WIDTH / LOGICAL_HEIGHT;
             const windowRatio = window.innerWidth / window.innerHeight;
             if (windowRatio < gameRatio) {
-                canvas.style.width = '90vw';
-                canvas.style.height = (90 / gameRatio) + 'vw';
+                canvas.style.width = '90vw'; canvas.style.height = (90 / gameRatio) + 'vw';
             } else {
-                canvas.style.height = '85vh';
-                canvas.style.width = (85 * gameRatio) + 'vh';
+                canvas.style.height = '85vh'; canvas.style.width = (85 * gameRatio) + 'vh';
             }
-            canvas.width = LOGICAL_WIDTH;
-            canvas.height = LOGICAL_HEIGHT;
+            canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT;
         }
 
-        // 动态生成 Canvas 内部的彩虹渐变
+        function drawUI() {
+            const barW = 200, barH = 14, barX = (LOGICAL_WIDTH - barW) / 2, barY = 80;
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.beginPath(); ctx.roundRect(barX, barY, barW, barH, 7); ctx.fill();
+            const progress = (score % LEVEL_STEP) / LEVEL_STEP;
+            const currentLevel = Math.floor(score / LEVEL_STEP) + 1;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); ctx.roundRect(barX + 2, barY + 2, (barW - 4) * progress, barH - 4, 5); ctx.fill();
+            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+            ctx.fillText("Level " + currentLevel, LOGICAL_WIDTH / 2, barY - 10);
+            ctx.font = "bold 40px Arial"; ctx.fillText(score, LOGICAL_WIDTH / 2, 60);
+            ctx.font = "bold 12px Arial"; ctx.fillText("BEST: " + highScore, LOGICAL_WIDTH / 2, 115);
+        }
+
         function drawRainbowBackground() {
-            gradientOffset += 0.005; // 控制内部渐变的流动速度
-            const grd = ctx.createLinearGradient(
-                Math.sin(gradientOffset) * 100, 0, 
-                LOGICAL_WIDTH + Math.cos(gradientOffset) * 100, LOGICAL_HEIGHT
-            );
-            grd.addColorStop(0, '#ff7e5f');
-            grd.addColorStop(0.2, '#feb47b');
-            grd.addColorStop(0.4, '#ffed86');
-            grd.addColorStop(0.6, '#9feb8f');
-            grd.addColorStop(0.8, '#5fbfff');
-            grd.addColorStop(1, '#9b8eff');
-            
-            ctx.fillStyle = grd;
-            ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+            gradientOffset += 0.005;
+            const grd = ctx.createLinearGradient(Math.sin(gradientOffset)*100, 0, LOGICAL_WIDTH+Math.cos(gradientOffset)*100, LOGICAL_HEIGHT);
+            grd.addColorStop(0, '#ff7e5f'); grd.addColorStop(0.2, '#feb47b'); grd.addColorStop(0.4, '#ffed86');
+            grd.addColorStop(0.6, '#9feb8f'); grd.addColorStop(0.8, '#5fbfff'); grd.addColorStop(1, '#9b8eff');
+            ctx.fillStyle = grd; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
         }
 
         function createPipe() {
-            const gap = 120;
+            const gap = Math.max(85, 120 - Math.floor(score / 5) * 3); 
             const minH = 60;
             const h = Math.floor(Math.random() * (LOGICAL_HEIGHT - gap - 2 * minH)) + minH;
             pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false });
@@ -126,68 +112,67 @@
 
         function handleAction(e) {
             if(e && e.cancelable) e.preventDefault();
-            if (gameOver) { reset(); requestAnimationFrame(draw); }
-            else { velocity = jump; msg.style.opacity = "0"; }
+            if (audioCtx.state === 'suspended') audioCtx.resume(); // 激活音频上下文
+
+            if (gameOver) { 
+                reset(); 
+                requestAnimationFrame(draw); 
+            } else { 
+                velocity = -4.8; 
+                msg.style.opacity = "0"; 
+                sounds.jump(); // 播放跳跃音
+            }
         }
 
         function draw() {
-            // 1. 绘制动态彩虹背景
             drawRainbowBackground();
-
-            // 2. 绘制小鸟 (使用对比度高的白色边缘)
-            ctx.fillStyle = "#FFD700";
-            ctx.fillRect(birdX, birdY, 32, 24);
-            ctx.strokeStyle = "#fff"; // 白色边缘在深浅色切换的背景下更清晰
-            ctx.lineWidth = 2;
-            ctx.strokeRect(birdX, birdY, 32, 24);
-            ctx.fillStyle = "white"; // 眼睛
-            ctx.fillRect(birdX + 22, birdY + 4, 8, 8);
-            ctx.fillStyle = "black";
-            ctx.fillRect(birdX + 26, birdY + 6, 3, 3);
+            
+            ctx.save();
+            ctx.translate(birdX + 16, birdY + 12);
+            ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, velocity*0.1)));
+            ctx.fillStyle = "#FFD700"; ctx.fillRect(-16, -12, 32, 24);
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(-16, -12, 32, 24);
+            ctx.fillStyle = "white"; ctx.fillRect(6, -8, 8, 8);
+            ctx.restore();
 
             if (!gameOver) {
-                velocity += gravity;
-                birdY += velocity;
-                frame++;
-                if (frame % 95 === 0) createPipe();
+                velocity += 0.25; birdY += velocity; frame++;
+                pipeSpeed = 2 + (score / 15);
+                if (frame % Math.floor(180 / pipeSpeed) === 0) createPipe();
             }
 
-            // 3. 绘制水管 (使用深灰色以适应明亮的背景)
             pipes.forEach((p, i) => {
-                p.x -= 2;
-                ctx.fillStyle = "rgba(46, 139, 87, 0.9)"; // 半透明深绿
-                ctx.fillRect(p.x, 0, 52, p.y);
-                ctx.fillRect(p.x, p.y + p.gap, 52, LOGICAL_HEIGHT);
-                ctx.strokeStyle = "#fff";
-                ctx.strokeRect(p.x, 0, 52, p.y);
-                ctx.strokeRect(p.x, p.y + p.gap, 52, LOGICAL_HEIGHT);
+                p.x -= pipeSpeed;
+                ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                ctx.fillRect(p.x, 0, 50, p.y); ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
+                ctx.strokeStyle = "#fff"; ctx.strokeRect(p.x, 0, 50, p.y); ctx.strokeRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
 
-                if (birdX + 28 > p.x && birdX < p.x + 48) {
-                    if (birdY < p.y || birdY + 20 > p.y + p.gap) gameOver = true;
+                if (birdX + 26 > p.x && birdX < p.x + 46) {
+                    if (birdY < p.y || birdY + 20 > p.y + p.gap) {
+                        if(!gameOver) sounds.hit(); // 播放撞击音
+                        gameOver = true;
+                    }
                 }
-                if (!p.passed && p.x + 52 < birdX) { score++; p.passed = true; }
-                if (p.x + 52 < 0) pipes.splice(i, 1);
+                if (!p.passed && p.x + 50 < birdX) { 
+                    score++; 
+                    p.passed = true;
+                    sounds.score(); // 播放得分音
+                    if(score > highScore) { highScore = score; localStorage.setItem('pixelBirdHighScore', highScore); }
+                }
+                if (p.x + 50 < 0) pipes.splice(i, 1);
             });
 
-            if (birdY + 24 > LOGICAL_HEIGHT || birdY < 0) gameOver = true;
+            if (birdY + 24 > LOGICAL_HEIGHT || birdY < 0) {
+                if(!gameOver) sounds.hit();
+                gameOver = true;
+            }
 
-            // 4. 分数显示
-            ctx.fillStyle = "white";
-            ctx.font = "bold 44px Arial";
-            ctx.textAlign = "center";
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = "rgba(0,0,0,0.5)";
-            ctx.fillText(score, LOGICAL_WIDTH / 2, 70);
-            ctx.shadowBlur = 0;
+            drawUI();
 
             if (gameOver) {
-                ctx.fillStyle = "rgba(0,0,0,0.7)";
-                ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-                ctx.fillStyle = "white";
-                ctx.font = "bold 32px Arial";
-                ctx.fillText("游戏结束", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 - 20);
-                ctx.font = "20px Arial";
-                ctx.fillText("再次点击挑战", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 + 30);
+                ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.fillText("游戏结束", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 - 20);
+                ctx.font = "18px Arial"; ctx.fillText("再次点击挑战关卡", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 + 20);
             } else {
                 requestAnimationFrame(draw);
             }
@@ -198,9 +183,7 @@
         canvas.addEventListener('touchstart', handleAction, {passive: false});
         window.addEventListener('resize', resizeCanvas);
 
-        resizeCanvas();
-        reset();
-        draw();
+        resizeCanvas(); reset(); draw();
     </script>
 </body>
 </html>
