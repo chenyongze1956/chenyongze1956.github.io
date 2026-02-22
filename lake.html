@@ -8,66 +8,147 @@
         * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; box-sizing: border-box; }
         body { 
             display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; 
+            /* 使用你指定的彩虹渐变背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; 
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+            overflow: hidden; font-family: 'Segoe UI', sans-serif;
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
         #game-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        canvas { border: 6px solid #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 95%; max-height: 95%; object-fit: contain; }
-        .info { position: absolute; top: 50px; color: #fff; text-align: center; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-size: 18px; font-weight: bold; z-index: 10; transition: opacity 0.5s; }
+        canvas { border: 6px solid #fff; border-radius: 12px; max-width: 95%; max-height: 95%; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .info { position: absolute; top: 40px; color: #fff; text-align: center; pointer-events: none; font-size: 16px; font-weight: bold; z-index: 10; width: 100%; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div class="info" id="msg">点击屏幕跳跃 (音效已开启)</div>
+        <div class="info" id="msg">
+            <span style="color: #fff;">【空格键】跳跃</span> | <span style="color: #fff;">【鼠标】换色</span><br>
+            <span style="font-size: 12px; opacity: 0.8;">颜色对准水管即可通过</span>
+        </div>
         <canvas id="birdCanvas"></canvas>
     </div>
-
     <script>
         const canvas = document.getElementById('birdCanvas');
         const ctx = canvas.getContext('2d');
         const msg = document.getElementById('msg');
-
         const LOGICAL_WIDTH = 320;
         const LOGICAL_HEIGHT = 480;
-        const LEVEL_STEP = 10;
-
-        let birdY, birdX, velocity, score, pipes, frame, gameOver, gradientOffset = 0;
-        let highScore = localStorage.getItem('pixelBirdHighScore') || 0; 
-        let pipeSpeed = 2;
-
-        // --- 音效系统 (Web Audio API) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
+        const COLOR_PALETTE = ['#FF0000', '#FF8C00', '#FFD700', '#00FF00', '#0000FF', '#8A2BE2'];
+        let birdColorIndex = 2; 
+        let birdY, birdX, velocity, score, pipes, frame, gameOver;
+        let highScore = localStorage.getItem('pixelBirdHighScore') || 0; 
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, type, duration, vol) {
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.type = type; // square, triangle, sine, sawtooth
-            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            if (type === 'sawtooth') oscillator.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
-            if (type === 'square') oscillator.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + duration);
-            
-            gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + duration);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
         }
 
-        const sounds = {
-            jump: () => playSound(400, 'square', 0.1, 0.1),
-            score: () => playSound(800, 'triangle', 0.3, 0.15),
-            hit: () => playSound(150, 'sawtooth', 0.4, 0.2)
-        };
-        // ------------------------------
-
         function reset() {
-            birdY = 200; birdX = 50; velocity = 0; score = 0;
-            pipes = []; frame = 0; gameOver = false; pipeSpeed = 2;
+            birdY = 240; birdX = 50; velocity = 0; score = 0;
+            birdColorIndex = 2; pipes = []; frame = 0; gameOver = false;
             msg.style.opacity = "1";
-            if(pipes.length === 0) createPipe();
+            createPipe();
+        }
+
+        function createPipe() {
+            const gap = 160; 
+            const h = Math.floor(Math.random() * (LOGICAL_HEIGHT - 280)) + 60;
+            const pColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
+            pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false, color: pColor });
+        }
+
+        // 鼠标点击：只换色
+        function handleMouseAction(e) {
+            if(e && e.cancelable) e.preventDefault();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (gameOver) { reset(); requestAnimationFrame(draw); return; }
+            birdColorIndex = (birdColorIndex + 1) % COLOR_PALETTE.length;
+            playSound(700, 'sine', 0.05, 0.03);
+            msg.style.opacity = "0"; 
+        }
+
+        // 空格键：只跳跃
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (gameOver) { reset(); requestAnimationFrame(draw); return; }
+                velocity = -2.8; 
+                playSound(300, 'sine', 0.1, 0.05);
+                msg.style.opacity = "0";
+            }
+        });
+
+        function draw() {
+            // 背景透明清除，让 CSS 的渐变背景透出来
+            ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+            // 绘制小鸟
+            ctx.save();
+            ctx.translate(birdX + 16, birdY + 12);
+            ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, velocity*0.15)));
+            ctx.fillStyle = gameOver ? "#666" : COLOR_PALETTE[birdColorIndex];
+            ctx.fillRect(-16, -12, 32, 24);
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(-16, -12, 32, 24);
+            ctx.restore();
+
+            if (!gameOver) {
+                velocity += 0.1; 
+                birdY += velocity;
+                frame++;
+                if (frame % 150 === 0) createPipe(); 
+            }
+
+            pipes.forEach((p, i) => {
+                p.x -= 0.8; 
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = 0.8;
+                ctx.fillRect(p.x, 0, 50, p.y); 
+                ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
+                ctx.globalAlpha = 1.0;
+                ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, 0, 50, p.y); ctx.strokeRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
+
+                if (birdX + 26 > p.x && birdX < p.x + 46) {
+                    const colorMatch = COLOR_PALETTE[birdColorIndex] === p.color;
+                    if (birdY < p.y || birdY + 24 > p.y + p.gap || !colorMatch) {
+                        gameOver = true;
+                    }
+                }
+                if (!p.passed && p.x + 50 < birdX) { 
+                    score++; p.passed = true;
+                    if(score > highScore) { highScore = score; localStorage.setItem('pixelBirdHighScore', highScore); }
+                }
+                if (p.x + 50 < 0) pipes.splice(i, 1);
+            });
+
+            if (birdY + 24 > LOGICAL_HEIGHT || birdY < 0) gameOver = true;
+
+            // 分数
+            ctx.fillStyle = "white"; ctx.font = "bold 40px Arial"; ctx.textAlign = "center";
+            ctx.fillText(score, LOGICAL_WIDTH / 2, 75);
+            
+            // 颜色预览
+            const nextColor = COLOR_PALETTE[(birdColorIndex + 1) % COLOR_PALETTE.length];
+            ctx.fillStyle = nextColor;
+            ctx.beginPath(); ctx.arc(30, 30, 10, 0, Math.PI*2); ctx.fill(); 
+            ctx.strokeStyle = "white"; ctx.stroke();
+
+            if (gameOver) {
+                ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("石化了！按空格重启", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2);
+            } else {
+                requestAnimationFrame(draw);
+            }
         }
 
         function resizeCanvas() {
@@ -81,108 +162,9 @@
             canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT;
         }
 
-        function drawUI() {
-            const barW = 200, barH = 14, barX = (LOGICAL_WIDTH - barW) / 2, barY = 80;
-            ctx.fillStyle = "rgba(0,0,0,0.2)";
-            ctx.beginPath(); ctx.roundRect(barX, barY, barW, barH, 7); ctx.fill();
-            const progress = (score % LEVEL_STEP) / LEVEL_STEP;
-            const currentLevel = Math.floor(score / LEVEL_STEP) + 1;
-            ctx.fillStyle = "#fff";
-            ctx.beginPath(); ctx.roundRect(barX + 2, barY + 2, (barW - 4) * progress, barH - 4, 5); ctx.fill();
-            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
-            ctx.fillText("Level " + currentLevel, LOGICAL_WIDTH / 2, barY - 10);
-            ctx.font = "bold 40px Arial"; ctx.fillText(score, LOGICAL_WIDTH / 2, 60);
-            ctx.font = "bold 12px Arial"; ctx.fillText("BEST: " + highScore, LOGICAL_WIDTH / 2, 115);
-        }
-
-        function drawRainbowBackground() {
-            gradientOffset += 0.005;
-            const grd = ctx.createLinearGradient(Math.sin(gradientOffset)*100, 0, LOGICAL_WIDTH+Math.cos(gradientOffset)*100, LOGICAL_HEIGHT);
-            grd.addColorStop(0, '#ff7e5f'); grd.addColorStop(0.2, '#feb47b'); grd.addColorStop(0.4, '#ffed86');
-            grd.addColorStop(0.6, '#9feb8f'); grd.addColorStop(0.8, '#5fbfff'); grd.addColorStop(1, '#9b8eff');
-            ctx.fillStyle = grd; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-        }
-
-        function createPipe() {
-            const gap = Math.max(85, 120 - Math.floor(score / 5) * 3); 
-            const minH = 60;
-            const h = Math.floor(Math.random() * (LOGICAL_HEIGHT - gap - 2 * minH)) + minH;
-            pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false });
-        }
-
-        function handleAction(e) {
-            if(e && e.cancelable) e.preventDefault();
-            if (audioCtx.state === 'suspended') audioCtx.resume(); // 激活音频上下文
-
-            if (gameOver) { 
-                reset(); 
-                requestAnimationFrame(draw); 
-            } else { 
-                velocity = -4.8; 
-                msg.style.opacity = "0"; 
-                sounds.jump(); // 播放跳跃音
-            }
-        }
-
-        function draw() {
-            drawRainbowBackground();
-            
-            ctx.save();
-            ctx.translate(birdX + 16, birdY + 12);
-            ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, velocity*0.1)));
-            ctx.fillStyle = "#FFD700"; ctx.fillRect(-16, -12, 32, 24);
-            ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(-16, -12, 32, 24);
-            ctx.fillStyle = "white"; ctx.fillRect(6, -8, 8, 8);
-            ctx.restore();
-
-            if (!gameOver) {
-                velocity += 0.25; birdY += velocity; frame++;
-                pipeSpeed = 2 + (score / 15);
-                if (frame % Math.floor(180 / pipeSpeed) === 0) createPipe();
-            }
-
-            pipes.forEach((p, i) => {
-                p.x -= pipeSpeed;
-                ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-                ctx.fillRect(p.x, 0, 50, p.y); ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
-                ctx.strokeStyle = "#fff"; ctx.strokeRect(p.x, 0, 50, p.y); ctx.strokeRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
-
-                if (birdX + 26 > p.x && birdX < p.x + 46) {
-                    if (birdY < p.y || birdY + 20 > p.y + p.gap) {
-                        if(!gameOver) sounds.hit(); // 播放撞击音
-                        gameOver = true;
-                    }
-                }
-                if (!p.passed && p.x + 50 < birdX) { 
-                    score++; 
-                    p.passed = true;
-                    sounds.score(); // 播放得分音
-                    if(score > highScore) { highScore = score; localStorage.setItem('pixelBirdHighScore', highScore); }
-                }
-                if (p.x + 50 < 0) pipes.splice(i, 1);
-            });
-
-            if (birdY + 24 > LOGICAL_HEIGHT || birdY < 0) {
-                if(!gameOver) sounds.hit();
-                gameOver = true;
-            }
-
-            drawUI();
-
-            if (gameOver) {
-                ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-                ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.fillText("游戏结束", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 - 20);
-                ctx.font = "18px Arial"; ctx.fillText("再次点击挑战关卡", LOGICAL_WIDTH/2, LOGICAL_HEIGHT/2 + 20);
-            } else {
-                requestAnimationFrame(draw);
-            }
-        }
-
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleAction(); });
-        canvas.addEventListener('mousedown', handleAction);
-        canvas.addEventListener('touchstart', handleAction, {passive: false});
         window.addEventListener('resize', resizeCanvas);
-
+        canvas.addEventListener('mousedown', handleMouseAction);
+        canvas.addEventListener('touchstart', handleMouseAction, {passive: false});
         resizeCanvas(); reset(); draw();
     </script>
 </body>
