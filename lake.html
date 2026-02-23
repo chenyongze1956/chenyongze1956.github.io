@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pixel Bird - Power Up Edition</title>
+    <title>Pixel Bird - Jewel Power Edition</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; box-sizing: border-box; }
         body { 
@@ -26,7 +26,6 @@
         }
         .hint-label { color: white; font-size: 10px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
         #next-color-box { width: 30px; height: 30px; border-radius: 6px; border: 2px solid white; margin: 0 auto; transition: background 0.2s; }
-        /* 道具进度条容器 */
         #power-ui {
             position: absolute; bottom: 30px; width: 200px; height: 12px;
             background: rgba(0,0,0,0.3); border-radius: 6px; border: 2px solid #fff;
@@ -48,9 +47,9 @@
         </div>
 
         <div id="power-ui"><div id="power-bar"></div></div>
-
         <canvas id="birdCanvas"></canvas>
     </div>
+
     <script>
         const canvas = document.getElementById('birdCanvas');
         const ctx = canvas.getContext('2d');
@@ -67,10 +66,11 @@
         let combo = 0, particles = [], scoreScale = 1;
         let lastPipeColor = '';
         
-        // 道具系统变量
+        // 道具系统
         let powerItems = [];
-        let invincibilityTimer = 0; // 无敌剩余帧数 (约 60fps)
-        const INVINCIBILITY_DURATION = 300; // 5秒
+        let invincibilityTimer = 0; 
+        let magnetTimer = 0; // 磁铁计时
+        const POWER_DURATION = 300; 
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, type, duration, vol) {
@@ -106,7 +106,8 @@
         function reset() {
             birdY = 240; birdX = 50; velocity = 0; score = 0; combo = 0;
             birdColorIndex = 2; pipes = []; frame = 0; gameOver = false;
-            particles = []; lastPipeColor = ''; powerItems = []; invincibilityTimer = 0;
+            particles = []; lastPipeColor = ''; powerItems = []; 
+            invincibilityTimer = 0; magnetTimer = 0;
             powerUI.style.display = 'none';
             hiScoreEl.innerText = localStorage.getItem('pixelBirdHighScore') || 0;
             updateNextHint();
@@ -119,9 +120,14 @@
             const pColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
             pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false, color: pColor });
             
-            // 20% 概率在水管中间生成无敌星
-            if (Math.random() < 0.2) {
-                powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, collected: false });
+            // 道具生成概率控制
+            const rand = Math.random();
+            if (rand < 0.15) {
+                powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, collected: false, type: 'star' });
+            } else if (rand < 0.25) {
+                powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, collected: false, type: 'magnet' });
+            } else if (rand < 0.32) {
+                powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, collected: false, type: 'bomb' });
             }
         }
 
@@ -145,12 +151,16 @@
         function draw() {
             ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-            // 道具逻辑更新
-            if (invincibilityTimer > 0) {
-                invincibilityTimer--;
+            // 道具进度条逻辑
+            const currentMaxPower = Math.max(invincibilityTimer, magnetTimer);
+            if (currentMaxPower > 0) {
+                if (invincibilityTimer > 0) invincibilityTimer--;
+                if (magnetTimer > 0) magnetTimer--;
                 powerUI.style.display = 'block';
-                powerBar.style.width = (invincibilityTimer / INVINCIBILITY_DURATION * 100) + '%';
-                if (invincibilityTimer === 0) powerUI.style.display = 'none';
+                powerBar.style.width = (currentMaxPower / POWER_DURATION * 100) + '%';
+                // 磁铁状态进度条变为蓝色
+                powerBar.style.background = invincibilityTimer > 0 ? 'linear-gradient(90deg, #ff0, #f0f, #0ff)' : '#33B5E5';
+                if (currentMaxPower <= 0) powerUI.style.display = 'none';
             }
 
             // 粒子系统
@@ -163,31 +173,77 @@
             });
             ctx.globalAlpha = 1.0;
 
-            // 绘制限时道具（星星）
+            // 绘制与更新道具
             powerItems.forEach((item, i) => {
                 if (!item.collected) {
-                    item.x -= 1.2;
+                    // 磁铁吸引逻辑：吸引所有星星和未触碰道具
+                    if (magnetTimer > 0) {
+                        const dx = (birdX + 16) - item.x;
+                        const dy = (birdY + 12) - item.y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 150) { // 吸引半径
+                            item.x += dx * 0.08;
+                            item.y += dy * 0.08;
+                        } else {
+                            item.x -= 1.2;
+                        }
+                    } else {
+                        item.x -= 1.2;
+                    }
+
                     ctx.save();
                     ctx.translate(item.x, item.y);
                     ctx.rotate(frame * 0.1);
-                    ctx.fillStyle = `hsl(${(frame * 5) % 360}, 100%, 70%)`;
-                    ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-                    // 画个五角星
-                    ctx.beginPath();
-                    for(let j=0; j<5; j++) {
-                        ctx.lineTo(Math.cos((18+j*72)/180*Math.PI)*12, -Math.sin((18+j*72)/180*Math.PI)*12);
-                        ctx.lineTo(Math.cos((54+j*72)/180*Math.PI)*6, -Math.sin((54+j*72)/180*Math.PI)*6);
+                    
+                    if (item.type === 'star') {
+                        // 无敌星绘制
+                        ctx.fillStyle = `hsl(${(frame * 5) % 360}, 100%, 70%)`;
+                        ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+                        ctx.beginPath();
+                        for(let j=0; j<5; j++) {
+                            ctx.lineTo(Math.cos((18+j*72)/180*Math.PI)*12, -Math.sin((18+j*72)/180*Math.PI)*12);
+                            ctx.lineTo(Math.cos((54+j*72)/180*Math.PI)*6, -Math.sin((54+j*72)/180*Math.PI)*6);
+                        }
+                        ctx.closePath(); ctx.fill();
+                    } else if (item.type === 'magnet') {
+                        // 磁铁绘制
+                        ctx.fillStyle = '#33B5E5';
+                        ctx.shadowBlur = 10; ctx.shadowColor = '#33B5E5';
+                        ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
+                        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+                    } else if (item.type === 'bomb') {
+                        // 炸弹绘制
+                        ctx.fillStyle = '#333';
+                        ctx.shadowBlur = 10; ctx.shadowColor = '#000';
+                        ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI*2); ctx.fill();
+                        ctx.fillStyle = '#FF4444'; ctx.fillRect(2, -14, 4, 6);
                     }
-                    ctx.closePath(); ctx.fill();
                     ctx.restore();
 
                     // 碰撞检测
                     let dist = Math.hypot(birdX + 16 - item.x, birdY + 12 - item.y);
                     if (dist < 25) {
                         item.collected = true;
-                        invincibilityTimer = INVINCIBILITY_DURATION;
-                        createParticles(item.x, item.y, "#fff", 30);
-                        playSound(880, 'square', 0.4, 0.1);
+                        if (item.type === 'star') {
+                            invincibilityTimer = POWER_DURATION;
+                            createParticles(item.x, item.y, "#fff", 30);
+                            playSound(880, 'square', 0.4, 0.1);
+                        } else if (item.type === 'magnet') {
+                            magnetTimer = POWER_DURATION;
+                            createParticles(item.x, item.y, "#33B5E5", 25);
+                            playSound(700, 'sine', 0.3, 0.1);
+                        } else if (item.type === 'bomb') {
+                            // 炸弹触发：炸毁当前所有可见水管
+                            createParticles(item.x, item.y, "#FF8800", 50);
+                            playSound(150, 'sawtooth', 0.5, 0.3);
+                            pipes.forEach(p => { 
+                                if(!p.passed) { 
+                                    p.x = -100; // 移出屏幕
+                                    p.passed = true; 
+                                    score++; 
+                                }
+                            });
+                        }
                     }
                 }
                 if (item.x < -20) powerItems.splice(i, 1);
@@ -200,7 +256,6 @@
             ctx.scale(birdScale, birdScale);
             ctx.rotate(Math.min(Math.PI/4, Math.max(-Math.PI/4, velocity*0.15)));
             
-            // 无敌时呈现彩虹色闪烁
             if (invincibilityTimer > 0) {
                 ctx.fillStyle = `hsl(${(frame * 10) % 360}, 80%, 60%)`;
             } else {
@@ -217,6 +272,7 @@
                 if (frame % 120 === 0) createPipe();
             }
 
+            // 水管逻辑
             pipes.forEach((p, i) => {
                 p.x -= 1.2;
                 ctx.fillStyle = p.color;
@@ -228,7 +284,6 @@
 
                 if (birdX + 28 > p.x && birdX < p.x + 48) {
                     const colorMatch = COLOR_PALETTE[birdColorIndex] === p.color;
-                    // 核心逻辑改动：无敌状态下忽略颜色和碰撞
                     if (invincibilityTimer === 0) {
                         if (birdY < p.y || birdY + 22 > p.y + p.gap || !colorMatch) {
                             gameOver = true;
@@ -261,7 +316,7 @@
             if(scoreScale > 1) scoreScale -= 0.05;
 
             if(combo > 1) {
-                ctx.fillStyle = "#ffeb3b"; ctx.font = "bold 20px Arial";
+                ctx.fillStyle = "#ffeb3b"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center";
                 ctx.fillText(combo + " COMBO!", LOGICAL_WIDTH/2, 120);
             }
 
