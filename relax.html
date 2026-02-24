@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenSpace Forest - 森林白噪音</title>
+    <style>
+        :root { }
+        body {
+            margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center;
+background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    
+            font-family: 'Segoe UI', system-ui, sans-serif; color: #1a2f1a; overflow: hidden;
+        }
+        
+        
+        .container {
+           background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); backdrop-filter: blur(25px);
+            padding: 40px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.4);
+            width: 90%; max-width: 380px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        h1 { font-weight: 600; margin-bottom: 30px; letter-spacing: 1px; color: #064e3b; }
+        .control-group { margin-bottom: 25px; }
+        .label-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 600; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent-color); }
+        
+        button {
+            width: 100%; padding: 14px; border: none; border-radius: 15px;
+            background: #064e3b; color: #fff; cursor: pointer;
+            transition: 0.3s; margin-top: 10px; font-weight: bold; font-size: 16px;
+        }
+        button:hover { background: #022c22; transform: translateY(-2px); }
+        #overlay { position: fixed; inset: 0; pointer-events: none; z-index: 10; transition: background 0.1s; }
+    </style>
+</head>
+<body>
+    <div id="overlay"></div>
+    <div class="container">
+        <h1>自然声</h1>
+        
+        <div class="control-group">
+            <div class="label-row"><span>🌧️ 真实雨声</span><span id="rain-val">0%</span></div>
+            <input type="range" id="rain" min="0" max="1" step="0.01" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="label-row"><span>🐦 森林鸟鸣</span><span id="birds-val">0%</span></div>
+            <input type="range" id="birds" min="0" max="1" step="0.01" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="label-row"><span>🍃 阵风</span><span id="wind-val">0%</span></div>
+            <input type="range" id="wind" min="0" max="1" step="0.01" value="0">
+        </div>
+
+        <button onclick="playThunder()">⚡ 触发闪电</button>
+    </div>
+
+    <script>
+        let audioCtx;
+        const nodes = {};
+        let birdVolume = 0;
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            nodes.rain = createRainNode();
+            nodes.wind = createWindNode();
+            startBirdLoop(); // 启动异步鸟鸣循环
+        }
+
+        // --- 雨声节点 ---
+        function createRainNode() {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                const pitterPatter = Math.random() > 0.992 ? (Math.random() * 0.4) : 0;
+                data[i] = white * 0.08 + pitterPatter;
+            }
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer; source.loop = true;
+            const hp = audioCtx.createBiquadFilter();
+            hp.type = 'highpass'; hp.frequency.value = 2500;
+            const lp = audioCtx.createBiquadFilter();
+            lp.type = 'lowpass'; lp.frequency.value = 6000;
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0;
+            source.connect(hp).connect(lp).connect(gain).connect(audioCtx.destination);
+            source.start();
+            return { gain };
+        }
+
+        // --- 风声节点 ---
+        function createWindNode() {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 3.5; 
+            }
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer; source.loop = true;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass'; filter.frequency.value = 500;
+            const lfo = audioCtx.createOscillator();
+            lfo.frequency.value = 0.12; 
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 400;
+            lfo.connect(lfoGain); lfoGain.connect(filter.frequency);
+            lfo.start();
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0;
+            source.connect(filter).connect(gain).connect(audioCtx.destination);
+            source.start();
+            return { gain };
+        }
+
+        // --- 核心：随机鸟鸣生成算法 ---
+        function tweet() {
+            if (birdVolume <= 0) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // 随机频率（高音 1500Hz - 4000Hz）
+            const freq = 1500 + Math.random() * 2500;
+            osc.frequency.setValueAtTime(freq, now);
+            
+            // 模拟“啁啾”声：快速的音调上下滑动
+            osc.frequency.exponentialRampToValueAtTime(freq * (0.5 + Math.random()), now + 0.1);
+            
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(birdVolume * (0.1 + Math.random() * 0.2), now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        }
+
+        function startBirdLoop() {
+            // 每隔 0.5 到 3 秒随机叫一次，如果是多只鸟，就叫得更勤
+            const nextIn = 500 + Math.random() * (3000 / (birdVolume * 5 + 1));
+            setTimeout(() => {
+                if (birdVolume > 0.05) {
+                    const tweets = Math.floor(Math.random() * 3) + 1; // 连续叫1-3声
+                    for(let i=0; i<tweets; i++) {
+                        setTimeout(() => tweet(), i * 150);
+                    }
+                }
+                startBirdLoop();
+            }, nextIn);
+        }
+
+        // --- 闪电逻辑 ---
+        function playThunder() {
+            if (!audioCtx) initAudio();
+            const overlay = document.getElementById('overlay');
+            overlay.style.background = "rgba(255,255,255,0.7)";
+            setTimeout(() => overlay.style.background = "transparent", 100);
+            
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            const f = audioCtx.createBiquadFilter();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(50, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1, audioCtx.currentTime + 5);
+            f.type = 'lowpass'; f.frequency.value = 80;
+            g.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 5);
+            osc.connect(f).connect(g).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 5);
+        }
+
+        // --- 事件监听 ---
+        document.getElementById('rain').addEventListener('input', (e) => {
+            if (!audioCtx) initAudio();
+            const v = parseFloat(e.target.value);
+            nodes.rain.gain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.1);
+            document.getElementById('rain-val').innerText = Math.round(v * 100) + '%';
+        });
+
+        document.getElementById('birds').addEventListener('input', (e) => {
+            if (!audioCtx) initAudio();
+            birdVolume = parseFloat(e.target.value); // 全局更新鸟鸣音量
+            document.getElementById('birds-val').innerText = Math.round(birdVolume * 100) + '%';
+        });
+
+        document.getElementById('wind').addEventListener('input', (e) => {
+            if (!audioCtx) initAudio();
+            const v = parseFloat(e.target.value);
+            nodes.wind.gain.gain.setTargetAtTime(v, audioCtx.currentTime, 0.1);
+            document.getElementById('wind-val').innerText = Math.round(v * 100) + '%';
+        });
+    </script>
+</body>
+</html>
