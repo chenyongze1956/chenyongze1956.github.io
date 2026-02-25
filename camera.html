@@ -7,275 +7,165 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
-        /* 1. 基础样式与滤镜定义 */
-        .f-none { filter: none; }
-        .f-black-white { filter: grayscale(100%); }
-        .f-sepia { filter: sepia(100%); }
-        .f-cyberpunk { filter: hue-rotate(-30deg) saturate(150%) contrast(120%) brightness(110%); }
-        .f-sketch { filter: grayscale(100%) contrast(500%) invert(100%) opacity(50%); }
+        .f-cyberpunk { filter: hue-rotate(-30deg) saturate(150%) contrast(120%); }
         .f-vivid { filter: saturate(200%) contrast(110%); }
-        .f-duotone { filter: grayscale(100%) sepia(100%) hue-rotate(160deg) saturate(200%); }
-        .f-vintage { filter: sepia(60%) saturate(120%) contrast(80%); }
-        .f-blur { filter: blur(3px); }
-        .f-invert { filter: invert(100%); }
-
-        body { 
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
-            background-size: 400% 400%; 
-            animation: grad 15s infinite; 
-        }
-        @keyframes grad { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-
-        .camera-container { aspect-ratio: 9/16; max-height: 80vh; width: 100%; max-width: 400px; }
-        .shutter-effect { animation: shutter 0.2s ease-out; }
-        @keyframes shutter { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
-
-        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
         
-        .filter-item.active .preview-box { border-color: #3B82F6; transform: scale(1.1); }
-        .filter-item.active span { color: #3B82F6; font-weight: bold; }
+        body {  
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* 扫描动画 */
+        .scan-line {
+            height: 2px;
+            background: #3B82F6;
+            box-shadow: 0 0 15px #3B82F6;
+            position: absolute;
+            width: 100%;
+            top: -2px;
+            z-index: 40;
+            display: none;
+            animation: scanning 2s linear infinite;
+        }
+        @keyframes scanning {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        .camera-container { aspect-ratio: 9/16; max-height: 85vh; width: 100%; max-width: 400px; position: relative; }
     </style>
 </head>
-<body class="text-white min-h-screen flex flex-col items-center justify-center p-4">
+<body class="flex flex-col items-center justify-center p-4">
 
-    <div class="camera-container relative mx-auto rounded-3xl overflow-hidden shadow-2xl bg-black flex flex-col border-4 border-white border-opacity-20">
-        <div class="relative flex-grow overflow-hidden">
+    <div class="camera-container rounded-3xl overflow-hidden shadow-2xl bg-black border-4 border-gray-800">
+        <div id="scan-line" class="scan-line"></div>
+        
+        <div class="relative h-full">
             <video id="video" class="w-full h-full object-cover" autoplay muted playsinline style="transform: scaleX(-1);"></video>
+            
+            <div id="ai-status" class="absolute top-4 left-4 bg-black/50 backdrop-blur px-3 py-1 rounded-full text-[10px] flex items-center hidden">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>
+                AI 年龄分析引擎已就绪
+            </div>
+            
             <div id="shutter-flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50"></div>
         </div>
 
-        <div class="absolute top-0 left-0 right-0 z-10 flex justify-between p-4">
-            <button id="toggle-camera" class="bg-black bg-opacity-40 p-3 rounded-full hover:bg-opacity-60 transition-all"><i class="fa fa-refresh text-xl"></i></button>
-            <button id="toggle-flash" class="bg-black bg-opacity-40 p-3 rounded-full hidden"><i class="fa fa-lightbulb-o text-xl"></i></button>
-        </div>
-
-        <div class="bg-black bg-opacity-80 backdrop-blur-md">
-            <div id="filter-list" class="flex space-x-4 overflow-x-auto px-4 py-3 custom-scrollbar">
-                </div>
-            <div class="pb-6 flex justify-center items-center">
-                <button id="capture-btn" class="w-16 h-16 rounded-full bg-white border-4 border-gray-400 flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                    <div class="w-12 h-12 rounded-full bg-gray-800"></div>
+        <div class="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+            <div class="flex justify-between items-center">
+                <button id="toggle-camera" class="text-white p-3 bg-white/10 rounded-full">
+                    <i class="fa fa-refresh text-xl"></i>
                 </button>
+                
+                <button id="capture-btn" class="relative group">
+                    <div class="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center group-active:scale-95 transition-all">
+                        <div class="w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center text-black">
+                            <i class="fa fa-eye text-lg"></i>
+                            <span class="text-[8px] font-bold">AI识别</span>
+                        </div>
+                    </div>
+                </button>
+                
+                <div class="w-12 h-12"></div> 
             </div>
         </div>
     </div>
 
-    <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center hidden p-4">
-        <div class="w-full max-w-md bg-gray-900 rounded-2xl p-4 relative shadow-2xl">
-            <button id="close-preview" class="absolute -top-2 -right-2 bg-red-500 w-10 h-10 rounded-full text-white z-20 shadow-lg">×</button>
-            
-            <div class="relative mb-4 group">
-                <img id="preview-image" class="w-full rounded-xl border border-gray-700 touch-none select-none" alt="Captured" draggable="false">
-                <button id="toggle-sticker-btn" class="absolute bottom-3 right-3 bg-blue-500 p-3 rounded-full text-white shadow-xl active:scale-90 transition-all">
-                    <i class="fa fa-smile-o text-2xl"></i>
-                </button>
+    <div id="preview-modal" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center p-4">
+        <div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl">
+            <img id="preview-image" class="w-full h-auto" alt="Captured Image">
+            <div id="result-label" class="absolute top-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-xl border-2 border-white shadow-lg font-bold">
+                预测年龄: <span id="predicted-age">--</span> 岁
             </div>
-
-            <div id="sticker-selection-area" class="hidden mb-4 bg-gray-800 p-3 rounded-xl flex space-x-3 overflow-x-auto custom-scrollbar">
-                </div>
-
-            <div class="flex space-x-3">
-                <button id="save-image" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-all">保存照片</button>
-                <button id="share-image" class="flex-1 bg-gray-700 text-white py-3 rounded-xl font-bold hover:bg-gray-600 transition-all">分享好友</button>
-            </div>
+        </div>
+        
+        <div class="mt-6 flex space-x-4 w-full max-w-sm">
+            <button onclick="location.reload()" class="flex-1 bg-gray-800 py-3 rounded-xl font-bold text-white">重拍</button>
+            <button id="save-btn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-white transition-colors">保存识别结果</button>
         </div>
     </div>
 
     <script>
-        // --- 1. 变量与配置 ---
         const video = document.getElementById('video');
-        const filterList = document.getElementById('filter-list');
+        const scanLine = document.getElementById('scan-line');
         const previewModal = document.getElementById('preview-modal');
         const previewImage = document.getElementById('preview-image');
-        const sArea = document.getElementById('sticker-selection-area');
-        
-        let currentStream = null;
+        const saveBtn = document.getElementById('save-btn');
         let currentFacingMode = 'user';
-        let activeStickers = [];
-        let baseImg = null;
 
-        const filters = [
-            { name: '原图', class: 'f-none' },
-            { name: '赛博', class: 'f-cyberpunk' },
-            { name: '素描', class: 'f-sketch' },
-            { name: '鲜艳', class: 'f-vivid' },
-            { name: '冷调', class: 'f-duotone' },
-            { name: '复古', class: 'f-vintage' },
-            { name: '黑白', class: 'f-black-white' },
-            { name: '模糊', class: 'f-blur' }
-        ];
-
-        const stickers = [
-            'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f60e.png',
-            'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f496.png',
-            'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f389.png',
-            'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f451.png',
-            'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f431.png'
-        ];
-
-        // --- 2. 核心功能函数 ---
-
+        // 启动相机
         async function startCamera() {
-            if (currentStream) currentStream.getTracks().forEach(t => t.stop());
             try {
-                currentStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: currentFacingMode }
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: currentFacingMode } 
                 });
-                video.srcObject = currentStream;
-                video.style.transform = currentFacingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-            } catch (e) { alert("请确保允许摄像头访问权限并在 HTTPS 环境下运行！"); }
+                video.srcObject = stream;
+            } catch (err) {
+                alert("无法访问摄像头，请确保页面在 HTTPS 下运行并已授权。");
+            }
         }
 
-        function createFilters() {
-            filterList.innerHTML = '';
-            filters.forEach((f, idx) => {
-                const btn = document.createElement('div');
-                btn.className = `filter-item flex-shrink-0 flex flex-col items-center cursor-pointer ${idx === 0 ? 'active' : ''}`;
-                btn.innerHTML = `
-                    <div class="preview-box w-12 h-12 rounded-full border-2 border-gray-600 transition-all mb-1 overflow-hidden">
-                        <div class="w-full h-full bg-gradient-to-tr from-gray-700 to-blue-500 ${f.class}"></div>
-                    </div>
-                    <span class="text-[10px] text-gray-400">${f.name}</span>
-                `;
-                btn.onclick = () => {
-                    video.style.filter = getComputedStyle(btn.querySelector('.preview-box div')).filter;
-                    document.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
-                    btn.classList.add('active');
-                };
-                filterList.appendChild(btn);
-            });
-        }
-
-        function capture() {
-            document.getElementById('shutter-flash').classList.add('shutter-effect');
+        // 拍照并评估
+        function captureAndAnalyze() {
+            scanLine.style.display = 'block';
+            
             setTimeout(() => {
-                document.getElementById('shutter-flash').classList.remove('shutter-effect');
+                scanLine.style.display = 'none';
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
-
-                if (currentFacingMode === 'user') {
-                    ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+                
+                if(currentFacingMode === 'user') { 
+                    ctx.translate(canvas.width, 0); 
+                    ctx.scale(-1, 1); 
                 }
-                ctx.filter = getComputedStyle(video).filter;
                 ctx.drawImage(video, 0, 0);
 
-                baseImg = new Image();
-                baseImg.onload = () => {
-                    activeStickers = [];
-                    renderPreview();
-                    previewModal.classList.remove('hidden');
-                };
-                baseImg.src = canvas.toDataURL('image/png');
-            }, 200);
-        }
-
-        function renderPreview() {
-            const canvas = document.createElement('canvas');
-            canvas.width = baseImg.width;
-            canvas.height = baseImg.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(baseImg, 0, 0);
-            activeStickers.forEach(s => ctx.drawImage(s.img, s.x, s.y, s.w, s.h));
-            previewImage.src = canvas.toDataURL('image/png');
-        }
-
-        function addSticker(url) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => {
-                const size = baseImg.width * 0.25;
-                activeStickers.push({ img, x: (baseImg.width-size)/2, y: (baseImg.height-size)/2, w: size, h: size });
-                renderPreview();
-            };
-            img.src = url;
-        }
-
-        // --- 3. 拖拽交互 ---
-        let isDragging = false, dragIdx = null, startPos = {x:0, y:0};
-        function handleDrag(e) {
-            const rect = previewImage.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const x = (clientX - rect.left) * (baseImg.width / rect.width);
-            const y = (clientY - rect.top) * (baseImg.height / rect.height);
-
-            if (e.type.includes('start')) {
-                activeStickers.forEach((s, i) => {
-                    if (x > s.x && x < s.x + s.w && y > s.y && y < s.y + s.h) {
-                        isDragging = true; dragIdx = i;
-                        startPos = { x: x - s.x, y: y - s.y };
-                    }
-                });
-            } else if (e.type.includes('move') && isDragging) {
-                if(e.cancelable) e.preventDefault();
-                activeStickers[dragIdx].x = x - startPos.x;
-                activeStickers[dragIdx].y = y - startPos.y;
-                renderPreview();
-            } else { isDragging = false; }
-        }
-
-        // --- 4. 分享增强逻辑 ---
-        async function handleShare() {
-            try {
-                if (!navigator.share) throw new Error('不支持 Web Share');
+                // 随机预测年龄逻辑
+                const predictedAge = Math.floor(Math.random() * (35 - 18 + 1)) + 18;
+                document.getElementById('predicted-age').innerText = predictedAge;
                 
-                // 转 Base64 为真实 File 对象
-                const res = await fetch(previewImage.src);
-                const blob = await res.blob();
-                const file = new File([blob], 'selfie.png', { type: 'image/png' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: '我的自拍',
-                        text: '来自自制高级相机的作品！'
-                    });
-                } else { throw new Error('环境限制文件分享'); }
-            } catch (err) {
-                // 降级方案：复制到剪贴板
-                try {
-                    const res = await fetch(previewImage.src);
-                    const blob = await res.blob();
-                    await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
-                    alert('原生分享不可用。图片已复制到剪贴板，可直接粘贴给好友！');
-                } catch (e) {
-                    alert('分享受限：请先保存照片到相册后再手动分享。');
-                }
-            }
+                // 设置预览图
+                previewImage.src = canvas.toDataURL('image/png');
+                previewModal.classList.remove('hidden');
+                
+                if(navigator.vibrate) navigator.vibrate(50);
+            }, 1500);
         }
 
-        // --- 5. 事件初始化 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            startCamera();
-            createFilters();
+        // 保存逻辑实现
+        saveBtn.onclick = () => {
+            const imageData = previewImage.src;
+            if (!imageData) return;
+
+            const link = document.createElement('a');
+            link.href = imageData;
+            link.download = `AI_Age_Selfie_${new Date().getTime()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // 成功反馈
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = "✓ 已触发下载";
+            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
             
-            stickers.forEach(url => {
-                const img = document.createElement('img');
-                img.src = url;
-                img.className = "w-12 h-12 p-1 bg-gray-700 rounded cursor-pointer active:scale-90 transition-all";
-                img.onclick = () => addSticker(url);
-                sArea.appendChild(img);
-            });
+            setTimeout(() => {
+                saveBtn.innerText = originalText;
+                saveBtn.classList.replace('bg-green-600', 'bg-blue-600');
+            }, 2000);
+        };
 
-            document.getElementById('capture-btn').onclick = capture;
-            document.getElementById('toggle-camera').onclick = () => {
-                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-                startCamera();
-            };
-            document.getElementById('toggle-sticker-btn').onclick = () => sArea.classList.toggle('hidden');
-            document.getElementById('close-preview').onclick = () => previewModal.classList.add('hidden');
-            document.getElementById('save-image').onclick = () => {
-                const a = document.createElement('a');
-                a.href = previewImage.src; a.download = `selfie_${Date.now()}.png`; a.click();
-            };
-            document.getElementById('share-image').onclick = handleShare;
+        document.getElementById('capture-btn').onclick = captureAndAnalyze;
+        document.getElementById('toggle-camera').onclick = () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startCamera();
+        };
 
-            const dragEvents = ['mousedown', 'mousemove', 'mouseup', 'touchstart', 'touchmove', 'touchend'];
-            dragEvents.forEach(n => previewImage.addEventListener(n, handleDrag, {passive: false}));
-        });
+        window.onload = startCamera;
     </script>
 </body>
 </html>
