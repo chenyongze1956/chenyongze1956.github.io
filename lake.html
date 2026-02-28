@@ -3,50 +3,101 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pixel Bird - Master Edition</title>
     <style>
-        * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; box-sizing: border-box; }
+        /* 基础样式优化 */
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            touch-action: none; /* 禁用系统默认手势 */
+            user-select: none; 
+            box-sizing: border-box; 
+        }
+        
         body { 
             display: flex; justify-content: center; align-items: center; 
-            height: 100vh; margin: 0; 
+            height: 100vh; margin: 0; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            background-size: 1800% 1800%;
+            background-size: 600% 600%;
             animation: rainbowBG 18s ease infinite;
             overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif;
         }
+
         @keyframes rainbowBG {
             0%{background-position:0% 82%}
             50%{background-position:100% 19%}
             100%{background-position:0% 82%}
         }
-        #game-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        canvas { 
-            border: 4px solid rgba(255,255,255,0.9); border-radius: 12px; 
-            background: rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px);
-            max-width: 98%; max-height: 98%; object-fit: contain; 
-            box-shadow: 0 0 40px rgba(0,0,0,0.4); 
-            transition: filter 0.4s ease;
+
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            height: 100%; 
+            max-width: 500px; /* 电脑端限制最大宽度，保持手机观感 */
+            max-height: 900px;
+            display: flex; justify-content: center; align-items: center; 
         }
-        .info { position: absolute; top: 25px; color: #fff; text-align: center; pointer-events: none; z-index: 10; width: 100%; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+        canvas { 
+            border: 4px solid rgba(255,255,255,0.9); 
+            border-radius: 16px; 
+            background: rgba(0, 0, 0, 0.15); 
+            backdrop-filter: blur(8px);
+            width: 100%; 
+            height: auto;
+            aspect-ratio: 2 / 3; /* 锁定黄金游戏比例 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+            image-rendering: pixelated; /* 增强像素感 */
+        }
+
+        /* 顶部信息布局优化 */
+        .info { 
+            position: absolute; top: 30px; color: #fff; 
+            text-align: center; z-index: 10; width: 100%; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5); 
+        }
+
+
+        #hiScore{
+
+
+         position:relative;
+            top: 80px;
+            
+        }
+
         #next-hint { 
-            position: absolute; top: 20px; right: 40px; 
-            background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 12px; 
+            position: absolute; top: 20px; right: 20px; 
+            background: rgba(0, 0, 0, 0.3); padding: 6px; border-radius: 12px; 
             border: 2px solid rgba(255,255,255,0.4); z-index: 11;
         }
-        #next-color-box { width: 34px; height: 34px; border-radius: 8px; border: 2px solid white; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-        #power-ui { position: absolute; bottom: 80px; width: 220px; height: 14px; background: rgba(0,0,0,0.4); border-radius: 7px; border: 2px solid #fff; overflow: hidden; display: none; z-index: 10; }
-        #power-bar { width: 100%; height: 100%; background: #ff0; transition: width 0.1s linear; }
+
+        #next-color-box { width: 30px; height: 30px; border-radius: 6px; border: 2px solid white; }
+
+        #power-ui { 
+            position: absolute; bottom: 10%; width: 60%; height: 12px; 
+            background: rgba(0,0,0,0.4); border-radius: 10px; 
+            border: 2px solid #fff; overflow: hidden; display: none; z-index: 10; 
+        }
+        #power-bar { width: 100%; height: 100%; background: #ff0; }
+
+        /* 电脑端操作提示 */
+        .pc-hint {
+            position: absolute; bottom: 20px; color: rgba(255,255,255,0.6);
+            font-size: 12px; pointer-events: none;
+        }
+        @media (max-width: 600px) { .pc-hint { display: none; } }
     </style>
 </head>
 <body>
     <div id="game-container">
         <div class="info">
-            <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px;" id="hiScore">HI: 0</div>
+            <div style="font-size: 28px; font-weight: 900; letter-spacing: 2px;" id="hiScore">HI: 0</div>
         </div>
         <div id="next-hint"><div id="next-color-box"></div></div>
         <div id="power-ui"><div id="power-bar"></div></div>
         <canvas id="birdCanvas"></canvas>
+        <div class="pc-hint">空格/左键:跳跃 | 右键:切换颜色</div>
     </div>
 
 <script>
@@ -58,7 +109,10 @@ window.onload = function() {
     const powerUI = document.getElementById('power-ui');
     const powerBar = document.getElementById('power-bar');
 
-    const LOGICAL_WIDTH = 320, LOGICAL_HEIGHT = 480;
+    // 逻辑分辨率（固定值，绘图参考）
+    const LOGICAL_WIDTH = 320;
+    const LOGICAL_HEIGHT = 480;
+    
     const COLOR_PALETTE = ['#FF3333', '#FFAC33', '#FFEA33', '#33FF57', '#33DBFF', '#B533FF'];
     
     let birdColorIndex = 2, birdY, birdX, velocity, score, pipes, frame, gameOver;
@@ -81,26 +135,19 @@ window.onload = function() {
     }
 
     function playVictoryMelody() {
-        const melody = [
-            {f: 523.25, d: 0.1}, {f: 659.25, d: 0.1}, {f: 783.99, d: 0.1}, {f: 1046.50, d: 0.2}
-        ];
+        const melody = [{f: 523.25, d: 0.1}, {f: 659.25, d: 0.1}, {f: 783.99, d: 0.1}, {f: 1046.50, d: 0.2}];
         melody.forEach((note, i) => {
-            setTimeout(() => {
-                if (!gameOver) {
-                    playSound(note.f, 'square', note.d, 0.05);
-                    scoreScale = 1.3;
-                }
-            }, i * 120);
+            setTimeout(() => { if (!gameOver) { playSound(note.f, 'square', note.d, 0.05); scoreScale = 1.3; } }, i * 120);
         });
     }
 
-    function createParticles(x, y, color, count = 20, speed = 8) {
+    function createParticles(x, y, color, count = 15, speed = 6) {
         for(let i=0; i<count; i++) {
             particles.push({
                 x, y, color,
                 vx: (Math.random() - 0.5) * speed,
                 vy: (Math.random() - 0.5) * speed,
-                life: 1.0, size: Math.random() * 4 + 2
+                life: 1.0, size: Math.random() * 3 + 1.5
             });
         }
     }
@@ -111,7 +158,7 @@ window.onload = function() {
         invincibilityTimer = 0; magnetTimer = 0; slowMoTimer = 0; sprintTimer = 0; rhythmTimer = 0;
         powerUI.style.display = 'none';
         document.body.style.animationDuration = '18s';
-        hiScoreEl.innerText = "HI: " + (localStorage.getItem('pixelBirdHighScore') || 0);
+        hiScoreEl.innerText = "" + (localStorage.getItem('pixelBirdHighScore') || 0);
         updateNextHint(); createPipe();
     }
 
@@ -126,13 +173,11 @@ window.onload = function() {
         pipes.push({ x: LOGICAL_WIDTH, y: h, gap: gap, passed: false, color: pColor });
         
         const rand = Math.random();
-        if (rand < 0.05) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'star' });
-        else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'magnet' });
-        else if (rand < 0.15) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'hourglass' });
-        else if (rand < 0.20) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'bolt' });
-        else if (rand < 0.25) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'bomb' });
-        else if (rand < 0.30) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'kiss' });
-        else if (rand < 0.35) powerItems.push({ x: LOGICAL_WIDTH + 25, y: h + gap/2, type: 'note' });
+        const itemY = h + gap/2;
+        if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 25, y: itemY, type: 'star' });
+        else if (rand < 0.08) powerItems.push({ x: LOGICAL_WIDTH + 25, y: itemY, type: 'bolt' });
+        else if (rand < 0.12) powerItems.push({ x: LOGICAL_WIDTH + 25, y: itemY, type: 'note' });
+        else if (rand < 0.16) powerItems.push({ x: LOGICAL_WIDTH + 25, y: itemY, type: 'bomb' });
     }
 
     function draw() {
@@ -140,6 +185,7 @@ window.onload = function() {
         let step = slowMoTimer > 0 ? 0.5 : 1.0;
         if (sprintTimer > 0) step = 3.5; 
 
+        // 道具进度条逻辑
         const activeTimer = Math.max(invincibilityTimer, magnetTimer, slowMoTimer, sprintTimer, rhythmTimer);
         if (activeTimer > 0) {
             powerUI.style.display = 'block';
@@ -148,12 +194,12 @@ window.onload = function() {
             else if (invincibilityTimer > 0) { invincibilityTimer--; powerBar.style.background = "#ff0"; }
             else if (rhythmTimer > 0) { rhythmTimer--; powerBar.style.background = "#B533FF"; document.body.style.animationDuration = '4s'; }
             else if (slowMoTimer > 0) { slowMoTimer--; powerBar.style.background = "#0ff"; }
-            else if (magnetTimer > 0) { magnetTimer--; powerBar.style.background = "#33DBFF"; }
         } else { 
             powerUI.style.display = 'none';
             document.body.style.animationDuration = '18s';
         }
 
+        // 粒子
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.025;
             ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
@@ -162,46 +208,36 @@ window.onload = function() {
         });
         ctx.globalAlpha = 1.0;
 
+        // 道具
         powerItems.forEach((item, i) => {
             item.x -= 1.4 * step;
             ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(frame * 0.08);
-            ctx.shadowBlur = 15; ctx.shadowColor = "white";
-            
-            if(item.type === 'hourglass') { ctx.fillStyle="#0ff"; ctx.fillRect(-8,-8,16,16); }
-            else if(item.type === 'star') { ctx.fillStyle="#ff0"; ctx.beginPath(); for(let j=0;j<5;j++){ctx.lineTo(Math.cos((18+j*72)/180*Math.PI)*10,-Math.sin((18+j*72)/180*Math.PI)*10);ctx.lineTo(Math.cos((54+j*72)/180*Math.PI)*5,-Math.sin((54+j*72)/180*Math.PI)*5);} ctx.closePath(); ctx.fill(); }
-            else if(item.type === 'magnet') { ctx.strokeStyle="#33DBFF"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,8,Math.PI,0); ctx.stroke(); }
-            else if(item.type === 'bolt') { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(5,-2); ctx.lineTo(0,0); ctx.lineTo(8,10); ctx.lineTo(-2,2); ctx.lineTo(2,0); ctx.closePath(); ctx.fill(); }
-            else if(item.type === 'bomb') { ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill(); }
-            else if(item.type === 'kiss') { ctx.fillStyle="#ff69b4"; ctx.beginPath(); ctx.moveTo(0, 4); ctx.bezierCurveTo(-8, -4, -4, -10, 0, -4); ctx.bezierCurveTo(4, -10, 8, -4, 0, 4); ctx.fill(); }
-            else if(item.type === 'note') { 
+            if(item.type === 'note') { 
                 ctx.fillStyle="#B533FF"; ctx.beginPath(); ctx.arc(-4, 4, 5, 0, Math.PI*2);
                 ctx.fillRect(1, -12, 3, 16); ctx.fillRect(1, -12, 8, 4); ctx.fill();
+            } else if(item.type === 'star') {
+                ctx.fillStyle="#ff0"; ctx.beginPath(); for(let j=0;j<5;j++){ctx.lineTo(Math.cos((18+j*72)/180*Math.PI)*10,-Math.sin((18+j*72)/180*Math.PI)*10);ctx.lineTo(Math.cos((54+j*72)/180*Math.PI)*5,-Math.sin((54+j*72)/180*Math.PI)*5);} ctx.closePath(); ctx.fill();
+            } else if(item.type === 'bolt') {
+                ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(5,-2); ctx.lineTo(0,0); ctx.lineTo(8,10); ctx.lineTo(-2,2); ctx.lineTo(2,0); ctx.closePath(); ctx.fill();
+            } else if(item.type === 'bomb') {
+                ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill();
             }
             ctx.restore();
 
             if (Math.hypot(birdX + 16 - item.x, birdY + 12 - item.y) < 26) {
-                if(item.type === 'note') {
-                    rhythmTimer = 180; playVictoryMelody();
-                    createParticles(item.x, item.y, "#B533FF", 40, 10);
-                }
-                else if(item.type === 'hourglass') slowMoTimer = POWER_DURATION;
+                if(item.type === 'note') { rhythmTimer = 180; playVictoryMelody(); }
                 else if(item.type === 'star') invincibilityTimer = POWER_DURATION;
-                else if(item.type === 'magnet') magnetTimer = POWER_DURATION;
                 else if(item.type === 'bolt') sprintTimer = 150;
                 else if(item.type === 'bomb') { 
                     pipes.forEach(p => { if(!p.passed) { p.x = -100; p.passed = true; score++; } });
                     createParticles(item.x, item.y, "#fff", 30);
                 }
-                else if(item.type === 'kiss') {
-                    pipes.forEach(p => { p.color = COLOR_PALETTE[birdColorIndex]; });
-                    createParticles(item.x, item.y, "#ff69b4", 40, 12);
-                    playSound(900, 'triangle', 0.3);
-                }
-                if(item.type !== 'note' && item.type !== 'kiss') playSound(800, 'sine', 0.2);
+                playSound(800, 'sine', 0.2);
                 powerItems.splice(i, 1);
             }
         });
 
+        // 绘制小鸟
         ctx.save();
         ctx.translate(birdX + 16, birdY + 12);
         if (sprintTimer > 0) ctx.scale(1.6, 0.7); else ctx.rotate(velocity * 0.08);
@@ -212,6 +248,7 @@ window.onload = function() {
         ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.strokeRect(-16, -12, 32, 24);
         ctx.restore();
 
+        // 运动
         if (!gameOver) {
             if (sprintTimer > 0) { velocity = 0; birdY += (LOGICAL_HEIGHT/2 - 12 - birdY) * 0.1; } 
             else { velocity += 0.16 * step; birdY += velocity * step; }
@@ -219,10 +256,10 @@ window.onload = function() {
             if (frame % Math.floor(110 / step) === 0) createPipe();
         }
 
+        // 水管
         pipes.forEach((p, i) => {
             p.x -= 1.4 * step;
             ctx.fillStyle = p.color;
-            ctx.shadowBlur = 15;
             ctx.fillRect(p.x, 0, 50, p.y);
             ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
             
@@ -239,8 +276,7 @@ window.onload = function() {
             if (!p.passed && p.x + 50 < birdX) {
                 p.passed = true;
                 combo = (p.color === lastPipeColor) ? combo + 1 : 1;
-                lastPipeColor = p.color;
-                score += combo;
+                lastPipeColor = p.color; score += combo;
                 scoreScale = 1.4; playSound(400 + combo*40, 'sine', 0.2);
                 if(score > (localStorage.getItem('pixelBirdHighScore') || 0)) localStorage.setItem('pixelBirdHighScore', score);
             }
@@ -249,6 +285,7 @@ window.onload = function() {
 
         if (birdY > LOGICAL_HEIGHT || birdY < 0) gameOver = true;
 
+        // 得分
         ctx.save();
         ctx.translate(LOGICAL_WIDTH/2, 90); ctx.scale(scoreScale, scoreScale);
         ctx.fillStyle = "white"; ctx.font = "bold 50px Arial"; ctx.textAlign = "center";
@@ -260,45 +297,62 @@ window.onload = function() {
             ctx.fillStyle = "#fff"; ctx.font = "bold 24px Arial"; ctx.textAlign = "center";
             ctx.fillText("宝石碎了", LOGICAL_WIDTH/2, 220);
             ctx.font = "16px Arial"; ctx.fillText("得分: " + score, LOGICAL_WIDTH/2, 260);
-            ctx.fillText("点击重开", LOGICAL_WIDTH/2, 300);
+            ctx.fillText(window.ontouchstart !== undefined ? "触摸屏幕重开" : "点击或空格重开", LOGICAL_WIDTH/2, 300);
         } else {
             requestAnimationFrame(draw);
         }
     }
 
-    function handleInput(clientX) {
+    // 输入处理函数（整合 PC 和 Mobile）
+    function handleJump() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         if (gameOver) { reset(); draw(); return; }
         if (sprintTimer > 0) return;
-        if (clientX < window.innerWidth / 2) {
-            velocity = -3.4; playSound(300, 'sine', 0.1);
-        } else {
-            birdColorIndex = (birdColorIndex + 1) % COLOR_PALETTE.length;
-            updateNextHint(); playSound(600, 'triangle', 0.05);
-        }
+        velocity = -3.4; playSound(300, 'sine', 0.1);
     }
 
+    function handleColorChange() {
+        if (gameOver) return;
+        birdColorIndex = (birdColorIndex + 1) % COLOR_PALETTE.length;
+        updateNextHint(); playSound(600, 'triangle', 0.05);
+    }
+
+    // 事件绑定：电脑端键盘
     window.addEventListener('keydown', (e) => {
-        if(e.code === 'Space') {
-            e.preventDefault();
-            if (gameOver) { reset(); draw(); return; }
-            if (sprintTimer > 0) return;
-            velocity = -3.4; playSound(300, 'sine', 0.1);
+        if(e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); handleJump(); }
+        if(e.code === 'KeyC' || e.code === 'Enter') { handleColorChange(); }
+    });
+
+    // 事件绑定：通用点击/触摸
+    canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (e.button === 0) { // 左键
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) / rect.width;
+            // 如果在手机模拟或单键逻辑下，点击右侧换色，左侧跳跃
+            if (clickX > 0.5) handleColorChange(); else handleJump();
+        } else if (e.button === 2) { // 右键
+            handleColorChange();
         }
     });
 
-    canvas.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(e.clientX); });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX); }, {passive: false});
+    // 禁用右键菜单，方便右键变色
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
 
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touchX = (e.touches[0].clientX - rect.left) / rect.width;
+        if (touchX > 0.5) handleColorChange(); else handleJump();
+    }, {passive: false});
+
+    // 窗口尺寸自适应
     function resize() {
-        const ratio = LOGICAL_WIDTH / LOGICAL_HEIGHT;
-        canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT;
-        if(window.innerWidth/window.innerHeight < ratio) {
-            canvas.style.width = '96vw'; canvas.style.height = (96/ratio)+'vw';
-        } else {
-            canvas.style.height = '94vh'; canvas.style.width = (94*ratio)+'vh';
-        }
+        // 画布内部绘图分辨率固定，CSS 负责缩放
+        canvas.width = LOGICAL_WIDTH;
+        canvas.height = LOGICAL_HEIGHT;
     }
+
     window.addEventListener('resize', resize);
     resize(); reset(); draw();
 };
