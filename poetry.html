@@ -3,184 +3,182 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>璇玑织锦 - 响应式流动版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --silk: #f4ede3;
-            --gold: #b89150;
-            --red: #8c2727;
-            --green: #2d5a27;
-            --blue: #274472;
-            --purple: #5a275a;
-        }
-
+        /* 1. 流动渐变背景 */
         body {
-background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            
-            /* 关键：放大背景尺寸，为流动动画留出空间 */
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
             background-size: 400% 400%;
-            
-            /* 确保高度覆盖整个视口 */
+            animation: gradientFlow 15s ease infinite;
             min-height: 100vh;
-            width: 100%;            
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             font-family: "STKaiti", "KaiTi", serif;
-            margin: 0;
-            padding: 20px;
-color: var(--red);
-        
+            overflow-x: hidden;
         }
 
-        .title-area { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--red); letter-spacing: 8px; margin-bottom: 5px; }
-        
-        /* 织锦外框 */
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. 响应式尺寸变量 */
+        :root {
+            --cell-size: 45px;
+            --font-size: 1.4rem;
+        }
+
+        /* 针对手机端的优化 (宽度小于 500px) */
+        @media screen and (max-width: 500px) {
+            :root {
+                --cell-size: 36px;  /* 缩小格子 */
+                --font-size: 1.1rem; /* 缩小字号 */
+            }
+            .title-h1 { font-size: 1.8rem !important; }
+        }
+
+        /* 3. 织锦容器样式 */
         .brocade-frame {
-            padding: 20px;
-            background: #fff;
-            border: 15px solid #fff;
-            outline: 2px solid var(--gold);
-            box-shadow: 0 0 40px rgba(0,0,0,0.1), inset 0 0 100px rgba(184,145,80,0.1);
-            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border: 8px double #b89150;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 4px;
         }
 
-        /* 模拟五色锦：根据坐标给文字着色 */
         .grid {
             display: grid;
-            grid-template-columns: repeat(9, 42px);
-            grid-template-rows: repeat(9, 42px);
+            grid-template-columns: repeat(9, var(--cell-size));
+            grid-template-rows: repeat(9, var(--cell-size));
             gap: 1px;
-            background-color: #eee;
+            background-color: rgba(184, 145, 80, 0.3);
         }
 
         .cell {
-            width: 42px;
-            height: 42px;
+            width: var(--cell-size);
+            height: var(--cell-size);
             display: flex;
             justify-content: center;
             align-items: center;
             background: white;
-            font-size: 1.3rem;
+            font-size: var(--font-size);
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
         }
 
+        /* 交互效果 */
         .cell:hover {
-            transform: scale(1.2);
+            background: #8c2727;
+            color: white !important;
+            transform: scale(1.15);
             z-index: 10;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            color: var(--red) !important;
+            border-radius: 4px;
         }
 
-        /* 路径预览 */
-        .highlight-path { background-color: #fff9c4; color: var(--red); }
+        .highlight-active {
+            background: #fff9c4;
+            color: #8c2727;
+        }
 
-        .controls { margin-top: 30px; text-align: center; max-width: 500px; }
-        .output-box {
-            min-height: 60px;
+        /* 底部信息栏 */
+        .info-panel {
+            margin-top: 2rem;
+            width: 90%;
+            max-width: 420px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
             padding: 15px;
-            background: white;
-            border-radius: 8px;
-            border-left: 5px solid var(--red);
-            font-size: 1.2rem;
-            margin-top: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        /* 移动端适配 */
-        @media (max-width: 450px) {
-            .grid { grid-template-columns: repeat(9, 34px); grid-template-rows: repeat(9, 34px); }
-            .cell { width: 34px; height: 34px; font-size: 1rem; }
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
 <body>
 
-<div class="title-area">
-    <h1>璇玑图</h1>
-    <p>—— 锦字纵横，回环皆诗 ——</p>
-</div>
+    <div class="title-area text-center mb-6">
+        <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇玑织锦</h1>
+        <p class="text-white/80 italic mt-2 text-sm">—— 锦字纵横，回环皆诗 ——</p>
+    </div>
 
+    <div class="brocade-frame">
+        <div id="matrix" class="grid">
+            </div>
+    </div>
 
+    <div class="info-panel">
+        <div id="output" class="text-lg min-h-[1.5em]">触碰文字 开启回环</div>
+        <p class="text-[10px] text-white/50 mt-2 uppercase tracking-tighter">Compatible with PC & Mobile</p>
+    </div>
 
-<div class="brocade-frame">
-    <div id="matrix" class="grid"></div>
-</div>
+    <script>
+        const xuanjiData = [
+            "春","红","乱","蕊","落","花","飞","蝶","舞",
+            "红","树","莺","啼","晓","雾","迷","远","墅",
+            "乱","莺","芳","草","绿","堤","长","步","雨",
+            "蕊","啼","草","深","幽","径","远","山","翠",
+            "落","晓","绿","幽","静","院","闲","愁","聚",
+            "花","雾","堤","径","院","空","望","归","去",
+            "飞","迷","长","远","闲","望","月","明","孤",
+            "蝶","远","步","山","愁","归","明","灯","独",
+            "舞","墅","雨","翠","聚","去","孤","独","虚"
+        ];
 
+        const matrix = document.getElementById('matrix');
+        const output = document.getElementById('output');
 
-</div>
+        function init() {
+            xuanjiData.forEach((char, i) => {
+                const r = Math.floor(i / 9);
+                const c = i % 9;
+                const div = document.createElement('div');
+                div.className = 'cell';
+                div.innerText = char;
+                
+                // 颜色逻辑：边缘和中心着色不同
+                div.style.color = (r === c || r + c === 8) ? '#8c2727' : '#274472';
+                
+                // 适配鼠标和触摸
+                div.onmouseenter = () => showPath(r);
+                div.ontouchstart = (e) => {
+                    e.preventDefault();
+                    showPath(r);
+                };
+                div.onmouseleave = clearPath;
+                
+                matrix.appendChild(div);
+            });
+        }
 
-<script>
-    // 精心构造的 81 字回文矩阵（9x9）
-    // 特点：每一行正读反读皆有韵味，模拟回环织锦
-    const xuanjiData = [
-        "春","红","乱","蕊","落","花","飞","蝶","舞",
-        "红","树","莺","啼","晓","雾","迷","远","墅",
-        "乱","莺","芳","草","绿","堤","长","步","雨",
-        "蕊","啼","草","深","幽","径","远","山","翠",
-        "落","晓","绿","幽","静","院","闲","愁","聚",
-        "花","雾","堤","径","院","空","望","归","去",
-        "飞","迷","长","远","闲","望","月","明","孤",
-        "蝶","远","步","山","愁","归","明","灯","独",
-        "舞","墅","雨","翠","聚","去","孤","独","虚"
-    ];
+        function showPath(row) {
+            clearPath();
+            const cells = document.querySelectorAll('.cell');
+            let text = "";
+            cells.forEach((cell, i) => {
+                const r = Math.floor(i / 9);
+                if (r === row) {
+                    cell.classList.add('highlight-active');
+                    text += cell.innerText;
+                }
+            });
+            output.innerHTML = `<span class="text-yellow-400">“</span>${text}<span class="text-yellow-400">”</span>`;
+        }
 
-    const matrix = document.getElementById('matrix');
-    const output = document.getElementById('output');
+        function clearPath() {
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
+        }
 
-    // 颜色配置（模拟五色锦）
-    function getCellColor(r, c) {
-        if (r === c || r + c === 8) return '#8c2727'; // 对角线：红色
-        if (r % 2 === 0 && c % 2 === 0) return '#2d5a27'; // 绿色点缀
-        return '#274472'; // 蓝色
-    }
-
-    // 初始化
-    function init() {
-        xuanjiData.forEach((char, i) => {
-            const r = Math.floor(i / 9);
-            const c = i % 9;
-            const div = document.createElement('div');
-            div.className = 'cell';
-            div.innerText = char;
-            div.style.color = getCellColor(r, c);
-            
-            div.onmouseenter = () => showPath(r, c);
-            div.onmouseleave = clearPath;
-            
-            matrix.appendChild(div);
-        });
-    }
-
-    function showPath(row, col) {
-        const cells = document.querySelectorAll('.cell');
-        let rowText = "";
-        let colText = "";
-        
-        cells.forEach((cell, i) => {
-            const r = Math.floor(i / 9);
-            const c = i % 9;
-            
-            // 高亮行
-            if (r === row) {
-                cell.classList.add('highlight-path');
-                rowText += cell.innerText;
-            }
-        });
-
-        output.innerHTML = `<strong>横读：</strong>${rowText}<br><small style="color:#666">（反读：${rowText.split('').reverse().join('')}）</small>`;
-    }
-
-    function clearPath() {
-        document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-path'));
-    }
-
-    init();
-</script>
-
+        init();
+    </script>
 </body>
 </html>
