@@ -1,160 +1,186 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-
-@keyframes writeDown {
-            0% { clip-path: inset(0 0 100% 0); filter: blur(2px); }
-            100% { clip-path: inset(0 0 0 0); filter: blur(0); }
-        }
-        
         :root {
-            --paper-bg: #fdfaf2;
-            --ink-color: #a0522d; /* 深赭石墨色，比纯黑更有古韵 */
-            --seal-red: #b72d2d;
+            --silk: #f4ede3;
+            --gold: #b89150;
+            --red: #8c2727;
+            --green: #2d5a27;
+            --blue: #274472;
+            --purple: #5a275a;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            /* 沉稳的暗色背景，突出中间的画卷 */
-background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* 允许长卷向上对齐滚动 */
-            min-height: 100vh;
-            font-family: "STKaiti", "Kaiti", serif;
-        }
-
-        /* 响应式画卷容器 */
-        .silk-scroll {
-            position: relative;
-            width: 90%;
-            max-width: 800px;
-            margin: 40px auto;
-            background: var(--paper-bg);
-            /* 模拟宣纸纹理 */
-            background-image: 
-                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-                url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.4" numOctaves="3"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.06"/></svg>');
+background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
             
-            padding: 60px 40px;
-            border: 2px solid #8b4513;
-            outline: 8px solid var(--paper-bg);
-            box-shadow: 0 30px 70px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
-        /* 标题自适应：移动端变小 */
-        .wang-title {
-            font-family: 'Zhi Mang Xing', cursive;
-            font-size: clamp(2.5rem, 8vw, 4.5rem);
-            color: var(--ink-color);
-            text-align: center;
-            margin: 0 0 40px 0;
-            letter-spacing: 0.2em;
-            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.2));
-        }
-
-        /* 正文自适应：竖排版的核心在于限制容器高度或允许横向滚动 */
-        .wang-body-container {
+            /* 关键：放大背景尺寸，为流动动画留出空间 */
+            background-size: 400% 400%;
+            
+            /* 确保高度覆盖整个视口 */
+            min-height: 100vh;
+            width: 100%;            
             display: flex;
-            justify-content: center;
-            width: 100%;
-            overflow-x: auto; /* 移动端文字过长时可左右滑动查看卷轴 */
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .wang-body {
-            font-family: 'Ma Shan Zheng', serif;
-            font-size: clamp(1.2rem, 4vw, 1.8rem);
-            color: var(--ink-color);
-            writing-mode: vertical-rl;
-            min-height: 300px; /* 最小高度 */
-            max-height: 65vh;  /* 限制最大高度，防止手机端过长 */
-            line-height: 2.2;
-            letter-spacing: 0.15em;
-            text-align: justify;
-            text-shadow: 0.2px 0.2px 0px rgba(0,0,0,0.1);
-            padding: 10px 0;
-        }
-
-        .wang-body p {
-            margin: 0 0 0 1.5em; /* 增加行间距 */
-            white-space: nowrap; /* 保证诗句不折断 */
-        }
-
-        
-
-        /* 装饰：古印 */
-        .seal-red {
-            margin-top: 30px;
-            width: 50px;
-            height: 50px;
-            border: 2px solid var(--seal-red);
-            color: var(--seal-red);
-            display: flex;
+            flex-direction: column;
             align-items: center;
+            font-family: "STKaiti", "KaiTi", serif;
+            margin: 0;
+            padding: 20px;
+color: var(--red);
+        
+        }
+
+        .title-area { text-align: center; margin-bottom: 20px; }
+        h1 { color: var(--red); letter-spacing: 8px; margin-bottom: 5px; }
+        
+        /* 织锦外框 */
+        .brocade-frame {
+            padding: 20px;
+            background: #fff;
+            border: 15px solid #fff;
+            outline: 2px solid var(--gold);
+            box-shadow: 0 0 40px rgba(0,0,0,0.1), inset 0 0 100px rgba(184,145,80,0.1);
+            position: relative;
+        }
+
+        /* 模拟五色锦：根据坐标给文字着色 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 42px);
+            grid-template-rows: repeat(9, 42px);
+            gap: 1px;
+            background-color: #eee;
+        }
+
+        .cell {
+            width: 42px;
+            height: 42px;
+            display: flex;
             justify-content: center;
+            align-items: center;
+            background: white;
+            font-size: 1.3rem;
             font-weight: bold;
-            font-size: 16px;
-            transform: rotate(-10deg);
-            opacity: 0.7;
-            align-self: flex-end; /* 印章跟在竖排文字末尾 */
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
         }
 
-        /* 竹影阴影 */
-        .bamboo-shadow {
-            position: absolute;
-            top: 0; right: 0;
-            width: 40%; height: 100%;
-            background: linear-gradient(to left, rgba(40,50,40,0.04), transparent);
-            pointer-events: none;
-            z-index: 0;
+        .cell:hover {
+            transform: scale(1.2);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            color: var(--red) !important;
         }
 
-        /* 媒体查询优化 */
-        @media (max-width: 600px) {
-            .silk-scroll {
-                padding: 40px 20px;
-                width: 95%;
-                margin: 20px auto;
-            }
-            .wang-body {
-                height: 450px; /* 手机端适当固定高度 */
-            }
+        /* 路径预览 */
+        .highlight-path { background-color: #fff9c4; color: var(--red); }
+
+        .controls { margin-top: 30px; text-align: center; max-width: 500px; }
+        .output-box {
+            min-height: 60px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 5px solid var(--red);
+            font-size: 1.2rem;
+            margin-top: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 450px) {
+            .grid { grid-template-columns: repeat(9, 34px); grid-template-rows: repeat(9, 34px); }
+            .cell { width: 34px; height: 34px; font-size: 1rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="silk-scroll">
-        <div class="bamboo-shadow"></div>
+<div class="title-area">
+    <h1>璇玑图</h1>
+    <p>—— 锦字纵横，回环皆诗 ——</p>
+</div>
+
+
+
+<div class="brocade-frame">
+    <div id="matrix" class="grid"></div>
+</div>
+
+
+</div>
+
+<script>
+    // 精心构造的 81 字回文矩阵（9x9）
+    // 特点：每一行正读反读皆有韵味，模拟回环织锦
+    const xuanjiData = [
+        "春","红","乱","蕊","落","花","飞","蝶","舞",
+        "红","树","莺","啼","晓","雾","迷","远","墅",
+        "乱","莺","芳","草","绿","堤","长","步","雨",
+        "蕊","啼","草","深","幽","径","远","山","翠",
+        "落","晓","绿","幽","静","院","闲","愁","聚",
+        "花","雾","堤","径","院","空","望","归","去",
+        "飞","迷","长","远","闲","望","月","明","孤",
+        "蝶","远","步","山","愁","归","明","灯","独",
+        "舞","墅","雨","翠","聚","去","孤","独","虚"
+    ];
+
+    const matrix = document.getElementById('matrix');
+    const output = document.getElementById('output');
+
+    // 颜色配置（模拟五色锦）
+    function getCellColor(r, c) {
+        if (r === c || r + c === 8) return '#8c2727'; // 对角线：红色
+        if (r % 2 === 0 && c % 2 === 0) return '#2d5a27'; // 绿色点缀
+        return '#274472'; // 蓝色
+    }
+
+    // 初始化
+    function init() {
+        xuanjiData.forEach((char, i) => {
+            const r = Math.floor(i / 9);
+            const c = i % 9;
+            const div = document.createElement('div');
+            div.className = 'cell';
+            div.innerText = char;
+            div.style.color = getCellColor(r, c);
+            
+            div.onmouseenter = () => showPath(r, c);
+            div.onmouseleave = clearPath;
+            
+            matrix.appendChild(div);
+        });
+    }
+
+    function showPath(row, col) {
+        const cells = document.querySelectorAll('.cell');
+        let rowText = "";
+        let colText = "";
         
-        <h1 class="wang-title">万空歌</h1>
+        cells.forEach((cell, i) => {
+            const r = Math.floor(i / 9);
+            const c = i % 9;
+            
+            // 高亮行
+            if (r === row) {
+                cell.classList.add('highlight-path');
+                rowText += cell.innerText;
+            }
+        });
 
-        <div class="wang-body-container">
-            <div class="wang-body">
-              <p>苍青的天幕是虚设的，辽阔的大地亦是无根的浮萍；在这浩渺而孤寂的乾坤缝隙里，你我不过是沧海一粟，逆旅过客。
-那一轮金乌（日）与玉兔（月），在永恒的静默中东升西坠、周而复始。它们丈量着千万载的枯荣，可这循环往复的运行，究竟是在为谁铺陈这一场盛大的幻觉？又是在向谁邀功请赏？
-</p>
-                    <p>黄白之金、霜雪之银，那是世人指尖上最夺目的流沙。任凭你生前如何紧握，当那最后一息吐纳归于虚无，在这空空如也的双手中，可曾真正挽留过一丝余温？
-金银本无主，不过是借住在你名下的过客。</p>
-                    
-                 <p>同枕的妻、绕膝的子，那是红尘中最温热的牵绊，却也是因缘最深的错觉。在那条终将独行的幽冥之路上，灯火散尽，暮色四合。纵然是曾刻骨铭心的至亲，一旦缘尽于此，便是相逢不识，各自飘零于轮回的荒野。
-情深若幻梦，醒时已是隔世人。</p>
+        output.innerHTML = `<strong>横读：</strong>${rowText}<br><small style="color:#666">（反读：${rowText.split('').reverse().join('')}）</small>`;
+    }
 
-                  <p>那足以号令群雄的权柄、足以青史留名的显赫，在光阴的流转中，不过是瞬息的波纹。繁华落尽，铅华洗去，转瞬之间，一切的波澜壮阔都将消解在荒郊野外那一抔冷土、一封孤坟之中。
-土下一梦，人间已过千年。</p>
-                         <p>批注：我笑世人看不穿，世人笑我太癫狂。</p>
-            </div>
-            </div>
-        </div>
-    </div>
+    function clearPath() {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-path'));
+    }
+
+    init();
+</script>
 
 </body>
 </html>
-
