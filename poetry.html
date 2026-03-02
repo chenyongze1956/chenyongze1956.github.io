@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>璇玑织锦 - 响应式流动版</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
-        /* 1. 流动渐变背景 */
+        /* 1. 全屏流动渐变背景 */
         body {
             margin: 0;
             padding: 0;
@@ -20,7 +20,8 @@
             align-items: center;
             justify-content: center;
             font-family: "STKaiti", "KaiTi", serif;
-            overflow-x: hidden;
+            overflow: hidden;
+            touch-action: manipulation;
         }
 
         @keyframes gradientFlow {
@@ -35,16 +36,15 @@
             --font-size: 1.4rem;
         }
 
-        /* 针对手机端的优化 (宽度小于 500px) */
         @media screen and (max-width: 500px) {
             :root {
-                --cell-size: 36px;  /* 缩小格子 */
-                --font-size: 1.1rem; /* 缩小字号 */
+                --cell-size: 38px;
+                --font-size: 1.2rem;
             }
-            .title-h1 { font-size: 1.8rem !important; }
+            .title-h1 { font-size: 2rem !important; }
         }
 
-        /* 3. 织锦容器样式 */
+        /* 3. 织锦外框与格子 */
         .brocade-frame {
             background: rgba(255, 255, 255, 0.9);
             padding: 10px;
@@ -76,13 +76,11 @@
             user-select: none;
         }
 
-        /* 交互效果 */
         .cell:hover {
             background: #8c2727;
             color: white !important;
             transform: scale(1.15);
             z-index: 10;
-            border-radius: 4px;
         }
 
         .highlight-active {
@@ -90,17 +88,24 @@
             color: #8c2727;
         }
 
-        /* 底部信息栏 */
+        /* 4. 底部显示面板 */
         .info-panel {
             margin-top: 2rem;
             width: 90%;
             max-width: 420px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 20px;
             text-align: center;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .audio-wave {
+            display: inline-block;
+            margin-left: 8px;
+            color: #ffed86;
         }
     </style>
 </head>
@@ -108,17 +113,21 @@
 
     <div class="title-area text-center mb-6">
         <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇玑织锦</h1>
-        <p class="text-white/80 italic mt-2 text-sm">—— 锦字纵横，回环皆诗 ——</p>
+        <p class="text-white/80 italic mt-2 text-sm">锦字回环 · 寻声感应</p>
     </div>
 
     <div class="brocade-frame">
-        <div id="matrix" class="grid">
-            </div>
+        <div id="matrix" class="grid"></div>
     </div>
 
     <div class="info-panel">
-        <div id="output" class="text-lg min-h-[1.5em]">触碰文字 开启回环</div>
-        <p class="text-[10px] text-white/50 mt-2 uppercase tracking-tighter">Compatible with PC & Mobile</p>
+        <div class="flex items-center justify-center mb-2">
+            <i class="fa fa-volume-up text-white/40 text-xs mr-2"></i>
+            <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">正在初始化语音...</span>
+        </div>
+        <div id="output" class="text-xl font-bold min-h-[1.5em] text-white">
+            触碰锦字，开启回环朗读
+        </div>
     </div>
 
     <script>
@@ -136,6 +145,45 @@
 
         const matrix = document.getElementById('matrix');
         const output = document.getElementById('output');
+        const voiceStatus = document.getElementById('voice-status');
+        const synth = window.speechSynthesis;
+        let lastReadRow = -1;
+
+        // 核心：强制筛选中文语音包
+        function getChineseVoice() {
+            const allVoices = synth.getVoices();
+            // 优先级：大陆中文 -> 港台中文 -> 通用中文 -> 默认第一项
+            return allVoices.find(v => v.lang === 'zh-CN') || 
+                   allVoices.find(v => v.lang.includes('zh-CN')) ||
+                   allVoices.find(v => v.lang.includes('zh')) ||
+                   allVoices[0];
+        }
+
+        // 处理语音包加载异步问题
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {
+                const voice = getChineseVoice();
+                if (voice) voiceStatus.innerText = "中文语音引擎已就绪";
+            };
+        }
+
+        function speakText(text) {
+            synth.cancel(); // 停止当前所有播放
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            const chineseVoice = getChineseVoice();
+            
+            if (chineseVoice) {
+                utterance.voice = chineseVoice;
+                utterance.lang = 'zh-CN';
+            }
+
+            utterance.rate = 0.85;  // 稍慢，更具韵味
+            utterance.pitch = 1.0; 
+            utterance.volume = 1.0;
+
+            synth.speak(utterance);
+        }
 
         function init() {
             xuanjiData.forEach((char, i) => {
@@ -144,17 +192,21 @@
                 const div = document.createElement('div');
                 div.className = 'cell';
                 div.innerText = char;
-                
-                // 颜色逻辑：边缘和中心着色不同
+                // 对角线着色
                 div.style.color = (r === c || r + c === 8) ? '#8c2727' : '#274472';
                 
-                // 适配鼠标和触摸
-                div.onmouseenter = () => showPath(r);
+                const triggerAction = () => {
+                    if (lastReadRow !== r) {
+                        showPath(r);
+                        lastReadRow = r;
+                    }
+                };
+
+                div.onmouseenter = triggerAction;
                 div.ontouchstart = (e) => {
                     e.preventDefault();
-                    showPath(r);
+                    triggerAction();
                 };
-                div.onmouseleave = clearPath;
                 
                 matrix.appendChild(div);
             });
@@ -171,12 +223,22 @@
                     text += cell.innerText;
                 }
             });
-            output.innerHTML = `<span class="text-yellow-400">“</span>${text}<span class="text-yellow-400">”</span>`;
+            
+            output.innerHTML = `<span class="text-yellow-400">“</span>${text}<span class="text-yellow-400">”</span> <i class="fa fa-rss animate-pulse audio-wave"></i>`;
+            speakText(text);
         }
 
         function clearPath() {
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
         }
+
+        // 解决 iOS 和 Chrome 移动端自动播放限制
+        // 用户首次触摸页面任何地方即激活音频
+        document.body.addEventListener('touchstart', () => {
+            const silent = new SpeechSynthesisUtterance('');
+            synth.speak(silent);
+            voiceStatus.innerText = "音频通道已激活";
+        }, { once: true });
 
         init();
     </script>
