@@ -18,7 +18,6 @@
         .info { position: absolute; top: 40px; color: #fff; text-align: center; width: 100%; pointer-events: none; }
         #hiScore { font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #fff; }
         
-        /* 极简换脸按钮 */
         #upload-btn { 
             position: absolute; top: 15px; left: 25px; z-index: 100;
             background: rgba(255,255,255,0.2); color: white; 
@@ -27,7 +26,6 @@
             backdrop-filter: blur(2px);
         }
         #faceInput { display: none; }
-
         #next-hint { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 10px; border: 2px solid #fff; }
         #next-color-box { width: 30px; height: 30px; border-radius: 5px; }
         #power-ui { position: absolute; bottom: 12%; width: 60%; height: 12px; background: rgba(0,0,0,0.6); border-radius: 6px; border: 2px solid #fff; overflow: hidden; display: none; }
@@ -39,14 +37,12 @@
     <div id="game-container">
         <label id="upload-btn" for="faceInput" title="更换头像">📷</label>
         <input type="file" id="faceInput" accept="image/*">
-        
         <div class="info"><div id="hiScore">HI: 0</div></div>
         <div id="next-hint"><div id="next-color-box"></div></div>
         <div id="power-ui"><div id="power-bar"></div></div>
         <canvas id="birdCanvas"></canvas>
         <div class="tips">左侧:跳跃 | 右侧:变色/功能触发</div>
     </div>
-
 <script>
 window.onload = function() {
     const canvas = document.getElementById('birdCanvas');
@@ -64,8 +60,9 @@ window.onload = function() {
     let combo = 0, lastPipeColor = '', scoreScale = 1;
     let powerItems = [], particles = [], floatTexts = [];
     
-    let invincTimer = 0, sprintTimer = 0, muyuTimer = 0; 
-    let freezeTimer = 0, lightTimer = 0, buddhaTimer = 0;
+    // 状态计时器
+    let invincTimer = 0, sprintTimer = 0, muyuTimer = 0, freezeTimer = 0, lightTimer = 0, buddhaTimer = 0;
+    let ghostTimer = 0, immortalTimer = 0; // 新增鬼、仙计时器
     const DURATION = 300;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -104,6 +101,7 @@ window.onload = function() {
         birdY = 240; birdX = 50; velocity = 0; score = 0; combo = 0; 
         pipes = []; frame = 0; gameOver = false; powerItems = []; particles = []; floatTexts = [];
         invincTimer = 0; sprintTimer = 0; muyuTimer = 0; freezeTimer = 0; lightTimer = 0; buddhaTimer = 0;
+        ghostTimer = 0; immortalTimer = 0;
         powerUI.style.display = 'none';
         hiScoreEl.innerText = "HI: " + (localStorage.getItem('pixelBirdHighScore') || 0);
         updateNextHint(); createPipe();
@@ -119,6 +117,7 @@ window.onload = function() {
         const rand = Math.random();
         const itemY = h + gap/2;
         
+        // 道具生成表
         if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
         else if (rand < 0.07) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
         else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
@@ -126,12 +125,13 @@ window.onload = function() {
         else if (rand < 0.16) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
         else if (rand < 0.19) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
         else if (rand < 0.22) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
+        else if (rand < 0.25) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '鬼', effect: 'ghost', color: '#B0B0B0' });
+        else if (rand < 0.28) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '仙', effect: 'immortal', color: '#FF99CC' });
     }
 
     function handleAction(isRightSide) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         if (gameOver) { reset(); draw(); return; }
-
         if (isRightSide) {
             birdColorIndex = (birdColorIndex + 1) % COLOR_PALETTE.length;
             updateNextHint();
@@ -153,11 +153,14 @@ window.onload = function() {
         ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
         let step = 1.0; if (sprintTimer > 0) step = 3.5; if (freezeTimer > 0) step = 0;
 
-        const activeTimer = Math.max(invincTimer, sprintTimer, muyuTimer, freezeTimer, lightTimer, buddhaTimer);
+        const activeTimer = Math.max(invincTimer, sprintTimer, muyuTimer, freezeTimer, lightTimer, buddhaTimer, ghostTimer, immortalTimer);
         if (activeTimer > 0) {
             powerUI.style.display = 'block';
             powerBar.style.width = (activeTimer / DURATION * 100) + '%';
-            if (buddhaTimer > 0) { buddhaTimer--; powerBar.style.background = "#FFD700"; }
+            // 计时递减逻辑
+            if (ghostTimer > 0) { ghostTimer--; powerBar.style.background = "#B0B0B0"; }
+            else if (immortalTimer > 0) { immortalTimer--; powerBar.style.background = "#FF99CC"; }
+            else if (buddhaTimer > 0) { buddhaTimer--; powerBar.style.background = "#FFD700"; }
             else if (sprintTimer > 0) { sprintTimer--; powerBar.style.background = "#fff"; }
             else if (invincTimer > 0) { invincTimer--; powerBar.style.background = "#ff0"; }
             else if (muyuTimer > 0) { muyuTimer--; powerBar.style.background = "#ffd700"; }
@@ -165,6 +168,7 @@ window.onload = function() {
             else if (lightTimer > 0) { lightTimer--; powerBar.style.background = "#33FF57"; }
         } else { powerUI.style.display = 'none'; }
 
+        // 道具渲染与碰撞
         powerItems.forEach((item, i) => {
             item.x -= (freezeTimer > 0) ? 0 : 1.4 * step;
             ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(frame * 0.05);
@@ -176,12 +180,14 @@ window.onload = function() {
                 ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill();
             }
             ctx.restore();
-
             if (Math.hypot(birdX + 16 - item.x, birdY + 12 - item.y) < 25) {
                 if(item.type === 'kanji') {
                     if(item.effect === 'freeze') freezeTimer = DURATION;
                     else if(item.effect === 'light') lightTimer = DURATION;
                     else if(item.effect === 'buddha') buddhaTimer = DURATION;
+                    else if(item.effect === 'ghost') ghostTimer = DURATION;
+                    else if(item.effect === 'immortal') immortalTimer = DURATION;
+                    floatTexts.push({x: birdX, y: birdY, text: "言灵: " + item.char, life: 40, color: item.color});
                 } else {
                     if(item.type === 'muyu') muyuTimer = DURATION;
                     if(item.type === 'star') invincTimer = DURATION;
@@ -192,6 +198,7 @@ window.onload = function() {
             }
         });
 
+        // 粒子
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.02; ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
@@ -200,32 +207,30 @@ window.onload = function() {
 
         // 主角绘制
         ctx.save(); ctx.translate(birdX + 16, birdY + 12);
-        if (sprintTimer > 0) ctx.scale(1.5, 0.8); else ctx.rotate(velocity * 0.08);
-        
+        if (immortalTimer > 0) ctx.scale(1.8, 1.8);
+        else if (sprintTimer > 0) ctx.scale(1.5, 0.8); 
+        else ctx.rotate(velocity * 0.08);
+
+        if (ghostTimer > 0) ctx.globalAlpha = 0.4; // 鬼状态半透明
+
         if (userFaceImg) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.rect(-16, -12, 32, 24);
-            ctx.clip();
-            ctx.drawImage(userFaceImg, -16, -12, 32, 24);
-            ctx.restore();
-            if (buddhaTimer > 0 || invincTimer > 0) {
-                ctx.strokeStyle = `hsl(${frame*10%360}, 100%, 50%)`;
-                ctx.lineWidth = 3;
-                ctx.strokeRect(-16, -12, 32, 24);
+            ctx.save(); ctx.beginPath(); ctx.rect(-16, -12, 32, 24); ctx.clip();
+            ctx.drawImage(userFaceImg, -16, -12, 32, 24); ctx.restore();
+            if (buddhaTimer > 0 || invincTimer > 0 || immortalTimer > 0) {
+                ctx.strokeStyle = `hsl(${frame*10%360}, 100%, 50%)`; ctx.lineWidth = 3; ctx.strokeRect(-16, -12, 32, 24);
             }
         } else {
-            if (buddhaTimer > 0) {
-                ctx.fillStyle = `hsl(${frame*5 % 60 + 40}, 100%, 60%)`;
-                ctx.shadowBlur = 20; ctx.shadowColor = "#FFD700";
-            } else {
-                ctx.fillStyle = (invincTimer > 0 || sprintTimer > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : COLOR_PALETTE[birdColorIndex];
-            }
+            ctx.fillStyle = (invincTimer > 0 || sprintTimer > 0 || immortalTimer > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : COLOR_PALETTE[birdColorIndex];
+            if (buddhaTimer > 0) { ctx.fillStyle = `hsl(${frame*5 % 60 + 40}, 100%, 60%)`; ctx.shadowBlur = 20; ctx.shadowColor = "#FFD700"; }
             ctx.fillRect(-16, -12, 32, 24);
         }
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.strokeRect(-16, -12, 32, 24);
-        ctx.restore();
+        
+        // 仙态拖尾
+        if (immortalTimer > 0 && frame % 5 === 0) createParticles(-20, 0, "#FFCCFF", 2);
+        ctx.restore(); ctx.globalAlpha = 1.0;
 
+        // 逻辑更新
         if (!gameOver) {
             if (sprintTimer > 0) { birdY += (240 - birdY) * 0.1; } 
             else { velocity += (lightTimer > 0 ? 0.08 : 0.18); birdY += velocity; }
@@ -233,15 +238,19 @@ window.onload = function() {
             if (buddhaTimer > 0 && frame % 10 === 0) { score++; createParticles(birdX+40, birdY, "#FFD700", 2); }
         }
 
+        // 水管渲染
         pipes.forEach((p, i) => {
             if (freezeTimer <= 0) p.x -= 1.4 * step;
-            ctx.globalAlpha = buddhaTimer > 0 ? 0.3 : 1.0;
+            ctx.globalAlpha = (buddhaTimer > 0 || ghostTimer > 0) ? 0.3 : 1.0;
             ctx.fillStyle = p.color; ctx.fillRect(p.x, 0, 50, p.y); ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
             ctx.globalAlpha = 1.0;
 
-            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && invincTimer <= 0 && sprintTimer <= 0 && buddhaTimer <= 0)));
+            // 碰撞检测
+            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && invincTimer <= 0 && sprintTimer <= 0 && buddhaTimer <= 0 && ghostTimer <= 0 && immortalTimer <= 0)));
             if (hit) {
-                if (sprintTimer > 0 || invincTimer > 0 || buddhaTimer > 0) { if(buddhaTimer === 0) { p.x = -100; p.passed = true; score++; } }
+                if (sprintTimer > 0 || invincTimer > 0 || buddhaTimer > 0 || immortalTimer > 0) { 
+                    if(buddhaTimer === 0 && ghostTimer === 0) { p.x = -100; p.passed = true; score++; } 
+                } else if (ghostTimer > 0) { /* 穿透 */ }
                 else { gameOver = true; playSound(100, 'square', 0.3); }
             }
             if (!p.passed && p.x + 50 < birdX) {
@@ -252,10 +261,11 @@ window.onload = function() {
         });
 
         if (birdY > LOGICAL_HEIGHT || birdY < 0) {
-            if(buddhaTimer > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
+            if(buddhaTimer > 0 || immortalTimer > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
             else gameOver = true;
         }
 
+        // 分数
         ctx.save(); ctx.translate(LOGICAL_WIDTH/2, 80); ctx.scale(scoreScale, scoreScale);
         ctx.fillStyle = "#fff"; ctx.font = "bold 40px Arial"; ctx.textAlign = "center";
         ctx.fillText(score, 0, 0); ctx.restore(); if(scoreScale > 1) scoreScale -= 0.02;
@@ -282,7 +292,6 @@ window.onload = function() {
         if (e.code === 'Space') { e.preventDefault(); handleAction(false); }
         if (e.code === 'KeyC' || e.code === 'Enter') { e.preventDefault(); handleAction(true); }
     });
-
     function resize() { canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT; }
     window.addEventListener('resize', resize); resize(); reset(); draw();
 };
