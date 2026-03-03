@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -33,7 +31,6 @@
         <canvas id="birdCanvas"></canvas>
         <div class="tips">左侧:跳跃 | 右侧:变色/功能触发</div>
     </div>
-
 <script>
 window.onload = function() {
     const canvas = document.getElementById('birdCanvas');
@@ -51,7 +48,7 @@ window.onload = function() {
     let powerItems = [], particles = [], floatTexts = [];
     
     let invincTimer = 0, sprintTimer = 0, muyuTimer = 0; 
-    let freezeTimer = 0, lightTimer = 0; 
+    let freezeTimer = 0, lightTimer = 0, buddhaTimer = 0; // 新增佛系计时器
     const DURATION = 300;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -75,7 +72,7 @@ window.onload = function() {
     function reset() {
         birdY = 240; birdX = 50; velocity = 0; score = 0; combo = 0; 
         pipes = []; frame = 0; gameOver = false; powerItems = []; particles = []; floatTexts = [];
-        invincTimer = 0; sprintTimer = 0; muyuTimer = 0; freezeTimer = 0; lightTimer = 0;
+        invincTimer = 0; sprintTimer = 0; muyuTimer = 0; freezeTimer = 0; lightTimer = 0; buddhaTimer = 0;
         powerUI.style.display = 'none';
         hiScoreEl.innerText = "HI: " + (localStorage.getItem('pixelBirdHighScore') || 0);
         updateNextHint(); createPipe();
@@ -91,12 +88,15 @@ window.onload = function() {
         const rand = Math.random();
         const itemY = h + gap/2;
         
+        // 原始道具生成
         if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
         else if (rand < 0.07) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
         else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
         else if (rand < 0.13) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bomb' });
-        else if (rand < 0.17) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
-        else if (rand < 0.21) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
+        // 汉字言灵生成（保留定、轻，加入佛）
+        else if (rand < 0.16) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
+        else if (rand < 0.19) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
+        else if (rand < 0.22) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
     }
 
     function handleAction(isRightSide) {
@@ -124,29 +124,31 @@ window.onload = function() {
         ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
         let step = 1.0; if (sprintTimer > 0) step = 3.5; if (freezeTimer > 0) step = 0;
 
-        const activeTimer = Math.max(invincTimer, sprintTimer, muyuTimer, freezeTimer, lightTimer);
+        const activeTimer = Math.max(invincTimer, sprintTimer, muyuTimer, freezeTimer, lightTimer, buddhaTimer);
         if (activeTimer > 0) {
             powerUI.style.display = 'block';
             powerBar.style.width = (activeTimer / DURATION * 100) + '%';
-            if (sprintTimer > 0) { sprintTimer--; powerBar.style.background = "#fff"; }
+            if (buddhaTimer > 0) { buddhaTimer--; powerBar.style.background = "#FFD700"; }
+            else if (sprintTimer > 0) { sprintTimer--; powerBar.style.background = "#fff"; }
             else if (invincTimer > 0) { invincTimer--; powerBar.style.background = "#ff0"; }
             else if (muyuTimer > 0) { muyuTimer--; powerBar.style.background = "#ffd700"; }
             else if (freezeTimer > 0) { freezeTimer--; powerBar.style.background = "#33DBFF"; }
             else if (lightTimer > 0) { lightTimer--; powerBar.style.background = "#33FF57"; }
         } else { powerUI.style.display = 'none'; }
 
+        // 绘制道具
         powerItems.forEach((item, i) => {
             item.x -= (freezeTimer > 0) ? 0 : 1.4 * step;
             ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(frame * 0.05);
+            
             if(item.type === 'muyu') {
                 ctx.fillStyle="#8d6e63"; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill();
-                ctx.fillStyle="#5d4037"; ctx.fillRect(-7, 2, 14, 3);
             } else if(item.type === 'star') { 
                 ctx.fillStyle="#ff0"; ctx.beginPath(); for(let j=0;j<5;j++){ctx.lineTo(Math.cos((18+j*72)/180*Math.PI)*10,-Math.sin((18+j*72)/180*Math.PI)*10);ctx.lineTo(Math.cos((54+j*72)/180*Math.PI)*5,-Math.sin((54+j*72)/180*Math.PI)*5);} ctx.fill(); 
             } else if(item.type === 'bolt') { 
                 ctx.fillStyle="#fff"; ctx.beginPath(); ctx.moveTo(-5,-10); ctx.lineTo(5,-2); ctx.lineTo(0,0); ctx.lineTo(8,10); ctx.lineTo(-2,2); ctx.fill(); 
             } else if(item.type === 'bomb') { 
-                ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill();
             } else if(item.type === 'kanji') {
                 ctx.scale(1.2, 1.2); ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
                 ctx.fillStyle = item.color; ctx.font = "bold 14px serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.rotate(-frame*0.05); ctx.fillText(item.char, 0, 0);
@@ -160,13 +162,15 @@ window.onload = function() {
                 else if(item.type === 'bomb') { pipes.forEach(p => { if(!p.passed) { p.x = -100; p.passed = true; score++; }}); }
                 else if(item.type === 'kanji') {
                     if(item.effect === 'freeze') freezeTimer = DURATION;
-                    if(item.effect === 'light') lightTimer = DURATION;
+                    else if(item.effect === 'light') lightTimer = DURATION;
+                    else if(item.effect === 'buddha') buddhaTimer = DURATION;
                     floatTexts.push({x: birdX, y: birdY, text: "言灵: " + item.char, life: 40, color: item.color});
                 }
                 powerItems.splice(i, 1); createParticles(item.x, item.y, "#fff"); playSound(400, 'sine', 0.2);
             }
         });
 
+        // 绘制粒子/文字
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.02; ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
@@ -179,27 +183,48 @@ window.onload = function() {
         });
         ctx.globalAlpha = 1.0;
 
+        // 小鸟绘制
         ctx.save(); ctx.translate(birdX + 16, birdY + 12);
         if (sprintTimer > 0) ctx.scale(1.5, 0.8); else ctx.rotate(velocity * 0.08);
-        ctx.fillStyle = (invincTimer > 0 || sprintTimer > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : COLOR_PALETTE[birdColorIndex];
+        
+        // 佛系颜色逻辑：变幻金色
+        if (buddhaTimer > 0) {
+            ctx.fillStyle = `hsl(${frame*5 % 60 + 40}, 100%, 60%)`;
+            ctx.shadowBlur = 20; ctx.shadowColor = "#FFD700";
+        } else {
+            ctx.fillStyle = (invincTimer > 0 || sprintTimer > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : COLOR_PALETTE[birdColorIndex];
+        }
+        
         if(muyuTimer > 0) { ctx.shadowBlur = 20; ctx.shadowColor = "#ffd700"; }
         ctx.fillRect(-16, -12, 32, 24); ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.strokeRect(-16, -12, 32, 24);
         ctx.restore();
 
+        // 逻辑更新
         if (!gameOver) {
             if (sprintTimer > 0) { birdY += (240 - birdY) * 0.1; } 
             else { velocity += (lightTimer > 0 ? 0.08 : 0.18); birdY += velocity; }
             frame++; if (frame % 110 === 0) createPipe();
+            
+            // 佛系自动加分
+            if (buddhaTimer > 0 && frame % 10 === 0) {
+                score++; createParticles(birdX+40, birdY, "#FFD700", 2);
+            }
         }
 
+        // 水管渲染
         pipes.forEach((p, i) => {
             if (freezeTimer <= 0) p.x -= 1.4 * step;
+            
+            // 佛系状态下水管半透明
+            ctx.globalAlpha = buddhaTimer > 0 ? 0.3 : 1.0;
             ctx.fillStyle = p.color; ctx.fillRect(p.x, 0, 50, p.y); ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
+            ctx.globalAlpha = 1.0;
 
-            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && invincTimer <= 0 && sprintTimer <= 0)));
+            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && invincTimer <= 0 && sprintTimer <= 0 && buddhaTimer <= 0)));
             if (hit) {
-                if (sprintTimer > 0 || invincTimer > 0) { p.x = -100; p.passed = true; score++; }
-                else { gameOver = true; playSound(100, 'square', 0.3); }
+                if (sprintTimer > 0 || invincTimer > 0 || buddhaTimer > 0) { 
+                    if(buddhaTimer === 0) { p.x = -100; p.passed = true; score++; }
+                } else { gameOver = true; playSound(100, 'square', 0.3); }
             }
             if (!p.passed && p.x + 50 < birdX) {
                 p.passed = true; combo = (p.color === lastPipeColor) ? combo + 1 : 1;
@@ -209,8 +234,12 @@ window.onload = function() {
             if (p.x < -60) pipes.splice(i, 1);
         });
 
-        if (birdY > LOGICAL_HEIGHT || birdY < 0) gameOver = true;
+        if (birdY > LOGICAL_HEIGHT || birdY < 0) {
+            if(buddhaTimer > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
+            else gameOver = true;
+        }
 
+        // 分数显示
         ctx.save(); ctx.translate(LOGICAL_WIDTH/2, 80); ctx.scale(scoreScale, scoreScale);
         ctx.fillStyle = "#fff"; ctx.font = "bold 40px Arial"; ctx.textAlign = "center";
         ctx.fillText(score, 0, 0); ctx.restore(); if(scoreScale > 1) scoreScale -= 0.02;
@@ -218,11 +247,10 @@ window.onload = function() {
         if (gameOver) {
             ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0,0,LOGICAL_WIDTH, LOGICAL_HEIGHT);
             ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.font = "20px Arial";
-            ctx.fillText("游戏结束 - 点击或空格键重开", LOGICAL_WIDTH/2, 240);
+            ctx.fillText("修行中断 - 点击或空格键重开", LOGICAL_WIDTH/2, 240);
         } else { requestAnimationFrame(draw); }
     }
 
-    // --- 输入绑定区域 ---
     const handleInput = (e) => {
         if(e.type === 'touchstart') e.preventDefault();
         const rect = canvas.getBoundingClientRect();
@@ -231,20 +259,12 @@ window.onload = function() {
         handleAction(x > LOGICAL_WIDTH / 2);
     };
 
-    // 鼠标和触摸
     canvas.addEventListener('touchstart', handleInput, {passive: false});
     canvas.addEventListener('mousedown', handleInput);
 
-    // 修复：添加键盘监听
     window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            handleAction(false); // 空格键 = 左侧动作（跳跃/重开）
-        }
-        if (e.code === 'KeyC' || e.code === 'Enter' || e.code === 'KeyK') {
-            e.preventDefault();
-            handleAction(true);  // C/Enter/K = 右侧动作（变色/言灵）
-        }
+        if (e.code === 'Space') { e.preventDefault(); handleAction(false); }
+        if (e.code === 'KeyC' || e.code === 'Enter' || e.code === 'KeyK') { e.preventDefault(); handleAction(true); }
     });
 
     function resize() { canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT; }
