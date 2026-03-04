@@ -8,49 +8,37 @@
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         .f-cyberpunk { filter: hue-rotate(-30deg) saturate(150%) contrast(120%); }
-        .f-vivid { filter: saturate(200%) contrast(110%); }
-        
-        body {  
+        body { 
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
-            min-height: 100vh; 
-            overflow: hidden; 
+            min-height: 100vh; overflow: hidden; font-family: sans-serif;
         }
-
-        /* 扫描动画 */
         .scan-line {
-            height: 2px;
-            background: #3B82F6;
-            box-shadow: 0 0 15px #3B82F6;
-            position: absolute;
-            width: 100%;
-            top: -2px;
-            z-index: 40;
-            display: none;
-            animation: scanning 2s linear infinite;
+            height: 2px; background: #3B82F6; box-shadow: 0 0 15px #3B82F6;
+            position: absolute; width: 100%; top: -2px; z-index: 40;
+            display: none; animation: scanning 2s linear infinite;
         }
         @keyframes scanning {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
+            0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; }
         }
-
         .camera-container { aspect-ratio: 9/16; max-height: 85vh; width: 100%; max-width: 400px; position: relative; }
+        .star-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center p-4">
-
     <div class="camera-container rounded-3xl overflow-hidden shadow-2xl bg-black border-4 border-gray-800">
         <div id="scan-line" class="scan-line"></div>
         
         <div class="relative h-full">
             <video id="video" class="w-full h-full object-cover" autoplay muted playsinline style="transform: scaleX(-1);"></video>
             
-            <div id="ai-status" class="absolute top-4 left-4 bg-black/50 backdrop-blur px-3 py-1 rounded-full text-[10px] flex items-center hidden">
+            <div id="ai-status" class="absolute top-4 left-4 bg-black/50 backdrop-blur px-3 py-1 rounded-full text-[10px] text-white flex items-center">
                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></span>
-                AI 年龄分析引擎已就绪
+                面部特征检索中...
             </div>
-            
-            <div id="shutter-flash" class="absolute inset-0 bg-white opacity-0 pointer-events-none z-50"></div>
         </div>
 
         <div class="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
@@ -58,32 +46,39 @@
                 <button id="toggle-camera" class="text-white p-3 bg-white/10 rounded-full">
                     <i class="fa fa-refresh text-xl"></i>
                 </button>
-                
                 <button id="capture-btn" class="relative group">
                     <div class="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center group-active:scale-95 transition-all">
                         <div class="w-16 h-16 rounded-full bg-white flex flex-col items-center justify-center text-black">
                             <i class="fa fa-eye text-lg"></i>
-                            <span class="text-[8px] font-bold">AI识别</span>
+                            <span class="text-[8px] font-bold">明星脸识别</span>
                         </div>
                     </div>
                 </button>
-                
-                <div class="w-12 h-12"></div> 
+                <div class="w-12 h-12"></div>
             </div>
         </div>
     </div>
 
-    <div id="preview-modal" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center p-4">
-        <div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl">
+    <div id="preview-modal" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center p-4 overflow-y-auto">
+        <div class="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-gray-900 mt-4">
             <img id="preview-image" class="w-full h-auto" alt="Captured Image">
-            <div id="result-label" class="absolute top-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-xl border-2 border-white shadow-lg font-bold">
+            
+            <div id="result-label" class="absolute top-6 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full border-2 border-white shadow-lg font-bold text-sm">
                 预测年龄: <span id="predicted-age">--</span> 岁
+            </div>
+
+            <div class="absolute bottom-4 inset-x-4 star-badge rounded-xl p-3 text-white">
+                <div class="text-[10px] opacity-80 uppercase tracking-widest">相似艺人匹配</div>
+                <div class="flex justify-between items-end mt-1">
+                    <span id="star-name" class="text-xl font-black italic">--</span>
+                    <span class="text-xs bg-white text-black px-2 py-0.5 rounded font-bold">匹配度 <span id="match-rate">0</span>%</span>
+                </div>
             </div>
         </div>
         
         <div class="mt-6 flex space-x-4 w-full max-w-sm">
             <button onclick="location.reload()" class="flex-1 bg-gray-800 py-3 rounded-xl font-bold text-white">重拍</button>
-            <button id="save-btn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-white transition-colors">保存识别结果</button>
+            <button id="save-btn" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-white">保存结果</button>
         </div>
     </div>
 
@@ -95,7 +90,13 @@
         const saveBtn = document.getElementById('save-btn');
         let currentFacingMode = 'user';
 
-        // 启动相机
+        // 明星数据库
+        const starDatabase = [
+            "刘德华", "周杰伦", "彭于晏", "吴彦祖", "舒淇", 
+            "周迅", "迪丽热巴", "王嘉尔", "肖战", "易烊千玺",
+            "王一博", "汤唯", "章子怡", "蔡徐坤", "贾玲"
+        ];
+
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -103,11 +104,10 @@
                 });
                 video.srcObject = stream;
             } catch (err) {
-                alert("无法访问摄像头，请确保页面在 HTTPS 下运行并已授权。");
+                alert("请在HTTPS环境下访问并授权摄像头权限。");
             }
         }
 
-        // 拍照并评估
         function captureAndAnalyze() {
             scanLine.style.display = 'block';
             
@@ -118,17 +118,32 @@
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
                 
-                if(currentFacingMode === 'user') { 
-                    ctx.translate(canvas.width, 0); 
-                    ctx.scale(-1, 1); 
+                if(currentFacingMode === 'user') {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
                 }
                 ctx.drawImage(video, 0, 0);
 
-                // 随机预测年龄逻辑
-                const predictedAge = Math.floor(Math.random() * (35 - 18 + 1)) + 18;
-                document.getElementById('predicted-age').innerText = predictedAge;
-                
-                // 设置预览图
+                // 生成随机分析数据
+                const age = Math.floor(Math.random() * (35 - 18 + 1)) + 18;
+                const star = starDatabase[Math.floor(Math.random() * starDatabase.length)];
+                const match = Math.floor(Math.random() * (99 - 85 + 1)) + 85;
+
+                // 更新UI
+                document.getElementById('predicted-age').innerText = age;
+                document.getElementById('star-name').innerText = star;
+                document.getElementById('match-rate').innerText = match;
+
+                // 在画布上永久合成文字（用于保存）
+                ctx.setTransform(1, 0, 0, 1, 0, 0); // 重置坐标系
+                ctx.fillStyle = "rgba(0,0,0,0.5)";
+                ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+                ctx.fillStyle = "white";
+                ctx.font = "bold 24px Arial";
+                ctx.fillText(`AI 预测年龄: ${age}岁`, 30, canvas.height - 45);
+                ctx.font = "italic 20px Arial";
+                ctx.fillText(`明星脸: ${star} (相似度 ${match}%)`, 30, canvas.height - 15);
+
                 previewImage.src = canvas.toDataURL('image/png');
                 previewModal.classList.remove('hidden');
                 
@@ -136,27 +151,14 @@
             }, 1500);
         }
 
-        // 保存逻辑实现
         saveBtn.onclick = () => {
-            const imageData = previewImage.src;
-            if (!imageData) return;
-
             const link = document.createElement('a');
-            link.href = imageData;
-            link.download = `AI_Age_Selfie_${new Date().getTime()}.png`;
-            document.body.appendChild(link);
+            link.href = previewImage.src;
+            link.download = `AI_Analysis_${new Date().getTime()}.png`;
             link.click();
-            document.body.removeChild(link);
-
-            // 成功反馈
-            const originalText = saveBtn.innerText;
-            saveBtn.innerText = "✓ 已触发下载";
-            saveBtn.classList.replace('bg-blue-600', 'bg-green-600');
             
-            setTimeout(() => {
-                saveBtn.innerText = originalText;
-                saveBtn.classList.replace('bg-green-600', 'bg-blue-600');
-            }, 2000);
+            saveBtn.innerText = "✓ 已保存到相册";
+            saveBtn.className = "flex-1 bg-green-600 py-3 rounded-xl font-bold text-white";
         };
 
         document.getElementById('capture-btn').onclick = captureAndAnalyze;
