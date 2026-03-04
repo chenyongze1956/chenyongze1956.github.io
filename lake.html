@@ -17,7 +17,6 @@
         canvas { border: 4px solid rgba(255,255,255,0.8); border-radius: 20px; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); width: 95%; height: auto; aspect-ratio: 2 / 3; image-rendering: pixelated; }
         .info { position: absolute; top: 40px; color: #fff; text-align: center; width: 100%; pointer-events: none; }
         #hiScore { font-size: 24px; font-weight: 900; text-shadow: 0 0 10px #fff; }
-        
         #upload-btn { 
             position: absolute; top: 15px; left: 25px; z-index: 100;
             background: rgba(255,255,255,0.2); color: white; 
@@ -55,14 +54,13 @@ window.onload = function() {
 
     const LOGICAL_WIDTH = 320, LOGICAL_HEIGHT = 480;
     const COLOR_PALETTE = ['#FF3333', '#FFAC33', '#FFEA33', '#33FF57', '#33DBFF', '#B533FF'];
-    
+
     let birdColorIndex = 2, birdY, birdX, velocity, score, pipes, frame, gameOver;
     let combo = 0, lastPipeColor = '', scoreScale = 1;
     let powerItems = [], particles = [], floatTexts = [];
-    
-    // 状态计时器
-    let invincTimer = 0, sprintTimer = 0, muyuTimer = 0, freezeTimer = 0, lightTimer = 0, buddhaTimer = 0;
-    let ghostTimer = 0, immortalTimer = 0; // 新增鬼、仙计时器
+    let birdHistory = [];
+
+    let timers = { invinc: 0, sprint: 0, muyu: 0, freeze: 0, light: 0, buddha: 0, ghost: 0, immortal: 0, yao: 0 };
     const DURATION = 300;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -82,12 +80,16 @@ window.onload = function() {
 
     function playSound(freq, type, duration, vol=0.08) {
         try {
-            const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator(); 
+            const g = audioCtx.createGain();
+            osc.type = type; 
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             g.gain.setValueAtTime(vol, audioCtx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
+            osc.connect(g); 
+            g.connect(audioCtx.destination);
+            osc.start(); 
+            osc.stop(audioCtx.currentTime + duration);
         } catch(e) {}
     }
 
@@ -98,10 +100,9 @@ window.onload = function() {
     }
 
     function reset() {
-        birdY = 240; birdX = 50; velocity = 0; score = 0; combo = 0; 
-        pipes = []; frame = 0; gameOver = false; powerItems = []; particles = []; floatTexts = [];
-        invincTimer = 0; sprintTimer = 0; muyuTimer = 0; freezeTimer = 0; lightTimer = 0; buddhaTimer = 0;
-        ghostTimer = 0; immortalTimer = 0;
+        birdY = 240; birdX = 50; velocity = 0; score = 0; combo = 0;
+        pipes = []; frame = 0; gameOver = false; powerItems = []; particles = []; floatTexts = []; birdHistory = [];
+        Object.keys(timers).forEach(k => timers[k] = 0);
         powerUI.style.display = 'none';
         hiScoreEl.innerText = "HI: " + (localStorage.getItem('pixelBirdHighScore') || 0);
         updateNextHint(); createPipe();
@@ -113,20 +114,17 @@ window.onload = function() {
         const gap = 135; const h = Math.floor(Math.random() * (LOGICAL_HEIGHT - 280)) + 60;
         const pColor = COLOR_PALETTE[Math.floor(Math.random() * COLOR_PALETTE.length)];
         pipes.push({ x: LOGICAL_WIDTH, y: h, gap, passed: false, color: pColor });
-
-        const rand = Math.random();
-        const itemY = h + gap/2;
-        
-        // 道具生成表
-        if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
-        else if (rand < 0.07) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
-        else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
-        else if (rand < 0.13) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bomb' });
-        else if (rand < 0.16) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
-        else if (rand < 0.19) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
-        else if (rand < 0.22) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
-        else if (rand < 0.25) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '鬼', effect: 'ghost', color: '#B0B0B0' });
-        else if (rand < 0.28) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '仙', effect: 'immortal', color: '#FF99CC' });
+        const rand = Math.random(); const itemY = h + gap/2;
+        if (rand < 0.03) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
+        else if (rand < 0.06) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
+        else if (rand < 0.09) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
+        else if (rand < 0.12) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bomb' });
+        else if (rand < 0.15) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
+        else if (rand < 0.18) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
+        else if (rand < 0.21) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
+        else if (rand < 0.24) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '鬼', effect: 'ghost', color: '#B0B0B0' });
+        else if (rand < 0.27) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '仙', effect: 'immortal', color: '#FF99CC' });
+        else if (rand < 0.30) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '妖', effect: 'yao', color: '#A020F0' });
     }
 
     function handleAction(isRightSide) {
@@ -135,15 +133,15 @@ window.onload = function() {
         if (isRightSide) {
             birdColorIndex = (birdColorIndex + 1) % COLOR_PALETTE.length;
             updateNextHint();
-            if (muyuTimer > 0) {
+            if (timers.muyu > 0) {
                 playSound(800, 'sine', 0.1, 0.4); score += 2;
                 floatTexts.push({x: birdX, y: birdY, text: "功德+2", life: 40, color: "#ffd700"});
                 createParticles(birdX+40, birdY+12, "#ffd700", 5);
                 for(let p of pipes) { if(!p.passed && p.x > birdX) { p.x = -100; p.passed = true; break; } }
             } else { playSound(600, 'triangle', 0.05); }
         } else {
-            if (sprintTimer === 0) {
-                velocity = (lightTimer > 0) ? -2.2 : -3.5;
+            if (timers.sprint === 0) {
+                velocity = (timers.light > 0) ? -2.2 : -3.5;
                 playSound(300, 'sine', 0.1);
             }
         }
@@ -151,26 +149,20 @@ window.onload = function() {
 
     function draw() {
         ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-        let step = 1.0; if (sprintTimer > 0) step = 3.5; if (freezeTimer > 0) step = 0;
+        let step = 1.0; if (timers.sprint > 0) step = 3.5; if (timers.freeze > 0) step = 0;
 
-        const activeTimer = Math.max(invincTimer, sprintTimer, muyuTimer, freezeTimer, lightTimer, buddhaTimer, ghostTimer, immortalTimer);
-        if (activeTimer > 0) {
-            powerUI.style.display = 'block';
-            powerBar.style.width = (activeTimer / DURATION * 100) + '%';
-            // 计时递减逻辑
-            if (ghostTimer > 0) { ghostTimer--; powerBar.style.background = "#B0B0B0"; }
-            else if (immortalTimer > 0) { immortalTimer--; powerBar.style.background = "#FF99CC"; }
-            else if (buddhaTimer > 0) { buddhaTimer--; powerBar.style.background = "#FFD700"; }
-            else if (sprintTimer > 0) { sprintTimer--; powerBar.style.background = "#fff"; }
-            else if (invincTimer > 0) { invincTimer--; powerBar.style.background = "#ff0"; }
-            else if (muyuTimer > 0) { muyuTimer--; powerBar.style.background = "#ffd700"; }
-            else if (freezeTimer > 0) { freezeTimer--; powerBar.style.background = "#33DBFF"; }
-            else if (lightTimer > 0) { lightTimer--; powerBar.style.background = "#33FF57"; }
+        const maxActive = Math.max(...Object.values(timers));
+        if (maxActive > 0) {
+            powerUI.style.display = 'block'; 
+            powerBar.style.width = (maxActive / DURATION * 100) + '%';
+            Object.keys(timers).forEach(k => { if(timers[k] > 0) timers[k]--; });
+            const activeKey = Object.keys(timers).find(k => timers[k] === maxActive);
+            const barColors = {yao: '#A020F0', immortal:'#FF99CC', ghost:'#B0B0B0', buddha:'#FFD700', freeze:'#33DBFF', light:'#33FF57', sprint:'#fff', invinc:'#ff0', muyu:'#ffd700'};
+            powerBar.style.background = barColors[activeKey] || '#fff';
         } else { powerUI.style.display = 'none'; }
 
-        // 道具渲染与碰撞
         powerItems.forEach((item, i) => {
-            item.x -= (freezeTimer > 0) ? 0 : 1.4 * step;
+            item.x -= (timers.freeze > 0) ? 0 : 1.4 * step;
             ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(frame * 0.05);
             if(item.type === 'kanji') {
                 ctx.scale(1.2, 1.2); ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
@@ -181,91 +173,93 @@ window.onload = function() {
             }
             ctx.restore();
             if (Math.hypot(birdX + 16 - item.x, birdY + 12 - item.y) < 25) {
-                if(item.type === 'kanji') {
-                    if(item.effect === 'freeze') freezeTimer = DURATION;
-                    else if(item.effect === 'light') lightTimer = DURATION;
-                    else if(item.effect === 'buddha') buddhaTimer = DURATION;
-                    else if(item.effect === 'ghost') ghostTimer = DURATION;
-                    else if(item.effect === 'immortal') immortalTimer = DURATION;
-                    floatTexts.push({x: birdX, y: birdY, text: "言灵: " + item.char, life: 40, color: item.color});
-                } else {
-                    if(item.type === 'muyu') muyuTimer = DURATION;
-                    if(item.type === 'star') invincTimer = DURATION;
-                    if(item.type === 'bolt') sprintTimer = 150;
+                if(item.type === 'kanji') timers[item.effect] = DURATION;
+                else {
+                    if(item.type === 'muyu') timers.muyu = DURATION;
+                    if(item.type === 'star') timers.invinc = DURATION;
+                    if(item.type === 'bolt') timers.sprint = 150;
                     if(item.type === 'bomb') pipes.forEach(p => { if(!p.passed) { p.x = -100; p.passed = true; score++; }});
                 }
                 powerItems.splice(i, 1); playSound(400, 'sine', 0.2);
             }
         });
 
-        // 粒子
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life -= 0.02; ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
             if(p.life <= 0) particles.splice(i, 1);
         });
 
-        // 主角绘制
+        birdHistory.push({x: birdX, y: birdY}); 
+        if(birdHistory.length > 20) birdHistory.shift();
+
+        if(timers.yao > 0) {
+            [5, 12, 18].forEach(idx => {
+                if(birdHistory[birdHistory.length - idx]) {
+                    ctx.globalAlpha = 0.3; ctx.save();
+                    const pos = birdHistory[birdHistory.length - idx];
+                    ctx.translate(pos.x + 16, pos.y + 12); ctx.fillStyle = "#A020F0";
+                    ctx.fillRect(-16, -12, 32, 24); ctx.restore();
+                }
+            });
+            if(frame % 5 === 0) createParticles(birdX, birdY + 12, "#A020F0", 2);
+        }
+
         ctx.save(); ctx.translate(birdX + 16, birdY + 12);
-        if (immortalTimer > 0) ctx.scale(1.8, 1.8);
-        else if (sprintTimer > 0) ctx.scale(1.5, 0.8); 
+        if (timers.immortal > 0) ctx.scale(1.8, 1.8);
+        else if (timers.sprint > 0) ctx.scale(1.5, 0.8);
         else ctx.rotate(velocity * 0.08);
 
-        if (ghostTimer > 0) ctx.globalAlpha = 0.4; // 鬼状态半透明
+        if (timers.ghost > 0) ctx.globalAlpha = 0.4;
 
         if (userFaceImg) {
             ctx.save(); ctx.beginPath(); ctx.rect(-16, -12, 32, 24); ctx.clip();
             ctx.drawImage(userFaceImg, -16, -12, 32, 24); ctx.restore();
-            if (buddhaTimer > 0 || invincTimer > 0 || immortalTimer > 0) {
-                ctx.strokeStyle = `hsl(${frame*10%360}, 100%, 50%)`; ctx.lineWidth = 3; ctx.strokeRect(-16, -12, 32, 24);
+            if (timers.buddha > 0 || timers.invinc > 0 || timers.immortal > 0 || timers.yao > 0) {
+                ctx.strokeStyle = timers.yao > 0 ? "#A020F0" : `hsl(${frame*10%360}, 100%, 50%)`; ctx.lineWidth = 3; ctx.strokeRect(-16, -12, 32, 24);
             }
         } else {
-            ctx.fillStyle = (invincTimer > 0 || sprintTimer > 0 || immortalTimer > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : COLOR_PALETTE[birdColorIndex];
-            if (buddhaTimer > 0) { ctx.fillStyle = `hsl(${frame*5 % 60 + 40}, 100%, 60%)`; ctx.shadowBlur = 20; ctx.shadowColor = "#FFD700"; }
+            ctx.fillStyle = (timers.invinc > 0 || timers.sprint > 0 || timers.immortal > 0) ? `hsl(${frame*10%360}, 70%, 60%)` : (timers.yao > 0 ? "#A020F0" : COLOR_PALETTE[birdColorIndex]);
+            if (timers.buddha > 0) { ctx.fillStyle = `hsl(${frame*5 % 60 + 40}, 100%, 60%)`; ctx.shadowBlur = 20; ctx.shadowColor = "#FFD700"; }
             ctx.fillRect(-16, -12, 32, 24);
         }
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.strokeRect(-16, -12, 32, 24);
-        
-        // 仙态拖尾
-        if (immortalTimer > 0 && frame % 5 === 0) createParticles(-20, 0, "#FFCCFF", 2);
         ctx.restore(); ctx.globalAlpha = 1.0;
 
-        // 逻辑更新
         if (!gameOver) {
-            if (sprintTimer > 0) { birdY += (240 - birdY) * 0.1; } 
-            else { velocity += (lightTimer > 0 ? 0.08 : 0.18); birdY += velocity; }
+            if (timers.sprint > 0) { birdY += (240 - birdY) * 0.1; }
+            else { velocity += (timers.light > 0 ? 0.08 : 0.18); birdY += velocity; }
             frame++; if (frame % 110 === 0) createPipe();
-            if (buddhaTimer > 0 && frame % 10 === 0) { score++; createParticles(birdX+40, birdY, "#FFD700", 2); }
+            if (timers.buddha > 0 && frame % 10 === 0) { score++; createParticles(birdX+40, birdY, "#FFD700", 2); }
         }
 
-        // 水管渲染
         pipes.forEach((p, i) => {
-            if (freezeTimer <= 0) p.x -= 1.4 * step;
-            ctx.globalAlpha = (buddhaTimer > 0 || ghostTimer > 0) ? 0.3 : 1.0;
+            if (timers.freeze <= 0) p.x -= 1.4 * step;
+            ctx.globalAlpha = (timers.buddha > 0 || timers.ghost > 0) ? 0.3 : 1.0;
             ctx.fillStyle = p.color; ctx.fillRect(p.x, 0, 50, p.y); ctx.fillRect(p.x, p.y + p.gap, 50, LOGICAL_HEIGHT);
             ctx.globalAlpha = 1.0;
 
-            // 碰撞检测
-            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && invincTimer <= 0 && sprintTimer <= 0 && buddhaTimer <= 0 && ghostTimer <= 0 && immortalTimer <= 0)));
+            let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap || (COLOR_PALETTE[birdColorIndex] !== p.color && timers.invinc <= 0 && timers.sprint <= 0 && timers.buddha <= 0 && timers.ghost <= 0 && timers.immortal <= 0 && timers.yao <= 0)));
             if (hit) {
-                if (sprintTimer > 0 || invincTimer > 0 || buddhaTimer > 0 || immortalTimer > 0) { 
-                    if(buddhaTimer === 0 && ghostTimer === 0) { p.x = -100; p.passed = true; score++; } 
-                } else if (ghostTimer > 0) { /* 穿透 */ }
+                if (timers.sprint > 0 || timers.invinc > 0 || timers.immortal > 0) {
+                     if(timers.buddha === 0 && timers.ghost === 0) { p.x = -100; p.passed = true; score++; }
+                } else if (timers.ghost > 0 || timers.yao > 0) { }
                 else { gameOver = true; playSound(100, 'square', 0.3); }
             }
             if (!p.passed && p.x + 50 < birdX) {
                 p.passed = true; combo = (p.color === lastPipeColor) ? combo + 1 : 1;
-                lastPipeColor = p.color; score += combo; scoreScale = 1.3;
+                lastPipeColor = p.color;
+                score += (timers.yao > 0 ? combo * 2 : combo);
+                scoreScale = 1.3;
             }
             if (p.x < -60) pipes.splice(i, 1);
         });
 
         if (birdY > LOGICAL_HEIGHT || birdY < 0) {
-            if(buddhaTimer > 0 || immortalTimer > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
+            if(timers.buddha > 0 || timers.immortal > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
             else gameOver = true;
         }
 
-        // 分数
         ctx.save(); ctx.translate(LOGICAL_WIDTH/2, 80); ctx.scale(scoreScale, scoreScale);
         ctx.fillStyle = "#fff"; ctx.font = "bold 40px Arial"; ctx.textAlign = "center";
         ctx.fillText(score, 0, 0); ctx.restore(); if(scoreScale > 1) scoreScale -= 0.02;
