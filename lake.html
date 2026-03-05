@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -39,7 +40,7 @@
         <div id="next-hint"><div id="next-color-box"></div></div>
         <div id="power-ui"><div id="power-bar"></div></div>
         <canvas id="birdCanvas"></canvas>
-        <div class="tips">左:跳 | 右:变色 | 善:吸物 | 恶:毁柱 | 魔:强拆</div>
+        <div class="tips">左:跳 | 右:变色 | 兽:摧毁 | 善:吸物 | 恶:毁柱 | 魔:强拆</div>
     </div>
 <script>
 window.onload = function() {
@@ -56,8 +57,8 @@ window.onload = function() {
     let birdColorIndex = 2, birdY, birdX, velocity, score, pipes, frame, gameOver;
     let combo = 0, lastPipeColor = '', shake = 0, powerItems = [], particles = [], floatTexts = [], birdHistory = [];
     
-    // 计时器，加入了 'mo'
-    let timers = { invinc: 0, sprint: 0, muyu: 0, freeze: 0, light: 0, buddha: 0, ghost: 0, immortal: 0, yao: 0, rage: 0, shan: 0, e: 0, mo: 0 };
+    // 计时器，加入了 'shou' (兽)
+    let timers = { invinc: 0, sprint: 0, muyu: 0, freeze: 0, light: 0, buddha: 0, ghost: 0, immortal: 0, yao: 0, rage: 0, shan: 0, e: 0, mo: 0, shou: 0 };
     const DURATION = 300;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let userFaceImg = null;
@@ -105,21 +106,22 @@ window.onload = function() {
         pipes.push({ x: LOGICAL_WIDTH, y: h, gap, passed: false, color: pColor });
         
         const rand = Math.random(); const itemY = h + gap/2;
-        // 道具生成列表，加入了“魔”
+        // 道具生成，加入“兽” (shou)
         if (rand < 0.02) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '魔', effect: 'mo', color: '#FF0000' });
-        else if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
-        else if (rand < 0.06) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
-        else if (rand < 0.08) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
-        else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bomb' });
-        else if (rand < 0.13) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
-        else if (rand < 0.16) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
-        else if (rand < 0.19) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
-        else if (rand < 0.22) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '鬼', effect: 'ghost', color: '#B0B0B0' });
-        else if (rand < 0.25) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '仙', effect: 'immortal', color: '#FF99CC' });
-        else if (rand < 0.28) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '妖', effect: 'yao', color: '#A020F0' });
-        else if (rand < 0.31) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '怒', effect: 'rage', color: '#FF0000' });
-        else if (rand < 0.34) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '善', effect: 'shan', color: '#FFFFFF' });
-        else if (rand < 0.37) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '恶', effect: 'e', color: '#111111' });
+        else if (rand < 0.04) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '兽', effect: 'shou', color: '#D2691E' });
+        else if (rand < 0.06) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'muyu' });
+        else if (rand < 0.08) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'star' });
+        else if (rand < 0.10) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bolt' });
+        else if (rand < 0.12) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'bomb' });
+        else if (rand < 0.15) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '定', effect: 'freeze', color: '#33DBFF' });
+        else if (rand < 0.18) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '轻', effect: 'light', color: '#33FF57' });
+        else if (rand < 0.21) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '佛', effect: 'buddha', color: '#FFD700' });
+        else if (rand < 0.24) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '鬼', effect: 'ghost', color: '#B0B0B0' });
+        else if (rand < 0.27) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '仙', effect: 'immortal', color: '#FF99CC' });
+        else if (rand < 0.30) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '妖', effect: 'yao', color: '#A020F0' });
+        else if (rand < 0.33) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '怒', effect: 'rage', color: '#FF0000' });
+        else if (rand < 0.36) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '善', effect: 'shan', color: '#FFFFFF' });
+        else if (rand < 0.39) powerItems.push({ x: LOGICAL_WIDTH + 20, y: itemY, type: 'kanji', char: '恶', effect: 'e', color: '#111111' });
     }
 
     function handleAction(isRightSide) {
@@ -140,8 +142,7 @@ window.onload = function() {
     function draw() {
         ctx.save();
         if (shake > 0) { ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake *= 0.8; }
-        // 魔态下的持续微震
-        if (timers.mo > 0) ctx.translate((Math.random()-0.5)*2, (Math.random()-0.5)*2);
+        if (timers.mo > 0 || timers.shou > 0) ctx.translate((Math.random()-0.5)*2, (Math.random()-0.5)*2);
         
         ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
         let step = (timers.sprint > 0) ? 3.5 : (timers.freeze > 0 ? 0 : 1.0);
@@ -151,7 +152,7 @@ window.onload = function() {
             powerUI.style.display = 'block'; powerBar.style.width = (maxActive / DURATION * 100) + '%';
             Object.keys(timers).forEach(k => { if(timers[k] > 0) timers[k]--; });
             const activeKey = Object.keys(timers).find(k => timers[k] === maxActive);
-            const barColors = {mo:'#600', shan:'#fff', e:'#333', rage:'#f00', yao: '#A020F0', buddha:'#ffd700', sprint:'#fff', light:'#33FF57', freeze:'#33DBFF'};
+            const barColors = {shou:'#D2691E', mo:'#600', shan:'#fff', e:'#333', rage:'#f00', yao: '#A020F0', buddha:'#ffd700', sprint:'#fff', light:'#33FF57', freeze:'#33DBFF'};
             powerBar.style.background = barColors[activeKey] || '#fff';
         } else { powerUI.style.display = 'none'; }
 
@@ -165,8 +166,13 @@ window.onload = function() {
 
             let hit = (birdX + 26 > p.x && birdX < p.x + 46 && (birdY < p.y || birdY + 22 > p.y + p.gap));
             if (hit && !gameOver) {
-                // 魔、恶、怒、无敌等状态下的破坏逻辑
-                if (timers.mo > 0) {
+                // 破坏逻辑加入兽态
+                if (timers.shou > 0) {
+                    p.x = -200; p.passed = true; score += 2; shake = 12;
+                    floatTexts.push({x: birdX, y: birdY, text: "撕!", life: 30, color: "#D2691E"});
+                    createParticles(birdX+30, birdY+12, "#8B4513", 15); playSound(120, 'sawtooth', 0.2, 0.2);
+                }
+                else if (timers.mo > 0) {
                     p.x = -200; p.passed = true; score += 3; shake = 15;
                     floatTexts.push({x: birdX, y: birdY, text: "弑!", life: 30, color: "#f00"});
                     createParticles(birdX+30, birdY+12, "#700", 20); playSound(100, 'sawtooth', 0.2, 0.3);
@@ -194,7 +200,7 @@ window.onload = function() {
 
             ctx.save(); ctx.translate(item.x, item.y); ctx.rotate(frame * 0.05);
             if(item.type === 'kanji') {
-                ctx.fillStyle = item.char === '魔' ? "rgba(30,0,0,0.9)" : "rgba(255,255,255,0.8)"; 
+                ctx.fillStyle = item.char === '魔' ? "#1e0000" : (item.char === '兽' ? "#3d1f00" : "rgba(255,255,255,0.8)"); 
                 ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
                 ctx.fillStyle = item.color; ctx.font = "bold 14px serif"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.rotate(-frame*0.05); ctx.fillText(item.char, 0, 0);
             } else {
@@ -223,18 +229,20 @@ window.onload = function() {
 
         birdHistory.push({x: birdX, y: birdY}); if(birdHistory.length > 15) birdHistory.shift();
 
-        // 残影效果
-        if(timers.yao > 0 || timers.mo > 0) {
+        // 残影效果加入兽态和魔态
+        if(timers.yao > 0 || timers.mo > 0 || timers.shou > 0) {
             birdHistory.forEach((pos, idx) => {
                 ctx.save(); ctx.globalAlpha = idx/30; ctx.translate(pos.x+16, pos.y+12);
-                ctx.fillStyle = timers.mo > 0 ? "#400" : "#A020F0"; ctx.fillRect(-16, -12, 32, 24); ctx.restore();
+                ctx.fillStyle = timers.mo > 0 ? "#400" : (timers.shou > 0 ? "#8B4513" : "#A020F0"); 
+                ctx.fillRect(-16, -12, 32, 24); ctx.restore();
             });
         }
 
         ctx.save(); ctx.translate(birdX + 16, birdY + 12);
         
         // 缩放逻辑
-        if (timers.mo > 0) ctx.scale(1.5, 1.5);
+        if (timers.shou > 0) ctx.scale(1.5, 1.5);
+        else if (timers.mo > 0) ctx.scale(1.5, 1.5);
         else if (timers.immortal > 0) ctx.scale(1.8, 1.8);
         else if (timers.e > 0) { ctx.scale(1.4, 1.4); ctx.shadowBlur = 20; ctx.shadowColor = "#000"; }
         
@@ -244,12 +252,12 @@ window.onload = function() {
         if (userFaceImg) {
             ctx.save(); ctx.beginPath(); ctx.rect(-16, -12, 32, 24); ctx.clip();
             ctx.drawImage(userFaceImg, -16, -12, 32, 24); ctx.restore();
-            if(timers.buddha > 0 || timers.e > 0 || timers.mo > 0) { 
-                ctx.strokeStyle = timers.mo > 0 ? "#f00" : (timers.e > 0 ? "#000" : "#ffd700"); 
+            if(timers.buddha > 0 || timers.e > 0 || timers.mo > 0 || timers.shou > 0) { 
+                ctx.strokeStyle = timers.mo > 0 ? "#f00" : (timers.shou > 0 ? "#D2691E" : (timers.e > 0 ? "#000" : "#ffd700")); 
                 ctx.lineWidth = 3; ctx.strokeRect(-16, -12, 32, 24); 
             }
         } else {
-            ctx.fillStyle = timers.mo > 0 ? "#600" : (timers.e > 0 ? "#000" : (timers.shan > 0 ? "#fff" : (timers.yao > 0 ? "#A020F0" : COLOR_PALETTE[birdColorIndex])));
+            ctx.fillStyle = timers.shou > 0 ? "#D2691E" : (timers.mo > 0 ? "#600" : (timers.e > 0 ? "#000" : (timers.shan > 0 ? "#fff" : (timers.yao > 0 ? "#A020F0" : COLOR_PALETTE[birdColorIndex]))));
             if (timers.buddha > 0) { ctx.fillStyle = "#FFD700"; ctx.shadowBlur = 15; ctx.shadowColor = "#FFD700"; }
             ctx.fillRect(-16, -12, 32, 24);
         }
@@ -262,7 +270,7 @@ window.onload = function() {
         }
 
         if (birdY > LOGICAL_HEIGHT || birdY < 0) {
-            if (timers.mo > 0 || timers.buddha > 0 || timers.immortal > 0 || timers.e > 0 || timers.yao > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
+            if (timers.shou > 0 || timers.mo > 0 || timers.buddha > 0 || timers.immortal > 0 || timers.e > 0 || timers.yao > 0) { birdY = Math.max(0, Math.min(LOGICAL_HEIGHT, birdY)); velocity = 0; }
             else gameOver = true;
         }
 
@@ -291,7 +299,4 @@ window.onload = function() {
     });
     function resize() { canvas.width = LOGICAL_WIDTH; canvas.height = LOGICAL_HEIGHT; }
     window.addEventListener('resize', resize); resize(); reset(); draw();
-};
-</script>
-</body>
-</html>
+};</script></body></html>
