@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -8,16 +7,16 @@
     <style>
         :root {
             --bg-color: #0f0f0f;
-            --text-color: #000;
-            --accent-color: #8b0000; /* 暗红色，象征红袖 */
-            --border-color: #333;
-            --highlight: #e0c38c; /* 象牙金，象征古籍 */
+            --text-color: #1a1a1a;
+            --accent-color: #8b0000;
+            --ink-black: #2c3e50;
         }
 
         body {
-background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    
+            /* 延续您的炫彩迷蒙背景 */
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             color: var(--text-color);
-            font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
+            font-family: "STKaiti", "Kaiti", "PingFang SC", serif;
             line-height: 1.8;
             margin: 0;
             padding: 0;
@@ -26,169 +25,196 @@ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8ef
         }
 
         .container {
-            max-width: 800px;
-            width: 90%;
+            max-width: 850px;
+            width: 95%;
             padding: 40px 0;
         }
 
         header {
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--accent-color);
             margin-bottom: 40px;
             padding-bottom: 20px;
         }
 
         h1 {
-            color: #000;
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
             margin-bottom: 10px;
-            letter-spacing: 4px;
+            letter-spacing: 5px;
+            font-weight: 900;
         }
 
         .quote {
             font-style: italic;
-            color: #000;
-            border-left: 3px solid var(--accent-color);
-            padding-left: 15px;
+            background: rgba(255,255,255,0.3);
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
             margin: 20px 0;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 函数图形容器 */
+        .math-plot {
+            float: right;
+            width: 120px;
+            height: 120px;
+            margin-left: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            padding: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 30px 0;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
         }
 
         th, td {
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(0,0,0,0.1);
             padding: 15px;
             text-align: left;
         }
 
         th {
-            background-color: rgba(139, 0, 0, 0.2);
-            color: #000;
+            background-color: rgba(139, 0, 0, 0.1);
         }
 
         .sect-title {
-            color: #000;
-            border-bottom: 2px solid var(--accent-color);
+            border-bottom: 3px solid var(--accent-color);
             display: inline-block;
             margin-top: 40px;
+            font-size: 1.5rem;
         }
 
         .card {
-            background: #1abackground: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    
-1a1b;
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 4px;
-            transition: transform 0.3s ease;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: 0.3s;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-color);
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.8);
         }
 
         .card h3 {
             margin-top: 0;
             color: var(--accent-color);
+            font-size: 1.4rem;
+        }
+
+        .formula {
+            font-family: "Times New Roman", serif;
+            background: rgba(0,0,0,0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--ink-black);
         }
 
         footer {
             text-align: center;
             margin-top: 60px;
-            font-size: 0.9rem;
-            color: #555;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-        }
-        
-        .night-mode-hint {
-            text-align: center;
+            padding: 30px;
+            border-top: 1px solid rgba(0,0,0,0.1);
             color: #444;
-            font-size: 0.8rem;
-            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>般若学：六家七宗</h1>
-            <div class="quote">“夫至人也，博览群秒，凝神玄冥，感通无方。”</div>
+            <h1>般若学：六家七宗函数考</h1>
+            <div class="quote">“数存其形，意泯其迹；得数忘形，得意忘象。”</div>
         </header>
 
         <section>
-            <h2 class="sect-title">核心理论对照</h2>
+            <h2 class="sect-title">理数合一图谱</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>宗派</th>
-                        <th>核心主张</th>
-                        <th>精神意象</th>
+                        <th>宗派派系</th>
+                        <th>函数映射</th>
+                        <th>数理特征</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td><strong>本无宗</strong></td>
-                        <td>无在有先，万法生于虚静。</td>
-                        <td>混沌的夜色</td>
+                        <td class="formula">f(x) = 0</td>
+                        <td>常数性：万法归一，不增不减。</td>
                     </tr>
                     <tr>
                         <td><strong>即色宗</strong></td>
-                        <td>色不自色，当体即空。</td>
-                        <td>水中之月</td>
+                        <td class="formula">f(x) = x²</td>
+                        <td>偶对称：色影如镜，镜像同体。</td>
                     </tr>
                     <tr>
                         <td><strong>心无宗</strong></td>
-                        <td>境有心无，心不执着。</td>
-                        <td>不动的大地</td>
-                    </tr>
-                    <tr>
-                        <td><strong>识含宗</strong></td>
-                        <td>三界唯识，如梦所见。</td>
-                        <td>深夜的梦境</td>
-                    </tr>
-                    <tr>
-                        <td><strong>幻化宗</strong></td>
-                        <td>万法如幻，无有真实。</td>
-                        <td>海市蜃楼</td>
+                        <td class="formula">f(x) = x³</td>
+                        <td>奇对称：心物旋转，空有平衡。</td>
                     </tr>
                     <tr>
                         <td><strong>缘会宗</strong></td>
-                        <td>缘会则有，缘散则无。</td>
-                        <td>拆解的积木</td>
+                        <td class="formula">f(x) = sin(x)</td>
+                        <td>周期性：东升西坠，因缘轮回。</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section>
-            <h2 class="sect-title">玄思笔记</h2>
-            
+            <h2 class="sect-title">玄思函数笔记</h2>
+
             <div class="card">
-                <h3>📍 即色宗 · 支道林</h3>
-                <p>“色不自色，虽色而空。”</p>
-                <p><small>青灯古佛，暮鼓晨钟，深夜感悟：此刻你眼前的屏幕，虽有光影（色），但它是电子流与代码的临时聚会。不要等关机才发现它是空的，在它亮起的这一秒，它就并无永恒实体。静谧中敲键盘，自有几分来去如尘的禅理，以物物物，则物可物。以物非物，则物非物。</small></p>
+                <div class="math-plot">
+                    <svg viewBox="0 0 100 100">
+                        <path d="M 10 20 Q 50 90 90 20" fill="none" stroke="#8b0000" stroke-width="3"/>
+                        <line x1="0" y1="50" x2="100" y2="50" stroke="#ccc" />
+                        <line x1="50" y1="0" x2="50" y2="100" stroke="#ccc" />
+                    </svg>
+                </div>
+                <h3>📍 即色宗 · 偶对称之象</h3>
+                <p><span class="formula">f(-x) = f(x)</span></p>
+                <p><small>支道林谓“色不自色”。正如抛物线，左侧的负（空）与右侧的正（有）在绝对值上是平等的。世界只是 y 轴两侧的镜像。你看到的“色”是函数图像，其背后的“空”是那个始终守恒的对应法则。色即是空，是对称美的终极表达。</small></p>
             </div>
 
             <div class="card">
-                <h3>📍 心无宗 · 支愍度</h3>
-                <p>“种智之心中，使无物耳。”</p>
-                   <p><small>人生幻梦，万法皆空。</small></p>
+                <div class="math-plot">
+                    <svg viewBox="0 0 100 100">
+                        <path d="M 0 50 C 20 10, 30 10, 50 50 C 70 90, 80 90, 100 50" fill="none" stroke="#8b0000" stroke-width="3"/>
+                        <line x1="0" y1="50" x2="100" y2="50" stroke="#ccc" />
+                    </svg>
+                </div>
+                <h3>📍 缘会宗 · 轮回周期之象</h3>
+                <p><span class="formula">f(x + T) = f(x)</span></p>
+                <p><small>万空歌云“东升西坠为谁功”。正弦波的起伏便是缘聚缘散。$T$ 是因缘的跨度，每一个波峰是“生”，每一个波谷是“灭”。虽然数值在变，但轮回的节律永恒。理解了 $T$，便理解了万物聚散的必然。</small></p>
+            </div>
+
+            <div class="card">
+                <div class="math-plot">
+                    <svg viewBox="0 0 100 100">
+                        <path d="M 10 90 Q 50 80 90 10" fill="none" stroke="#8b0000" stroke-width="3"/>
+                        <line x1="10" y1="90" x2="90" y2="90" stroke="#ccc" />
+                        <line x1="10" y1="10" x2="10" y2="90" stroke="#ccc" />
+                    </svg>
+                </div>
+                <h3>📍 单调性 · 势不可逆之象</h3>
+                <p><span class="formula">f'(x) > 0</span></p>
+                <p><small>人生渺渺，如单调递增的指数函数。导数不为零，意味着变化永不停息。王弼说“循大变者，为能无待而常通”。顺着这股不可逆的势，不执着于某一个坐标点，才是真正的解脱。</small></p>
             </div>
         </section>
 
-        
-
         <footer>
-            <p>得鱼忘筌 · 得意忘象</p>
-            <p>2026 深夜校园 · 古籍研读留存</p>
-            <div class="night-mode-hint">（此页面已适配深夜阅读模式）</div>
+            <p>得数忘形 · 2026 深夜校园</p>
         </footer>
     </div>
 </body>
