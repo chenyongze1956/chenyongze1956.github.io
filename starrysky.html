@@ -1,199 +1,99 @@
-
-
-
-
-
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-    
+    <title>古巴比伦星象观测</title>
     <style>
-        /* 1. 基础设置与背景 (做旧效果) */
-        body {
-            font-family: 'Times New Roman', serif; /* 经典报纸字体 */
-            margin: 0;
-            padding: 0;
-            /* 模拟旧纸张的颜色和纹理 */
-     background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            /* 如果无法加载外部图片，可以使用纯色 */
-            /* background-image: none; */ 
-            color: #333;
-            line-height: 1.4;
-        }
-
-        /* 2. 报纸主体容器 */
-        .newspaper-container {
-            width: 80vw;
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 30px;
-            border: 5px solid #a07a4a; /* 深色边框，模拟装裱或边缘 */
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.7); /* 纸张中心略微提亮 */
-        }
-        
-        /* 3. 报头 (Header) */
-        .masthead {
-            text-align: center;
-            border-bottom: 3px double #333;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .masthead h1 {
-            font-family: 'Georgia', serif;
-            font-size: 4em;
-            text-transform: uppercase;
-            letter-spacing: 8px;
-            color: #222;
-            margin: 0;
-        }
-        
-        .masthead p {
-            font-style: italic;
-            font-size: 0.9em;
-            margin: 5px 0 0 0;
-            color: #666;
-        }
-
-        /* 4. 主要文章标题区 */
-        .main-headline {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .main-headline h2 {
-            font-family: 'Times New Roman', serif;
-            font-size: 2.5em;
-            font-weight: bold;
-            line-height: 1.1;
-            color: #000;
-            text-transform: none;
-            margin: 0;
-        }
-        
-        /* 5. 文章内容区 - 核心的多列布局 */
-        .article-content {
-            /* 实现报纸的多列效果 */
-            column-count: 3; /* 三列布局 */
-            column-gap: 30px; /* 列之间的间隔 */
-            column-rule: 1px solid #ccc; /* 列之间的分割线 */
-            text-align: justify; /* 两端对齐，模拟排版 */
-        }
-        
-        /* 首字下沉效果 */
-        .article-content p:first-of-type::first-letter {
-            font-family: 'Georgia', serif;
-            font-size: 3.5em;
-            float: left;
-            margin-right: 5px;
-            margin-top: 5px;
-            font-weight: bold;
-            line-height: 1;
-        }
-
-        /* 6. 响应式调整 */
-        @media (max-width: 768px) {
-            .newspaper-container {
-                width: 95vw;
-                padding: 15px;
-                margin: 20px auto;
-            }
-            .masthead h1 {
-                font-size: 2.5em;
-                letter-spacing: 4px;
-            }
-            .main-headline h2 {
-                font-size: 1.8em;
-            }
-            .article-content {
-                column-count: 2; /* 移动端调整为两列 */
-                column-gap: 20px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .article-content {
-                column-count: 1; /* 极小屏幕只显示一列 */
-            }
-        }
-
-<style>
-    /* 在原有的 style 中添加这一段 */
-    .download-link-container {
-        text-align: right;
-        margin: -10px 0 10px 0;
-    }
-    .download-link {
-        color: #b72d2d;
-        text-decoration: none;
-        font-size: 0.85em;
-        font-weight: bold;
-        border: 1px solid #b72d2d;
-        padding: 2px 8px;
-        transition: 0.3s;
-    }
-    .download-link:hover {
-        background: #b72d2d;
-        color: white;
-    }
-</style>
-        
+        body { margin: 0; background: #000; overflow: hidden; cursor: crosshair; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 30px; left: 30px; color: #d4af37; pointer-events: none; font-family: 'Georgia', serif; }
+        h1 { margin: 0; font-size: 28px; letter-spacing: 2px; }
     </style>
 </head>
 <body>
-
-    <div class="newspaper-container">
-        
-        <div class="masthead">
-            <h1>粉丝新闻</h1>
-            <p>西元 2025 年 1 月 3 日 · 星期六 · 第 CLXVII 期 · 售价 10 分</p>
-        </div>
-        
-        <div class="main-headline">
-            <h2>蔡依林时隔6年开唱，砸3677万打造万兽派对！粉丝惊呼：根本奥运开幕 </h2>
-        </div>
-        
-        <div class="article-content">
-            <p>天后蔡依林“Pleasure”世界巡回演唱会昨天（30日）晚上在台北大巨蛋首度登场，豪砸9亿台币（约3677万新元）打造“愉悦宇宙”。Jolin在演唱会中摇身一变成“驯兽女王”，把“人间乐园”变成万兽派对，率领巨型公牛、大蛇、飞马、金猪、蝴蝶海马、长颈驯鹿、象鼻鱼等20只奇幻混种动物倾巢而出在大巨蛋，打造超狂震撼视觉感官，光巨型道具部分就斥资1亿7千万。这场面让粉丝惊呼：“这是蔡依林演唱会还是奥运开幕？”
-
-蔡依林“Pleasure”全新巡演团队把“人间乐园”的精神及“愉悦宇宙”意念全面实体化，故事开端由蔡依林化身成“天空花园里女孩”，站在天平两端与祭司对望，接着神秘音乐响起，主舞台大批庆典使者相继吹起号角迎接巨型“庆典公牛”绕场，当观众误以为她会出现在公牛战车上，没料到Jolin旋即头戴“愉悦与苦痛”的双面头盔，变身“欲望守护者”，出现于“恒星舞台”下方的“灵魂之柱”圆阵。
-
-</p>
-            
-            <p>随后，蔡依林还骑上“欲望巨蟒”登上3层楼高环绕高唱《美杜莎》，然后反转延伸舞台连唱“D.I.Y.”、“I'm Not Yours”两首歌曲，4万观众完全嗨到失控。短短10分钟的开场秀，也被封为“史上最狂开场”，粉丝纷纷直呼：“到底是演唱会还是奥运开幕？”还有人赞“太狂了”、“只有蔡依林能超越蔡依林”。</p>
-            
-            <p>蔡依林在经典情歌桥段“金纱女伶”上身，脚步也变得轻盈表示：“大家好吗？感觉很久没看到大家了，这是彩排之后第一次迎宾的感觉，距离上一次‘Ugly Beauty’第1场已经6年，有没有觉得夸张？来我演唱会就得大大流汗、尽情欢唱，这场地很大，我需要更洪亮的声音，马上就要放假了，这3天，我也会陪你们度过2025年的最后一天。”
-
-接着她又以组曲《第三人称》、《天空》及《柠檬草的味道》等组曲掀起全场大合唱。 Jolin再度嗨喊：“我要看你们哪一天唱的最大声，这段是我唯一能够清楚听到你们的声音。”全场回以高分贝呐喊，见到歌迷跟着大合唱，她感动说：“刚才你们把我唱哭了。”</p>
-            
-            <p>Pleasure”演唱会3天大巨蛋演唱会共吸引12万人观看，总票房估计约5.6亿元台币（约2287万新元）。圈中好友张惠妹、田馥甄、林俊杰、青峰、罗志祥等人送上花篮祝贺，张惠妹在花篮写道：“亲爱的妹子，愉悦到底，辣翻全场。”青峰更不改幽默，打趣写下：“祝福蔡依林熬夜大成功，by早上睡的青峰。”</p>
-             <p>罗志祥也幽默喊Jolin阿姨，“尽情在台上表现妳的72变，啊对了，不要9点半就想要回家睡觉喔，因为观众太嗨了，就陪大家嗨到炸裂吧”。</p>
-
-            <div style="column-span: all; text-align: center; margin: 15px 0;">
-                <img src="https://dam.mediacorp.sg/image/upload/s--WGRTvOrL--/c_crop,h_635,w_1130,x_0,y_36/c_fill,g_auto,h_780,w_1390/f_auto,q_auto/v1/8world/images/2025/12/31/20251231_ent_jolin-tsai3.jpg?itok=yTnDSSSR" alt="动漫发现图片" style="max-width: 100%; height: auto; border: 1px solid #333;">
- <br></br>
-                  <img src="https://dam.mediacorp.sg/image/upload/s--fXtt6hV8--/c_fill,g_auto/f_auto,q_auto/v1/8world/images/2025/12/31/20251231_ent_jolin-tsai4.jpg?itok=ygeW3_js" alt="动漫发现图片" style="max-width: 100%; height: auto; border: 1px solid #333;">
-                <p style="font-size: 0.8em; font-style: italic; margin-top: 5px;">图：本次发现的关键词——蔡依林</p>
-            </div>
-         </p>
-       
-        </div>        
-        <p>网友评论：视觉冲击力</p>
-
-         <div class="download-link-container">
-            <a href="https://od.lk/s/NDBfMTM1MTgxNDY4Xw/%E5%A4%95%E7%A7%80%E4%BC%A0.epub" download="粉丝新闻_20250103.pdf" class="download-link">
-                [ ⬇ 附赠免费小礼物，点击下载 ]
-            </a>
-        </div>
-
-       
-        
+    <div id="ui">
+        <h1>古巴比伦星空观测</h1>
+        <p>黄道轨迹 • 神谕流星</p>
     </div>
+    <canvas id="skyCanvas"></canvas>
 
+<script>
+    const canvas = document.getElementById('skyCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let stars = [];
+    let meteors = [];
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        initStars();
+    }
+
+    function initStars() {
+        stars = Array.from({length: 200}, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            r: Math.random() * 1.2,
+            alpha: Math.random()
+        }));
+    }
+
+    class Meteor {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * width * 1.5 - width * 0.5;
+            this.y = -50;
+            this.vx = Math.random() * 10 + 5;
+            this.vy = Math.random() * 10 + 5;
+            this.len = Math.random() * 100 + 50;
+            this.alpha = 1;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            this.alpha -= 0.01;
+            if (this.alpha <= 0) this.reset();
+        }
+        draw() {
+            ctx.strokeStyle = `rgba(212, 175, 55, ${this.alpha})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x - this.len, this.y - this.len);
+            ctx.stroke();
+        }
+    }
+
+    function draw() {
+        // 动态拖影
+        ctx.fillStyle = 'rgba(11, 14, 20, 0.2)';
+        ctx.fillRect(0, 0, width, height);
+
+        // 绘制恒星
+        stars.forEach(s => {
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + Math.sin(Date.now() * 0.005 + s.x) * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // 绘制黄道轨迹
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(width/2, height/2, 300, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 处理流星
+
+        requestAnimationFrame(draw);
+    }
+
+    // 初始化流星群
+    for(let i=0; i<3; i++) meteors.push(new Meteor());
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+</script>
 </body>
 </html>
-
