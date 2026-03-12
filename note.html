@@ -1,10 +1,11 @@
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>般若数理动态展厅</title>
     <style>
         :root {
             --bg-color: #0f0f0f;
@@ -222,6 +223,34 @@
                 </div>
             </div>
 
+
+<div class="card">
+    <div class="card-content">
+        <h3>📍 本无宗 · 不增不减</h3>
+        <p><small>道安大师言：“无在有先，万法生于虚静。” 这种“从无到有、再由有返无”的过程，正是一个完整的闭环。无论如何演化，最终都归于最初的虚静。这便是宇宙最原始的律动。</small></p>
+    </div>
+    <div class="math-svg-container">
+        <svg width="120" height="80" viewBox="0 0 120 100" style="overflow:visible">
+            <style>
+                .damping-path {
+                    stroke-dasharray: 300;
+                    stroke-dashoffset: 300;
+                    animation: dash 4s infinite linear;
+                }
+                @keyframes dash {
+                    0% { stroke-dashoffset: 300; opacity: 0; }
+                    20% { opacity: 1; }
+                    80% { stroke-dashoffset: 0; opacity: 1; }
+                    100% { stroke-dashoffset: 0; opacity: 0; }
+                }
+            </style>
+            <path class="damping-path"
+                  d="M 0 50 C 10 10, 20 90, 30 50 C 35 30, 40 70, 45 50 C 48 40, 52 60, 55 50 C 57 45, 59 55, 60 50 L 120 50" 
+                  fill="none" stroke="#8b0000" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+    </div>
+</div>
+
             <div class="card">
                 <div class="card-content">
                     <h3>📍 单调性 · 势不可逆</h3>
@@ -237,7 +266,7 @@
 
         <footer>
             <p>得数忘形 · 2026 深夜校园</p>
-            <p>理数合一，愿你在逻辑中见真如。</p>
+            <p>青灯古佛，暮鼓晨钟</p>
         </footer>
     </div>
 </body>
