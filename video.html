@@ -1,815 +1,119 @@
 
-
-
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 沉浸式影院 - 专业版</title>
     <style>
-        /* ---------------------------------------------------- */
-        /* 基础和通用样式 */
-        /* ---------------------------------------------------- */
-        body {
-            display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0;
-            padding: 20px 10px;
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            transition: background 0.3s;
-            box-sizing: border-box;
-        }
-        body.lights-off { background: none; }
-
-        .video-container {
-            width: 100%;
-            max-width: 900px;
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 10; position: relative; transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        .video-container.lights-off { background: #222; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2); }
-
-        #myVideoPlayer {
-            width: 100%; height: auto; min-height: 200px;
-            border: 1px solid #ccc; border-radius: 4px; margin-bottom: 0; display: block;
-            position: relative; z-index: 1; filter: none; 
-            /* 保证过渡平滑 */
-            transition: transform 0.1s ease-out, filter 0.3s ease-in-out, opacity 0.3s; 
-        }
-
-        /* ---------------------------------------------------- */
-        /* 确保在测试图模式下高度可见 */
-        /* ---------------------------------------------------- */
-        .barrage-wrapper {
-            position: relative; 
-            overflow: hidden;
-        }
-        .test-card-visible #barrageWrapper {
-            min-height: 250px; /* 确保父容器在显示彩条时维持高度 */
-        }
-        .test-card-visible #myVideoPlayer {
-            opacity: 0;
-            height: 100%; 
-            min-height: 250px; 
-            pointer-events: none;
-        }
-        .test-card-visible #testCard {
-            display: block; /* 显示测试图 */
-            min-height: 250px; /* 确保有足够的高度 */
-        }
+        :root { --primary: #00d2ff; }
+        body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px 10px; background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);             font-family: sans-serif; touch-action: manipulation; }
+        .video-container { width: 100%; max-width: 900px; background: #000; padding: 15px; border-radius: 12px; position: relative; }
+        .barrage-wrapper { position: relative; overflow: hidden; background: #000; border-radius: 8px; min-height: 380px; }
+        #video { width: 100%; height: auto; }
+        .vr-viewports { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #000; z-index: 100; }
+        .vr-mode-active .vr-viewports { display: flex; }
+        .vr-canvas { width: 50%; height: 100%; }
         
-        .action-panel {
-            display: flex; justify-content: flex-start;
-            align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;
-        }
-
-        button {
-            padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;
-            transition: background-color 0.3s; white-space: nowrap; flex-grow: 1; min-width: 80px;
-        }
-
-        input[type="file"] {
-            display: none; /* 隐藏文件输入框 */
-        }
-        .file-input-wrapper {
-            position: relative;
-            flex-grow: 1;
-            min-width: 80px;
-        }
-
-        input[type="text"], select, .speed-control label {
-            flex-grow: 1; min-width: 150px;
-            padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        .controls-panel, .playlist-panel, .barrage-panel {
-            display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; width: 100%;
-        }
-
-        /* ---------------------------------------------------- */
-        /* 按钮颜色 (保持不变) */
-        /* ---------------------------------------------------- */
-        #localFileButton { background-color: #8e44ad; color: white; }
-        #lightsButton { background-color: #3498db; color: white; }
-        #grayscaleButton { background-color: #f39c12; color: white; }
-        #captureButton { background-color: #2ecc71; color: white; }
-        #threeDButton { background-color: #e74c3c; color: white; }
-        #glitchButton { background-color: #555; color: white; }
-        #glitchButton.active { background-color: #ff5722; }
-        #translationButton { background-color: #1abc9c; color: white; }
-        #translationButton.active { background-color: #0c7a6f; }
-        #diamondButton { background-color: #a44; color: white; }
-        #diamondButton.active { background-color: #ffc107; color: black; }
-        #sendButton { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); color: white; }
-
-        #parallaxButton { background-color: #ff9800; color: white; }
-        #parallaxButton.active { background-color: #f57c00; }
-        #testCardButton { background-color: #9c27b0; color: white; } 
-        #testCardButton.active { background-color: #673ab7; }
-
-        #arModeButton { background-color: #007bff; color: white; }
-        #arModeButton.active { background-color: #ffc107; color: black; }
-
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-        }
-        .speed-control label {
-            padding: 0;
-            margin: 0;
-            border: none;
-            background: none;
-            flex-grow: 0;
-        }
-        #speedSelect {
-            min-width: 80px;
-        }
-
-        /* ---------------------------------------------------- */
-        /* 彩条测试图 CSS (保持不变) */
-        /* ---------------------------------------------------- */
-        #testCard {
-            width: 100%;
-            height: 100%; 
-            min-height: 250px; 
-            display: none; 
-            background-color: #000;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 2; 
-            border-radius: 4px;
-            overflow: hidden;
-            box-sizing: border-box;
-            background-image: linear-gradient(to right,
-                rgb(192, 192, 192) 0%, rgb(192, 192, 192) 12.5%, /* White */
-                rgb(192, 192, 0) 12.5%, rgb(192, 192, 0) 25%, /* Yellow */
-                rgb(0, 192, 192) 25%, rgb(0, 192, 192) 37.5%, /* Cyan */
-                rgb(0, 192, 0) 37.5%, rgb(0, 192, 0) 50%, /* Green */
-                rgb(192, 0, 192) 50%, rgb(192, 0, 192) 62.5%, /* Magenta */
-                rgb(192, 0, 0) 62.5%, rgb(192, 0, 0) 75%, /* Red */
-                rgb(0, 0, 192) 75%, rgb(0, 0, 192) 87.5%, /* Blue */
-                rgb(19, 19, 19) 87.5%, rgb(19, 19, 19) 100% /* Black/Dark Gray */
-            );
-            border-bottom: 20px solid #000;
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-        }
-
-        #testCard:before {
-            content: '节目播送完毕';
-            position: absolute;
-            bottom: 0px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 16px;
-            font-family: sans-serif;
-            z-index: 3;
-            padding: 5px 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 3px;
-            white-space: nowrap;
-        }
+        #subtitle-layer { position: absolute; bottom: 40px; width: 80%; left: 10%; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 8px; color: #fff; font-size: 20px; text-align: center; border: 2px solid var(--primary); z-index: 999; display: none; }
+        .trans-original { color: #aaa; font-size: 14px; }
+        .trans-result { color: #fff; font-size: 22px; font-weight: bold; margin-top: 5px; }
         
-        /* ---------------------------------------------------- */
-        /* 【已修复】雪花/静态干扰 CSS (替换了 Base64 编码) */
-        /* ---------------------------------------------------- */
-        @keyframes static-anim {
-            0% { background-position: 0 0; }
-            100% { background-position: 100% 100%; }
-        }
-        #staticOverlay {
-               position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-               pointer-events: none; z-index: 2; opacity: 0.15;
-               /* 更换为可靠的 Base64 噪声图案 */
-               background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAGklEQVQIW2NgYGAoBgKGYDQFzABWQAQDAAlQAgC31S7/AAAAAElFTkSuQmCC');
-               background-repeat: repeat;
-              animation: static-anim 0.1s linear infinite;
-              display: none;
-        }
-
-        /* ---------------------------------------------------- */
-        /* 弹幕及特效 CSS (保持不变) */
-        /* ---------------------------------------------------- */
-        @keyframes move-barrage {
-            from { transform: translateX(100%); } 
-            to { transform: translateX(-100vw); } 
-        }
-        
-        .barrage {
-            position: absolute;
-            right: 0; 
-            white-space: nowrap;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px black, 0 0 10px rgba(0,0,0,0.5);
-            pointer-events: none;
-            z-index: 5;
-        }
-        #myVideoPlayer.grayscale-on { filter: grayscale(100%); }
-
-        @keyframes sustained-glitch {
-            0% { transform: translate(0); } 2% { transform: translate(-2px, -2px); }
-            4% { transform: translate(2px, 2px); } 6% { transform: translate(-2px, 2px); }
-            8% { transform: translate(2px, -2px); } 10% { transform: translate(0); }
-            50% { filter: hue-rotate(10deg) saturate(1.5); } 51% { filter: hue-rotate(-10deg) saturate(1.2); }
-            100% { transform: translate(0); }
-        }
-        .glitch-on #myVideoPlayer {
-            filter: sepia(0.2) hue-rotate(10deg);
-            animation: sustained-glitch 0.4s infinite alternate;
-        }
-
-        .barrage-wrapper.three-d-on #myVideoPlayer {
-            filter: drop-shadow(-5px 0 0 red) drop-shadow(5px 0 0 cyan) opacity(0.8);
-            mix-blend-mode: multiply;
-            transform: scale(0.98);
-            transition: all 0.3s;
-            position: relative;
-        }
-        /* ... 略去 Parallax, Diamond, AR 模式的 CSS ... */
-        .parallax-on #myVideoPlayer {
-            transform: scale(1.1) translate(0, 0); 
-            cursor: move;
-            transition: filter 0.3s ease-in-out, transform 0.1s ease-out;
-        }
-        @keyframes fall-and-fade {
-            0% { opacity: 1; transform: translateY(0) rotate(45deg); }
-            100% { opacity: 0; transform: translateY(1000px) rotate(500deg); }
-        }
-        .diamond {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            transform: rotate(45deg);
-            background: linear-gradient(to bottom right, #e0f7fa, #00bcd4, #80deea);
-            box-shadow: 0 0 10px 5px rgba(0, 255, 255, 0.5), 0 0 20px 10px rgba(0, 200, 200, 0.3);
-            z-index: 50;
-            pointer-events: none;
-            top: 0;
-        }
-        .ar-mode .video-container {
-            background: rgba(0, 0, 0, 0.4) !important;
-            box-shadow: none;
-            border-radius: 0;
-            z-index: 100;
-        }
-        .ar-mode body {
-            background: black;
-        }
-        .ar-mode #myVideoPlayer {
-            background-color: transparent !important;
-            border: none !important;
-            opacity: 0.85; 
-        }
-        #camera-stream {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 5; 
-            display: none;
-            filter: brightness(0.8);
-            transform: scaleX(-1); 
-            opacity: 0; 
-            transition: opacity 0.2s;
-        }
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.95);
-            z-index: 9; display: none; transition: opacity 0.3s;
-        }
+        .action-panel { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; flex: 1; background: #333; color: #fff; font-size: 12px; }
+        button.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
     </style>
 </head>
 <body>
-    <div id="overlay" onclick="toggleLights()"></div>
-
-    <video id="camera-stream" autoplay playsinline></video>
-
-    <div class="video-container" id="videoContainer">
+    <div class="video-container">
         <div class="action-panel">
-            <div class="file-input-wrapper">                
-                <button id="localFileButton">选择本地文件</button>
-                <input type="file" id="localFileInput" accept="video/*">
-            </div>                        
-            <button id="testCardButton" onclick="toggleTestCard()">彩条测试图</button>
-            <button id="translationButton" onclick="toggleTranslationMode()">实时翻译</button>            
-            <button id="glitchButton" onclick="toggleGlitch()">信号干扰</button>                        
-            <button id="threeDButton" onclick="toggle3D()">立体电影</button>                        
-            <button id="diamondButton" onclick="toggleDiamondScatter()">撒水晶</button>                        
-            <button id="parallaxButton" onclick="toggleParallax()">视差推移</button>                        
-            <button id="arModeButton" onclick="toggleArMode()">AR 沉浸式</button>                        
-            <button id="captureButton" onclick="captureFrame()">截屏</button>
-            <button id="lightsButton" onclick="toggleLights()">关灯</button>
-            <button id="grayscaleButton" onclick="toggleGrayscale()">黑白屏</button>
+            <button onclick="document.getElementById('localFileInput').click()" style="background:#e91e63">📁 载入</button>
+            <input type="file" id="localFileInput" accept="video/*" style="display:none">
+            <button id="threeDBtn" onclick="toggle3D()">3D 立体</button>
+            <button id="vrBtn" onclick="toggleVR()">VR 分屏</button>
+            <button id="transBtn" onclick="toggleTrans()">AI 字幕</button>
+            <button id="langBtn" onclick="toggleLang()">切换: 中->英</button>
         </div>
-        
-        <div class="barrage-wrapper" id="barrageWrapper">
-            <div id="staticOverlay"></div>                        
-            <div id="testCard"></div>
-            <video id="myVideoPlayer" controls></video>        
-        </div>
-        
-        <p style="text-align: center;">因视频源不稳定，不定期做种</p>
-        
-        <div class="playlist-panel">
-            <label for="videoPlaylist">选择视频:</label>
-            <select id="videoPlaylist" onchange="loadSelectedVideo()">
-                <option value="">-- 选择一个视频 --</option>
-                <option value="https://cdn.jumpshare.com/preview/w9lhZBkmZN9FkIBNJacwF1vMZNmFdax1uaTMN_uxxhFZGlAb9KC35rksymoilQ5gClUHCcNM_ATDXrqOP23WSywQRCT2CexypxGdt6aRh-1_sbAD9W_OwoWDfyIo_UABJfW4AErB55M97GG2bZy7Hm6yjbN-I2pg_cnoHs_AmgI.mp4">                    MV:何晴表演片段              </option>
-                <option value="https://cdn.jumpshare.com/preview/A_sv7mNEfNy5ZXIXN0x-XNxEDQF26yC9PsQ-zUgWYxENaeREIROwy6HPISB00lBDzZTE_ZvGjF42CSNMURqxkLpjLIe5PK94L4u_njm1nyiRG_j5Wn9rgy9TDrfA31gVg5pbNkRFE6FopUowEHUbcW6yjbN-I2pg_cnoHs_AmgI.mp4">                    PV:滨崎步演唱会                </option>
-                <option value="https://cdn.jumpshare.com/preview/UBpEWKb3vQuMj8xC0JmDc9KBRddfsSytHpOfJAfAlQh-4keBARSFMWL4FDS1FKQ79XHBzi5qzp3ruvwJeA0ujWAeXdkLog8QCGBcYL0XW2cNvVbV4DEgNLVwHBcywlumg5pbNkRFE6FopUowEHUbcW6yjbN-I2pg_cnoHs_AmgI.mp4">                  MV:韩剧我的野蛮师姐                </option>
-                <option value="https://cdn.jumpshare.com/preview/tn7AS1B4QEU-8C8zSEFZ79HqurdtckiQdELLZDHNzPbJeXaj_WHI2v9IWO802jSZyzdG8eOGpwEi6WUvAr93tRJnuGc_KZZyTUGLJqXYREsQtA8l0FJ4rZaOZW2gJakFkta5PVHl3QKeaEVJR4eBCG6yjbN-I2pg_cnoHs_AmgI.mp4">                  PV:最终幻想                </option>
-                <option value="https://cdn.jumpshare.com/preview/n9dHGXw8Nqdq6FIRt6aQU0ksvfRINrKrJd-Is0_ncGlCy_UekEPFCmONPdz9Ga_9GIE-JdnrodgXwvTanaB_FkXVYX-EsM4rQ7f7hU9hpS8BJ4RMlEXFn6OBSHP5-nfxkta5PVHl3QKeaEVJR4eBCG6yjbN-I2pg_cnoHs_AmgI.mp4">                PV:莉可莉丝 友谊是时间的窃贼                </option>
-                  <option value="https://cdn.jumpshare.com/preview/nrDkKAobeAPMOHqgf7xgDyO1-KiKVyFpQ2grgwYC7lBsZ0D932TGeQMNSZX3iYYus1krzdne2lNdE3C8rmDnl2guWk4XsJqegrB9qehkttmBgA8IyjfkqJ5TKv8ub_T2JfW4AErB55M97GG2bZy7Hm6yjbN-I2pg_cnoHs_AmgI.mp4">                    MV:何晴表演片段              </option>
-
-                  <option value="https://cdn.jumpshare.com/preview/2F-5HY-8zImBUKlrsrMLa49ye5Coo7-Jxtfm-ekAo0rpCJgfoEZuT4I7G5YxrF5V1T8XyBd_it9FgUOw132X339MfkOFEe5-kAjhYEjpaWDVAlOdB70WbojIGkxf_4YEqLY7Eoo74RaiWnEBZs2eUm6yjbN-I2pg_cnoHs_AmgI.mp4">                    科技:相互发信的文字对讲机             </option>
-            </select>
-        </div>
-        
-        <div class="controls-panel">
-            <input type="text" id="videoUrlInput" placeholder="在此输入自定义视频 URL (例如: .mp4, .webm)">
-            <button onclick="loadVideo()">加载并播放</button>
-        </div>
-        
-        <div class="playlist-panel">
-            <div class="speed-control">
-                <label for="speedSelect">播放速度:</label>
-                <select id="speedSelect" onchange="setPlaybackSpeed(this.value)">
-                    <option value="0.5">0.5x (慢速)</option>
-                    <option value="1" selected>1x (正常)</option>
-                    <option value="1.5">1.5x</option>
-                    <option value="2">2x (快速)</option>
-                </select>
+        <div class="barrage-wrapper" id="wrapper">
+            <div class="vr-viewports" id="vrBox">
+                <canvas id="canvasL" class="vr-canvas"></canvas>
+                <canvas id="canvasR" class="vr-canvas"></canvas>
             </div>
-        </div>
-        
-        <div class="barrage-panel">
-            <input type="text" id="barrageInput" placeholder="输入您的弹幕...">
-            <button id="sendButton" onclick="sendBarrage()">发送弹幕</button>
+            <div id="subtitle-layer">准备就绪...</div>
+            <video id="video" crossorigin="anonymous"></video>
         </div>
     </div>
-    
+
     <script>
-        // JavaScript 逻辑
-        const videoPlayer = document.getElementById('myVideoPlayer');
-        const localFileInput = document.getElementById('localFileInput');
-        const staticOverlay = document.getElementById('staticOverlay');
-        const lightsButton = document.getElementById('lightsButton');
-        const grayscaleButton = document.getElementById('grayscaleButton');
-        const threeDButton = document.getElementById('threeDButton');
-        const glitchButton = document.getElementById('glitchButton');
-        const translationButton = document.getElementById('translationButton');
-        const diamondButton = document.getElementById('diamondButton');
-        const parallaxButton = document.getElementById('parallaxButton');
-        const speedSelect = document.getElementById('speedSelect');
-        const barrageWrapper = document.getElementById('barrageWrapper');
-        const body = document.body;
-        const overlay = document.getElementById('overlay');
-        const videoContainer = document.getElementById('videoContainer');
-        const arModeButton = document.getElementById('arModeButton');
-        const testCardElement = document.getElementById('testCard');
-        const testCardButton = document.getElementById('testCardButton');
+        const video = document.getElementById('video'), vrBox = document.getElementById('vrBox'), subLayer = document.getElementById('subtitle-layer');
+        let vrActive = false, is3D = false, isTrans = false, isLangCN2EN = true, vrFrame;
 
-        let arModeEnabled = false;
-        let arCleanupPending = false; 
-        const cameraStreamElement = document.getElementById('camera-stream');
-        let currentCameraStream = null;
-
-        let isTranslationMode = false;
-        let isDiamondScatterMode = false;
-        let diamondInterval;
-        let isParallaxMode = false;
-        let isTestCardMode = false;
-
-        // ----------------------------------------------------
-        // 核心功能和特效函数
-        // ----------------------------------------------------
-
-        function speakChinese(text) {
-            if (!('speechSynthesis' in window)) { return; }
-            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN';
-            utterance.onerror = (event) => {
-                console.error('SpeechSynthesis Error:', event.error);
-            };
-            window.speechSynthesis.speak(utterance);
+        // 切换翻译方向
+        function toggleLang() {
+            isLangCN2EN = !isLangCN2EN;
+            document.getElementById('langBtn').textContent = isLangCN2EN ? "切换: 中->英" : "切换: 英->中";
         }
 
-        function toggleLights() {
-            if (arModeEnabled || arCleanupPending) { 
-                if (isTranslationMode) { speakChinese("AR 沉浸式模式下，关灯操作被锁定。请先退出 AR 模式。"); }
-                return; 
-            }
-            if (isTranslationMode) { speakChinese("呀，现场灯光突然熄灭了！"); }
-            lightsButton.classList.toggle('active');
-            body.classList.toggle('lights-off');
-            videoContainer.classList.toggle('lights-off');
-            const isLightsOff = body.classList.contains('lights-off');
-            overlay.style.display = isLightsOff ? 'block' : 'none';
-            lightsButton.textContent = isLightsOff ? '开灯' : '关灯';
+        // 3D 渲染逻辑
+        function toggle3D() { is3D = !is3D; document.getElementById('threeDBtn').classList.toggle('active', is3D); }
+
+        function toggleVR() {
+            vrActive = !vrActive;
+            document.getElementById('vrBtn').classList.toggle('active', vrActive);
+            vrBox.style.display = vrActive ? 'flex' : 'none';
+            if (vrActive) renderVR(); else cancelAnimationFrame(vrFrame);
         }
 
-        function toggleTranslationMode() {
-            isTranslationMode = !isTranslationMode;
-            if (isTranslationMode) {
-                translationButton.textContent = "退出翻译";
-                translationButton.classList.add('active');
-                speakChinese("实时翻译模式已开启！"); 
-            } else {
-                translationButton.textContent = "实时翻译";
-                translationButton.classList.remove('active');
-                window.speechSynthesis.cancel(); 
-            }
-        }
-
-        function toggleGrayscale() {
-            if (isTranslationMode) { speakChinese("切换到黑白的历史影像模式咯！"); }
-            if (arModeEnabled) { toggleArMode(false); }
-            videoPlayer.classList.toggle('grayscale-on');
-            const isGrayscaleOn = videoPlayer.classList.contains('grayscale-on');
-            grayscaleButton.textContent = isGrayscaleOn ? '彩色屏' : '黑白屏';
-            isGrayscaleOn ? grayscaleButton.classList.add('active') : grayscaleButton.classList.remove('active');
-        }
-
-        function toggleGlitch() {
-            const isGlitchOn = barrageWrapper.classList.contains('glitch-on');
-            if (!isGlitchOn) {
-                if (isTranslationMode) { speakChinese("信号干扰模式已开启。"); }
-                if (arModeEnabled) { toggleArMode(false); }
-                if (isTestCardMode) { toggleTestCard(false); } 
-                barrageWrapper.classList.add('glitch-on');
-                glitchButton.textContent = "退出干扰";
-                glitchButton.classList.add('active');
-            } else {
-                if (isTranslationMode) { speakChinese("信号干扰模式已关闭。"); }
-                barrageWrapper.classList.remove('glitch-on');
-                glitchButton.textContent = "信号干扰";
-                glitchButton.classList.remove('active');
-            }
-        }
-
-        function toggle3D(forceState) {
-            if (isTranslationMode) { speakChinese("现场切换成立体小视角啦！"); }
-            if (arModeEnabled) { toggleArMode(false); }
-            if (isParallaxMode) { toggleParallax(false); } 
-            if (isTestCardMode) { toggleTestCard(false); } 
-            
-            const is3DOn = barrageWrapper.classList.toggle('three-d-on');
-            threeDButton.textContent = is3DOn ? "退出立体" : "立体电影";
-            is3DOn ? threeDButton.classList.add('active') : threeDButton.classList.remove('active');
-        }
-
-        function createDiamond() {
-            const diamond = document.createElement('div');
-            diamond.className = 'diamond';
-            const videoWidth = barrageWrapper.clientWidth;
-            const startX = Math.random() * (videoWidth - 40) + 20;
-            const startY = -50;
-            diamond.style.left = `${startX}px`;
-            diamond.style.top = `${startY}px`;
-            const duration = Math.random() * 2 + 3;
-            const delay = Math.random() * 0.5;
-            diamond.style.animation = `fall-and-fade ${duration}s linear ${delay}s forwards`;
-            barrageWrapper.appendChild(diamond);
-            diamond.addEventListener('animationend', () => {
-                diamond.remove();
-            });
-        }
-
-        function toggleDiamondScatter() {
-            isDiamondScatterMode = !isDiamondScatterMode;
-            if (isDiamondScatterMode) {
-                if (isTranslationMode) { speakChinese("水晶撒花开始！"); }
-                diamondButton.textContent = "停止撒水晶";
-                diamondButton.classList.add('active');
-                diamondInterval = setInterval(createDiamond, 100);
-            } else {
-                if (isTranslationMode) { speakChinese("停止水晶撒花。"); }
-                diamondButton.textContent = "撒水晶";
-                diamondButton.classList.remove('active');
-                clearInterval(diamondInterval);
-                barrageWrapper.querySelectorAll('.diamond').forEach(d => d.remove());
-            }
-        }
-
-        function handleParallax(e) {
-            if (!isParallaxMode) return;
-
-            const rect = barrageWrapper.getBoundingClientRect();
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-
-            const offsetX = (e.clientX - rect.left - centerX) / centerX;
-            const offsetY = (e.clientY - rect.top - centerY) / centerY;
-
-            const maxMove = 5; 
-            const moveX = -offsetX * maxMove; 
-            const moveY = -offsetY * maxMove; 
-
-            videoPlayer.style.transform = `scale(1.1) translate(${moveX}%, ${moveY}%)`;
-        }
-
-        function resetParallax() { 
-            videoPlayer.style.transform = 'scale(1.1) translate(0, 0)'; 
-        }
-
-        function toggleParallax(forceState) {
-            isParallaxMode = (typeof forceState === 'boolean') ? forceState : !isParallaxMode;
-
-            if (isParallaxMode) {
-                if (isTranslationMode) { speakChinese("视差推移模式已开启。"); }
-                if (arModeEnabled) { toggleArMode(false); } 
-                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); } 
-                if (isTestCardMode) { toggleTestCard(false); } 
-                                
-                barrageWrapper.classList.add('parallax-on');
-                parallaxButton.textContent = "退出视差";
-                parallaxButton.classList.add('active');
-                                
-                barrageWrapper.addEventListener('mousemove', handleParallax);
-                barrageWrapper.addEventListener('mouseleave', resetParallax);
-                                
-                if (videoPlayer.paused) videoPlayer.play();                            
-            } else {
-                if (isTranslationMode) { speakChinese("视差推移模式已关闭。"); }
-                                
-                barrageWrapper.classList.remove('parallax-on');
-                parallaxButton.textContent = "视差推移";
-                parallaxButton.classList.remove('active');
-                                
-                barrageWrapper.removeEventListener('mousemove', handleParallax);
-                barrageWrapper.removeEventListener('mouseleave', resetParallax);
-                                
-                videoPlayer.style.transform = ''; 
-            }
-        }
-
-        function toggleTestCard(forceState) {
-            isTestCardMode = (typeof forceState === 'boolean') ? forceState : !isTestCardMode; 
-
-            if (isTestCardMode) {
-                if (isTranslationMode && !forceState) { speakChinese("现在是电视停播时间，请欣赏彩条测试图。"); }
-                if (arModeEnabled) { toggleArMode(false); } 
-                if (barrageWrapper.classList.contains('glitch-on')) { toggleGlitch(false); } 
-                if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); } 
-                if (isParallaxMode) { toggleParallax(false); } 
-                
-                videoPlayer.pause();
-                barrageWrapper.classList.add('test-card-visible');
-                testCardButton.textContent = "恢复播放";
-                testCardButton.classList.add('active');
-                
-                staticOverlay.style.display = 'none'; 
-            } else {
-                if (isTranslationMode && !forceState) { speakChinese("恢复播放。"); }
-                barrageWrapper.classList.remove('test-card-visible');
-                testCardButton.textContent = "彩条测试图";
-                testCardButton.classList.remove('active');
-                
-                videoPlayer.style.display = 'block'; 
-                videoPlayer.play().catch(() => {});
-                
-                if (!videoPlayer.src || videoPlayer.paused) { 
-                    staticOverlay.style.display = 'block';
-                }
-            }
-        }
-
-        function setPlaybackSpeed(speed) {
-            videoPlayer.playbackRate = parseFloat(speed);
-            if (isTranslationMode) { speakChinese(`播放速度设置为${speed}倍。`); }
-        }
-
-        async function startCamera() {
-            if (!cameraStreamElement.srcObject) {
-                try {
-                    currentCameraStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "environment" },
-                        audio: false
-                    });
-                    cameraStreamElement.srcObject = currentCameraStream;
-                    await cameraStreamElement.play();
-                    cameraStreamElement.style.display = 'block';
-                    cameraStreamElement.style.opacity = '1'; 
-                    return true;
-                } catch (err) {
-                    console.error("无法访问摄像头:", err);
-                    return false;
-                }
-            }
-            cameraStreamElement.style.display = 'block';
-            cameraStreamElement.style.opacity = '1'; 
-            return true;
-        }
-
-        function stopCamera() {
-            if (currentCameraStream) {
-                currentCameraStream.getTracks().forEach(track => track.stop());
-                currentCameraStream = null;
-            }
-            if (cameraStreamElement) {
-                cameraStreamElement.srcObject = null; 
-                cameraStreamElement.style.opacity = '0';
-                setTimeout(() => {
-                    cameraStreamElement.style.display = 'none'; 
-                }, 200); 
-            }
-        }
-
-        function toggleArMode(forceState) {
-            if (!videoPlayer.src && !isTestCardMode && forceState !== true) { 
-                if (isTranslationMode) { speakChinese("请先加载一个视频源！"); }
-                alert("请先加载一个视频源！");
-                return;
-            }
-            if (isParallaxMode) { toggleParallax(false); } 
-            if (arCleanupPending) { return; }
-
-            arModeEnabled = (typeof forceState === 'boolean') ? forceState : !arModeEnabled;
-
-            if (arModeEnabled) {
-                if (body.classList.contains('lights-off')) { 
-                    toggleLights();
-                }
-
-                startCamera().then(success => {
-                    if (success) {
-                        if (isTranslationMode) { speakChinese("AR 沉浸式模式已开启，请允许摄像头权限！"); }
-                        body.classList.add('ar-mode');
-                        videoContainer.classList.add('ar-mode');
-                        arModeButton.textContent = "退出 AR 模式";
-                        arModeButton.classList.add('active');
-                        if (!isTestCardMode) {
-                            videoPlayer.play();
-                        }
-                    } else {
-                        arCleanupPending = true;
-                        setTimeout(() => {
-                            arModeEnabled = false; 
-                            arModeButton.textContent = "AR 沉浸式";
-                            arModeButton.classList.remove('active');
-                            body.classList.remove('ar-mode');
-                            videoContainer.classList.remove('ar-mode');
-                            stopCamera(); 
-                            arCleanupPending = false;
-                        }, 200); 
-                    }
-                });
-            } else {
-                stopCamera();
-                if (isTranslationMode) { speakChinese("AR 沉浸式模式已关闭，恢复普通播放。"); }
-                                
-                body.classList.remove('ar-mode');
-                videoContainer.classList.remove('ar-mode');
-                arCleanupPending = true; 
-                setTimeout(() => {
-                    lightsButton.textContent = '关灯';
-                    lightsButton.classList.remove('active'); 
-                    
-                    arModeButton.textContent = "AR 沉浸式";
-                    arModeButton.classList.remove('active');
-                    arCleanupPending = false;
-                }, 100); 
-            }
-        }
-
-        // 核心加载、弹幕及事件绑定
-        function playVideo(url) {
-            if (videoPlayer.src && videoPlayer.src.startsWith('blob:')) {
-                URL.revokeObjectURL(videoPlayer.src);
-            }
-
-            // 重置冲突模式
-            if (arModeEnabled) { toggleArMode(false); } 
-            if (barrageWrapper.classList.contains('three-d-on')) { toggle3D(false); }
-            if (isParallaxMode) { toggleParallax(false); }
-            
-            if (isTestCardMode) { toggleTestCard(false); } 
-                        
-            if (body.classList.contains('lights-off')) { toggleLights(); } 
-                        
-            videoPlayer.style.display = 'block';
-
-            if (url === "") {
-                videoPlayer.src = "";
-                videoPlayer.load();
-                staticOverlay.style.display = 'block'; 
-                toggleTestCard(true); 
-                return;
-            }
-            staticOverlay.style.display = 'block'; 
-
-            setTimeout(() => {
-                videoPlayer.src = url;
-                videoPlayer.load();
-                videoPlayer.play()
-                    .then(() => {
-                        staticOverlay.style.display = 'none';
-                    })
-                    .catch(error => {
-                        console.error("尝试播放视频时发生错误：", error);
-                        staticOverlay.style.display = 'block';
-                        toggleTestCard(true); 
-                        if (isTranslationMode) { speakChinese("视频加载失败或需要用户点击播放。"); }
-                    });
-            }, 1500); 
-        }
-
-        // 【已修复】弹幕发送函数
-        function sendBarrage() {
-            const input = document.getElementById('barrageInput');
-            const message = input.value.trim();
-
-            if (message === "") {
-                return; // 忽略空弹幕
-            }
-
-            // 1. 创建弹幕元素
-            const barrage = document.createElement('div');
-            barrage.className = 'barrage';
-            barrage.textContent = message;
-
-            // 2. 随机化样式和位置
-            const wrapperHeight = barrageWrapper.clientHeight;
-            // 随机y轴位置（避开顶部和底部）
-            const randomY = Math.random() * (wrapperHeight * 0.8) + (wrapperHeight * 0.1); 
-            
-            // 随机颜色
-            barrage.style.color = `hsl(${Math.random() * 360}, 100%, 80%)`; 
-            barrage.style.top = `${randomY}px`;
-
-            // 3. 应用动画
-            const duration = Math.random() * 8 + 6; // 6到14秒的随机速度
-            barrage.style.animation = `move-barrage ${duration}s linear forwards`;
-            
-            // 4. 将元素添加到包装器
-            barrageWrapper.appendChild(barrage);
-
-            // 5. 动画结束后清理 DOM 元素
-            barrage.addEventListener('animationend', () => {
-                barrage.remove();
-            });
-
-            // 6. 清空输入框
-            input.value = '';
-            
-            if (isTranslationMode) { speakChinese(`您的弹幕"${message}"已发送。`); }
-        }
-
-
-        // 占位函数：确保 HTML 中的调用不会报错
-        function loadVideo() {
-            const url = document.getElementById('videoUrlInput').value;
-            playVideo(url);
-        }
-        function loadSelectedVideo() {
-             const select = document.getElementById('videoPlaylist');
-             playVideo(select.value);
-        }
-        function captureFrame() {
-            // 截屏逻辑 (略)
-        }
-
-        // 确保页面加载时设置事件监听器
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('localFileButton').addEventListener('click', () => {
-                document.getElementById('localFileInput').click();
-            });
-            document.getElementById('localFileInput').addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const objectURL = URL.createObjectURL(file);
-                    playVideo(objectURL);
+        function renderVR() {
+            if (!vrActive) return;
+            const ctxL = document.getElementById('canvasL').getContext('2d');
+            const ctxR = document.getElementById('canvasR').getContext('2d');
+            [ctxL, ctxR].forEach((ctx, idx) => {
+                ctx.canvas.width = vrBox.clientWidth / 2;
+                ctx.canvas.height = vrBox.clientHeight;
+                const offset = is3D ? (idx === 0 ? -12 : 12) : 0;
+                ctx.drawImage(video, offset, 0, ctx.canvas.width, ctx.canvas.height);
+                if (is3D) {
+                    ctx.globalCompositeOperation = idx === 0 ? "multiply" : "screen";
+                    ctx.fillStyle = idx === 0 ? "#ff0000" : "#00ffff";
+                    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 }
             });
+            vrFrame = requestAnimationFrame(renderVR);
+        }
 
-            // 如果没有视频源，默认显示雪花和测试图
-            if (!videoPlayer.src) {
-                staticOverlay.style.display = 'block';
-                setTimeout(() => {
-                    toggleTestCard(true);
-                }, 50); 
+        // AI 翻译逻辑 (实时调用 API)
+        async function getTranslation(text) {
+            const sl = isLangCN2EN ? 'zh-CN' : 'en';
+            const tl = isLangCN2EN ? 'en' : 'zh-CN';
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                return data[0][0][0];
+            } catch(e) { return "网络连接异常"; }
+        }
+
+        function toggleTrans() {
+            isTrans = !isTrans;
+            document.getElementById('transBtn').classList.toggle('active', isTrans);
+            subLayer.style.display = isTrans ? 'block' : 'none';
+            if (isTrans) {
+                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRec) return alert("当前浏览器不支持识别");
+                const rec = new SpeechRec();
+                rec.continuous = true; rec.interimResults = true; rec.lang = isLangCN2EN ? 'zh-CN' : 'en';
+                rec.onresult = async (e) => {
+                    const original = e.results[e.results.length-1][0].transcript;
+                    subLayer.innerHTML = `<div class="trans-original">识别: ${original}</div><div class="trans-result">翻译中...</div>`;
+                    const translated = await getTranslation(original);
+                    subLayer.innerHTML = `<div class="trans-original">${original}</div><div class="trans-result">${translated}</div>`;
+                };
+                rec.start();
             }
-        });
+        }
+
+        document.getElementById('localFileInput').onchange = (e) => { video.src = URL.createObjectURL(e.target.files[0]); video.play(); };
     </script>
 </body>
 </html>
-
-
-
-
-
-
-<div style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe id="js_video_iframe" src="https://jumpshare.com/embed/HDh7T21QwHm0LUvmvZnl" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
-
-
-
