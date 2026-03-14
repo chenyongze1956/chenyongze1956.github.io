@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,6 +7,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
+
+
+/* 印章容器：设置在显示区的右下角 */
+.display-panel {
+    position: relative; /* 关键：为了让印章能够相对于此定位 */
+    overflow: hidden;   /* 确保印章不溢出 */
+}
+
+.display-panel::after {
+    content: "泊宫"; /* 印章文字 */
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    border: 3px solid #b72d2d;
+    border-radius: 50%;
+    color: #b72d2d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Zhi Mang Xing', cursive;
+    font-size: 1.5rem;
+    opacity: 0.3; /* 降低透明度，模拟油墨印痕 */
+    transform: rotate(-15deg); /* 微微倾斜，更显自然 */
+    pointer-events: none; /* 穿透点击，不影响操作 */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+        
         :root {
             --gold: #000;
             --blood: #b72d2d;
