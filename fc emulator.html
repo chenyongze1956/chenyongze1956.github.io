@@ -1,9 +1,10 @@
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Web FC 模拟器 - 公网直播版</title>
     <script src="peerjs.js"></script> 
     <style>
         body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
@@ -30,6 +31,7 @@
         <button class="btn btn-load" onclick="document.getElementById('rom-upload').click()">📂 加载游戏</button>
         <button id="btnScreenshot" class="btn" disabled>📷 截图</button>
         <button id="btnMute" class="btn" disabled>🔊 静音</button>
+
     </div>
 
     <div class="screen-container">
@@ -42,6 +44,8 @@
         <button id="btnConnect" class="btn btn-cast" disabled>开始连接并直播</button>
         <div id="status" style="font-size: 12px; margin-top: 10px; color: #FFC107;">请先加载游戏 ROM</div>
     </div>
+
+            <div id="gamepad-status" style="color: #fff; font-size: 12px; margin-top: 5px;">🎮 请按下手柄任意键以激活</div>
 
     <script src="jsnes.min.js"></script>
     <script>
@@ -140,6 +144,45 @@
         document.addEventListener('keyup', e => { if(isFileLoaded && KEYMAP[e.keyCode]!==undefined) nes.buttonUp(1, KEYMAP[e.keyCode]); });
         function loop() { if (isFileLoaded) nes.frame(); requestAnimationFrame(loop); }
         loop();
+
+
+// --- 在 loop 函数中加入轮询 ---
+function loop() {
+    if (isFileLoaded) {
+        updateGamepad(); // 实时检测 USB 手柄
+        nes.frame();
+    }
+    requestAnimationFrame(loop);
+}
+
+
+        
+// --- 手柄映射配置 ---
+const GAMEPAD_MAP = {
+    0: 0, 1: 1, // A/B
+    8: 2, 9: 3, // Select/Start
+    12: 4, 13: 5, 14: 6, 15: 7 // 上下左右
+};
+let prevButtons = new Array(16).fill(false);
+
+function updateGamepad() {
+    const gp = navigator.getGamepads()[0];
+    if (!gp) return;
+
+    const statusEl = document.getElementById('gamepad-status');
+    statusEl.innerText = `🎮 已连接: ${gp.id.substring(0, 20)}...`;
+
+    gp.buttons.forEach((btn, index) => {
+        if (GAMEPAD_MAP[index] !== undefined) {
+            const nesBtn = GAMEPAD_MAP[index];
+            if (btn.pressed !== prevButtons[index]) {
+                btn.pressed ? nes.buttonDown(1, nesBtn) : nes.buttonUp(1, nesBtn);
+                prevButtons[index] = btn.pressed;
+            }
+        }
+    });
+}
+                
     </script>
 </body>
 </html>
