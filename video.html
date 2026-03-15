@@ -4,21 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI 沉浸式影院 - 专业版</title>
     <style>
         :root { --primary: #00d2ff; }
-        body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px 10px; background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);             font-family: sans-serif; touch-action: manipulation; }
+        body { display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 20px 10px; background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); font-family: sans-serif; touch-action: manipulation; }
         .video-container { width: 100%; max-width: 900px; background: #000; padding: 15px; border-radius: 12px; position: relative; }
-        .barrage-wrapper { position: relative; overflow: hidden; background: #000; border-radius: 8px; min-height: 380px; }
-        #video { width: 100%; height: auto; }
+        
+        /* 增加视差容器效果 */
+        .barrage-wrapper { 
+            position: relative; overflow: hidden; background: #000; border-radius: 8px; min-height: 380px;
+            perspective: 1000px; /* 视差基准 */
+            transition: transform 0.1s ease-out;
+        }
+        
+        #video { width: 100%; height: auto; transform-style: preserve-3d; transition: transform 0.1s ease-out; }
         .vr-viewports { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #000; z-index: 100; }
         .vr-mode-active .vr-viewports { display: flex; }
-        .vr-canvas { width: 50%; height: 100%; }
-        
+        .vr-canvas { width: 50%; height: 100%; }                
         #subtitle-layer { position: absolute; bottom: 40px; width: 80%; left: 10%; background: rgba(0,0,0,0.85); padding: 15px; border-radius: 8px; color: #fff; font-size: 20px; text-align: center; border: 2px solid var(--primary); z-index: 999; display: none; }
         .trans-original { color: #aaa; font-size: 14px; }
-        .trans-result { color: #fff; font-size: 22px; font-weight: bold; margin-top: 5px; }
-        
+        .trans-result { color: #fff; font-size: 22px; font-weight: bold; margin-top: 5px; }                
         .action-panel { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
         button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; flex: 1; background: #333; color: #fff; font-size: 12px; }
         button.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
@@ -32,6 +36,7 @@
             <button id="threeDBtn" onclick="toggle3D()">3D 立体</button>
             <button id="vrBtn" onclick="toggleVR()">VR 分屏</button>
             <button id="transBtn" onclick="toggleTrans()">AI 字幕</button>
+            <button id="paraBtn" onclick="toggleParallax()">视差推移</button>
             <button id="langBtn" onclick="toggleLang()">切换: 中->英</button>
         </div>
         <div class="barrage-wrapper" id="wrapper">
@@ -43,27 +48,39 @@
             <video id="video" crossorigin="anonymous"></video>
         </div>
     </div>
-
     <script>
-        const video = document.getElementById('video'), vrBox = document.getElementById('vrBox'), subLayer = document.getElementById('subtitle-layer');
-        let vrActive = false, is3D = false, isTrans = false, isLangCN2EN = true, vrFrame;
+        const video = document.getElementById('video'), vrBox = document.getElementById('vrBox'), subLayer = document.getElementById('subtitle-layer'), wrapper = document.getElementById('wrapper');
+        let vrActive = false, is3D = false, isTrans = false, isParallax = false, isLangCN2EN = true, vrFrame;
 
-        // 切换翻译方向
-        function toggleLang() {
-            isLangCN2EN = !isLangCN2EN;
-            document.getElementById('langBtn').textContent = isLangCN2EN ? "切换: 中->英" : "切换: 英->中";
+        // 视差推移逻辑
+        function toggleParallax() {
+            isParallax = !isParallax;
+            document.getElementById('paraBtn').classList.toggle('active', isParallax);
+            if (isParallax) {
+                wrapper.addEventListener('mousemove', applyParallax);
+            } else {
+                wrapper.removeEventListener('mousemove', applyParallax);
+                video.style.transform = "rotateY(0deg) rotateX(0deg)";
+            }
         }
 
-        // 3D 渲染逻辑
-        function toggle3D() { is3D = !is3D; document.getElementById('threeDBtn').classList.toggle('active', is3D); }
+        function applyParallax(e) {
+            const { offsetWidth: w, offsetHeight: h } = wrapper;
+            const { offsetX: x, offsetY: y } = e;
+            const rotateY = ((x / w) - 0.5) * 20; // 左右倾斜 20 度
+            const rotateX = ((y / h) - 0.5) * -20; // 上下倾斜 20 度
+            video.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(1.05)`;
+        }
 
+        // --- 其他原有功能 ---
+        function toggleLang() { isLangCN2EN = !isLangCN2EN; document.getElementById('langBtn').textContent = isLangCN2EN ? "切换: 中->英" : "切换: 英->中"; }
+        function toggle3D() { is3D = !is3D; document.getElementById('threeDBtn').classList.toggle('active', is3D); }
         function toggleVR() {
             vrActive = !vrActive;
             document.getElementById('vrBtn').classList.toggle('active', vrActive);
             vrBox.style.display = vrActive ? 'flex' : 'none';
             if (vrActive) renderVR(); else cancelAnimationFrame(vrFrame);
         }
-
         function renderVR() {
             if (!vrActive) return;
             const ctxL = document.getElementById('canvasL').getContext('2d');
@@ -81,19 +98,12 @@
             });
             vrFrame = requestAnimationFrame(renderVR);
         }
-
-        // AI 翻译逻辑 (实时调用 API)
         async function getTranslation(text) {
             const sl = isLangCN2EN ? 'zh-CN' : 'en';
             const tl = isLangCN2EN ? 'en' : 'zh-CN';
             const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(text)}`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                return data[0][0][0];
-            } catch(e) { return "网络连接异常"; }
+            try { const res = await fetch(url); const data = await res.json(); return data[0][0][0]; } catch(e) { return "网络连接异常"; }
         }
-
         function toggleTrans() {
             isTrans = !isTrans;
             document.getElementById('transBtn').classList.toggle('active', isTrans);
@@ -112,7 +122,6 @@
                 rec.start();
             }
         }
-
         document.getElementById('localFileInput').onchange = (e) => { video.src = URL.createObjectURL(e.target.files[0]); video.play(); };
     </script>
 </body>
