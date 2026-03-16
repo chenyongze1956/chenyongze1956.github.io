@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -8,7 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
 
-
+@keyframes sealAppear {
+    0% { opacity: 0; transform: rotate(-8deg) scale(1.2); }
+    100% { opacity: 0.6; transform: rotate(-8deg) scale(1); }
+}
 /* 印章容器：设置在显示区的右下角 */
 .display-panel {
     position: relative; /* 关键：为了让印章能够相对于此定位 */
@@ -16,7 +20,7 @@
 }
 
 .display-panel::after {
-    content: "泊宫"; /* 印章文字 */
+    content: "演禽"; /* 印章文字 */
     position: absolute;
     bottom: 20px;
     right: 20px;
@@ -34,6 +38,24 @@
     transform: rotate(-15deg); /* 微微倾斜，更显自然 */
     pointer-events: none; /* 穿透点击，不影响操作 */
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+
+
+    background: radial-gradient(circle, transparent 20%, rgba(166, 44, 43, 0.05) 100%);
+    opacity: 0.6;
+    transform: rotate(-8deg); 
+    
+    /* 4. 使用滤镜模拟墨迹晕染 */
+    filter: blur(0.4px) contrast(1.2);
+    
+    /* 5. 关键做旧：利用 mix-blend-mode 让印章与背景纸张融合 */
+    mix-blend-mode: multiply;
+
+
+    animation: sealAppear 20s ease-in-out forwards;
+opacity: 0;
+    
+    /* 6. 遮罩：制造随机的缺角和斑驳感 */
+    
 }
 
         
@@ -101,6 +123,10 @@
 
  
         }
+
+
+
+        
 
         /* 顶部标题：居中对齐 */
         .header {
