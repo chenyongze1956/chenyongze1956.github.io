@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+  <style>
+    body { 
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; 
+        padding: 10px; /* 手机端减小外边距 */
+        background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+        background-size: 400% 400%;
+        animation: gradientAnimation 15s ease infinite;
+        color: #fff; 
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .container { 
+        width: 100%; /* 手机端宽度占满 */
+        max-width: 850px; 
+        margin: 20px auto; 
+        background: rgba(45, 45, 45, 0.9); 
+        padding: 15px; /* 手机端减小内边距 */
+        border-radius: 16px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        box-sizing: border-box; /* 确保 padding 不撑大容器 */
+    }
+
+    h2 { text-align: center; font-size: 1.5rem; margin-top: 10px; }
+
+    .controls { 
+        display: flex; 
+        flex-direction: column; /* 手机端搜索框和按钮上下堆叠 */
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    /* 桌面端恢复横向布局 */
+    @media (min-width: 600px) {
+        .controls { flex-direction: row; justify-content: center; }
+        .container { padding: 30px; }
+        body { padding: 40px; }
+    }
+
+    input { 
+        padding: 12px; 
+        border-radius: 8px; 
+        border: 2px solid #444; 
+        width: 100%; /* 宽度自适应 */
+        max-width: 250px;
+        background: #3d3d3d; 
+        color: white; 
+        font-size: 16px;
+    }
+
+    button { 
+        padding: 12px 24px; 
+        background: #e91e63; 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-size: 16px; 
+        font-weight: bold;
+        width: 100%;
+        max-width: 250px;
+    }
+
+    /* --- 核心优化：响应式表格 --- */
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+
+    @media (max-width: 600px) {
+        /* 在手机上把表格结构打散 */
+        thead { display: none; } /* 隐藏表头 */
+        
+        tr { 
+            display: block; 
+            margin-bottom: 15px; 
+            border: 1px solid #444; 
+            border-radius: 8px;
+            background: #1a1a1a;
+            padding: 10px;
+        }
+
+        td { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 5px; 
+            border: none; 
+            border-bottom: 1px solid #333;
+            font-size: 14px;
+        }
+
+        td:last-child { border-bottom: none; }
+
+        /* 使用伪元素在左侧显示“表头”文字 */
+        td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            color: #aaa;
+        }
+    }
+
+    /* 桌面端表格样式 */
+    @media (min-width: 601px) {
+        th, td { border: 1px solid #333; padding: 14px; text-align: left; }
+        th { background: #1a1a1a; color: #aaa; font-size: 13px; }
+        tr:nth-child(even) { background: #2d2d2d; }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h2>股票历史行情</h2>
+        <div class="controls">
+            <input type="text" id="stockInput" value="000001.SZ" placeholder="输入代码如 600000.SH">
+            <button onclick="loadData()">获取行情</button>
+        </div>
+        
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>交易日期</th>
+                    <th>开盘价</th>
+                    <th>最高价</th>
+                    <th>最低价</th>
+                    <th>收盘价</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+                <tr><td colspan="5" style="text-align: center; color: #999;">点击“获取行情”加载数据</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 这个脚本逻辑保持不变，依然请求你的本地 Node.js 代理
+        async function loadData() {
+            const code = document.getElementById('stockInput').value;
+            const tbody = document.getElementById('resultBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">🚀 正在通过 AI 引擎加载...</td></tr>';
+
+            try {
+                // 请求本地 Node.js 代理 (请确保 node proxy.js 正在运行)
+                const response = await fetch(`http://localhost:4000/data?code=${code}`);
+                const json = await response.json();
+                
+                if (json.data && json.data.items) {
+                    const items = json.data.items;
+                    tbody.innerHTML = '';
+                    items.forEach(row => {
+                        const tr = document.createElement('tr');
+                        // Tushare daily 接口标准返回顺序：
+                        // [0]ts_code, [1]trade_date, [2]open, [3]high, [4]low, [5]close ...
+                        tr.innerHTML = `
+                            <td>${row[1]}</td>
+                            <td style="color: ${row[5] > row[2] ? '#ff4d4d' : '#4dff4d'}">${row[2]}</td> <td style="color: #ff4d4d">${row[3]}</td> <td style="color: #4dff4d">${row[4]}</td> <td style="color: ${row[5] > row[2] ? '#ff4d4d' : '#4dff4d'}"><strong>${row[5]}</strong></td> `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    // 如果 Token 权限不足 (Error 40203)，显示你的提示
+                    const errorMsg = json.msg || "权限不足 (40203)，请检查 Token 积分";
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ffcc00;">💡 提示: ${errorMsg}</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ff4d4d;">❌ 错误: 代理服务器未启动，请运行 node proxy.js</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>
