@@ -152,7 +152,7 @@
 
             try {
                 // 请求本地 Node.js 代理 (请确保 node proxy.js 正在运行)
-                const response = await fetch(`http://localhost:4000/data?code=${code}`);
+                const response = await fetch(`https://chenyongze1956-github-io.onrender.com/data?code=${code}`);
                 const json = await response.json();
                 
                 if (json.data && json.data.items) {
