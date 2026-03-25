@@ -3,19 +3,19 @@ const https = require('https');
 
 const TUSHARE_TOKEN = 'a030801af2599e4c2205ea19562c5914bd68b82b19c1e9ed4bec2294';
 
-// 模拟数据生成器 (2026年数据)
-function generateMockData(code) {
+// 模拟数据生成器 (支持 2026 年日期)
+function generateMockData(code, isFund) {
     const items = [];
-    let basePrice = 12.5;
+    let basePrice = isFund ? 1.0 : 15.0; // 基金价格通常在 1 块附近，股票高些
     const now = new Date();
     for (let i = 0; i < 20; i++) {
         const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = d.toISOString().slice(0, 10).replace(/-/g, '');
-        const change = (Math.random() - 0.5) * 0.8;
+        const change = (Math.random() - 0.5) * (isFund ? 0.02 : 0.5);
         basePrice += change;
-        items.push([code, dateStr, basePrice.toFixed(2), (basePrice+0.3).toFixed(2), (basePrice-0.2).toFixed(2), (basePrice+0.1).toFixed(2)]);
+        items.push([code, dateStr, basePrice.toFixed(3), (basePrice+0.01).toFixed(3), (basePrice-0.01).toFixed(3), basePrice.toFixed(3)]);
     }
-    return { code: 0, msg: "正在显示 2026 模拟数据 (权限受限时触发)", data: { items } };
+    return { code: 0, msg: `正在显示 ${isFund?'基金':'股票'} 2026 模拟数据`, data: { items } };
 }
 
 const server = http.createServer((req, res) => {
@@ -29,18 +29,19 @@ const server = http.createServer((req, res) => {
     if (urlParams.pathname === '/data') {
         const stockCode = urlParams.searchParams.get('code') || '000001.SZ';
 
-        // 动态计算 2026 年日期
+        // 1. 自动识别：是股票还是基金？
+        let apiName = 'daily'; 
+        const isFund = stockCode.startsWith('5') || stockCode.startsWith('1') || stockCode.startsWith('2');
+        if (isFund) apiName = 'fund_daily';
+
+        // 2. 动态日期：2026 年最新 30 天
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
 
         const postData = JSON.stringify({
-            api_name: 'daily',
+            api_name: apiName,
             token: TUSHARE_TOKEN,
-            params: { 
-                ts_code: stockCode, 
-                start_date: thirtyDaysAgo, 
-                end_date: today 
-            }
+            params: { ts_code: stockCode, start_date: thirtyDaysAgo, end_date: today }
         });
 
         const options = {
@@ -60,24 +61,22 @@ const server = http.createServer((req, res) => {
             apiRes.on('end', () => {
                 try {
                     const result = JSON.parse(body);
-                    // 如果 Tushare 返回 40203 权限错误，自动切换到 2026 模拟数据
-                    if (result.code === 40203) {
+                    // 如果权限不足或解析失败，直接转模拟数据
+                    if (result.code !== 0) {
                         res.writeHead(200, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify(generateMockData(stockCode)));
+                        res.end(JSON.stringify(generateMockData(stockCode, isFund)));
                     } else {
                         res.writeHead(200, { 'Content-Type': 'application/json' });
                         res.end(body);
                     }
                 } catch (e) {
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(generateMockData(stockCode)));
+                    res.end(JSON.stringify(generateMockData(stockCode, isFund)));
                 }
             });
         });
 
-        connector.on('error', (e) => {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(generateMockData(stockCode)));
+        connector.on('error', () => {
+            res.end(JSON.stringify(generateMockData(stockCode, isFund)));
         });
 
         connector.write(postData);
@@ -88,6 +87,8 @@ const server = http.createServer((req, res) => {
     }
 });
 
-server.listen(4000, () => {
-    console.log('✅ 2026 代理服务已启动！');
+// Render 通常需要监听环境变量中的端口
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => {
+    console.log(`✅ 2026 跨界查询服务已启动，端口: ${PORT}`);
 });
