@@ -7,20 +7,19 @@
     <style>
         :root { --bg: #0d0d0d; --text: #00ff41; --prompt: #00e5ff; --err: #ff3d00; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; position: relative; }
+        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Consolas', monospace; overflow: hidden; position: relative; }
         
+        /* 画布层 */
         #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; display: none; }
-
+        
         #terminal { 
             background: rgba(13, 13, 13, 0.9); width: 100%; max-width: 1000px; height: 100%; 
             display: flex; flex-direction: column; position: relative; z-index: 2;
             transition: all 0.3s ease; backdrop-filter: blur(4px);
         }
-
         @media (min-width: 768px) { 
             #terminal { height: 90vh; border-radius: 12px; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.8); } 
         }
-
         #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: var(--text); font-size: 14px; }
         #input-line { display: flex; align-items: flex-start; padding: 12px 20px; background: rgba(5, 5, 5, 1); border-top: 1px solid #222; }
         #prompt { color: var(--prompt); margin-right: 10px; font-weight: bold; white-space: nowrap; }
@@ -56,26 +55,57 @@
             path: '/home/admin',
             files: ['README.txt', 'Documents/', 'Downloads/', 'music.mp3'],
             history: [], hIdx: -1, isMusicLocked: true, isChat: false,
-            snowing: false, snowInterval: null
+            effectMode: null, // 'snow' or 'matrix'
+            particles: [],
+            columns: 0, drops: []
         };
 
-        // --- 雪花逻辑 ---
-        let particles = [];
-        function createSnow() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            particles = [];
-            for(let i=0; i<100; i++) particles.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, d: Math.random()*1});
+        // --- 视觉效果逻辑 ---
+        function initEffect(mode) {
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight;
+            state.effectMode = mode;
+            canvas.style.display = 'block';
+
+            if (mode === 'snow') {
+                state.particles = [];
+                for(let i=0; i<100; i++) state.particles.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, d: Math.random()*1});
+            } else if (mode === 'matrix') {
+                const fontSize = 16;
+                state.columns = Math.floor(canvas.width / fontSize);
+                state.drops = Array(state.columns).fill(1);
+            }
+            renderEffect();
         }
-        function drawSnow() {
-            if(!state.snowing) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "white"; ctx.beginPath();
-            particles.forEach(p => {
-                ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-                p.y += Math.cos(p.d) + 1 + p.r/2; p.x += Math.sin(p.d) * 2;
-                if(p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
-            });
-            ctx.fill(); requestAnimationFrame(drawSnow);
+
+        function renderEffect() {
+            if (!state.effectMode) return;
+
+            if (state.effectMode === 'snow') {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white"; ctx.beginPath();
+                state.particles.forEach(p => {
+                    ctx.moveTo(p.x, p.y); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                    p.y += Math.cos(p.d) + 1 + p.r/2; p.x += Math.sin(p.d) * 2;
+                    if(p.y > canvas.height) { p.y = -10; p.x = Math.random()*canvas.width; }
+                });
+                ctx.fill();
+            } else if (state.effectMode === 'matrix') {
+                // Matrix 效果需要半透明背景来实现拖尾
+                ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#fffb00"; // 矩阵绿
+                ctx.font = "16px monospace";
+
+                const characters = "发财发财发财发财发财发财+-*/=%'\"#&_?,.:;()[]{}";
+                state.drops.forEach((y, i) => {
+                    const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                    ctx.fillText(text, i * 16, y * 16);
+                    if (y * 16 > canvas.height && Math.random() > 0.975) state.drops[i] = 0;
+                    state.drops[i]++;
+                });
+            }
+            requestAnimationFrame(renderEffect);
         }
 
         const write = (txt, cls = '') => {
@@ -150,12 +180,17 @@
                 } else write("可用: lumos, nox, alohomora");
             }},
             'chat': { desc: '黑客模式', exec: () => { 
-                state.isChat = true; promptText.textContent = "HACKER@SYS >"; 
-                write("--- 建立隧道: 127.0.0.1 -> SECRET_SRV ---", "success");
+                 state.isChat = true; promptText.textContent = "HACKER@SYS >"; 
+                 write("--- 建立隧道: 127.0.0.1 -> SECRET_SRV ---", "success");
             }},
             'snow': { desc: '下雪效果 (on/off)', exec: (a) => {
-                if(a[0] === 'on') { state.snowing = true; canvas.style.display = 'block'; createSnow(); drawSnow(); write("❄️ 降雪开始..."); }
-                else { state.snowing = false; canvas.style.display = 'none'; write("☀️ 天气晴朗。"); }
+                if(a[0] === 'on') { initEffect('snow'); write("❄️ 降雪开始..."); }
+                else { state.effectMode = null; canvas.style.display = 'none'; write("☀️ 天气晴朗。"); }
+            }},
+            // 新增 Matrix 指令
+            'matrix': { desc: '代码雨 (on/off)', exec: (a) => {
+                if(a[0] === 'on') { initEffect('matrix'); write("⚡ 进入发财体...", "hacker-text"); }
+                else { state.effectMode = null; canvas.style.display = 'none'; write("无聊世界。"); }
             }},
             'qrterminal': { desc: '生成二维码', exec: (a) => {
                 if(!a[0]) return write("用法: qrterminal 内容");
@@ -200,7 +235,8 @@
         };
 
         function writeWelcome() {
-            write("", "");
+            write("Web Terminal", "welcome");
+            write("Type 'help' for available commands.");
             write("");
         }
 
@@ -208,6 +244,7 @@
             if (e.key === 'Enter') {
                 const val = input.value.trim(); input.value = ''; if (!val) return;
                 state.history.unshift(val);
+                state.hIdx = -1; // 重置历史索引
                 const l = document.createElement('p');
                 l.innerHTML = `<span style="color:var(--prompt)">${promptText.textContent}</span> ${val}`;
                 output.appendChild(l);
@@ -217,6 +254,7 @@
                     else await hackerWrite(["加密通信中...", "已获取数据包: " + btoa(val).slice(0,12)]);
                     return;
                 }
+
                 const args = val.split(' ').filter(v => v !== "");
                 const cmd = args.shift().toLowerCase();
                 if (cmds[cmd]) cmds[cmd].exec(args); 
@@ -224,10 +262,13 @@
                 output.scrollTop = output.scrollHeight;
             } else if (e.key === 'ArrowUp') {
                 if (state.hIdx < state.history.length - 1) input.value = state.history[++state.hIdx];
+            } else if (e.key === 'ArrowDown') {
+                if (state.hIdx > 0) input.value = state.history[--state.hIdx];
+                else { state.hIdx = -1; input.value = ''; }
             }
         });
 
-        window.addEventListener('resize', () => { if(state.snowing) createSnow(); });
+        window.addEventListener('resize', () => { if(state.effectMode) initEffect(state.effectMode); });
         writeWelcome(); input.focus();
     </script>
 </body>
