@@ -1,12 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <style>
-        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); background-size: cover; background-position: center; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; color: #fff; transition: all 0.8s ease; }
-        .container { width: 90%; max-width: 450px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px); padding: 30px; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; z-index: 2; }
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); background-size: cover; background-position: center; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; color: #fff; transition: all 0.8s ease; overflow: hidden; }
+        .container { width: 90%; max-width: 450px; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(25px); padding: 30px; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; z-index: 2; position: relative; }
         .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
         input[type="text"] { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #444; background: rgba(0,0,0,0.5); color: #fff; outline: none; font-size: 1rem; }
         button { padding: 0 20px; background: #e94560; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
@@ -15,7 +15,6 @@
         #resultArea { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px; text-align: left; display: none; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 评分样式 */
         .rating-box { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
         .stars { color: #ffbd00; font-size: 1.1rem; letter-spacing: 2px; }
         .score-num { font-weight: bold; padding: 2px 8px; border-radius: 6px; font-size: 0.9rem; }
@@ -26,6 +25,14 @@
         .link-btn { padding: 6px 12px; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 0.75rem; color: white; text-decoration: none; transition: 0.2s; }
         .link-btn:hover { background: #00d2ff; }
         
+        /* 预告片按钮 - 更加醒目 */
+        .play-btn { background: #00c853 !important; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,200,83, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,200,83, 0); } 100% { box-shadow: 0 0 0 0 rgba(0,200,83, 0); } }
+
+        /* 视频容器 */
+        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; margin: 15px 0; display: none; background: #000; }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
         .cast-scroll { display: flex; overflow-x: auto; gap: 12px; scrollbar-width: none; padding-bottom: 5px; }
         .cast-item { flex: 0 0 60px; text-align: center; font-size: 0.7rem; cursor: pointer; }
         .cast-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(233, 69, 96, 0.4); transition: 0.3s; }
@@ -53,8 +60,16 @@
                 <span id="mScore" class="score-num"></span>
             </div>
 
+            <div id="videoWrapper" class="video-wrapper">
+                <iframe id="trailerFrame" src="" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen 
+                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+
             <p id="mDesc" class="desc"></p>
             <div class="link-bar" id="linkBar"></div>
+            
             <div style="font-size: 0.85rem; color: #e94560; font-weight: bold; margin-bottom: 10px;">🌟 领衔主演 (点击溯源)</div>
             <div class="cast-scroll" id="castList"></div>
         </div>
@@ -62,7 +77,7 @@
 
     <div id="actorModal">
         <div style="max-width: 450px; margin: 0 auto;">
-            <button style="margin-bottom:20px; padding: 8px 15px;" onclick="document.getElementById('actorModal').style.display='none'">关闭</button>
+            <button style="margin-bottom:20px; padding: 8px 15px; border-radius:8px;" onclick="document.getElementById('actorModal').style.display='none'">关闭</button>
             <h3 id="actorName" style="color:#00d2ff; margin-top:0;"></h3>
             <div id="actorWorks" style="font-size: 0.85rem; color: #eee; line-height: 2;"></div>
         </div>
@@ -76,73 +91,97 @@
     searchBtn.onclick = async () => {
         const kw = keywordInput.value.trim();
         if (!kw) return;
-        const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
-        const data = await res.json();
-        if (data.results?.length > 0) showResult(data.results[0]);
+        
+        // 重置播放器
+        document.getElementById('videoWrapper').style.display = 'none';
+        document.getElementById('trailerFrame').src = '';
+        
+        try {
+            const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
+            const data = await res.json();
+            if (data.results?.length > 0) showResult(data.results[0]);
+        } catch(e) { alert("搜索失败，请检查网络"); }
     };
 
     function generateStars(rating) {
-        const starCount = Math.round(rating / 2); // 10分制转5星
+        const starCount = Math.round(rating / 2);
         return "★".repeat(starCount) + "☆".repeat(5 - starCount);
     }
 
     async function showResult(item) {
         document.getElementById('resultArea').style.display = 'block';
         const title = item.title || item.name;
+        const type = item.media_type === 'tv' ? 'tv' : 'movie';
+        
         document.getElementById('mTitle').innerText = title;
         document.getElementById('mDesc').innerText = item.overview || "暂无简介。";
 
-        // --- 评分视觉化核心逻辑 ---
+        // 评分显示
         const score = item.vote_average || 0;
         const scoreEl = document.getElementById('mScore');
         const badgeEl = document.getElementById('mBadge');
-        
         document.getElementById('mStars').innerText = generateStars(score);
         scoreEl.innerText = score.toFixed(1) + " / 10";
-        
-        // 根据分值切换颜色
+
         if(score >= 8.0) {
-            scoreEl.style.background = "#ffbd00";
-            scoreEl.style.color = "#333";
+            scoreEl.style.background = "#ffbd00"; scoreEl.style.color = "#333";
             badgeEl.innerHTML = '<span class="badge">神作提名</span>';
-        } else if(score >= 6.0) {
-            scoreEl.style.background = "#00d2ff";
-            scoreEl.style.color = "#fff";
-            badgeEl.innerHTML = '';
         } else {
-            scoreEl.style.background = "#666";
-            scoreEl.style.color = "#fff";
-            badgeEl.innerHTML = '';
+            scoreEl.style.background = score >= 6.0 ? "#00d2ff" : "#666";
+            scoreEl.style.color = "#fff"; badgeEl.innerHTML = '';
         }
 
-        // 背景联动：将背景换成电影大图
+        // 背景图
         if (item.backdrop_path) {
             document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(https://image.tmdb.org/t/p/original${item.backdrop_path})`;
         }
 
-        // 渲染跳转链接
-        const links = [
-            { name: 'B站', url: 'https://search.bilibili.com/all?keyword=' },
-            { name: '爱奇艺', url: 'https://www.iqiyi.com/search/?q=' },
-            { name: 'YouTube', url: 'https://www.youtube.com/results?search_query=' }
-        ];
-        document.getElementById('linkBar').innerHTML = links.map(l => 
-            `<a href="${l.url}${encodeURIComponent(title)}" target="_blank" class="link-btn">${l.name} 搜索</a>`
-        ).join('');
+        // --- 预告片抓取（双保险逻辑） ---
+        let videoData = { results: [] };
+        try {
+            let vRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/videos?api_key=${TMDB_KEY}&language=zh-CN`);
+            videoData = await vRes.json();
+            if (!videoData.results || videoData.results.length === 0) {
+                vRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/videos?api_key=${TMDB_KEY}&language=en-US`);
+                videoData = await vRes.json();
+            }
+        } catch(e) {}
 
-        // 获取演职员
-        const type = item.media_type === 'tv' ? 'tv' : 'movie';
-        const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
-        const data = await res.json();
+        const trailer = videoData.results?.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'));
+
+        // 渲染按钮
+        const linkBar = document.getElementById('linkBar');
+        let html = '';
+        if (trailer) {
+            html += `<a href="javascript:void(0)" onclick="playTrailer('${trailer.key}')" class="link-btn play-btn">▶ 播放预告片</a>`;
+        }
+        html += `<a href="https://search.bilibili.com/all?keyword=${encodeURIComponent(title)}" target="_blank" class="link-btn">B站搜索</a>`;
+        html += `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(title)}" target="_blank" class="link-btn">YouTube</a>`;
+        linkBar.innerHTML = html;
+
+        // 获取角色
+        const creditsRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
+        const creditsData = await creditsRes.json();
         const list = document.getElementById('castList');
         list.innerHTML = '';
-        data.cast.slice(0, 8).forEach(p => {
+        creditsData.cast.slice(0, 8).forEach(p => {
             const div = document.createElement('div');
             div.className = 'cast-item';
             div.innerHTML = `<img src="${p.profile_path ? 'https://image.tmdb.org/t/p/w200'+p.profile_path : 'https://via.placeholder.com/50'}" class="cast-img"><div>${p.name}</div>`;
             div.onclick = () => fetchActorWorks(p.id, p.name);
             list.appendChild(div);
         });
+    }
+
+    // 执行播放
+    function playTrailer(key) {
+        const wrapper = document.getElementById('videoWrapper');
+        const frame = document.getElementById('trailerFrame');
+        wrapper.style.display = 'block';
+        // 添加 origin 参数有助于 YouTube 验证来源
+        const origin = window.location.origin;
+        frame.src = `https://www.youtube.com/embed/${key}?autoplay=1&origin=${origin}`;
+        wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     async function fetchActorWorks(id, name) {
