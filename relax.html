@@ -1,7 +1,44 @@
-<iframe
-  id="chat_embed"
-  src="https://www.twitch.tv/embed/ladyrebellium/chat?parent=chenyongze1956.github.io"
-  height="500"
-  width="350"
-  referrerpolicy="strict-origin-when-cross-origin">
-</iframe>
+<div class="chat-container">
+    <iframe
+      id="chat_embed"
+      src="https://www.twitch.tv/embed/ladyrebellium/chat?parent=chenyongze1956.github.io"
+      referrerpolicy="strict-origin-when-cross-origin">
+    </iframe>
+</div>
+
+<style>
+    /* 1. 容器样式：让聊天框居中 */
+    .chat-container {
+        display: flex;
+        justify-content: center; /* 水平居中 */
+        align-items: center;     /* 垂直居中（如果父级有高度） */
+        padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
+                  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+    }
+
+    /* 2. 聊天框样式：响应式核心 */
+    #chat_embed {
+        /* 电脑端固定宽度，手机端 100% */
+        width: 100%;
+        max-width: 400px; /* 在大屏幕上，聊天框最宽 400px */
+        
+        /* 电脑端高度，手机端可以略微缩短 */
+        height: 600px;
+        
+        border: none;
+        border-radius: 12px; /* 圆角看起来更现代 */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* 增加一点立体感 */
+    }
+
+    /* 3. 针对小屏幕手机的微调 */
+    @media (max-width: 480px) {
+        .chat-container {
+            padding: 10px; /* 缩小外边距 */
+        }
+        #chat_embed {
+            height: 500px; /* 手机屏矮，缩短一点高度 */
+        }
+    }
+</style>
