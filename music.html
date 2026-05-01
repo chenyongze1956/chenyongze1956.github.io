@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -36,24 +37,25 @@
             bottom: 260px !important;
             width: 180px !important;
             min-height: 50px !important;
-            background-color: #ffffff !important; /* 强制白底 */
-            border: 3px solid #000 !important; /* 强制黑边 */
+            background-color: #ffffff !important;
+            border: 3px solid #000 !important;
             border-radius: 12px !important;
             z-index: 999999 !important;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s;
             pointer-events: none;
-            display: flex !important; /* 使用 flex 居中文字 */
+            display: flex !important;
             align-items: center;
             justify-content: center;
             padding: 10px !important;
             box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* 核心修复：强制内部文字显色 */
+        /* 核心修复：强制内部文字显色为纯黑 */
         #live2d-widget .live2d-widget-dialog {
-            color: #000000 !important; /* 纯黑文字 */
+            color: #000000 !important; 
             display: block !important;
             opacity: 1 !important;
             visibility: visible !important;
@@ -69,7 +71,11 @@
             visibility: visible !important;
         }
 
-        /* 气泡小箭头 */
+        /* 录音状态：猫咪发光提示 */
+        #live2d-widget.listening {
+            filter: drop-shadow(0 0 15px #ff4500) !important;
+        }
+
         .live2d-widget-dialog-container::after {
             content: ''; position: absolute; bottom: -12px; right: 30px;
             border-width: 12px 10px 0; border-style: solid; border-color: #000 transparent transparent;
@@ -85,7 +91,7 @@
 <body>
 
 <div class="cassette-player">
-    <div style="font-family: var(--font-pixel); color: #666; font-size: 0.5rem; margin-bottom: 15px;">LIVE2D MUSIC STATION</div>
+    <div style="font-family: var(--font-pixel); color: #666; font-size: 0.5rem; margin-bottom: 15px;">AI MUSIC STATION</div>
     <div class="tape-window">
         <div class="tape-reel left"></div>
         <div class="tape-reel right"></div>
@@ -97,13 +103,14 @@
         <button class="control-btn" id="playBtn">PLAY</button>
         <button class="control-btn" id="stopBtn">STOP</button>
     </div>
+    <div style="margin-top:10px; font-size: 10px; color: #555;">点击猫咪开始语音聊天</div>
     <audio id="mainAudio"></audio>
 </div>
 
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // 1. 初始化
+    // 1. 初始化 Live2D
     L2Dwidget.init({
         "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json", "scale": 1 },
         "display": { "position": "right", "width": 180, "height": 360, "hOffset": 10, "vOffset": -20 },
@@ -111,10 +118,15 @@
         "dialog": { "enable": true } 
     });
 
-    // 2. 文字显示核心逻辑
+    // 2. DeepSeek API 配置
+    const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
+    const API_URL = 'https://api.deepseek.com/chat/completions';
+
+    // 3. 核心逻辑函数
     let dialogTimer;
-    function showCatSpeech(text) {
-        // 尝试获取两个可能的容器（库生成的结构有时会有差异）
+
+    // 显示气泡、显示黑色文字并语音朗读
+    function showCatSpeech(text, needSpeak = true) {
         const container = document.querySelector('.live2d-widget-dialog-container');
         const dialogBox = document.querySelector('.live2d-widget-dialog');
         
@@ -123,30 +135,100 @@
             dialogBox.innerText = text; // 写入文字
             container.classList.add('active'); // 显示气泡
             
+            // 语音合成 (TTS)
+            if (needSpeak) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.pitch = 1.3; // 高音调，更有猫的感觉
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+
             dialogTimer = setTimeout(() => {
                 container.classList.remove('active');
-            }, 3000);
+            }, 5000);
         }
     }
 
-    // 3. 事件监听
+    // 调用 DeepSeek API
+    async function askAI(userText) {
+        showCatSpeech("让我想想喵...", false);
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [
+                        { role: "system", content: "你是一只叫Hijiki的黑猫。你性格傲娇但忠诚，喜欢复古磁带音乐。说话必须以'喵'结尾。请简洁地回答Master。" },
+                        { role: "user", content: userText }
+                    ]
+                })
+            });
+            const data = await response.json();
+            const aiReply = data.choices[0].message.content;
+            showCatSpeech(aiReply);
+        } catch (error) {
+            showCatSpeech("哎呀，脑子卡住了喵！");
+            console.error(error);
+        }
+    }
+
+    // 4. 语音识别 (ASR)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            document.getElementById('live2d-widget').classList.add('listening');
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            showCatSpeech("你说: " + transcript, false);
+            askAI(transcript);
+        };
+
+        recognition.onend = () => {
+            document.getElementById('live2d-widget').classList.remove('listening');
+        };
+
+        recognition.onerror = () => {
+            showCatSpeech("没听清喵，再说一遍？");
+            document.getElementById('live2d-widget').classList.remove('listening');
+        };
+    }
+
+    // 5. 事件绑定
     window.onload = function() {
-        // 监听猫咪点击
-        document.addEventListener('mousedown', (e) => {
-            if (e.target.id === 'live2dcanvas') {
-                const rect = e.target.getBoundingClientRect();
-                const clickY = e.clientY - rect.top;
-                // 点击上方说话脸部台词，下方说话身体台词
-                if (clickY < rect.height / 3) {
-                    showCatSpeech("Master，这首歌很有精神喵！");
-                } else {
-                    showCatSpeech("过于耀眼，在瞳孔深处闪烁吧~");
-                }
+        // 定时检查 Canvas 是否加载完成，然后绑定点击事件
+        const checkCanvas = setInterval(() => {
+            const canvas = document.getElementById('live2dcanvas');
+            if (canvas) {
+                clearInterval(checkCanvas);
+                canvas.addEventListener('mousedown', () => {
+                    if (recognition) {
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.log("识别已在运行...");
+                        }
+                    } else {
+                        alert("浏览器不支持语音识别喵！");
+                    }
+                });
             }
-        });
+        }, 500);
     };
 
-    // 播放器控制
+    // 6. 播放器控制 (保持原逻辑)
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
