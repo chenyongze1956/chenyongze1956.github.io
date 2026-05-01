@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -10,55 +9,77 @@
         body {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; margin: 0; overflow-x: hidden; /* 防止看板娘溢出导致左右晃动 */
+            min-height: 100vh; margin: 0; overflow-x: hidden;
         }
 
-        /* --- 响应式容器 --- */
+        /* 播放器容器 */
         .cassette-player {
-            background: #222; border-radius: 12px; 
-            padding: 5vw; /* 使用视口单位，随屏幕大小缩放内边距 */
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            width: 85%; /* 移动端占比 */
-            max-width: 400px; /* PC端最大宽度 */
-            text-align: center; z-index: 10; position: relative;
+            background: #222; border-radius: 12px; padding: 5vw;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8); width: 85%;
+            max-width: 400px; text-align: center; z-index: 10; position: relative;
         }
-
         .tape-window {
-            background: #000; 
-            height: clamp(100px, 20vh, 150px); /* 动态高度：最小100px，最大150px */
-            margin-bottom: 20px;
-            display: flex; justify-content: space-around; align-items: center;
-            border: 4px solid #1a1a1a; position: relative;
+            background: #000; height: clamp(100px, 20vh, 150px);
+            margin-bottom: 20px; display: flex; justify-content: space-around;
+            align-items: center; border: 4px solid #1a1a1a; position: relative;
         }
-
-        .tape-reel { 
-            width: clamp(40px, 12vw, 60px); 
-            height: clamp(40px, 12vw, 60px); 
-            border: 3px dashed #444; border-radius: 50%; 
-        }
-
+        .tape-reel { width: clamp(40px, 12vw, 60px); height: clamp(40px, 12vw, 60px); border: 3px dashed #444; border-radius: 50%; }
         .tape-reel.playing { animation: rotate 3s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
         #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.6rem; margin-bottom: 20px; }
-        
-        .control-btn { 
-            background: #3d3d3d; color: #fff; border: none; 
-            padding: 10px 15px; cursor: pointer; margin: 5px; 
-            font-family: var(--font-pixel); font-size: 0.5rem;
-            transition: transform 0.1s;
-        }
-        .control-btn:active { transform: scale(0.95); }
+        .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 15px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
 
-        /* --- 手机端小屏幕优化 --- */
+        /* --- 气泡框显示逻辑：强制样式覆盖 --- */
+        .live2d-widget-dialog-container {
+            position: fixed !important;
+            right: 20px !important;
+            bottom: 260px !important;
+            width: 180px !important;
+            min-height: 50px !important;
+            background-color: #ffffff !important; /* 强制白底 */
+            border: 3px solid #000 !important; /* 强制黑边 */
+            border-radius: 12px !important;
+            z-index: 999999 !important;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            display: flex !important; /* 使用 flex 居中文字 */
+            align-items: center;
+            justify-content: center;
+            padding: 10px !important;
+            box-sizing: border-box;
+        }
+
+        /* 核心修复：强制内部文字显色 */
+        #live2d-widget .live2d-widget-dialog {
+            color: #000000 !important; /* 纯黑文字 */
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            font-size: 14px !important;
+            font-family: Arial, sans-serif !important;
+            font-weight: bold !important;
+            text-align: center;
+            width: 100%;
+        }
+
+        .live2d-widget-dialog-container.active {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* 气泡小箭头 */
+        .live2d-widget-dialog-container::after {
+            content: ''; position: absolute; bottom: -12px; right: 30px;
+            border-width: 12px 10px 0; border-style: solid; border-color: #000 transparent transparent;
+        }
+
+        #live2d-widget { pointer-events: auto !important; }
+
         @media (max-width: 480px) {
-            .cassette-player { padding: 20px 15px; }
-            .control-btn { padding: 8px 12px; font-size: 0.45rem; }
+            .live2d-widget-dialog-container { bottom: 210px !important; width: 140px; }
         }
-
-        /* 看板娘点击穿透 */
-        #live2d-widget { pointer-events: none !important; }
-        #live2dcanvas { pointer-events: auto !important; }
     </style>
 </head>
 <body>
@@ -82,52 +103,70 @@
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // --- 看板娘响应式初始化 ---
+    // 1. 初始化
     L2Dwidget.init({
-        "model": {
-            "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json",
-            "scale": 1
-        },
-        "display": {
-            "position": "right",
-            "width": window.innerWidth < 480 ? 120 : 180, // 根据屏幕宽度动态设置初始尺寸
-            "height": window.innerWidth < 480 ? 240 : 360,
-            "hOffset": 10,
-            "vOffset": -10
-        },
-        "mobile": { 
-            "show": true, 
-            "scale": 0.4, // 手机端缩放比例调小
-            "motion": true 
-        },
-        "react": { "opacity": 0.9 },
-        "dialog": {
-            "enable": window.innerWidth > 480, // 手机端由于屏幕窄，建议关闭对话框以免挡住按钮
-            "script": {
-                'every idle 10s': '在听什么好歌呢？',
-                'tap body': '哎呀！别碰我~',
-                'tap face': 'Master，音乐很好听哦！'
-            }
-        }
+        "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json", "scale": 1 },
+        "display": { "position": "right", "width": 180, "height": 360, "hOffset": 10, "vOffset": -20 },
+        "mobile": { "show": true, "scale": 0.5 },
+        "dialog": { "enable": true } 
     });
 
-    // --- 播放器逻辑 (保持不变) ---
+    // 2. 文字显示核心逻辑
+    let dialogTimer;
+    function showCatSpeech(text) {
+        // 尝试获取两个可能的容器（库生成的结构有时会有差异）
+        const container = document.querySelector('.live2d-widget-dialog-container');
+        const dialogBox = document.querySelector('.live2d-widget-dialog');
+        
+        if (container && dialogBox) {
+            clearTimeout(dialogTimer);
+            dialogBox.innerText = text; // 写入文字
+            container.classList.add('active'); // 显示气泡
+            
+            dialogTimer = setTimeout(() => {
+                container.classList.remove('active');
+            }, 3000);
+        }
+    }
+
+    // 3. 事件监听
+    window.onload = function() {
+        // 监听猫咪点击
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.id === 'live2dcanvas') {
+                const rect = e.target.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                // 点击上方说话脸部台词，下方说话身体台词
+                if (clickY < rect.height / 3) {
+                    showCatSpeech("Master，这首歌很有精神喵！");
+                } else {
+                    showCatSpeech("过于耀眼，在瞳孔深处闪烁吧~");
+                }
+            }
+        });
+    };
+
+    // 播放器控制
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
 
-    document.getElementById('audioFile').onchange = function(e) {
+    document.getElementById('audioFile').onchange = (e) => {
         const file = e.target.files[0];
-        if(file) audio.src = URL.createObjectURL(file);
-        document.getElementById('timeDisplay').innerText = "TAPE LOADED";
+        if(file) {
+            audio.src = URL.createObjectURL(file);
+            document.getElementById('timeDisplay').innerText = "TAPE LOADED";
+            showCatSpeech("磁带塞进去了喵！");
+        }
     };
 
     playBtn.onclick = () => {
-        if(!audio.src) return alert("请先选择音频文件！");
+        if(!audio.src) return alert("请先加载音频喵！");
         if(audio.paused) {
             audio.play();
             playBtn.innerText = "PAUSE";
             reels.forEach(r => r.classList.add('playing'));
+            showCatSpeech("起飞！音乐开始喵~");
         } else {
             audio.pause();
             playBtn.innerText = "PLAY";
@@ -136,10 +175,10 @@
     };
 
     document.getElementById('stopBtn').onclick = () => {
-        audio.pause();
-        audio.currentTime = 0;
+        audio.pause(); audio.currentTime = 0;
         playBtn.innerText = "PLAY";
         reels.forEach(r => r.classList.remove('playing'));
+        showCatSpeech("关掉音乐，休息一下喵...");
     };
 </script>
 </body>
