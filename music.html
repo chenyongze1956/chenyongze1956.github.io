@@ -3,32 +3,60 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root { --led-color: #ff4500; --font-pixel: 'Press Start 2P', cursive; }
         body {
-background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; margin: 0; overflow: hidden;
+            min-height: 100vh; margin: 0; overflow-x: hidden; /* 防止看板娘溢出导致左右晃动 */
         }
+
+        /* --- 响应式容器 --- */
         .cassette-player {
-            background: #222; border-radius: 12px; padding: 30px;
+            background: #222; border-radius: 12px; 
+            padding: 5vw; /* 使用视口单位，随屏幕大小缩放内边距 */
             box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-            width: 90%; max-width: 450px; text-align: center; z-index: 10; position: relative;
+            width: 85%; /* 移动端占比 */
+            max-width: 400px; /* PC端最大宽度 */
+            text-align: center; z-index: 10; position: relative;
         }
+
         .tape-window {
-            background: #000; height: 150px; margin-bottom: 20px;
+            background: #000; 
+            height: clamp(100px, 20vh, 150px); /* 动态高度：最小100px，最大150px */
+            margin-bottom: 20px;
             display: flex; justify-content: space-around; align-items: center;
             border: 4px solid #1a1a1a; position: relative;
         }
-        .tape-reel { width: 60px; height: 60px; border: 3px dashed #444; border-radius: 50%; }
+
+        .tape-reel { 
+            width: clamp(40px, 12vw, 60px); 
+            height: clamp(40px, 12vw, 60px); 
+            border: 3px dashed #444; border-radius: 50%; 
+        }
+
         .tape-reel.playing { animation: rotate 3s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.7rem; margin-bottom: 20px; }
-        .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
         
-        /* 确保看板娘容器不遮挡点击 */
+        #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.6rem; margin-bottom: 20px; }
+        
+        .control-btn { 
+            background: #3d3d3d; color: #fff; border: none; 
+            padding: 10px 15px; cursor: pointer; margin: 5px; 
+            font-family: var(--font-pixel); font-size: 0.5rem;
+            transition: transform 0.1s;
+        }
+        .control-btn:active { transform: scale(0.95); }
+
+        /* --- 手机端小屏幕优化 --- */
+        @media (max-width: 480px) {
+            .cassette-player { padding: 20px 15px; }
+            .control-btn { padding: 8px 12px; font-size: 0.45rem; }
+        }
+
+        /* 看板娘点击穿透 */
         #live2d-widget { pointer-events: none !important; }
         #live2dcanvas { pointer-events: auto !important; }
     </style>
@@ -36,7 +64,7 @@ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8ef
 <body>
 
 <div class="cassette-player">
-    <div style="font-family: var(--font-pixel); color: #666; font-size: 0.6rem; margin-bottom: 15px;">LIVE2D MUSIC STATION</div>
+    <div style="font-family: var(--font-pixel); color: #666; font-size: 0.5rem; margin-bottom: 15px;">LIVE2D MUSIC STATION</div>
     <div class="tape-window">
         <div class="tape-reel left"></div>
         <div class="tape-reel right"></div>
@@ -51,12 +79,10 @@ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8ef
     <audio id="mainAudio"></audio>
 </div>
 
-<!-- 脚本加载顺序：必须先加载核心库 -->
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // --- 1. 看板娘初始化 ---
-    // 使用 unpkg 的模型，这是目前部署在 GitHub Pages 上最稳定的方式
+    // --- 看板娘响应式初始化 ---
     L2Dwidget.init({
         "model": {
             "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json",
@@ -64,15 +90,19 @@ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8ef
         },
         "display": {
             "position": "right",
-            "width": 200,
-            "height": 400,
-            "hOffset": 20,
-            "vOffset": -20
+            "width": window.innerWidth < 480 ? 120 : 180, // 根据屏幕宽度动态设置初始尺寸
+            "height": window.innerWidth < 480 ? 240 : 360,
+            "hOffset": 10,
+            "vOffset": -10
         },
-        "mobile": { "show": true, "scale": 0.5 },
-        "react": { "opacity": 1 },
+        "mobile": { 
+            "show": true, 
+            "scale": 0.4, // 手机端缩放比例调小
+            "motion": true 
+        },
+        "react": { "opacity": 0.9 },
         "dialog": {
-            "enable": true,
+            "enable": window.innerWidth > 480, // 手机端由于屏幕窄，建议关闭对话框以免挡住按钮
             "script": {
                 'every idle 10s': '在听什么好歌呢？',
                 'tap body': '哎呀！别碰我~',
@@ -81,7 +111,7 @@ background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8ef
         }
     });
 
-    // --- 2. 播放器逻辑 ---
+    // --- 播放器逻辑 (保持不变) ---
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
