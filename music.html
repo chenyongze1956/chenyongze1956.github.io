@@ -4,225 +4,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Cassette Player & Live2D</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --player-bg: #2d2d2d;
-            --led-color: #ff4500;
-            --font-pixel: 'Press Start 2P', cursive;
-        }
+        :root { --led-color: #ff4500; --font-pixel: 'Press Start 2P', cursive; }
         body {
-            font-family: -apple-system, sans-serif;
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; margin: 0;
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-            overflow: hidden;
+            min-height: 100vh; margin: 0; overflow: hidden;
         }
-        @keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
-
         .cassette-player {
             background: #222; border-radius: 12px; padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8), inset 0 -5px 10px rgba(0,0,0,0.5);
-            width: 90%; max-width: 480px; text-align: center; border: 1px solid #444;
-            z-index: 10; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            width: 90%; max-width: 450px; text-align: center; z-index: 10; position: relative;
         }
-
-        .player-header h1 { font-family: var(--font-pixel); color: #888; font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 25px; }
-        
         .tape-window {
-            background-color: #0a0a0a; border: 4px solid #1a1a1a; border-radius: 4px; height: 160px;
-            margin-bottom: 25px; display: flex; justify-content: space-around;
-            align-items: center; position: relative; overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,1);
+            background: #000; height: 150px; margin-bottom: 20px;
+            display: flex; justify-content: space-around; align-items: center;
+            border: 4px solid #1a1a1a; position: relative;
         }
-        #vuCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-
-        .tape-reel { width: 65px; height: 65px; border-radius: 50%; background: #151515; border: 3px dashed #333; position: relative; z-index: 2; opacity: 0.8; }
-        .tape-reel.playing { animation: rotateReel 3s linear infinite; }
-        @keyframes rotateReel { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); background: #000; padding: 10px 15px; margin-bottom: 25px; border-radius: 2px; font-size: 0.7rem; display: inline-block; border: 1px solid #333; }
+        .tape-reel { width: 60px; height: 60px; border: 3px dashed #444; border-radius: 50%; }
+        .tape-reel.playing { animation: rotate 3s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.7rem; margin-bottom: 20px; }
+        .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
         
-        .player-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
-        .control-btn { padding: 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; color: #ccc; background: #3d3d3d; transition: 0.1s; box-shadow: 0 4px 0 #151515; }
-        .control-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #151515; }
-        #playBtn { color: #81c784; }
-        #stopBtn { color: #e57373; }
-        
-        .slider-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; color: #666; font-size: 0.6rem; font-family: var(--font-pixel); }
-        input[type="range"] { flex: 1; cursor: pointer; accent-color: #ff4500; height: 4px; }
-        input[type="file"] { display: none; }
-
-        /* 看板娘防遮挡 */
-        #live2d-widget { pointer-events: none !important; z-index: 9999 !important; }
+        /* 确保看板娘容器不遮挡点击 */
+        #live2d-widget { pointer-events: none !important; }
         #live2dcanvas { pointer-events: auto !important; }
     </style>
 </head>
 <body>
 
 <div class="cassette-player">
-    <div class="player-header"><h1>RETRO SYSTEM v2.0</h1></div>
+    <div style="font-family: var(--font-pixel); color: #666; font-size: 0.6rem; margin-bottom: 15px;">LIVE2D MUSIC STATION</div>
     <div class="tape-window">
-        <canvas id="vuCanvas"></canvas>
         <div class="tape-reel left"></div>
         <div class="tape-reel right"></div>
     </div>
-    <div id="timeDisplay">00:00 / 00:00</div>
-    <input type="file" id="localFileInput" accept="audio/*">
-    <button onclick="document.getElementById('localFileInput').click()" class="control-btn" style="width:100%; margin-bottom: 15px;">OPEN AUDIO FILE</button>
-    <audio id="audioPlayer"></audio>
-    <div class="player-buttons">
-        <button id="playBtn" class="control-btn">PLAY</button>
-        <button id="pauseBtn" class="control-btn">PAUSE</button>
-        <button id="stopBtn" class="control-btn">STOP</button>
+    <div id="timeDisplay">READY</div>
+    <input type="file" id="audioFile" hidden accept="audio/*">
+    <button class="control-btn" onclick="document.getElementById('audioFile').click()">LOAD TAPE</button>
+    <div class="btns">
+        <button class="control-btn" id="playBtn">PLAY</button>
+        <button class="control-btn" id="stopBtn">STOP</button>
     </div>
-    <div class="sliders-group">
-        <div class="slider-wrapper"><label>TRK</label><input type="range" id="progressBar" value="0"></div>
-        <div class="slider-wrapper"><label>VOL</label><input type="range" id="volumeSlider" value="100"></div>
-    </div>
+    <audio id="mainAudio"></audio>
 </div>
 
-<!-- 核心脚本加载：只使用最稳的公共 CDN -->
-<script src="https://fastly.jsdelivr.net/gh/stevenjoezhang/live2d-widget@latest/L2Dwidget.min.js"></script>
+<!-- 脚本加载顺序：必须先加载核心库 -->
+<script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // --- 1. 看板娘初始化逻辑 ---
-    // 我们用 window.onload 确保资源在页面准备好后再运行
-    window.onload = function() {
-        try {
-            if (typeof L2Dwidget !== 'undefined') {
-                L2Dwidget.init({
-                    "model": {
-                        // 使用初音模型 (Miku) 的稳定 CDN 路径
-                        "jsonPath": "https://unpkg.com/live2d-widget-model-miku@1.0.5/assets/miku.model.json",
-                        "scale": 1
-                    },
-                    "display": {
-                        "position": "right",
-                        "width": 180,
-                        "height": 360,
-                        "hOffset": 30,
-                        "vOffset": -20
-                    },
-                    "mobile": { "show": true, "scale": 0.5 },
-                    "react": { "opacity": 1 }
-                });
+    // --- 1. 看板娘初始化 ---
+    // 使用 unpkg 的模型，这是目前部署在 GitHub Pages 上最稳定的方式
+    L2Dwidget.init({
+        "model": {
+            "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json",
+            "scale": 1
+        },
+        "display": {
+            "position": "right",
+            "width": 200,
+            "height": 400,
+            "hOffset": 20,
+            "vOffset": -20
+        },
+        "mobile": { "show": true, "scale": 0.5 },
+        "react": { "opacity": 1 },
+        "dialog": {
+            "enable": true,
+            "script": {
+                'every idle 10s': '在听什么好歌呢？',
+                'tap body': '哎呀！别碰我~',
+                'tap face': 'Master，音乐很好听哦！'
             }
-        } catch (e) {
-            console.error("看板娘加载失败，但没关系，你可以继续听歌！", e);
         }
+    });
+
+    // --- 2. 播放器逻辑 ---
+    const audio = document.getElementById('mainAudio');
+    const playBtn = document.getElementById('playBtn');
+    const reels = document.querySelectorAll('.tape-reel');
+
+    document.getElementById('audioFile').onchange = function(e) {
+        const file = e.target.files[0];
+        if(file) audio.src = URL.createObjectURL(file);
+        document.getElementById('timeDisplay').innerText = "TAPE LOADED";
     };
 
-    // --- 2. 磁带播放器逻辑 (保持纯净) ---
-    const audio = document.getElementById('audioPlayer');
-    const canvas = document.getElementById('vuCanvas');
-    const ctx = canvas.getContext('2d');
-    let audioCtx, analyser, source, dataArray;
-    let leftNeedle = 0, rightNeedle = 0;
-
-    function initAudioContext() {
-        if (audioCtx) return;
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        source = audioCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        drawVU();
-    }
-
-    function drawMeter(x, y, width, height, value, label) {
-        const radius = width * 0.85;
-        const centerX = x + width / 2;
-        const centerY = y + height * 0.95;
-        ctx.save();
-        ctx.beginPath();
-        ctx.fillStyle = '#1a1a1a';
-        ctx.arc(centerX, centerY, radius, Math.PI * 1.1, Math.PI * 1.9);
-        ctx.lineTo(centerX, centerY);
-        ctx.fill();
-        ctx.strokeStyle = '#333';
-        ctx.stroke();
-
-        ctx.strokeStyle = '#555';
-        for (let i = 0; i <= 10; i++) {
-            const angle = Math.PI * 1.1 + (Math.PI * 0.8 * (i / 10));
-            const len = i % 5 === 0 ? 12 : 6;
-            ctx.beginPath();
-            ctx.moveTo(centerX + Math.cos(angle) * (radius - len), centerY + Math.sin(angle) * (radius - len));
-            ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
-            ctx.stroke();
+    playBtn.onclick = () => {
+        if(!audio.src) return alert("请先选择音频文件！");
+        if(audio.paused) {
+            audio.play();
+            playBtn.innerText = "PAUSE";
+            reels.forEach(r => r.classList.add('playing'));
+        } else {
+            audio.pause();
+            playBtn.innerText = "PLAY";
+            reels.forEach(r => r.classList.remove('playing'));
         }
-
-        const targetAngle = Math.PI * 1.1 + (Math.PI * 0.8 * value);
-        if (label === 'L') leftNeedle += (targetAngle - leftNeedle) * 0.15;
-        else rightNeedle += (targetAngle - rightNeedle) * 0.15;
-        const currentAngle = label === 'L' ? leftNeedle : rightNeedle;
-        
-        ctx.beginPath();
-        ctx.strokeStyle = '#ff4500';
-        ctx.lineWidth = 2;
-        ctx.moveTo(centerX, centerY);
-        ctx.lineTo(centerX + Math.cos(currentAngle) * (radius - 5), centerY + Math.sin(currentAngle) * (radius - 5));
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    function drawVU() {
-        requestAnimationFrame(drawVU);
-        const WIDTH = canvas.width = canvas.offsetWidth;
-        const HEIGHT = canvas.height = canvas.offsetHeight;
-        let vL = 0, vR = 0;
-        if (analyser && !audio.paused) {
-            analyser.getByteFrequencyData(dataArray);
-            let sL = 0, sR = 0;
-            for(let i=0; i<40; i++) sL += dataArray[i];
-            for(let i=40; i<80; i++) sR += dataArray[i];
-            vL = (sL / 40) / 255;
-            vR = (sR / 40) / 255;
-        }
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        drawMeter(10, HEIGHT - 90, 140, 90, vL * 1.2, 'L');
-        drawMeter(WIDTH - 150, HEIGHT - 90, 140, 90, vR * 1.2, 'R');
-    }
-
-    document.getElementById('playBtn').onclick = () => {
-        if (!audio.src) return;
-        initAudioContext();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        audio.play();
-        document.querySelectorAll('.tape-reel').forEach(r => r.classList.add('playing'));
-    };
-
-    document.getElementById('pauseBtn').onclick = () => {
-        audio.pause();
-        document.querySelectorAll('.tape-reel').forEach(r => r.classList.remove('playing'));
     };
 
     document.getElementById('stopBtn').onclick = () => {
-        audio.pause(); audio.currentTime = 0;
-        document.querySelectorAll('.tape-reel').forEach(r => r.classList.remove('playing'));
+        audio.pause();
+        audio.currentTime = 0;
+        playBtn.innerText = "PLAY";
+        reels.forEach(r => r.classList.remove('playing'));
     };
-
-    document.getElementById('localFileInput').onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) audio.src = URL.createObjectURL(file);
-    };
-
-    audio.ontimeupdate = () => {
-        if (isNaN(audio.duration)) return;
-        document.getElementById('progressBar').value = (audio.currentTime / audio.duration) * 100;
-        const m = Math.floor(audio.currentTime / 60), s = Math.floor(audio.currentTime % 60);
-        const dm = Math.floor(audio.duration / 60), ds = Math.floor(audio.duration % 60);
-        document.getElementById('timeDisplay').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')} / ${dm.toString().padStart(2,'0')}:${ds.toString().padStart(2,'0')}`;
-    };
-
-    document.getElementById('progressBar').oninput = (e) => audio.currentTime = (e.target.value / 100) * audio.duration;
-    document.getElementById('volumeSlider').oninput = (e) => audio.volume = e.target.value / 100;
 </script>
 </body>
 </html>
