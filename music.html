@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -12,7 +13,7 @@
             min-height: 100vh; margin: 0; overflow-x: hidden;
         }
 
-        /* 播放器容器 */
+        /* 播放器样式 */
         .cassette-player {
             background: #222; border-radius: 12px; padding: 5vw;
             box-shadow: 0 20px 40px rgba(0,0,0,0.8); width: 85%;
@@ -29,7 +30,7 @@
         #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.6rem; margin-bottom: 20px; }
         .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 15px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
 
-        /* --- 气泡框样式 --- */
+        /* 气泡框样式增强 */
         .live2d-widget-dialog-container {
             position: fixed !important;
             right: 20px !important;
@@ -64,12 +65,9 @@
             width: 100%;
         }
 
-        .live2d-widget-dialog-container.active {
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
+        .live2d-widget-dialog-container.active { opacity: 1 !important; visibility: visible !important; }
 
-        /* 录音状态提示 */
+        /* 状态反馈：录音时猫咪发光 */
         #live2d-widget.listening #live2dcanvas {
             filter: drop-shadow(0 0 15px #ff4500) brightness(1.2) !important;
         }
@@ -99,14 +97,14 @@
         <button class="control-btn" id="playBtn">PLAY</button>
         <button class="control-btn" id="stopBtn">STOP</button>
     </div>
-    <div style="margin-top:10px; font-size: 10px; color: #555;">点击猫咪开始语音聊天</div>
+    <div style="margin-top:10px; font-size: 10px; color: #555;">[ 点击猫咪触发语音 ]</div>
     <audio id="mainAudio"></audio>
 </div>
 
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // 1. 初始化 Live2D
+    // 1. 初始化猫咪
     L2Dwidget.init({
         "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json", "scale": 1 },
         "display": { "position": "right", "width": 180, "height": 360, "hOffset": 10, "vOffset": -20 },
@@ -125,18 +123,14 @@
             clearTimeout(dialogTimer);
             dialogBox.innerText = text;
             container.classList.add('active');
-            
             if (needSpeak) {
-                window.speechSynthesis.cancel(); // 停止之前的播放
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
                 utterance.pitch = 1.3;
                 window.speechSynthesis.speak(utterance);
             }
-
-            dialogTimer = setTimeout(() => {
-                container.classList.remove('active');
-            }, 5000);
+            dialogTimer = setTimeout(() => { container.classList.remove('active'); }, 5000);
         }
     }
 
@@ -145,14 +139,11 @@
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_KEY}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
                 body: JSON.stringify({
                     model: "deepseek-chat",
                     messages: [
-                        { role: "system", content: "你是一只叫Hijiki的黑猫。性格傲娇但忠诚，说话必须以'喵'结尾。" },
+                        { role: "system", content: "你是一只叫Hijiki的黑猫。性格傲娇，喜欢磁带。说话必须以'喵'结尾。" },
                         { role: "user", content: userText }
                     ]
                 })
@@ -160,98 +151,90 @@
             const data = await response.json();
             showCatSpeech(data.choices[0].message.content);
         } catch (error) {
-            showCatSpeech("哎呀，脑子卡住了喵！");
+            showCatSpeech("哎呀，脑子卡住了喵！请检查网络或HTTPS环境喵。");
         }
     }
 
-    // 语音识别初始化
+    // 语音识别 ASR
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.lang = 'zh-CN';
         recognition.interimResults = false;
-
-        recognition.onstart = () => {
-            document.getElementById('live2d-widget').classList.add('listening');
+        recognition.onstart = () => document.getElementById('live2d-widget').classList.add('listening');
+        recognition.onresult = (e) => {
+            const text = e.results[0][0].transcript;
+            showCatSpeech("你说: " + text, false);
+            askAI(text);
         };
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            showCatSpeech("你说: " + transcript, false);
-            askAI(transcript);
-        };
-        recognition.onend = () => {
+        recognition.onerror = (e) => {
             document.getElementById('live2d-widget').classList.remove('listening');
+            showCatSpeech("没听清喵... (" + e.error + ")");
         };
-        recognition.onerror = (event) => {
-            console.log("识别错误:", event.error);
-            showCatSpeech("没听清喵，再说一遍？");
-            document.getElementById('live2d-widget').classList.remove('listening');
-        };
+        recognition.onend = () => document.getElementById('live2d-widget').classList.remove('listening');
     }
 
-    // 5. 事件绑定：关键修改
+    // 关键：解决点击没反应和移动端限制
     window.onload = function() {
         const checkCanvas = setInterval(() => {
             const canvas = document.getElementById('live2dcanvas');
             if (canvas) {
                 clearInterval(checkCanvas);
                 
-                // 统一的触发逻辑
-                const handleStart = (e) => {
-                    // 阻止默认行为，防止手机端触发长按弹出菜单或缩放
+                const handleTrigger = (e) => {
                     if (e.type === 'touchstart') e.preventDefault();
 
-                    // 【移动端核心补丁】在点击瞬间播放一段空语音，骗过浏览器的“音频锁”
+                    // 1. 本地文件警告
+                    if (location.protocol === 'file:') {
+                        alert("喵！本地文件(file://)无法使用录音，请用 VS Code Live Server 或部署到 HTTPS 空间喵！");
+                        return;
+                    }
+
+                    // 2. 激活音频锁
                     window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
 
+                    // 3. 启动识别
                     if (recognition) {
-                        try {
-                            recognition.start();
-                        } catch (e) {
-                            console.log("识别已在运行...");
-                        }
+                        try { recognition.start(); } catch(err) {}
                     } else {
-                        alert("喵！这浏览器不支持语音识别喵！建议用 Safari 或 Chrome。");
+                        showCatSpeech("这浏览器不支持语音喵！");
                     }
                 };
 
-                // 同时支持鼠标和触摸
-                canvas.addEventListener('mousedown', handleStart);
-                canvas.addEventListener('touchstart', handleStart, { passive: false });
+                canvas.addEventListener('mousedown', handleTrigger);
+                canvas.addEventListener('touchstart', handleTrigger, { passive: false });
+                
+                // 确保层级正确
+                canvas.style.pointerEvents = "auto";
+                document.getElementById('live2d-widget').style.pointerEvents = "none";
             }
         }, 500);
     };
 
-    // 播放器控制逻辑
+    // 播放器控制
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
 
     document.getElementById('audioFile').onchange = (e) => {
         const file = e.target.files[0];
-        if(file) {
-            audio.src = URL.createObjectURL(file);
-            document.getElementById('timeDisplay').innerText = "TAPE LOADED";
-        }
+        if(file) { audio.src = URL.createObjectURL(file); document.getElementById('timeDisplay').innerText = "TAPE LOADED"; }
     };
 
     playBtn.onclick = () => {
-        if(!audio.src) return alert("请先加载音频喵！");
+        if(!audio.src) return alert("先载入磁带喵！");
         if(audio.paused) {
-            audio.play();
-            playBtn.innerText = "PAUSE";
+            audio.play(); playBtn.innerText = "PAUSE";
             reels.forEach(r => r.classList.add('playing'));
         } else {
-            audio.pause();
-            playBtn.innerText = "PLAY";
+            audio.pause(); playBtn.innerText = "PLAY";
             reels.forEach(r => r.classList.remove('playing'));
         }
     };
 
     document.getElementById('stopBtn').onclick = () => {
-        audio.pause(); audio.currentTime = 0;
-        playBtn.innerText = "PLAY";
+        audio.pause(); audio.currentTime = 0; playBtn.innerText = "PLAY";
         reels.forEach(r => r.classList.remove('playing'));
     };
 </script>
