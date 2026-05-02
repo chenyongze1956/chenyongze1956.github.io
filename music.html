@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -30,7 +29,7 @@
         #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.6rem; margin-bottom: 20px; }
         .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 15px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
 
-        /* --- 气泡框显示逻辑：强制样式覆盖 --- */
+        /* --- 气泡框样式 --- */
         .live2d-widget-dialog-container {
             position: fixed !important;
             right: 20px !important;
@@ -53,7 +52,6 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        /* 核心修复：强制内部文字显色为纯黑 */
         #live2d-widget .live2d-widget-dialog {
             color: #000000 !important; 
             display: block !important;
@@ -71,17 +69,15 @@
             visibility: visible !important;
         }
 
-        /* 录音状态：猫咪发光提示 */
-        #live2d-widget.listening {
-            filter: drop-shadow(0 0 15px #ff4500) !important;
+        /* 录音状态提示 */
+        #live2d-widget.listening #live2dcanvas {
+            filter: drop-shadow(0 0 15px #ff4500) brightness(1.2) !important;
         }
 
         .live2d-widget-dialog-container::after {
             content: ''; position: absolute; bottom: -12px; right: 30px;
             border-width: 12px 10px 0; border-style: solid; border-color: #000 transparent transparent;
         }
-
-        #live2d-widget { pointer-events: auto !important; }
 
         @media (max-width: 480px) {
             .live2d-widget-dialog-container { bottom: 210px !important; width: 140px; }
@@ -118,29 +114,23 @@
         "dialog": { "enable": true } 
     });
 
-    // 2. DeepSeek API 配置
     const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
     const API_URL = 'https://api.deepseek.com/chat/completions';
-
-    // 3. 核心逻辑函数
     let dialogTimer;
 
-    // 显示气泡、显示黑色文字并语音朗读
     function showCatSpeech(text, needSpeak = true) {
         const container = document.querySelector('.live2d-widget-dialog-container');
         const dialogBox = document.querySelector('.live2d-widget-dialog');
-        
         if (container && dialogBox) {
             clearTimeout(dialogTimer);
-            dialogBox.innerText = text; // 写入文字
-            container.classList.add('active'); // 显示气泡
+            dialogBox.innerText = text;
+            container.classList.add('active');
             
-            // 语音合成 (TTS)
             if (needSpeak) {
+                window.speechSynthesis.cancel(); // 停止之前的播放
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'zh-CN';
-                utterance.pitch = 1.3; // 高音调，更有猫的感觉
-                utterance.rate = 1.0;
+                utterance.pitch = 1.3;
                 window.speechSynthesis.speak(utterance);
             }
 
@@ -150,7 +140,6 @@
         }
     }
 
-    // 调用 DeepSeek API
     async function askAI(userText) {
         showCatSpeech("让我想想喵...", false);
         try {
@@ -163,24 +152,21 @@
                 body: JSON.stringify({
                     model: "deepseek-chat",
                     messages: [
-                        { role: "system", content: "你是一只叫Hijiki的黑猫。你性格傲娇但忠诚，喜欢复古磁带音乐。说话必须以'喵'结尾。请简洁地回答Master。" },
+                        { role: "system", content: "你是一只叫Hijiki的黑猫。性格傲娇但忠诚，说话必须以'喵'结尾。" },
                         { role: "user", content: userText }
                     ]
                 })
             });
             const data = await response.json();
-            const aiReply = data.choices[0].message.content;
-            showCatSpeech(aiReply);
+            showCatSpeech(data.choices[0].message.content);
         } catch (error) {
             showCatSpeech("哎呀，脑子卡住了喵！");
-            console.error(error);
         }
     }
 
-    // 4. 语音识别 (ASR)
+    // 语音识别初始化
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
-
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
         recognition.lang = 'zh-CN';
@@ -189,31 +175,36 @@
         recognition.onstart = () => {
             document.getElementById('live2d-widget').classList.add('listening');
         };
-
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             showCatSpeech("你说: " + transcript, false);
             askAI(transcript);
         };
-
         recognition.onend = () => {
             document.getElementById('live2d-widget').classList.remove('listening');
         };
-
-        recognition.onerror = () => {
+        recognition.onerror = (event) => {
+            console.log("识别错误:", event.error);
             showCatSpeech("没听清喵，再说一遍？");
             document.getElementById('live2d-widget').classList.remove('listening');
         };
     }
 
-    // 5. 事件绑定
+    // 5. 事件绑定：关键修改
     window.onload = function() {
-        // 定时检查 Canvas 是否加载完成，然后绑定点击事件
         const checkCanvas = setInterval(() => {
             const canvas = document.getElementById('live2dcanvas');
             if (canvas) {
                 clearInterval(checkCanvas);
-                canvas.addEventListener('mousedown', () => {
+                
+                // 统一的触发逻辑
+                const handleStart = (e) => {
+                    // 阻止默认行为，防止手机端触发长按弹出菜单或缩放
+                    if (e.type === 'touchstart') e.preventDefault();
+
+                    // 【移动端核心补丁】在点击瞬间播放一段空语音，骗过浏览器的“音频锁”
+                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+
                     if (recognition) {
                         try {
                             recognition.start();
@@ -221,14 +212,18 @@
                             console.log("识别已在运行...");
                         }
                     } else {
-                        alert("浏览器不支持语音识别喵！");
+                        alert("喵！这浏览器不支持语音识别喵！建议用 Safari 或 Chrome。");
                     }
-                });
+                };
+
+                // 同时支持鼠标和触摸
+                canvas.addEventListener('mousedown', handleStart);
+                canvas.addEventListener('touchstart', handleStart, { passive: false });
             }
         }, 500);
     };
 
-    // 6. 播放器控制 (保持原逻辑)
+    // 播放器控制逻辑
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
@@ -238,7 +233,6 @@
         if(file) {
             audio.src = URL.createObjectURL(file);
             document.getElementById('timeDisplay').innerText = "TAPE LOADED";
-            showCatSpeech("磁带塞进去了喵！");
         }
     };
 
@@ -248,7 +242,6 @@
             audio.play();
             playBtn.innerText = "PAUSE";
             reels.forEach(r => r.classList.add('playing'));
-            showCatSpeech("起飞！音乐开始喵~");
         } else {
             audio.pause();
             playBtn.innerText = "PLAY";
@@ -260,7 +253,6 @@
         audio.pause(); audio.currentTime = 0;
         playBtn.innerText = "PLAY";
         reels.forEach(r => r.classList.remove('playing'));
-        showCatSpeech("关掉音乐，休息一下喵...");
     };
 </script>
 </body>
