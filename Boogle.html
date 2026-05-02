@@ -1,25 +1,11 @@
-
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-
-  <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-
-
-
-    
     <meta charset="UTF-8">
     <title>Boogle - 多功能搜索门户</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
-
     <style>
         :root {
             --bg: #fff;
@@ -30,22 +16,29 @@
             padding: 0;
             font-family: "Product Sans", Arial, sans-serif;
             background-color: var(--bg);
-            /* 手机端通常不显示自定义光标，保留电脑端效果 */
             cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;
-            overflow-x: hidden; /* 防止左右晃动 */
+            overflow-x: hidden;
         }
 
-        /* 顶部导航栏 - 响应式调整 */
+        /* 樱花画布容器设置 */
+        #canvas_sakura {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* 放在内容后面 */
+            pointer-events: none;
+        }
+
+        /* 顶部导航栏 */
         header ul {
             list-style-type: none;
             margin: 0;
             padding: 10px;
             display: flex;
-            flex-wrap: wrap; /* 手机端图标多时自动换行 */
+            flex-wrap: wrap;
             justify-content: flex-end;
-        }
-        header li { 
-            display: inline-block;
         }
         header li a {
             color: #000;
@@ -61,24 +54,20 @@
         .main-container {
             text-align: center;
             padding: 0 15px;
-            margin-top: 15vh; /* 使用视口高度单位，电脑手机都美观 */
+            margin-top: 15vh;
+            position: relative;
+            z-index: 1;
         }
 
-        /* 彩虹跳动 Logo - 响应式字体 */
+        /* Logo 动画 */
         .bounce { margin-bottom: 25px; white-space: nowrap; }
         .letter {
             display: inline-block;
-            font: normal bold 4.5rem "Product Sans", sans-serif; /* 默认略小 */
+            font: normal bold 4.5rem "Product Sans", sans-serif;
             animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;
         }
-        /* 电脑端 Logo 大小 */
-        @media (min-width: 768px) {
-            .letter { font-size: 6rem; }
-        }
-        /* 手机端 Logo 更小一点 */
-        @media (max-width: 480px) {
-            .letter { font-size: 3.5rem; }
-        }
+        @media (min-width: 768px) { .letter { font-size: 6rem; } }
+        @media (max-width: 480px) { .letter { font-size: 3.5rem; } }
 
         .letter:nth-child(1) { color: #4285f4; animation-delay: 0s; }
         .letter:nth-child(2) { color: #ea4335; animation-delay: 0.08s; }
@@ -92,18 +81,18 @@
             100% { transform: translate3d(0, -0.4em, 0); text-shadow: rgba(0,0,0,0.1) 0 0.4em 0.2em; }
         }
 
-        /* 搜索框容器 - 关键响应式设计 */
+        /* 搜索框 */
         .search-wrapper {
             display: flex;
             align-items: center;
             width: 580px;
-            max-width: 100%; /* 手机端宽度占满 */
+            max-width: 100%;
             margin: 0 auto;
             border: 1px solid #dfe1e5;
             border-radius: 24px;
             padding: 2px 12px;
             transition: box-shadow 0.3s;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.9); /* 微透明以便透出樱花 */
             box-sizing: border-box;
         }
         .search-wrapper:hover, .search-wrapper:focus-within {
@@ -116,19 +105,11 @@
             outline: none;
             font-size: 16px;
             padding: 0 8px;
-            width: 10px; /* 强制 flex 均匀分布 */
+            background: transparent;
         }
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-        }
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; }
         .icon-btn img { height: 20px; }
 
-        /* 按钮组 */
         .buttons { margin-top: 25px; }
         .button {
             background-color: #f8f9fa;
@@ -140,34 +121,13 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        /* 手机端按钮稍微大一点方便点击 */
-        @media (max-width: 480px) {
-            .button { padding: 12px 15px; width: 45%; }
-        }
+        @media (max-width: 480px) { .button { padding: 12px 15px; width: 45%; } }
 
         .hint { color: #70757a; font-size: 12px; margin-top: 15px; line-height: 1.5; }
-
-        /* 樱花飘落 */
-        .snowflake {
-            position: fixed;
-            top: -10%;
-            z-index: 9999;
-            user-select: none;
-            pointer-events: none; /* 防止点击雪花无法点击下面的按钮 */
-            animation-name: snowflakes-fall, snowflakes-shake;
-            animation-duration: 10s, 3s;
-            animation-timing-function: linear, ease-in-out;
-            animation-iteration-count: infinite, infinite;
-        }
-        @keyframes snowflakes-fall { 0% { top: -10%; } 100% { top: 100%; } }
-        @keyframes snowflakes-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(50px); } }
-
         #visitorCounterContainer { margin-top: 30px; padding-bottom: 20px; }
     </style>
 </head>
 <body>
-
-  
 
     <header>
         <ul>
@@ -180,20 +140,17 @@
             <li><a href="https://chenyongze1956.github.io/crypto.html">C</a></li>
             <li><a href="https://chenyongze1956.github.io/post.html">P</a></li>
             <li><a href="https://chenyongze1956.github.io/gg.html">A</a></li>
-            <li><a href="https://chenyongze1956.github.io/viewer.html">R</a></li> 
+            <li><a href="https://chenyongze1956.github.io/viewer.html">R</a></li>
             <li><a href="https://westering-semiautonomous-genna.ngrok-free.dev/wasmpsx-main/PS (1).html">S</a></li>
             <li><a href="https://chenyongze1956.github.io/garelly.html">G</a></li>
             <li><a href="https://westering-semiautonomous-genna.ngrok-free.dev/fortune.html">Z</a></li>
             <li><a href="https://chenyongze1956.github.io/ss.html">B</a></li>
             <li><a href="https://chenyongze1956.github.io/poetry.html">Y</a></li>
             <li><a href="https://chenyongze1956.github.io/finance.html">F</a></li>
-              <li><a href="https://chenyongze1956.github.io/lake.html">L</a></li>
+            <li><a href="https://chenyongze1956.github.io/lake.html">L</a></li>
             <li><a href="https://chenyongze1956.github.io/note.html">D</a></li>
-              <li><a href="https://chenyongze1956.github.io/relax.html">X</a></li>
+            <li><a href="https://chenyongze1956.github.io/relax.html">X</a></li>
             <li><a href="https://chenyongze1956.github.io/zanzhuma.html">M</a></li>
-        
-
-
         </ul>
     </header>
 
@@ -201,7 +158,6 @@
         <div class="bounce">
             <span class="letter">B</span><span class="letter">o</span><span class="letter">o</span><span class="letter">g</span><span class="letter">l</span><span class="letter">e</span>
         </div>
-
         <form id="search-form" onsubmit="return handleSearch(event)">
             <div class="search-wrapper">
                 <input id="search-input" class="searchbar" type="search" placeholder="输入内容或 'b 指令'..." autocomplete="off">
@@ -217,78 +173,73 @@
                 <button type="button" class="button" onclick="window.location.href='https://chenyongze1956.github.io/terminal.html'">Feeling Lucky</button>
             </div>
         </form>
-
         <div class="hint">
             💡 快捷指令：<b>b</b> 百度 | <b>w</b> 维基 | <b>m</b> 地图<br>
             用法：输入前缀 + 空格 + 关键词
         </div>
-
         <div id="visitorCounterContainer">
             <img src="https://visitor-badge.laobi.icu/badge?page_id=chenyongze1956.Booglexp&left_text=总访问量&color=4285f4&style=flat" alt="Visitor Count">
         </div>
     </div>
 
+    <!-- 脚本部分 -->
     <script>
+        // 搜索逻辑
         const searchInput = document.getElementById('search-input');
-
         function handleSearch(e) {
             e.preventDefault();
             const fullQuery = searchInput.value.trim();
             if (!fullQuery) return false;
-
             let url = "";
             const spaceIndex = fullQuery.indexOf(" ");
             const prefix = spaceIndex !== -1 ? fullQuery.substring(0, spaceIndex).toLowerCase() : "";
             const keyword = spaceIndex !== -1 ? fullQuery.substring(spaceIndex + 1) : fullQuery;
-
             switch(prefix) {
-                case 'b':
-                    url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`;
-                    break;
-                case 'w':
-                    url = `https://zh.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(keyword)}`;
-                    break;
-                case 'm':
-                    url = `https://www.google.com/maps/search/${encodeURIComponent(keyword)}`;
-                    break;
-                default:
-                    url = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
+                case 'b': url = `https://www.baidu.com/s?wd=${encodeURIComponent(keyword)}`; break;
+                case 'w': url = `https://zh.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(keyword)}`; break;
+                case 'm': url = `https://www.google.com/maps/search/${encodeURIComponent(keyword)}`; break;
+                default: url = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
             }
-
             window.location.href = url;
             return false;
         }
 
-        // 语音识别逻辑
+        // 语音识别
         const micBtn = document.getElementById('mic-btn');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.lang = 'zh-CN';
-
-            micBtn.addEventListener('click', () => {
-                recognition.start();
-                micBtn.style.opacity = "0.3";
-            });
-
+            micBtn.addEventListener('click', () => { recognition.start(); micBtn.style.opacity = "0.3"; });
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                searchInput.value = transcript;
+                searchInput.value = event.results[0][0].transcript;
                 micBtn.style.opacity = "1";
                 handleSearch(new Event('submit'));
             };
-
             recognition.onerror = () => { micBtn.style.opacity = "1"; };
             recognition.onspeechend = () => { recognition.stop(); micBtn.style.opacity = "1"; };
         } else {
             micBtn.style.display = "none";
         }
+
+        // 樱花特效加载逻辑 (不再需要jQuery)
+        (function() {
+            function loadScript(url, callback) {
+                var script = document.createElement("script");
+                script.type = "text/javascript";
+                script.src = url;
+                script.onload = callback;
+                document.body.appendChild(script);
+            }
+
+            // 加载樱花和鼠标特效
+            loadScript("https://blog-static.cnblogs.com/files/izbw/yinghua.js", function() {
+                console.log("Sakura Loaded");
+            });
+            loadScript("https://blog-static.cnblogs.com/files/izbw/shubiaotexiao.js", function() {
+                console.log("Mouse Effect Loaded");
+            });
+        })();
     </script>
-
-
- <script src="https://blog-static.cnblogs.com/files/izbw/yinghua.js"></script>
-<script src="https://blog-static.cnblogs.com/files/izbw/shubiaotexiao.js"></script> <script type="text/javascript">樱花 var system ={}; var p = navigator.platform; system.win = p.indexOf("Win") == 0; system.mac = p.indexOf("Mac") == 0; system.x11 = (p == "X11") || (p.indexOf("Linux") == 0); if(system.win||system.mac||system.xll){如果是电脑  $.getScript("https://blog-static.cnblogs.com/files/izbw/yinghua.js"); }else{ //如果是手机  } </script>
-    
 </body>
 </html>
