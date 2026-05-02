@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -48,6 +49,11 @@
             padding: 10px !important;
             pointer-events: none;
             transition: opacity 0.3s;
+   opacity: 0 !important;
+    visibility: hidden !important; 
+    
+    /* 2. 背景设为完全透明，或者带一点点磨砂感 */
+    background: rgba(255, 255, 255, 0) !important;
         }
         .live2d-widget-dialog-container.active { opacity: 1 !important; }
 
@@ -62,6 +68,12 @@
             line-height: 1.4 !important;
             font-family: Arial, sans-serif !important;
             text-align: center;
+              opacity: 0 !important;
+    visibility: hidden !important; 
+    
+    /* 2. 背景设为完全透明，或者带一点点磨砂感 */
+    background: rgba(255, 255, 255, 0) !important;
+
         }
 
         @media (max-width: 480px) {
@@ -96,7 +108,7 @@
         "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
         "display": { "position": "right", "width": 150, "height": 300, "hOffset": 0, "vOffset": -20 },
         "mobile": { "show": true, "scale": 0.5 },
-        "dialog": { "enable": false } // 改为 false 即可
+        "dialog": { "enable": true } 
     });
 
     const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
