@@ -13,7 +13,7 @@
             min-height: 100vh; margin: 0; overflow-x: hidden;
         }
 
-        /* 播放器样式 */
+        /* 播放器容器 */
         .cassette-player {
             background: #222; border-radius: 12px; padding: 5vw;
             box-shadow: 0 20px 40px rgba(0,0,0,0.8); width: 85%;
@@ -30,13 +30,13 @@
         #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 0.6rem; margin-bottom: 20px; }
         .control-btn { background: #3d3d3d; color: #fff; border: none; padding: 10px 15px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 0.5rem; }
 
-        /* 气泡框样式增强 */
+        /* --- 气泡框样式优化：防止溢出 --- */
         .live2d-widget-dialog-container {
             position: fixed !important;
             right: 20px !important;
             bottom: 260px !important;
             width: 180px !important;
-            min-height: 50px !important;
+            max-height: 120px !important; /* 限制最高高度 */
             background-color: #ffffff !important;
             border: 3px solid #000 !important;
             border-radius: 12px !important;
@@ -48,9 +48,10 @@
             display: flex !important;
             align-items: center;
             justify-content: center;
-            padding: 10px !important;
+            padding: 8px !important;
             box-sizing: border-box;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden !important;
         }
 
         #live2d-widget .live2d-widget-dialog {
@@ -58,27 +59,30 @@
             display: block !important;
             opacity: 1 !important;
             visibility: visible !important;
-            font-size: 14px !important;
+            font-size: 13px !important; /* 稍微缩小字号 */
             font-family: Arial, sans-serif !important;
             font-weight: bold !important;
             text-align: center;
             width: 100%;
+            max-height: 100px !important;
+            overflow-y: auto !important; /* 文字过多时允许滚动 */
+            line-height: 1.4 !important;
+            word-break: break-all !important;
         }
+
+        /* 隐藏滚动条但保留功能 (可选) */
+        #live2d-widget .live2d-widget-dialog::-webkit-scrollbar { width: 3px; }
+        #live2d-widget .live2d-widget-dialog::-webkit-scrollbar-thumb { background: #ff4500; border-radius: 10px; }
 
         .live2d-widget-dialog-container.active { opacity: 1 !important; visibility: visible !important; }
-
-        /* 状态反馈：录音时猫咪发光 */
-        #live2d-widget.listening #live2dcanvas {
-            filter: drop-shadow(0 0 15px #ff4500) brightness(1.2) !important;
-        }
-
+        #live2d-widget.listening #live2dcanvas { filter: drop-shadow(0 0 15px #ff4500) brightness(1.2) !important; }
         .live2d-widget-dialog-container::after {
             content: ''; position: absolute; bottom: -12px; right: 30px;
             border-width: 12px 10px 0; border-style: solid; border-color: #000 transparent transparent;
         }
 
         @media (max-width: 480px) {
-            .live2d-widget-dialog-container { bottom: 210px !important; width: 140px; }
+            .live2d-widget-dialog-container { bottom: 210px !important; width: 150px; max-height: 100px; }
         }
     </style>
 </head>
@@ -97,14 +101,14 @@
         <button class="control-btn" id="playBtn">PLAY</button>
         <button class="control-btn" id="stopBtn">STOP</button>
     </div>
-    <div style="margin-top:10px; font-size: 10px; color: #555;">[ 点击猫咪触发语音 ]</div>
+    <div style="margin-top:10px; font-size: 10px; color: #555;">[ 点击猫咪触发语音聊天 ]</div>
     <audio id="mainAudio"></audio>
 </div>
 
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 
 <script>
-    // 1. 初始化猫咪
+    // 1. 初始化 Live2D
     L2Dwidget.init({
         "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json", "scale": 1 },
         "display": { "position": "right", "width": 180, "height": 360, "hOffset": 10, "vOffset": -20 },
@@ -116,21 +120,34 @@
     const API_URL = 'https://api.deepseek.com/chat/completions';
     let dialogTimer;
 
+    // 显示气泡逻辑：增加截断和滚动支持
     function showCatSpeech(text, needSpeak = true) {
         const container = document.querySelector('.live2d-widget-dialog-container');
         const dialogBox = document.querySelector('.live2d-widget-dialog');
+        
         if (container && dialogBox) {
             clearTimeout(dialogTimer);
-            dialogBox.innerText = text;
+            
+            // --- 限制显示字数：超过45字显示省略号 ---
+            const MAX_CHAR = 45;
+            let displayText = text;
+            if (text.length > MAX_CHAR) {
+                displayText = text.substring(0, MAX_CHAR) + "...";
+            }
+            
+            dialogBox.innerText = displayText;
             container.classList.add('active');
+            
             if (needSpeak) {
                 window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
+                const utterance = new SpeechSynthesisUtterance(text); // 语音依然念全文
                 utterance.lang = 'zh-CN';
                 utterance.pitch = 1.3;
                 window.speechSynthesis.speak(utterance);
             }
-            dialogTimer = setTimeout(() => { container.classList.remove('active'); }, 5000);
+            // 文字短则停留5秒，长则停留8秒
+            const delay = text.length > 20 ? 8000 : 5000;
+            dialogTimer = setTimeout(() => { container.classList.remove('active'); }, delay);
         }
     }
 
@@ -143,7 +160,7 @@
                 body: JSON.stringify({
                     model: "deepseek-chat",
                     messages: [
-                        { role: "system", content: "你是一只叫Hijiki的黑猫。性格傲娇，喜欢磁带。说话必须以'喵'结尾。" },
+                        { role: "system", content: "你是一只叫Hijiki的黑猫。性格傲娇。说话必须以'喵'结尾。请极度简洁地回答，严禁超过30个字喵！" },
                         { role: "user", content: userText }
                     ]
                 })
@@ -151,11 +168,11 @@
             const data = await response.json();
             showCatSpeech(data.choices[0].message.content);
         } catch (error) {
-            showCatSpeech("哎呀，脑子卡住了喵！请检查网络或HTTPS环境喵。");
+            showCatSpeech("脑子卡住了，检查一下HTTPS或网络喵！");
         }
     }
 
-    // 语音识别 ASR
+    // 语音识别初始化
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
     if (SpeechRecognition) {
@@ -164,48 +181,37 @@
         recognition.interimResults = false;
         recognition.onstart = () => document.getElementById('live2d-widget').classList.add('listening');
         recognition.onresult = (e) => {
-            const text = e.results[0][0].transcript;
-            showCatSpeech("你说: " + text, false);
-            askAI(text);
+            const transcript = e.results[0][0].transcript;
+            showCatSpeech("你说: " + transcript, false);
+            askAI(transcript);
         };
-        recognition.onerror = (e) => {
+        recognition.onerror = () => {
             document.getElementById('live2d-widget').classList.remove('listening');
-            showCatSpeech("没听清喵... (" + e.error + ")");
+            showCatSpeech("没听清，离近点喵？");
         };
         recognition.onend = () => document.getElementById('live2d-widget').classList.remove('listening');
     }
 
-    // 关键：解决点击没反应和移动端限制
+    // 事件绑定：解决点击和移动端锁
     window.onload = function() {
         const checkCanvas = setInterval(() => {
             const canvas = document.getElementById('live2dcanvas');
             if (canvas) {
                 clearInterval(checkCanvas);
-                
                 const handleTrigger = (e) => {
                     if (e.type === 'touchstart') e.preventDefault();
-
-                    // 1. 本地文件警告
-                    if (location.protocol === 'file:') {
-                        alert("喵！本地文件(file://)无法使用录音，请用 VS Code Live Server 或部署到 HTTPS 空间喵！");
-                        return;
-                    }
-
-                    // 2. 激活音频锁
+                    
+                    // 强制解锁移动端音频引擎
                     window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
 
-                    // 3. 启动识别
                     if (recognition) {
                         try { recognition.start(); } catch(err) {}
                     } else {
-                        showCatSpeech("这浏览器不支持语音喵！");
+                        alert("该浏览器不支持语音识别喵！");
                     }
                 };
-
                 canvas.addEventListener('mousedown', handleTrigger);
                 canvas.addEventListener('touchstart', handleTrigger, { passive: false });
-                
-                // 确保层级正确
                 canvas.style.pointerEvents = "auto";
                 document.getElementById('live2d-widget').style.pointerEvents = "none";
             }
@@ -221,9 +227,8 @@
         const file = e.target.files[0];
         if(file) { audio.src = URL.createObjectURL(file); document.getElementById('timeDisplay').innerText = "TAPE LOADED"; }
     };
-
     playBtn.onclick = () => {
-        if(!audio.src) return alert("先载入磁带喵！");
+        if(!audio.src) return alert("请先载入磁带喵！");
         if(audio.paused) {
             audio.play(); playBtn.innerText = "PAUSE";
             reels.forEach(r => r.classList.add('playing'));
@@ -232,7 +237,6 @@
             reels.forEach(r => r.classList.remove('playing'));
         }
     };
-
     document.getElementById('stopBtn').onclick = () => {
         audio.pause(); audio.currentTime = 0; playBtn.innerText = "PLAY";
         reels.forEach(r => r.classList.remove('playing'));
