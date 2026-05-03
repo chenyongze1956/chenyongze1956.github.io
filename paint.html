@@ -2,61 +2,91 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>修行路 - 移动端完美适配版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style type="text/tailwindcss">
         @layer utilities {
             .tool-active { @apply bg-blue-600 text-white scale-105 shadow-md; }
-            .tool-button { @apply flex items-center justify-center md:justify-start w-12 h-12 md:w-full rounded-lg p-2 transition-all hover:bg-gray-100 active:scale-95; }
-            .color-swatch { @apply w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 border-2 border-transparent; }
+            .tool-button { @apply flex items-center justify-center w-10 h-10 md:w-full md:h-12 rounded-lg p-2 transition-all active:scale-90; }
+            .color-swatch { @apply w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-transparent; }
             .color-swatch.active { @apply border-white ring-2 ring-blue-600; }
         }
-        body { @apply bg-gray-50 overflow-hidden m-0 p-0; }
-        #drawingCanvas { 
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); 
-            touch-action: none;
-            cursor: crosshair;
+        
+        /* 强制锁定高度，防止移动端地址栏弹缩导致背景留白[cite: 1] */
+        html, body {
+            @apply h-full w-full overflow-hidden m-0 p-0 select-none touch-none;
+            position: fixed; 
         }
-        .toolbar { @apply bg-white/80 backdrop-blur shadow-lg p-2 z-10 absolute rounded-xl; }
-        .toolbar-desktop { @apply w-16 md:w-48 top-4 left-4 flex flex-col; }
+
+        /* 独立背景层：使用 fixed 确保覆盖物理全屏[cite: 1] */
+        #bg-layer {
+            @apply fixed inset-0 -z-10;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-attachment: fixed;
+        }
+
+        /* 画布透明化，露出底下的渐变[cite: 1] */
+        #drawingCanvas { 
+            @apply block;
+            background: transparent;
+            touch-action: none;
+        }
+
+        .toolbar { @apply bg-white/90 backdrop-blur shadow-xl p-2 z-10 absolute rounded-xl flex; }
+        
+        /* 响应式布局：移动端顶部横排，桌面端左侧竖排[cite: 1] */
+        .toolbar-main { 
+            @apply top-2 left-2 right-2 flex-row justify-around 
+                   md:flex-col md:w-44 md:top-4 md:left-4 md:right-auto; 
+        }
+
+        .control-bar {
+            @apply bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md 
+                   bg-white/90 backdrop-blur p-3 rounded-2xl shadow-2xl flex items-center gap-3 z-10;
+        }
+
         #brush-cursor {
-            @apply fixed pointer-events-none border border-gray-400 rounded-full z-[100] mix-blend-difference;
-            display: none;
+            @apply fixed pointer-events-none border border-gray-400 rounded-full z-[100] mix-blend-difference hidden md:block;
         }
     </style>
 </head>
 <body>
 
+<!-- 固定背景层[cite: 1] -->
+<div id="bg-layer"></div>
+
 <div id="brush-cursor"></div>
 
-<div class="flex h-screen w-screen relative">
+<div class="relative h-full w-full">
     <canvas id="drawingCanvas"></canvas>
 
-    <!-- 工具栏 -->
-    <div class="toolbar toolbar-desktop">
-        <button class="tool-button tool-active" data-tool="pencil"><i class="fa fa-pencil mr-0 md:mr-2"></i><span class="hidden md:inline">铅笔</span></button>
-        <button class="tool-button" data-tool="eraser"><i class="fa fa-eraser mr-0 md:mr-2"></i><span class="hidden md:inline">橡皮</span></button>
-        <button class="tool-button" data-tool="rectangle"><i class="fa fa-square-o mr-0 md:mr-2"></i><span class="hidden md:inline">矩形</span></button>
-        <button class="tool-button" data-tool="circle"><i class="fa fa-circle-o mr-0 md:mr-2"></i><span class="hidden md:inline">圆形</span></button>
-        <div class="border-t my-2"></div>
-        <button class="tool-button text-blue-600" data-action="undo"><i class="fa fa-reply mr-0 md:mr-2"></i><span class="hidden md:inline">撤销</span></button>
-        <!-- 恢复保存按钮 -->
-        <button class="tool-button text-green-600" data-action="save"><i class="fa fa-download mr-0 md:mr-2"></i><span class="hidden md:inline">保存图片</span></button>
-        <button class="tool-button text-red-500" data-action="clear"><i class="fa fa-trash-o mr-0 md:mr-2"></i><span class="hidden md:inline">清空</span></button>
+    <!-- 工具栏[cite: 1] -->
+    <div class="toolbar toolbar-main">
+        <button class="tool-button tool-active" data-tool="pencil" title="铅笔"><i class="fa fa-pencil"></i></button>
+        <button class="tool-button" data-tool="eraser" title="橡皮擦"><i class="fa fa-eraser"></i></button>
+        <button class="tool-button" data-tool="rectangle" title="矩形"><i class="fa fa-square-o"></i></button>
+        <button class="tool-button" data-tool="circle" title="圆形"><i class="fa fa-circle-o"></i></button>
+        <div class="w-px h-6 bg-gray-300 md:w-full md:h-px md:my-2"></div>
+        <button class="tool-button text-blue-600" data-action="undo" title="撤销"><i class="fa fa-reply"></i></button>
+        <button class="tool-button text-green-600" data-action="save" title="保存"><i class="fa fa-download"></i></button>
+        <button class="tool-button text-red-500" data-action="clear" title="清空"><i class="fa fa-trash-o"></i></button>
     </div>
 
-    <!-- 控制栏 -->
-    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-4 z-10">
-        <div class="flex gap-2">
+    <!-- 颜色与粗细控制[cite: 1] -->
+    <div class="control-bar">
+        <div class="flex gap-2 flex-1 justify-center">
             <div class="color-swatch active bg-black" data-color="#000000"></div>
             <div class="color-swatch bg-red-500" data-color="#ef4444"></div>
             <div class="color-swatch bg-blue-500" data-color="#3b82f6"></div>
             <div class="color-swatch bg-green-500" data-color="#22c55e"></div>
         </div>
-        <div class="h-8 border-l border-gray-300"></div>
-        <input type="range" id="brushSize" min="1" max="50" value="5" class="w-24 accent-blue-600">
-        <span id="sizeValue" class="text-xs font-bold w-4">5</span>
+        <div class="w-px h-8 bg-gray-200"></div>
+        <div class="flex items-center gap-2 flex-1">
+            <input type="range" id="brushSize" min="1" max="50" value="5" class="w-full accent-blue-600">
+            <span id="sizeValue" class="text-xs font-bold w-5">5</span>
+        </div>
     </div>
 </div>
 
@@ -64,7 +94,7 @@
     let canvas, ctx;
     let isDrawing = false;
     let startX, startY;
-    let snapshot; 
+    let snapshot;
     let currentTool = 'pencil';
     let currentColor = '#000000';
     let currentSize = 5;
@@ -73,17 +103,40 @@
     document.addEventListener('DOMContentLoaded', () => {
         canvas = document.getElementById('drawingCanvas');
         ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
         resizeCanvas();
-        saveState(); // 初始状态
+        saveState(); // 保存初始空白状态[cite: 1]
         setupEvents();
+        
+        // 监听窗口缩放，重新校准高度[cite: 1]
+        window.addEventListener('resize', resizeCanvas);
     });
 
     function resizeCanvas() {
+        const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // 使用 innerHeight 确保在移动端浏览器导航栏变化时依然铺满[cite: 1]
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        ctx.putImageData(temp, 0, 0);
+        
+        // 重新初始化 context 属性[cite: 1]
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+    }
+
+    function getCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        // 兼容鼠标和触控坐标获取[cite: 1]
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
     }
 
     function setupEvents() {
+        // 工具与颜色切换逻辑[cite: 1]
         document.querySelectorAll('[data-tool]').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('tool-active'));
@@ -105,7 +158,7 @@
             document.getElementById('sizeValue').innerText = currentSize;
         };
 
-        // 按钮功能逻辑
+        // 操作逻辑实现[cite: 1]
         document.querySelectorAll('[data-action]').forEach(btn => {
             btn.onclick = () => {
                 const action = btn.dataset.action;
@@ -117,48 +170,63 @@
                     }
                 }
                 if(action === 'save') {
-                    saveImage(); // 调用保存逻辑[cite: 1]
+                    const link = document.createElement('a');
+                    link.download = `drawing-${Date.now()}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
                 }
             };
         });
 
-        canvas.onmousedown = start;
-        canvas.onmousemove = move;
+        // 鼠标事件[cite: 1]
+        canvas.onmousedown = (e) => start(getCoords(e));
+        canvas.onmousemove = (e) => {
+            const coords = getCoords(e);
+            move(coords);
+            updateCursor(e);
+        };
         canvas.onmouseup = stop;
+
+        // 触控事件[cite: 1]
+        canvas.ontouchstart = (e) => { 
+            start(getCoords(e)); 
+            e.preventDefault(); 
+        };
+        canvas.ontouchmove = (e) => { 
+            move(getCoords(e)); 
+            e.preventDefault(); 
+        };
+        canvas.ontouchend = stop;
     }
 
-    function start(e) {
+    function start(coords) {
         isDrawing = true;
-        startX = e.clientX;
-        startY = e.clientY;
+        startX = coords.x;
+        startY = coords.y;
+        // 记录快照，以便实现形状工具的预览效果[cite: 1]
         snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
         ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
         ctx.lineWidth = currentSize;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
     }
 
-    function move(e) {
-        updateCursor(e);
+    function move(coords) {
         if (!isDrawing) return;
-
-        const x = e.clientX;
-        const y = e.clientY;
-
+        
+        // 矩形和圆形需要不断恢复快照再重绘，实现“拖拽感”[cite: 1]
         if (currentTool === 'rectangle' || currentTool === 'circle') {
             ctx.putImageData(snapshot, 0, 0);
         }
 
         if (currentTool === 'pencil' || currentTool === 'eraser') {
-            ctx.lineTo(x, y);
+            ctx.lineTo(coords.x, coords.y);
             ctx.stroke();
         } else if (currentTool === 'rectangle') {
-            ctx.strokeRect(startX, startY, x - startX, y - startY);
+            ctx.strokeRect(startX, startY, coords.x - startX, coords.y - startY);
         } else if (currentTool === 'circle') {
-            const radius = Math.sqrt(Math.pow(startX - x, 2) + Math.pow(startY - y, 2));
+            const r = Math.sqrt(Math.pow(startX - coords.x, 2) + Math.pow(startY - coords.y, 2));
             ctx.beginPath();
-            ctx.arc(startX, startY, radius, 0, 2 * Math.PI);
+            ctx.arc(startX, startY, r, 0, 2 * Math.PI);
             ctx.stroke();
         }
     }
@@ -170,19 +238,12 @@
 
     function updateCursor(e) {
         const cursor = document.getElementById('brush-cursor');
-        cursor.style.display = 'block';
-        cursor.style.width = currentSize + 'px';
-        cursor.style.height = currentSize + 'px';
-        cursor.style.left = (e.clientX - currentSize/2) + 'px';
-        cursor.style.top = (e.clientY - currentSize/2) + 'px';
-    }
-
-    // 保存图片逻辑[cite: 1]
-    function saveImage() {
-        const link = document.createElement('a');
-        link.download = `我的作品-${new Date().getTime()}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
+        if (e.type === 'mousemove') {
+            cursor.style.width = currentSize + 'px';
+            cursor.style.height = currentSize + 'px';
+            cursor.style.left = (e.clientX - currentSize/2) + 'px';
+            cursor.style.top = (e.clientY - currentSize/2) + 'px';
+        }
     }
 
     function saveState() {
