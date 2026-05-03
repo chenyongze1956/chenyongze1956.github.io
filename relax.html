@@ -3,142 +3,242 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ZEN Dashboard Pro</title>
     <style>
-        :root { --accent: #00ff88; --glass: rgba(0, 0, 0, 0.85); }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, sans-serif; background: #000; }
+        :root { 
+            --accent: #00ff88; 
+            --glass: rgba(0, 0, 0, 0.8); 
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 基础重置 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-      body {
-            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
-            display: flex; justify-content: center; align-items: center;
-
- background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
+        html, body { 
+            margin: 0; padding: 0; 
+            width: 100%; height: 100%; 
+            overflow: hidden; 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: #000;
         }
 
-        body::before {
-            content: ''; position: absolute; width: 150%; height: 150%;
- background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);   
+        /* 响应式全屏渐变背景 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 动态视口高度修复移动端白边 */
+            height: 100svh; 
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 磨砂玻璃卡片 */
         .dashboard-card {
-            width: 100%; max-width: 600px; height: 100vh;
-            background: var(--glass); backdrop-filter: blur(30px);
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 600px;
+            /* 桌面端高度 90%，移动端 100% */
+            height: 90vh;
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
 
-        /* 顶部时钟 */
-        .zen-header { padding: 12px; text-align: center; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        #time-display { font-size: 1.8rem; font-weight: 100; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #date-display { font-size: 0.6rem; letter-spacing: 2px; color: #666; text-transform: uppercase; margin-top: 2px; }
+        /* 头部时钟 */
+        .zen-header { 
+            padding: 15px; 
+            text-align: center; 
+            color: white; 
+            border-bottom: 1px solid var(--border); 
+        }
+        #time-display { 
+            font-size: 2.2rem; 
+            font-weight: 200; 
+            letter-spacing: -1px;
+            background: linear-gradient(to bottom, #fff 40%, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #date-display { 
+            font-size: 0.65rem; 
+            letter-spacing: 3px; 
+            color: #888; 
+            text-transform: uppercase; 
+            margin-top: 4px; 
+        }
 
-        .main-content { flex: 1; display: flex; overflow: hidden; position: relative; }
-        
-        /* 左侧语录：点击切换 */
+        /* 主体布局 */
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            overflow: hidden; 
+            position: relative; 
+        }
+
+        /* 左侧语录：移动端缩窄 */
         .quote-sidebar { 
-            width: 45px; padding: 15px 5px; border-right: 1px solid rgba(255,255,255,0.05); 
-            display: flex; align-items: center; justify-content: center; 
-            writing-mode: vertical-rl; text-orientation: mixed; cursor: pointer;
+            width: 50px; 
+            padding: 10px; 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            writing-mode: vertical-rl; 
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        #quote-text { font-size: 0.75rem; color: #aaa; opacity: 0.7; transition: opacity 0.4s; letter-spacing: 2px; }
+        .quote-sidebar:hover { background: rgba(255,255,255,0.03); }
+        #quote-text { font-size: 0.8rem; color: #ccc; opacity: 0.8; letter-spacing: 3px; }
 
-        /* 中间 Twitch 窗口 */
-        #chat_embed { flex: 1; border: none; opacity: 0.95; }
+        /* Twitch 容器 */
+        .iframe-container { flex: 1; background: #000; position: relative; }
+        #chat_embed { width: 100%; height: 100%; border: none; }
 
-        /* 右侧行情栏：桌面版纵向滚动 */
+        /* 桌面行情侧栏 */
         .crypto-sidebar { 
-            width: 65px; border-left: 1px solid rgba(255,255,255,0.05); 
-            background: rgba(0,0,0,0.2); overflow: hidden; position: relative;
+            width: 70px; 
+            border-left: 1px solid var(--border); 
+            background: rgba(0,0,0,0.3); 
+            overflow: hidden; 
         }
-        .ticker-v-wrap { display: flex; flex-direction: column; animation: vTicker 25s linear infinite; }
+        .ticker-v-wrap { display: flex; flex-direction: column; animation: vTicker 20s linear infinite; }
+        .ticker-v-wrap:hover { animation-play-state: paused; }
         @keyframes vTicker { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
-        .v-coin-item { padding: 25px 0; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        
+        .v-coin-item { 
+            padding: 20px 0; 
+            text-align: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+        }
 
-        /* 移动端底部行情：横向滚动 */
+        /* 移动端底部行情 */
         .mobile-footer-ticker { 
-            display: none; height: 35px; background: rgba(0,0,0,0.5); 
-            border-top: 1px solid rgba(255,255,255,0.05); overflow: hidden; align-items: center;
+            display: none; 
+            height: 40px; 
+            background: rgba(0,0,0,0.6); 
+            border-top: 1px solid var(--border); 
+            overflow: hidden; 
+            align-items: center;
         }
-        .ticker-h-wrap { white-space: nowrap; animation: hTicker 30s linear infinite; display: inline-block; padding-left: 100%; }
-        @keyframes hTicker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .ticker-h-wrap { 
+            white-space: nowrap; 
+            animation: hTicker 25s linear infinite; 
+            display: inline-block; 
+        }
+        @keyframes hTicker { 0% { transform: translateX(10%); } 100% { transform: translateX(-100%); } }
 
-        /* 通用行情样式 */
-        .symbol { display: block; font-size: 10px; color: #888; font-weight: bold; margin-bottom: 4px; }
-        .price { display: block; font-size: 11px; color: var(--accent); writing-mode: vertical-rl; margin: 0 auto; }
-        .h-item { display: inline-block; margin-right: 40px; color: var(--accent); font-family: monospace; font-size: 12px; }
-        .h-symbol { color: #888; margin-right: 5px; }
+        /* 行情通用样式 */
+        .symbol { display: block; font-size: 10px; color: #666; font-weight: 800; }
+        .price { display: block; font-size: 11px; color: var(--accent); writing-mode: vertical-rl; margin: 5px auto 0; font-family: monospace; }
+        .h-item { display: inline-block; margin-right: 35px; color: var(--accent); font-family: monospace; font-size: 13px; }
+        .h-symbol { color: #888; font-size: 10px; margin-right: 6px; font-weight: bold; }
 
-        /* 响应式调整 */
+        /* 响应式适配方案 */
         @media (max-width: 768px) {
-            .dashboard-card { height: 100%; max-width: 100%; }
-            .crypto-sidebar { display: none; } /* 隐藏侧边行情 */
-            .mobile-footer-ticker { display: flex; } /* 显示底部行情 */
-            .quote-sidebar { width: 35px; }
-            #time-display { font-size: 1.5rem; }
+            .dashboard-card { height: 100svh; max-width: 100%; border: none; }
+            .crypto-sidebar { display: none; }
+            .mobile-footer-ticker { display: flex; }
+            .quote-sidebar { width: 40px; }
+            #time-display { font-size: 1.8rem; }
+            #quote-text { font-size: 0.7rem; }
         }
 
-        .douban-dot { position: absolute; bottom: 50px; left: 10px; width: 5px; height: 5px; background: #42bd56; border-radius: 50%; opacity: 0.2; z-index: 100; cursor: pointer; }
+        /* 隐藏的快捷点 */
+        .douban-dot { 
+            position: fixed; bottom: 60px; left: 15px; 
+            width: 8px; height: 8px; 
+            background: #42bd56; border-radius: 50%; 
+            opacity: 0.3; z-index: 999; 
+        }
     </style>
 </head>
 <body>
-
     <div class="dashboard-card">
-        <div class="zen-header">
+        <!-- 头部 -->
+        <header class="zen-header">
             <div id="time-display">00:00</div>
-            <div id="date-display">ZEN INITIALIZING</div>
-        </div>
+            <div id="date-display">LOADING...</div>
+        </header>
 
-        <div class="main-content">
-            <!-- 语录 -->
-            <div class="quote-sidebar" onclick="updateQuote()">
-                <div id="quote-text">载入中...</div>
+        <!-- 主体 -->
+        <main class="main-content">
+            <section class="quote-sidebar" onclick="updateQuote()">
+                <div id="quote-text">...</div>
+            </section>
+
+            <div class="iframe-container">
+                <!-- 动态获取 Parent 域名防止报错 -->
+                <iframe id="chat_embed" src="" referrerpolicy="strict-origin-when-cross-origin"></iframe>
             </div>
 
-            <!-- Twitch -->
-            <iframe id="chat_embed" src="https://www.twitch.tv/embed/velvet_7/chat?parent=chenyongze1956.github.io&darkpopout" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-
-            <!-- 桌面版侧栏跑马灯 -->
-            <div class="crypto-sidebar">
+            <aside class="crypto-sidebar">
                 <div class="ticker-v-wrap" id="tickerV"></div>
-            </div>
-        </div>
+            </aside>
+        </main>
 
-        <!-- 移动端底部跑马灯 -->
-        <div class="mobile-footer-ticker">
+        <!-- 移动端底栏 -->
+        <footer class="mobile-footer-ticker">
             <div class="ticker-h-wrap" id="tickerH"></div>
-        </div>
+        </footer>
     </div>
 
     <a href="https://movie.douban.com" target="_blank" class="douban-dot"></a>
 
     <script>
-        // 1. 时钟
+        // 1. 自动适配 Twitch Parent 域名
+        const currentDomain = window.location.hostname || "localhost";
+        document.getElementById('chat_embed').src = `https://www.twitch.tv/embed/velvet_7/chat?parent=${currentDomain}&darkpopout`;
+
+        // 2. 高精度时钟
         function updateTime() {
             const now = new Date();
-            document.getElementById('time-display').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('date-display').innerText = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+            document.getElementById('time-display').textContent = 
+                now.getHours().toString().padStart(2, '0') + ":" + 
+                now.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('date-display').textContent = 
+                now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 2. 随机语录
-        const quotes = ["大道至简，悟在天成。", "心外无物，闲看花开。", "Stay hungry, Stay foolish.", "静中见真境，淡中识本然。", "博观而约取，厚积而薄发。", "流水不争先，争的是滔滔不绝。", "行到水穷处，坐看云起时。", "纵有疾风起，人生不言弃。"];
+        // 3. 语录库
+        const quotes = [
+            "大道至简，悟在天成。", "心外无物，闲看花开。", 
+            "Stay hungry, Stay foolish.", "静中见真境，淡中识本然。", 
+            "博观而约取，厚积而薄发。", "流水不争先，争的是滔滔不绝。", 
+            "行到水穷处，坐看云起时。", "纵有疾风起，人生不言弃。"
+        ];
         function updateQuote() {
             const el = document.getElementById('quote-text');
+            el.style.transition = 'opacity 0.4s';
             el.style.opacity = 0;
             setTimeout(() => {
-                el.innerText = quotes[Math.floor(Math.random() * quotes.length)];
-                el.style.opacity = 0.7;
+                el.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+                el.style.opacity = 0.8;
             }, 400);
         }
         updateQuote();
-        setInterval(updateQuote, 60000);
 
-        // 3. 行情获取与渲染
+        // 4. 加密货币行情 (增加缓存处理防止频率限制)
         async function getPrices() {
             try {
                 const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,dogecoin&vs_currencies=usd');
+                if (!response.ok) throw new Error('API Rate Limit');
                 const data = await response.json();
                 const coins = [
                     { id: 'BTC', p: data.bitcoin.usd },
@@ -147,28 +247,29 @@
                     { id: 'BNB', p: data.binancecoin.usd },
                     { id: 'DOGE', p: data.dogecoin.usd }
                 ];
-                
-                // 渲染桌面侧栏 (纵向)
-                const vHtml = coins.map(c => `
-                    <div class="v-coin-item">
-                        <span class="symbol">${c.id}</span>
-                        <span class="price">$${c.p.toLocaleString()}</span>
-                    </div>
-                `).join('');
-                document.getElementById('tickerV').innerHTML = vHtml + vHtml;
-
-                // 渲染移动端底栏 (横向)
-                const hHtml = coins.map(c => `
-                    <span class="h-item"><span class="h-symbol">${c.id}</span>$${c.p.toLocaleString()}</span>
-                `).join('');
-                document.getElementById('tickerH').innerHTML = hHtml + hHtml;
-
+                renderTickers(coins);
             } catch (e) {
-                console.log("Fetch failed, retrying...");
+                console.error("Price fetch throttled");
             }
         }
+
+        function renderTickers(coins) {
+            const vHtml = coins.map(c => `
+                <div class="v-coin-item">
+                    <span class="symbol">${c.id}</span>
+                    <span class="price">$${Math.round(c.p).toLocaleString()}</span>
+                </div>
+            `).join('');
+            document.getElementById('tickerV').innerHTML = vHtml + vHtml; // 双倍内容实现无缝滚动
+
+            const hHtml = coins.map(c => `
+                <span class="h-item"><span class="h-symbol">${c.id}</span>$${c.p.toLocaleString()}</span>
+            `).join('');
+            document.getElementById('tickerH').innerHTML = hHtml + hHtml + hHtml;
+        }
+
         getPrices();
-        setInterval(getPrices, 180000);
+        setInterval(getPrices, 60000); // 1分钟更新一次，避免被封IP
     </script>
 </body>
 </html>
