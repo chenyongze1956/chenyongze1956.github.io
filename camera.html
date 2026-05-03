@@ -3,204 +3,117 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI 真实年龄检测 - 趣味版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); min-height: 100vh; overflow: hidden; color: white; font-family: system-ui, -apple-system, sans-serif; }
-        .camera-container { aspect-ratio: 9/16; max-height: 75vh; width: 100%; max-width: 400px; position: relative; }
-        .scan-line { height: 3px; background: #60a5fa; box-shadow: 0 0 20px #3b82f6; position: absolute; width: 100%; top: 0; z-index: 40; display: none; animation: scanning 2s linear infinite; }
-        @keyframes scanning { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
-        .face-box { position: absolute; border: 2px solid rgba(96, 165, 250, 0.5); width: 220px; height: 280px; top: 45%; left: 50%; transform: translate(-50%, -50%); border-radius: 40px; z-index: 30; }
-        .corner { position: absolute; width: 20px; height: 20px; border: 4px solid #60a5fa; }
-        .tl { top: -5px; left: -5px; border-right: 0; border-bottom: 0; }
-        .tr { top: -5px; right: -5px; border-left: 0; border-bottom: 0; }
-        .bl { bottom: -5px; left: -5px; border-right: 0; border-top: 0; }
-        .br { bottom: -5px; right: -5px; border-left: 0; border-top: 0; }
-        #loading-overlay { display: none; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
-        .result-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .camera-box {
+            position: relative; width: 85vw; max-width: 400px; aspect-ratio: 3/4;
+            border: 2px solid #22d3ee; border-radius: 24px; overflow: hidden; background: #000;
+        }
+        #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .hud {
+            position: fixed; top: 20px; background: rgba(15, 23, 42, 0.8);
+            padding: 8px 15px; border-radius: 12px; color: #22d3ee;
+            font-family: monospace; font-size: 12px; z-index: 100;
+            border: 1px solid rgba(34, 211, 238, 0.3); text-align: center;
+        }
+        #live2d-widget { pointer-events: none !important; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4">
-    <div class="camera-container rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-700 bg-black">
-        <div id="scan-line" class="scan-line"></div>
-        <div class="face-box">
-            <div class="corner tl"></div><div class="corner tr"></div>
-            <div class="corner bl"></div><div class="corner br"></div>
-        </div>
-        <video id="video" class="w-full h-full object-cover" autoplay muted playsinline style="transform: scaleX(-1);"></video>
-        <div id="loading-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center text-center p-4">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
-            <p class="text-blue-400 font-bold tracking-widest text-sm">正在进行多帧采样...</p>
-            <p id="sample-count" class="text-white text-xs mt-2">进度: 0/3</p>
-        </div>
-        <div class="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 to-transparent">
-            <div class="flex justify-between items-center">
-                <button id="toggle-camera" class="text-white p-3 bg-white/10 rounded-full"><i class="fa fa-refresh"></i></button>
-                <button id="capture-btn" class="relative group">
-                    <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg">
-                        <i class="fa fa-eye"></i>
-                    </div>
-                </button>
-                <div class="w-10"></div>
-            </div>
-        </div>
+<body>
+
+    <div class="hud">
+        STATUS: <span id="stat">请点击屏幕授权</span><br>
+        COORDS: <span id="coords">0, 0</span>
     </div>
 
-    <div id="preview-modal" class="fixed inset-0 bg-slate-950 z-50 hidden flex flex-col items-center p-6 overflow-y-auto">
-        <div class="relative w-full max-w-sm rounded-3xl overflow-hidden border-2 border-blue-500/30">
-            <img id="preview-image" class="w-full h-auto" alt="Result">
-            <div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md rounded-2xl p-3 text-center">
-                <div class="text-[10px] text-gray-400 uppercase">颜值均分</div>
-                <div id="beauty-score" class="text-3xl font-black text-yellow-400">--</div>
-            </div>
-        </div>
-
-        <div class="w-full max-w-sm mt-6 space-y-4">
-            <div class="result-card rounded-2xl p-4 border-l-4 border-l-blue-500">
-                <div class="text-xs text-blue-400 font-bold mb-1">AI 深度评价</div>
-                <p id="ai-comment" class="text-lg font-medium text-blue-50 italic">"正在读取灵魂..."</p>
-            </div>
-
-            <div class="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                    <div class="text-xs text-blue-400">相似明星 Match</div>
-                    <div id="star-name" class="text-xl font-bold">分析中...</div>
-                </div>
-                <div class="text-right">
-                    <div class="text-[10px] text-gray-400">加权匹配度</div>
-                    <div class="text-lg font-mono text-blue-300"><span id="match-rate">--</span>%</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
-                    <div class="text-[10px] text-gray-400">预测年龄</div>
-                    <div class="text-lg font-bold"><span id="predicted-age">--</span> 岁</div>
-                </div>
-                <div class="bg-white/5 rounded-xl p-3 border border-white/10 text-center">
-                    <div class="text-[10px] text-gray-400">性别检测</div>
-                    <div id="detected-gender" class="text-lg font-bold text-green-400">--</div>
-                </div>
-            </div>
-            <button onclick="location.reload()" class="w-full bg-slate-800 py-4 rounded-2xl font-bold mt-4">重新拍摄</button>
-        </div>
+    <div class="camera-box">
+        <video id="video" playsinline muted autoplay></video>
     </div>
 
     <script>
-        const API_KEY = "Hpmt9Yim0zlRYwkhGllCMFkLama9vxNu";
-        const API_SECRET = "PhCtY0gKGC6Ys6k80vTdYQ7SVcHvH_o9";
-
         const video = document.getElementById('video');
-        const scanLine = document.getElementById('scan-line');
-        const loading = document.getElementById('loading-overlay');
-        const sampleText = document.getElementById('sample-count');
-        const previewModal = document.getElementById('preview-modal');
-        const previewImage = document.getElementById('preview-image');
-        let currentFacingMode = 'user';
+        const stat = document.getElementById('stat');
+        const coordsText = document.getElementById('coords');
+        let isActive = false;
 
-        // 趣味评价池
-        const comments = {
-            Male: {
-                high: ["这张脸如果去拉保险，成功率肯定100%。", "你的颜值严重扰乱了云端服务器的正常运行。", "这长相，吴彦祖看了都要连夜注销账号。", "你是从画里走出来的吗？简直是AI界的巅峰。"],
-                mid: ["长得挺有创意的，一看就是原创，没抄袭。", "这种长相走在街上，回头率和违章率一样高。", "在这个看脸的世界，你选择了看才华。", "颜值处于人类平均水平的顶端，加油。"],
-                low: ["系统建议：多读书，气质可以弥补像素的缺失。", "你的长相非常安全，建议凌晨单独出门。", "云端无法判定，可能你是那种耐看型。"]
-            },
-            Female: {
-                high: ["沉鱼落雁闭月羞花，AI都想为你写诗。", "这颜值，不去当明星简直是全人类的损失。", "镜头快要碎了，因为它承载不了这样的美丽。", "你一定是上帝亲手捏的，而且还没用模具。"],
-                mid: ["小清新风格，像是夏天的柠檬汽水。", "五官分布得非常民主，谁也不抢谁的风头。", "美得很有特色，属于那种‘越看越顺眼’型。", "颜值在线，气质这块拿捏得死死的。"],
-                low: ["系统推荐：尝试一下复古风滤镜，你会发现惊喜。", "长得很低调，完全没有偶像包袱。", "你的美丽比较内敛，需要用显微镜观察。"]
+        // 1. 初始化看板娘
+        L2Dwidget.init({
+            "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
+            "display": { "position": "right", "width": window.innerWidth < 768 ? 140 : 220, "height": window.innerWidth < 768 ? 220 : 350 }
+        });
+
+        // 2. 配置 AI
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(results => {
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+                const nose = results.multiFaceLandmarks[0][1];
+                const x = (0.5 + (0.5 - nose.x) * 1.8) * window.innerWidth;
+                const y = (0.5 + (nose.y - 0.5) * 1.8) * window.innerHeight;
+                
+                coordsText.innerText = `${Math.round(x)}, ${Math.round(y)}`;
+                stat.innerText = "追踪中 ✅";
+
+                // 分发事件驱动猫
+                const moveEvt = new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true });
+                window.dispatchEvent(moveEvt);
+                document.dispatchEvent(moveEvt);
+                const canvas = document.getElementById('live2dcanvas');
+                if (canvas) canvas.dispatchEvent(moveEvt);
+            } else {
+                stat.innerText = "识别中断: 请面向摄像头";
             }
-        };
+        });
 
-        async function startCamera() {
+        // 3. 稳健的驱动循环
+        async function detectFrame() {
+            if (!isActive) return;
+            if (video.readyState >= 2) {
+                try {
+                    await faceMesh.send({ image: video });
+                } catch (e) {
+                    console.warn("跳帧处理中...");
+                }
+            }
+            requestAnimationFrame(detectFrame);
+        }
+
+        // 4. 启动函数
+        async function startSystem() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: currentFacingMode, width: 1280, height: 720 } 
+                stat.innerText = "正在开启摄像头...";
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 640, height: 480 }
                 });
                 video.srcObject = stream;
-            } catch (err) { alert("请确保使用 HTTPS 并授权摄像头权限"); }
+                isActive = true;
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    stat.innerText = "正在同步面部...";
+                    detectFrame();
+                };
+            } catch (err) {
+                stat.innerText = "启动失败: 需要HTTPS及授权";
+            }
         }
 
-        async function requestAI(base64) {
-            const fd = new FormData();
-            fd.append('api_key', API_KEY);
-            fd.append('api_secret', API_SECRET);
-            fd.append('image_base64', base64);
-            fd.append('return_attributes', 'age,beauty,gender');
-            const res = await fetch('https://api-cn.faceplusplus.com/facepp/v3/detect', { method: 'POST', body: fd });
-            return await res.json();
-        }
-
-        async function captureAndAnalyze() {
-            scanLine.style.display = 'block';
-            loading.style.display = 'flex';
-            let ages = [], beauties = [], genders = [], lastImg = "";
-
-            try {
-                for (let i = 1; i <= 3; i++) {
-                    sampleText.innerText = `进度: ${i}/3`;
-                    const canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    const ctx = canvas.getContext('2d');
-                    if(currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-                    ctx.drawImage(video, 0, 0);
-                    const base64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
-                    if(i === 2) lastImg = canvas.toDataURL('image/png');
-
-                    const data = await requestAI(base64);
-                    if (data.faces && data.faces[0]) {
-                        const attr = data.faces[0].attributes;
-                        ages.push(attr.age.value);
-                        beauties.push(attr.gender.value === 'Male' ? attr.beauty.male_score : attr.beauty.female_score);
-                        genders.push(attr.gender.value === 'Male' ? 'Male' : 'Female');
-                    }
-                    if (i < 3) await new Promise(r => setTimeout(r, 600));
-                }
-
-                if (ages.length > 0) {
-                    // 获取平均值
-                    const finalAgeRaw = Math.round(ages.reduce((a,b)=>a+b)/ages.length);
-                    const finalBeauty = (beauties.reduce((a,b)=>a+b)/beauties.length).toFixed(1);
-                    const finalGen = genders[0];
-
-                    // 真实逻辑：给用户显示的年龄减去随机 3-5 岁（心情愉悦算法）
-                    const displayAge = finalAgeRaw - (Math.floor(Math.random()*3) + 3);
-                    
-                    document.getElementById('predicted-age').innerText = displayAge > 0 ? displayAge : 1;
-                    document.getElementById('beauty-score').innerText = finalBeauty;
-                    document.getElementById('detected-gender').innerText = finalGen === 'Male' ? '男' : '女';
-
-                    // 匹配明星
-                    const stars = finalGen === 'Male' ? ["吴彦祖", "彭于晏", "金城武", "胡歌", "彭于晏"] : ["刘亦菲", "迪丽热巴", "舒淇", "汤唯", "倪妮"];
-                    document.getElementById('star-name').innerText = stars[Math.floor(Math.random()*stars.length)];
-                    document.getElementById('match-rate').innerText = (Math.random()*5+90).toFixed(1);
-
-                    // 趣味评价逻辑
-                    let level = "mid";
-                    if(finalBeauty > 85) level = "high";
-                    else if(finalBeauty < 65) level = "low";
-                    
-                    const pool = comments[finalGen][level];
-                    document.getElementById('ai-comment').innerText = `"${pool[Math.floor(Math.random()*pool.length)]}"`;
-
-                    previewImage.src = lastImg;
-                    previewModal.classList.remove('hidden');
-                } else {
-                    alert("未检测到人脸，请正对屏幕");
-                }
-            } catch (e) { alert("网络请求失败"); } 
-            finally { scanLine.style.display = 'none'; loading.style.display = 'none'; }
-        }
-
-        document.getElementById('capture-btn').onclick = captureAndAnalyze;
-        document.getElementById('toggle-camera').onclick = () => {
-            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-            startCamera();
-        };
-        window.onload = startCamera;
+        // 点击激活
+        document.body.addEventListener('click', () => {
+            if (!isActive) startSystem();
+        }, { once: true });
     </script>
 </body>
 </html>
