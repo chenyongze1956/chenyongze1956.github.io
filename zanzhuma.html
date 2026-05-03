@@ -1,10 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>修行路 - 赞助支持</title>
     <link rel="stylesheet" href="https://joy2.jstools.net/static/layui/css/layui.css">
     <style>
         /* 全屏柔和渐变背景动画 */
@@ -32,11 +30,11 @@
 
         .donate-container { 
             width: 100%;
-            max-width: 500px; /* 缩小最大宽度，让布局更紧凑 */
+            max-width: 550px; 
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            padding: 1.5rem 1rem; /* 减小内边距 */
+            padding: 1.5rem 1rem;
             border-radius: 20px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.05);
             text-align: center;
@@ -49,7 +47,6 @@
         .gongde-display { font-size: 0.85rem; color: #555; margin-bottom: 10px; font-weight: bold; }
         .donate-header p { color: #444; line-height: 1.4; font-size: 0.9rem; min-height: 2.5rem; transition: all 0.3s; padding: 0 5px; }
 
-        /* 强制并排，取消 wrap */
         .qr-codes { 
             display: flex; 
             flex-direction: row; 
@@ -57,13 +54,14 @@
             align-items: flex-start;
             flex-wrap: nowrap; 
             margin-top: 10px;
-            gap: 8px; 
+            gap: 15px; 
         }
 
         .qr-item { 
             flex: 1; 
-            min-width: 0; /* 防止子元素溢出 */
+            min-width: 0; 
             text-align: center;
+            position: relative; /* 确保悬停效果的参考系 */
         }
 
         .qr-img-wrapper {
@@ -71,15 +69,27 @@
             aspect-ratio: 1 / 1; 
             background: #fff;
             border-radius: 12px;
-            padding: 5px; /* 减小白色边框 */
+            padding: 5px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.06);
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto;
-            overflow: hidden;
             box-sizing: border-box;
             cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+        }
+
+        /* 重点：鼠标悬停放大效果 */
+        .qr-img-wrapper:hover {
+            transform: scale(1.6); /* 放大 1.6 倍 */
+            z-index: 100; /* 置于最顶层 */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .qr-img-wrapper:active { 
+            transform: scale(1.4); /* 点击时轻微回弹 */
         }
 
         .qr-item img { 
@@ -87,20 +97,25 @@
             height: 100%;
             object-fit: contain;
             display: block;
+            border-radius: 8px;
         }
 
-        .qr-item p { margin-top: 8px; font-weight: 600; font-size: 0.85rem; }
+        .crypto-icon {
+            font-size: 2.5rem;
+            color: #9945FF;
+        }
+
+        .qr-item p { margin-top: 8px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
         .alipay { color: #1677ff; }
         .wechat { color: #07c160; }
+        .solana { color: #8e44ad; }
 
         .footer-msg { margin-top: 15px; font-size: 0.75rem; color: #666; font-style: italic; }
 
-        /* 特别针对超小屏幕 (手机) 的优化 */
         @media (max-width: 375px) {
-            .donate-container { padding: 1rem 0.8rem; }
-            .donate-header h1 { font-size: 1.2rem; }
-            .donate-header p { font-size: 0.8rem; }
-            .qr-item p { font-size: 0.75rem; }
+            .donate-container { padding: 1rem 0.6rem; }
+            .qr-item p { font-size: 0.7rem; }
+            .qr-img-wrapper:hover { transform: scale(1.3); } /* 手机端放大倍数稍微调小，防止出屏 */
         }
 
         .float-text {
@@ -109,7 +124,7 @@
             font-weight: bold;
             color: #333;
             font-size: 1rem;
-            z-index: 100;
+            z-index: 200;
             animation: floatUp 1s ease-out forwards;
         }
 
@@ -123,83 +138,84 @@
 
 <div class="donate-container">
     <div class="donate-header">
-        <h1>☕ 请我吃个汉堡</h1>
+        <h1>☕ 修行补给站</h1>
         <div id="gongde-count" class="gongde-display">修行功德：0</div>
-        <p id="quote-text"></p>
+        <p id="quote-text">每一份赞助，都是缘分的结交。</p>
     </div>
 
     <div class="qr-codes">
         <div class="qr-item">
-            <div class="qr-img-wrapper" onclick="addGongde(event, '支付宝')">
-                <img src="https://i.ibb.co/LhdqqkhC/177025151674.jpg" alt="支付宝收款码">
+            <div class="qr-img-wrapper" onclick="addGongde(event, '支付宝', 1)">
+                <img src="https://i.ibb.co/LhdqqkhC/177025151674.jpg" alt="支付宝">
             </div>
             <p class="alipay">支付宝</p>
         </div>
+        
         <div class="qr-item">
-            <div class="qr-img-wrapper" onclick="addGongde(event, '微信支付')">
-                <img src="https://i.ibb.co/q3zY0VbK/image.png" alt="微信支付收款码">
+            <div class="qr-img-wrapper" onclick="addGongde(event, '微信支付', 1)">
+                <img src="https://i.ibb.co/q3zY0VbK/image.png" alt="微信支付">
             </div>
             <p class="wechat">微信支付</p>
+        </div>
+
+        <div class="qr-item">
+            <div class="qr-img-wrapper" onclick="copyCrypto(event)">
+                <div class="crypto-icon">💰</div>
+            </div>
+            <p class="solana">SOL (Solana)</p>
         </div>
     </div>
 
     <div class="footer-msg">
         <p>* 捐助时请备注您的昵称，万分感谢。</p>
-        <p style="margin-top: 5px; font-size: 0.7rem; color: #777;">点击二维码积攒修行功德</p>
+        <p style="margin-top: 5px; font-size: 0.7rem; color: #777;">悬停放大二维码 | 点击火箭复制 SOL 地址</p>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    const quotes = [
-        "每一份赞助，都是缘分的结交。",
-        "代码如禅",
-        "咖啡，是为了明日更强大的逻辑。",
-        "世界微尘里，吾宁爱与憎。",
-        "善哉善哉，阁下道行又深了一层。",
-        "万物皆虚，唯有咖啡是真。"
-    ];
-
+    // ... 原有 JavaScript 逻辑保持不变 ...
+    const quotes = ["每一份赞助，都是缘分的结交。", "代码如禅", "咖啡，是为了明日更强大的逻辑。", "世界微尘里，吾宁爱与憎。", "善哉善哉，阁下道行又深了一层。", "万物皆虚，唯有咖啡是真。", "区块链也是一种修行。"];
+    const solAddress = "Ex9XoJ25TwBNuKRHSAkUvobvW9bCTgwEW1ZGMhibjs9v";
     let count = parseInt(localStorage.getItem('my_gongde')) || 0;
     const countDisplay = document.getElementById('gongde-count');
     const quoteDisplay = document.getElementById('quote-text');
-
     countDisplay.innerText = `修行功德：${count}`;
 
-    function addGongde(event, type) {
-        count++;
+    function addGongde(event, type, val = 1) {
+        count += val;
         localStorage.setItem('my_gongde', count);
         countDisplay.innerText = `修行功德：${count}`;
-
         quoteDisplay.style.opacity = 0;
         setTimeout(() => {
             quoteDisplay.innerText = quotes[Math.floor(Math.random() * quotes.length)];
             quoteDisplay.style.opacity = 1;
         }, 200);
-
         const floatText = document.createElement('div');
         floatText.className = 'float-text';
-        floatText.innerText = '功德 +1 ☕';
+        floatText.innerText = `功德 +${val} ☕`;
         floatText.style.left = (event.pageX - 20) + 'px';
         floatText.style.top = (event.pageY - 20) + 'px';
         document.body.appendChild(floatText);
-        
         setTimeout(() => floatText.remove(), 1000);
-
         confetti({
-            particleCount: 20,
+            particleCount: 20 + (val * 2),
             spread: 40,
             origin: { x: event.pageX / window.innerWidth, y: event.pageY / window.innerHeight },
-            colors: ['#ff7e5f', '#feb47b', '#5fbfff']
+            colors: ['#ff7e5f', '#feb47b', '#9b8eff', '#9945FF']
         });
     }
 
-    document.body.onclick = function(e) {
-        if(e.target === document.body) {
-            addGongde(e, '修行');
-        }
-    };
-</script>
+    function copyCrypto(event) {
+        navigator.clipboard.writeText(solAddress).then(() => {
+            addGongde(event, 'Crypto', 10);
+            const oldText = quoteDisplay.innerText;
+            quoteDisplay.innerText = "✨ 地址已复制！善哉善哉。";
+            setTimeout(() => { if(quoteDisplay.innerText === "✨ 地址已复制！善哉善哉。") quoteDisplay.innerText = oldText; }, 2000);
+        });
+    }
 
+    document.body.onclick = function(e) { if(e.target === document.body) addGongde(e, '修行', 1); };
+</script>
 </body>
 </html>
