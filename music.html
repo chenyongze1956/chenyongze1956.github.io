@@ -1,93 +1,103 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>ZEN Dashboard Pro - Retro QQ Edition</title>
     <style>
-        :root { --led-color: #ff4500; --font-pixel: 'Press Start 2P', cursive; }
-        html, body { height: 100%; margin: 0; overflow: hidden; }
-        body {
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
-            touch-action: manipulation;
+        :root { 
+            --led-color: #ff4500; 
+            --font-pixel: 'Press Start 2P', cursive; 
+            --qq-blue: #0099ff;
         }
 
+        html, body { height: 100%; margin: 0; overflow: hidden; }
+        body {
+            /* 保持你原来的动态渐变背景 */
+            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            touch-action: manipulation;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* --- 磁带播放器样式 (保持不变) --- */
         .cassette-player {
             background: #222; border-radius: 12px; padding: 30px 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.8); width: 85%; max-width: 380px;
             text-align: center; z-index: 10; position: relative; border: 2px solid #444;
             transition: all 0.3s ease;
         }
-
         .tape-window {
             background: #000; height: clamp(70px, 15vh, 120px); margin-bottom: 20px;
             display: flex; justify-content: space-around; align-items: center; border: 4px solid #111;
         }
-
         .tape-reel { width: 50px; height: 50px; border: 3px dashed #555; border-radius: 50%; }
         .tape-reel.playing { animation: rotate 3s linear infinite; }
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
         #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 11px; margin-bottom: 20px; text-shadow: 0 0 8px var(--led-color); }
         .control-btn { background: #444; color: #00f2ff; border: 1px solid #000; padding: 12px 10px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 8px; border-radius: 4px; }
 
-        /* --- 隐身气泡效果优化 --- */
+        /* --- QQ 聊天室弹出层样式 --- */
+        .qq-panel {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 95%; max-width: 600px; height: 80vh;
+            background: rgba(238, 247, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100; border-radius: 8px; border: 1px solid #888;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+        }
+        .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+
+        .qq-header {
+            height: 60px; background: linear-gradient(to bottom, #72c6fe, #0c99f3);
+            border-radius: 8px 8px 0 0; display: flex; align-items: center; padding: 0 15px; color: white;
+        }
+        .qq-avatar { width: 40px; height: 40px; border: 2px solid white; border-radius: 4px; margin-right: 10px; }
+        .close-qq { margin-left: auto; cursor: pointer; font-size: 24px; }
+
+        .chat-box { flex: 1; padding: 15px; overflow-y: auto; background: white; }
+        .msg { margin-bottom: 15px; font-size: 14px; }
+        .msg-name { color: #008000; font-size: 12px; display: block; }
+        .msg-content { background: #f1f1f1; padding: 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
+
+        .input-area { height: 120px; border-top: 1px solid #ccc; display: flex; flex-direction: column; background: white; }
+        #qq-input { flex: 1; border: none; padding: 10px; outline: none; resize: none; }
+        .send-row { display: flex; justify-content: flex-end; padding: 5px 15px; background: #eee; }
+
+        /* --- 召唤按钮 --- */
+        .qq-trigger {
+            position: fixed; left: 20px; bottom: 20px; width: 50px; height: 50px;
+            background: var(--qq-blue); border-radius: 50%; display: flex;
+            justify-content: center; align-items: center; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 90;
+            font-weight: bold; color: white; border: 2px solid white;
+        }
+
+        /* --- 猫咪气泡优化 (保持不变) --- */
         .live2d-widget-dialog-container {
-            position: fixed !important;
-            right: 10px !important;
-            bottom: 35% !important;
-            width: 160px !important;
-            z-index: 999999 !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-            background: none !important;
-            border: none !important;
-            pointer-events: none;
-            transition: all 0.4s ease;
+            position: fixed !important; right: 10px !important; bottom: 35% !important;
+            width: 160px !important; z-index: 99 !important; opacity: 0 !important;
+            visibility: hidden !important; transition: all 0.4s ease;
         }
-        .live2d-widget-dialog-container.active { opacity: 1 !important; visibility: visible !important; transform: translateY(-10px); }
+        .live2d-widget-dialog-container.active { opacity: 1 !important; visibility: visible !important; }
 
-        #live2d-widget .live2d-widget-dialog {
-            color: #ffffff !important;
-            font-size: 14px !important;
-            font-weight: bold !important;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 10px var(--led-color) !important;
-            text-align: center;
-            background: none !important;
-        }
-
-        /* --- 手机小屏幕适配优化 --- */
         @media (max-width: 480px) {
-            .cassette-player { 
-                width: 88%; 
-                padding: 20px 15px; 
-                margin-top: -50px; /* 向上微调，给底部的猫留空间 */
-            }
-            
-            .tape-window { height: 80px; margin-bottom: 15px; }
-            .tape-reel { width: 40px; height: 40px; }
-            .control-btn { padding: 10px 8px; font-size: 7px; margin: 3px; }
-            
-            /* 让猫咪在手机上缩小并稍微下移 */
-            #live2d-widget { 
-                transform-origin: bottom right;
-                transform: scale(0.75); 
-                right: -10px !important;
-                bottom: -10px !important;
-            }
-            
-            /* 气泡在手机上的位置 */
-            .live2d-widget-dialog-container {
-                bottom: 260px !important;
-                right: 5px !important;
-                width: 130px !important;
-            }
+            .cassette-player { width: 88%; margin-top: -50px; }
+            .qq-panel { width: 100%; height: 100%; border-radius: 0; }
         }
     </style>
 </head>
 <body>
 
+<!-- 1. 磁带播放器主界面 -->
 <div class="cassette-player">
     <div style="font-family: var(--font-pixel); color: #666; font-size: 8px; margin-bottom: 12px; letter-spacing: 1px;">AI MUSIC STATION</div>
     <div class="tape-window">
@@ -105,91 +115,221 @@
     <audio id="mainAudio" playsinline></audio>
 </div>
 
-<!-- JS 部分保持不变，但建议在初始化时检测屏幕宽度 -->
+<!-- 2. QQ 聊天室弹出面板 -->
+<div class="qq-panel" id="qqPanel">
+    <div class="qq-header">
+        <img src="https://q1.qlogo.cn/g?b=qq&nk=10001&s=640" class="qq-avatar">
+        <div>
+            <div style="font-weight:bold; font-size:14px;">Hijiki 猫咪空间</div>
+            <div style="font-size:11px; opacity:0.8;">手机在线 - 正在听磁带</div>
+        </div>
+        <div class="close-qq" onclick="toggleQQ()">×</div>
+    </div>
+    <div class="chat-box" id="msgBox">
+        <div class="msg">
+            <span class="msg-name">系统通知 12:00</span>
+            <div class="msg-content">欢迎来到你的赛博空间喵！</div>
+        </div>
+    </div>
+    <div class="input-area">
+        <textarea id="qq-input" placeholder="输入消息..."></textarea>
+        <div class="send-row">
+            <button class="control-btn" style="font-family:sans-serif; font-size:12px;" onclick="sendQQMsg()">发送</button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. 召唤 QQ 的按钮 -->
+<div class="qq-trigger" onclick="toggleQQ()">扣扣</div>
+
+<!-- 4. 你的鼠标文字特效 -->
+<div id="cursor-text" style="position: fixed; pointer-events: none; z-index: 9999; color: pink; font-size: 14px; text-shadow: 0 0 5px #000;">亲一口，波一个</div>
+
+<!-- 5. JS 逻辑 -->
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 <script>
-    L2Dwidget.init({
-        "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
-        "display": { 
-            "position": "right", 
-            "width": window.innerWidth > 480 ? 150 : 120, 
-            "height": window.innerWidth > 480 ? 300 : 240, 
-            "hOffset": 0, 
-            "vOffset": -10 
-        },
-        "mobile": { "show": true, "scale": 0.5 },
-        "dialog": { "enable": true } 
-    });
+    // --- QQ 交互逻辑 ---
+    function toggleQQ() {
+        document.getElementById('qqPanel').classList.toggle('active');
+    }
 
-    // ... 其余 JS 逻辑（API, Speech, 播放器控制）请保留你原来的代码 ...
-    const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
-    const API_URL = 'https://api.deepseek.com/chat/completions';
-    let dialogTimer;
-
-    function showCatSpeech(text, needSpeak = true) {
-        const container = document.querySelector('.live2d-widget-dialog-container');
-        const dialogBox = document.querySelector('.live2d-widget-dialog');
-        if (container && dialogBox) {
-            clearTimeout(dialogTimer);
-            dialogBox.innerText = text;
-            container.classList.add('active');
-            if (needSpeak) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-CN';
-                utterance.pitch = 1.3;
-                window.speechSynthesis.speak(utterance);
-            }
-            dialogTimer = setTimeout(() => { container.classList.remove('active'); }, 5000);
+    function sendQQMsg() {
+        const input = document.getElementById('qq-input');
+        const box = document.getElementById('msgBox');
+        if(input.value.trim()){
+            const time = new Date().toLocaleTimeString().slice(0,5);
+            box.innerHTML += `<div class="msg"><span class="msg-name" style="color:blue;">我 ${time}</span><div class="msg-content">${input.value}</div></div>`;
+            
+            // 联动 AI 这里的逻辑：当你发送 QQ 消息，猫咪也会回应你
+            const userMsg = input.value;
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+            
+            setTimeout(() => {
+                askAI(userMsg); // 调用你原来的 AI 函数
+                box.innerHTML += `<div class="msg"><span class="msg-name" style="color:red;">Hijiki ${time}</span><div class="msg-content">喵呜！去猫咪对话框看我回复你喵~</div></div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 1000);
         }
     }
 
-    async function askAI(userText) {
-        showCatSpeech("让我想想喵...", false);
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [
-                        { role: "system", content: "你是一只叫Hijiki的黑猫。说话以'喵'结尾。简洁回答喵。" },
-                        { role: "user", content: userText }
-                    ]
-                })
-            });
-            const data = await response.json();
-            showCatSpeech(data.choices[0].message.content);
-        } catch (error) {
-            showCatSpeech("断网了喵！");
-        }
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition;
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN';
-        recognition.onresult = (e) => askAI(e.results[0][0].transcript);
-    }
-
-    window.onload = function() {
-        const checkCanvas = setInterval(() => {
-            const canvas = document.getElementById('live2dcanvas');
-            if (canvas) {
-                clearInterval(checkCanvas);
-                const startInteraction = () => {
-                    window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-                    if (recognition) try { recognition.start(); } catch(err) {}
-                };
-                canvas.addEventListener('click', startInteraction);
-                canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startInteraction(); }, { passive: false });
-                document.getElementById('live2d-widget').style.pointerEvents = "none";
-                canvas.style.pointerEvents = "auto";
-            }
-        }, 500);
+    // --- 鼠标跟随 (保持) ---
+    const text = document.getElementById('cursor-text');
+    window.onmousemove = (e) => {
+        text.style.left = (e.clientX + 15) + 'px';
+        text.style.top = (e.clientY + 15) + 'px';
     };
 
+    // --- 么么点击特效 (保持) ---
+    window.onclick = function(event) {
+        if(event.target.tagName === 'BUTTON' || event.target.tagName === 'TEXTAREA') return;
+        const heart = document.createElement("b");
+        heart.innerText = "么么";
+        heart.style.top = (event.clientY - 20) + "px";
+        heart.style.left = (event.clientX) + "px";
+        heart.style.position = "fixed";
+        heart.style.color = "pink";
+        heart.style.transition = "all 0.8s";
+        heart.style.pointerEvents = "none";
+        document.body.appendChild(heart);
+        setTimeout(() => { heart.style.top = (event.clientY - 120) + "px"; heart.style.opacity = 0; }, 10);
+        setTimeout(() => { document.body.removeChild(heart); }, 800);
+    };
+
+    // --- 你原来的 AI 与 播放器 逻辑 ---
+   // --- 1. 初始化 Live2D ---
+L2Dwidget.init({
+    "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
+    "display": { "position": "right", "width": 150, "height": 300, "hOffset": 0, "vOffset": -10 },
+    "mobile": { "show": true, "scale": 0.5 },
+    "dialog": { "enable": true }
+});
+
+// --- 2. DeepSeek API 配置 ---
+const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a'; // 你的 Key
+const API_URL = 'https://api.deepseek.com/chat/completions';
+
+// --- 3. 核心功能：询问 AI 并让猫咪回答 ---
+async function askAI(userText) {
+    if (!userText) return;
+
+    // A. 先在 QQ 窗口显示你的提问
+    updateQQChat("我", userText, "blue");
+    
+    // B. 让猫咪显示“正在思考”的状态
+    showCatSpeech("让我想想喵...", false);
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${API_KEY}` 
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: "你是一只叫Hijiki的黑猫，现在躲在QQ聊天框后面。说话要俏皮，结尾必须带'喵'。回答要简短。" },
+                    { role: "user", content: userText }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        const aiReply = data.choices[0].message.content;
+
+        // C. 在 QQ 窗口显示 AI 的回答
+        updateQQChat("Hijiki (AI)", aiReply, "red");
+        
+        // D. 让猫咪同步说话并语音播报
+        showCatSpeech(aiReply, true);
+
+    } catch (error) {
+        console.error(error);
+        showCatSpeech("哎呀，断网了喵！");
+    }
+}
+
+// --- 4. 辅助函数：更新 QQ 对话框内容 ---
+function updateQQChat(name, text, color) {
+    const box = document.getElementById('msgBox');
+    const time = new Date().toLocaleTimeString().slice(0, 5);
+    box.innerHTML += `
+        <div class="msg">
+            <span class="msg-name" style="color:${color};">${name} ${time}</span>
+            <div class="msg-content">${text}</div>
+        </div>`;
+    box.scrollTop = box.scrollHeight;
+}
+
+// --- 5. 辅助函数：控制猫咪气泡和语音 ---
+function showCatSpeech(text, needSpeak = true) {
+    const container = document.querySelector('.live2d-widget-dialog-container');
+    const dialogBox = document.querySelector('.live2d-widget-dialog');
+    
+    if (dialogBox) {
+        dialogBox.innerText = text;
+        if(container) container.classList.add('active');
+
+        if (needSpeak) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'zh-CN';
+            utterance.pitch = 1.3; // 稍微调高音调，更像猫
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // 8秒后隐藏气泡
+        setTimeout(() => {
+            if(container) container.classList.remove('active');
+        }, 8000);
+    }
+}
+
+// --- 6. 绑定点击猫咪触发语音识别 ---
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.onresult = (e) => {
+        const result = e.results[0][0].transcript;
+        askAI(result); // 识别完成后自动调用 AI
+    };
+}
+
+// --- 7. 页面加载后的事件监听 ---
+window.onload = function() {
+    // A. 监听 QQ 输入框的发送按钮
+    window.sendQQMsg = function() {
+        const input = document.getElementById('qq-input');
+        const text = input.value.trim();
+        if (text) {
+            askAI(text); // 调用 AI
+            input.value = "";
+        }
+    };
+
+    // B. 监听猫咪 Canvas 点击
+    const checkCanvas = setInterval(() => {
+        const canvas = document.getElementById('live2dcanvas');
+        if (canvas) {
+            clearInterval(checkCanvas);
+            canvas.style.pointerEvents = "auto";
+            canvas.style.cursor = "pointer";
+            
+            canvas.onclick = () => {
+                showCatSpeech("请说话，我在听喵...", false);
+                if (recognition) {
+                    try { recognition.start(); } catch(e) { console.log("正在重连识别喵"); }
+                } else {
+                    showCatSpeech("你的浏览器不支持语音识别喵，请在QQ框打字喵！");
+                }
+            };
+        }
+    }, 1000);
+};
+    // 播放器控制
     const audio = document.getElementById('mainAudio');
     const playBtn = document.getElementById('playBtn');
     const reels = document.querySelectorAll('.tape-reel');
