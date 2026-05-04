@@ -51,7 +51,6 @@
 
         .grid {
             display: grid;
-            /* 設置為 7 列 */
             grid-template-columns: repeat(7, var(--cell-size));
             gap: 2px;
             background-color: rgba(184, 145, 80, 0.3);
@@ -108,8 +107,8 @@
 <body>
 
     <div class="title-area text-center mb-6">
-        <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇璣織錦 · 琴傷</h1>
-        <p class="text-white/80 italic mt-2 text-sm">錦字回環 · 尋聲感應</p>
+        <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇璣織錦</h1>
+        <p class="text-white/80 italic mt-2 text-sm">錦字迴環 </p>
     </div>
 
     <div class="brocade-frame">
@@ -122,17 +121,20 @@
             <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">語音初始化中...</span>
         </div>
         <div id="output" class="text-2xl font-bold min-h-[1.5em] text-white">
-            觸碰錦字，開啟回環朗讀
+            觸碰錦字，讀取迴環詩文
         </div>
     </div>
 
     <script>
-        // 您的詩句：7x4 排列
+        /**
+         * 根據您提供的迴環詩文重新排列
+         * 採用 7x4 矩陣適配您的原代碼邏輯
+         */
         const xuanjiData = [
-            "傷","慘","怀","慕","增","憂","心",
-            "堂","空","惟","思","詠","和","音",
-            "藏","摧","悲","聲","發","曲","秦",
-            "商","弦","激","楚","流","清","琴"
+            "龍","虎","繁","文","藻","旗","凋",
+            "華","曜","榮","容","飾","觀","壯",
+            "麗","衣","繡","曜","顏","充","藻",
+            "文","繁","虎","龍","榮","曜","華"
         ];
 
         const matrix = document.getElementById('matrix');
@@ -171,7 +173,7 @@
                 div.className = 'cell';
                 div.innerText = char;
                 
-                // 特殊著色：首尾列加強視覺感
+                // 視覺強化：對角線或首尾著色
                 if (c === 0 || c === 6) div.style.color = '#8c2727';
 
                 const triggerAction = () => {
@@ -194,6 +196,7 @@
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
             const cells = document.querySelectorAll('.cell');
             let text = "";
+            
             cells.forEach((cell, i) => {
                 const r = Math.floor(i / colSize);
                 if (r === row) {
@@ -201,10 +204,12 @@
                     text += cell.innerText;
                 }
             });
+
             output.innerHTML = `<span class="text-yellow-400">「</span>${text}<span class="text-yellow-400">」</span> <i class="fa fa-rss animate-pulse audio-wave"></i>`;
             speakText(text);
         }
 
+        // 激活音訊
         document.body.addEventListener('touchstart', () => {
             synth.speak(new SpeechSynthesisUtterance(''));
             voiceStatus.innerText = "音訊通道已激活";
