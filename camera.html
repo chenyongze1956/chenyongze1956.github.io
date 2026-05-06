@@ -1,24 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Face Tracker Stable</title>
+    <title>AI Face Tracker (Stable Version)</title>
     <script src="https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);  margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'SF Mono', Monaco, monospace; }
+        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'SF Mono', Monaco, monospace; }
         .camera-box { position: relative; width: 80vw; max-width: 360px; aspect-ratio: 3/4; border: 2px solid #22d3ee; border-radius: 20px; overflow: hidden; background: #000; box-shadow: 0 0 40px rgba(34, 211, 238, 0.1); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         
-        /* 状态框 HUD */
+        #fpp-panel {
+            position: fixed; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #22d3ee; border-radius: 12px; padding: 15px;
+            color: #22d3ee; font-size: 12px; min-width: 160px; z-index: 50;
+            backdrop-filter: blur(10px); display: none;
+        }
+
         .hud { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             background: rgba(15, 23, 42, 0.95); padding: 20px; border-radius: 16px; 
             color: #22d3ee; font-size: 11px; z-index: 100; border: 1px solid #22d3ee; 
             width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         #startBtn { margin-top: 15px; width: 100%; padding: 12px; background: #22d3ee; color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
@@ -27,17 +32,30 @@
     </style>
 </head>
 <body>
+    <div id="fpp-panel">
+        <div style="font-weight:bold; border-bottom:1px solid #22d3ee; margin-bottom:8px; padding-bottom:4px;">FACE++ 实时分析</div>
+        <div>性别: <span id="f-gender">等待检测...</span></div>
+        <div>年龄: <span id="f-age">-</span></div>
+        <div>情绪: <span id="f-emotion">-</span></div>
+        <div style="font-size:9px; color:#64748b; margin-top:8px;">状态: <span id="f-status">初始化中</span></div>
+    </div>
+
     <div class="hud">
         <div id="status" style="font-weight: bold; font-size: 14px;">📡 SYSTEM: READY</div>
-        <div class="debug-info" id="debug">等待启动...</div>
-        <button id="startBtn">启动 AI 追踪系统</button>
+        <div class="debug-info" id="debug">请开启 Allow-CORS 插件后点击启动...</div>
+        <button id="startBtn">开启混合追踪引擎</button>
     </div>
 
     <div class="camera-box">
         <video id="video" playsinline muted autoplay></video>
+        <canvas id="captureCanvas" style="display:none;"></canvas>
     </div>
 
     <script>
+        // 凭据已更新
+        const API_KEY = "Hpmt9Yim0zlRYwkhGllCMFkLama9vxNu";
+        const API_SECRET = "PhCtY0gKGC6Ys6k80vTdYQ7SVcHvH_o9";
+        
         const log = (msg) => {
             const d = document.getElementById('debug');
             d.innerHTML += `> ${msg}<br>`;
@@ -46,11 +64,85 @@
 
         let faceMesh;
         let isActive = false;
+        let lastFppTime = 0;
 
+        // Live2D 初始化
         L2Dwidget.init({ 
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
             "display": { "position": "right", "width": 150, "height": 280 }
         });
+
+        async function callFacePlusPlus() {
+            if (!isActive) return;
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('captureCanvas');
+            const statusNode = document.getElementById('f-status');
+            
+            if (video.videoWidth === 0) return;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // 正常绘制画面（不镜像，方便 API 识别）
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // 使用 toDataURL 获取 Base64 字符串（有时比 Blob 在 Localhost 下更稳）
+            const imageData = canvas.toDataURL('image/jpeg', 0.6);
+            
+            // 将 Base64 转换为 Blob
+            fetch(imageData)
+                .then(res => res.blob())
+                .then(blob => {
+                    const formData = new FormData();
+                    formData.append('api_key', API_KEY);
+                    formData.append('api_secret', API_SECRET);
+                    formData.append('image_file', blob);
+                    formData.append('return_attributes', 'gender,age,emotion');
+
+                    statusNode.innerText = "📡 云端分析中...";
+                    
+                    const xhr = new XMLHttpRequest();
+                    // 强制使用 HTTPS 节点
+                    xhr.open('POST', 'https://api-cn.faceplusplus.com/facepp/v3/detect', true);
+
+                    xhr.onload = function() {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (xhr.status === 200) {
+                                if (data.faces && data.faces.length > 0) {
+                                    const attrs = data.faces[0].attributes;
+                                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '男' : '女';
+                                    document.getElementById('f-age').innerText = Math.round(attrs.age.value);
+                                    
+                                    const emotion = attrs.emotion;
+                                    const topEmotion = Object.keys(emotion).reduce((a, b) => emotion[a] > emotion[b] ? a : b);
+                                    const emotionMap = {
+                                        sadness: "忧郁", neutral: "淡定", disgust: "厌恶", 
+                                        anger: "生气", surprise: "惊讶", fear: "害怕", happiness: "开心"
+                                    };
+                                    document.getElementById('f-emotion').innerText = emotionMap[topEmotion] || topEmotion;
+                                    statusNode.innerText = "✅ 同步完成";
+                                } else {
+                                    statusNode.innerText = "❓ 未识别到人脸";
+                                }
+                            } else {
+                                statusNode.innerText = "❌ API 报错";
+                                console.error("Face++ 错误:", data.error_message);
+                            }
+                        } catch (e) {
+                            statusNode.innerText = "数据解析失败";
+                        }
+                    };
+
+                    xhr.onerror = () => {
+                        statusNode.innerText = "🚫 请求被拦截";
+                        log("警告：API 请求被拦截，请确认 CORS 插件状态。");
+                    };
+
+                    xhr.send(formData);
+                });
+        }
 
         async function initSystem() {
             const btn = document.getElementById('startBtn');
@@ -58,19 +150,17 @@
             const hud = document.querySelector('.hud');
             
             btn.disabled = true;
-            btn.innerText = "正在激活引擎...";
+            btn.innerText = "引擎初始化中...";
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480, facingMode: "user" } 
+                });
                 video.srcObject = stream;
-                log("✅ 摄像头已就绪");
+                log("✅ 摄像头已授权");
 
                 faceMesh = new FaceMesh({
-                    locateFile: (file) => {
-                        let targetFile = file;
-                        if (file.includes('simd')) targetFile = file.replace('_simd', '');
-                        return `https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/${targetFile}`;
-                    }
+                    locateFile: (file) => `https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/${file.includes('simd') ? file.replace('_simd', '') : file}`
                 });
 
                 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5 });
@@ -79,29 +169,33 @@
                     if (results.multiFaceLandmarks?.[0]) {
                         document.getElementById('status').innerText = "🚀 STATUS: TRACKING";
                         const nose = results.multiFaceLandmarks[0][1];
-                        // 映射逻辑：将面部移动映射为鼠标移动
                         const x = (0.5 + (0.5 - nose.x) * 2.5) * window.innerWidth;
                         const y = (0.5 + (nose.y - 0.5) * 2.5) * window.innerHeight;
                         
-                        const canvas = document.querySelector('#live2dcanvas');
-                        if (canvas) {
-                            canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+                        const l2d = document.querySelector('#live2dcanvas');
+                        if (l2d) {
+                            l2d.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+                        }
+
+                        // 5秒采样一次
+                        const now = Date.now();
+                        if (now - lastFppTime > 5000) {
+                            lastFppTime = now;
+                            callFacePlusPlus();
                         }
                     }
                 });
 
-                log("正在拉取组件...");
                 await faceMesh.initialize();
-
-                log("✨ AI 引擎加载完毕");
+                log("✨ AI 模型加载成功");
+                
                 isActive = true;
+                document.getElementById('fpp-panel').style.display = 'block';
 
-                // 【自动消失逻辑】
                 setTimeout(() => {
                     hud.style.opacity = "0";
                     hud.style.transform = "translate(-50%, -80%) scale(0.9)";
                     hud.style.pointerEvents = "none";
-                    log("界面自动收起");
                 }, 2000);
                 
                 const detectLoop = async () => {
@@ -113,9 +207,9 @@
                 detectLoop();
 
             } catch (e) {
-                log(`❌ 错误: ${e}`);
+                log(`❌ 致命错误: ${e.message}`);
                 btn.disabled = false;
-                btn.innerText = "重试启动";
+                btn.innerText = "重新尝试";
             }
         }
 
