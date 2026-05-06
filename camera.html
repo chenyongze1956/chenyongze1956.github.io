@@ -1,27 +1,36 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Face Tracker</title>
-    <!-- 1. 确保基础库先加载 -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <title>AI Face Tracker Stable</title>
+    <script src="https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        body { background: #1a1a1a; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .camera-box { position: relative; width: 85vw; max-width: 400px; aspect-ratio: 3/4; border: 2px solid #22d3ee; border-radius: 24px; overflow: hidden; background: #000; box-shadow: 0 0 30px rgba(34, 211, 238, 0.2); }
+        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);  margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'SF Mono', Monaco, monospace; }
+        .camera-box { position: relative; width: 80vw; max-width: 360px; aspect-ratio: 3/4; border: 2px solid #22d3ee; border-radius: 20px; overflow: hidden; background: #000; box-shadow: 0 0 40px rgba(34, 211, 238, 0.1); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .hud { position: fixed; top: 20px; background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-radius: 12px; color: #22d3ee; font-family: monospace; font-size: 13px; z-index: 100; border: 1px solid rgba(34, 211, 238, 0.3); min-width: 200px; }
-        #startBtn { margin-top: 10px; width: 100%; padding: 10px; background: #22d3ee; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #startBtn:active { transform: scale(0.95); opacity: 0.8; }
-        #startBtn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        
+        /* 状态框 HUD */
+        .hud { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            background: rgba(15, 23, 42, 0.95); padding: 20px; border-radius: 16px; 
+            color: #22d3ee; font-size: 11px; z-index: 100; border: 1px solid #22d3ee; 
+            width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* 过渡动画 */
+        }
+        
+        #startBtn { margin-top: 15px; width: 100%; padding: 12px; background: #22d3ee; color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        #startBtn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+        .debug-info { margin-top: 10px; background: #000; padding: 8px; border-radius: 4px; max-height: 140px; overflow-y: auto; color: #94a3b8; line-height: 1.4; border: 1px solid #1e293b; text-align: left;}
     </style>
 </head>
 <body>
     <div class="hud">
-        STATUS: <span id="stat">准备就绪</span><br>
-        COORDS: <span id="coords">0, 0</span><br>
-        <button id="startBtn">启动系统</button>
+        <div id="status" style="font-weight: bold; font-size: 14px;">📡 SYSTEM: READY</div>
+        <div class="debug-info" id="debug">等待启动...</div>
+        <button id="startBtn">启动 AI 追踪系统</button>
     </div>
 
     <div class="camera-box">
@@ -29,104 +38,88 @@
     </div>
 
     <script>
-        const video = document.getElementById('video');
-        const stat = document.getElementById('stat');
-        const coordsText = document.getElementById('coords');
-        const startBtn = document.getElementById('startBtn');
-        let isActive = false;
-        let faceMesh;
+        const log = (msg) => {
+            const d = document.getElementById('debug');
+            d.innerHTML += `> ${msg}<br>`;
+            d.scrollTop = d.scrollHeight;
+        };
 
-        // 1. 尽早初始化看板娘
-        L2Dwidget.init({
+        let faceMesh;
+        let isActive = false;
+
+        L2Dwidget.init({ 
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": 150, "height": 240 },
-            "mobile": { "show": true }
+            "display": { "position": "right", "width": 150, "height": 280 }
         });
 
-        // 2. 预配置 FaceMesh
-        async function initAI() {
-            stat.innerText = "加载核心组件...";
-            faceMesh = new FaceMesh({
-                locateFile: (file) => {
-                    // 如果加载慢，尝试将 jsdelivr 替换为 fastly.jsdelivr.net 或 gcore.jsdelivr.net
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-                }
-            });
-
-            faceMesh.setOptions({
-                maxNumFaces: 1,
-                refineLandmarks: true,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-
-            faceMesh.onResults(onResults);
+        async function initSystem() {
+            const btn = document.getElementById('startBtn');
+            const video = document.getElementById('video');
+            const hud = document.querySelector('.hud');
             
-            // 预热初始化
+            btn.disabled = true;
+            btn.innerText = "正在激活引擎...";
+
             try {
-                await faceMesh.initialize();
-                return true;
-            } catch (e) {
-                console.error("AI初始化失败:", e);
-                return false;
-            }
-        }
-
-        function onResults(results) {
-            if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-                const nose = results.multiFaceLandmarks[0][1];
-                const x = (0.5 + (0.5 - nose.x) * 2.5) * window.innerWidth;
-                const y = (0.5 + (nose.y - 0.5) * 2.5) * window.innerHeight;
-                
-                coordsText.innerText = `${Math.round(x)}, ${Math.round(y)}`;
-                stat.innerText = "追踪中 ✅";
-
-                // 驱动事件
-                const canvas = document.querySelector('#live2dcanvas');
-                const moveEvt = new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true });
-                if (canvas) canvas.dispatchEvent(moveEvt);
-            } else {
-                stat.innerText = "识别中: 请对准脸部";
-            }
-        }
-
-        async function detectFrame() {
-            if (!isActive) return;
-            if (video.readyState >= 2) {
-                await faceMesh.send({ image: video });
-            }
-            requestAnimationFrame(detectFrame);
-        }
-
-        // 3. 启动逻辑
-        startBtn.onclick = async () => {
-            startBtn.disabled = true;
-            startBtn.innerText = "请稍候...";
-            
-            try {
-                // 第一步：请求摄像头
-                stat.innerText = "请求摄像头权限...";
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                
-                // 第二步：初始化 AI 模型
-                const isLoaded = await initAI();
-                if (!isLoaded) throw new Error("模型资源加载失败");
+                log("✅ 摄像头已就绪");
 
-                video.onloadedmetadata = () => {
-                    video.play();
-                    isActive = true;
-                    stat.innerText = "系统已激活";
-                    detectFrame();
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        let targetFile = file;
+                        if (file.includes('simd')) targetFile = file.replace('_simd', '');
+                        return `https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/${targetFile}`;
+                    }
+                });
+
+                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5 });
+
+                faceMesh.onResults(results => {
+                    if (results.multiFaceLandmarks?.[0]) {
+                        document.getElementById('status').innerText = "🚀 STATUS: TRACKING";
+                        const nose = results.multiFaceLandmarks[0][1];
+                        // 映射逻辑：将面部移动映射为鼠标移动
+                        const x = (0.5 + (0.5 - nose.x) * 2.5) * window.innerWidth;
+                        const y = (0.5 + (nose.y - 0.5) * 2.5) * window.innerHeight;
+                        
+                        const canvas = document.querySelector('#live2dcanvas');
+                        if (canvas) {
+                            canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+                        }
+                    }
+                });
+
+                log("正在拉取组件...");
+                await faceMesh.initialize();
+
+                log("✨ AI 引擎加载完毕");
+                isActive = true;
+
+                // 【自动消失逻辑】
+                setTimeout(() => {
+                    hud.style.opacity = "0";
+                    hud.style.transform = "translate(-50%, -80%) scale(0.9)";
+                    hud.style.pointerEvents = "none";
+                    log("界面自动收起");
+                }, 2000);
+                
+                const detectLoop = async () => {
+                    if (isActive && video.readyState >= 2) {
+                        await faceMesh.send({ image: video });
+                    }
+                    requestAnimationFrame(detectLoop);
                 };
-            } catch (err) {
-                stat.innerText = "启动失败: " + err.message;
-                startBtn.disabled = false;
-                startBtn.innerText = "重试";
+                detectLoop();
+
+            } catch (e) {
+                log(`❌ 错误: ${e}`);
+                btn.disabled = false;
+                btn.innerText = "重试启动";
             }
-        };
+        }
+
+        document.getElementById('startBtn').onclick = initSystem;
     </script>
 </body>
 </html>
