@@ -4,34 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 引入必要的 MediaPipe 库 -->
+    <title>AI Face Tracker</title>
+    <!-- 1. 确保基础库先加载 -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        body { background: linear-gradient(45deg,#1e293b,#334155); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-        .camera-box {
-            position: relative; width: 85vw; max-width: 400px; aspect-ratio: 3/4;
-            border: 2px solid #22d3ee; border-radius: 24px; overflow: hidden; background: #000;
-            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
-        }
+        body { background: #1a1a1a; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .camera-box { position: relative; width: 85vw; max-width: 400px; aspect-ratio: 3/4; border: 2px solid #22d3ee; border-radius: 24px; overflow: hidden; background: #000; box-shadow: 0 0 30px rgba(34, 211, 238, 0.2); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        .hud {
-            position: fixed; top: 20px; background: rgba(15, 23, 42, 0.9);
-            padding: 12px 20px; border-radius: 12px; color: #22d3ee;
-            font-family: monospace; font-size: 13px; z-index: 100;
-            border: 1px solid rgba(34, 211, 238, 0.3); line-height: 1.6;
-        }
-        .active-btn { padding: 10px 20px; background: #22d3ee; color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .hud { position: fixed; top: 20px; background: rgba(0, 0, 0, 0.8); padding: 15px 20px; border-radius: 12px; color: #22d3ee; font-family: monospace; font-size: 13px; z-index: 100; border: 1px solid rgba(34, 211, 238, 0.3); min-width: 200px; }
+        #startBtn { margin-top: 10px; width: 100%; padding: 10px; background: #22d3ee; color: #000; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        #startBtn:active { transform: scale(0.95); opacity: 0.8; }
+        #startBtn:disabled { background: #444; color: #888; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="hud">
-        <div id="loading-wrap">
-            STATUS: <span id="stat">等待加载库...</span><br>
-            COORDS: <span id="coords">0, 0</span>
-        </div>
-        <button id="startBtn" class="active-btn">点击启动 AI 系统</button>
+        STATUS: <span id="stat">准备就绪</span><br>
+        COORDS: <span id="coords">0, 0</span><br>
+        <button id="startBtn">启动系统</button>
     </div>
 
     <div class="camera-box">
@@ -44,90 +35,99 @@
         const coordsText = document.getElementById('coords');
         const startBtn = document.getElementById('startBtn');
         let isActive = false;
+        let faceMesh;
 
-        // 1. 初始化看板娘 (Hijiki 猫)
+        // 1. 尽早初始化看板娘
         L2Dwidget.init({
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": 180, "height": 300, "hOffset": 10, "vOffset": -20 },
-            "mobile": { "show": true, "scale": 0.5 },
-            "react": { "opacity": 1 }
+            "display": { "position": "right", "width": 150, "height": 240 },
+            "mobile": { "show": true }
         });
 
-        // 2. 配置 AI 面部网格
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
+        // 2. 预配置 FaceMesh
+        async function initAI() {
+            stat.innerText = "加载核心组件...";
+            faceMesh = new FaceMesh({
+                locateFile: (file) => {
+                    // 如果加载慢，尝试将 jsdelivr 替换为 fastly.jsdelivr.net 或 gcore.jsdelivr.net
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                }
+            });
 
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
 
-        // 处理识别结果
-        faceMesh.onResults(results => {
+            faceMesh.onResults(onResults);
+            
+            // 预热初始化
+            try {
+                await faceMesh.initialize();
+                return true;
+            } catch (e) {
+                console.error("AI初始化失败:", e);
+                return false;
+            }
+        }
+
+        function onResults(results) {
             if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                 const nose = results.multiFaceLandmarks[0][1];
-                // 算法映射：将面部移动放大并映射到屏幕坐标
                 const x = (0.5 + (0.5 - nose.x) * 2.5) * window.innerWidth;
                 const y = (0.5 + (nose.y - 0.5) * 2.5) * window.innerHeight;
                 
                 coordsText.innerText = `${Math.round(x)}, ${Math.round(y)}`;
                 stat.innerText = "追踪中 ✅";
 
-                // 驱动看板娘：分发鼠标移动事件
+                // 驱动事件
                 const canvas = document.querySelector('#live2dcanvas');
-                const moveEvt = new MouseEvent('mousemove', {
-                    clientX: x,
-                    clientY: y,
-                    bubbles: true
-                });
+                const moveEvt = new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true });
                 if (canvas) canvas.dispatchEvent(moveEvt);
-                window.dispatchEvent(moveEvt);
             } else {
-                stat.innerText = "识别中断: 未检测到面部";
+                stat.innerText = "识别中: 请对准脸部";
             }
-        });
+        }
 
-        // 3. 循环推理函数 (修正了同步问题)
-        async function runDetection() {
+        async function detectFrame() {
             if (!isActive) return;
             if (video.readyState >= 2) {
                 await faceMesh.send({ image: video });
             }
-            // 使用 requestAnimationFrame 保持平滑
-            requestAnimationFrame(runDetection);
+            requestAnimationFrame(detectFrame);
         }
 
-        // 4. 系统启动
-        async function startSystem() {
+        // 3. 启动逻辑
+        startBtn.onclick = async () => {
+            startBtn.disabled = true;
+            startBtn.innerText = "请稍候...";
+            
             try {
-                startBtn.style.display = 'none';
-                stat.innerText = "正在请求摄像头...";
-                
+                // 第一步：请求摄像头
+                stat.innerText = "请求摄像头权限...";
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: 640, height: 480 }
+                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
                 });
                 video.srcObject = stream;
-
-                stat.innerText = "正在初始化 AI 模型...";
-                await faceMesh.initialize(); // 关键：等待模型加载
+                
+                // 第二步：初始化 AI 模型
+                const isLoaded = await initAI();
+                if (!isLoaded) throw new Error("模型资源加载失败");
 
                 video.onloadedmetadata = () => {
                     video.play();
                     isActive = true;
-                    stat.innerText = "系统运行中...";
-                    runDetection();
+                    stat.innerText = "系统已激活";
+                    detectFrame();
                 };
             } catch (err) {
-                console.error(err);
-                stat.innerText = "错误: 请检查 HTTPS 协议或摄像头权限";
-                startBtn.style.display = 'block';
+                stat.innerText = "启动失败: " + err.message;
+                startBtn.disabled = false;
+                startBtn.innerText = "重试";
             }
-        }
-
-        startBtn.addEventListener('click', startSystem);
+        };
     </script>
 </body>
 </html>
