@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,31 +8,53 @@
     <link rel="icon" type="image/png" href="https://od.lk/s/NDBfMTMyMDIwNzEwXw/rainbow.ico"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
     <style>
+        /* 1. 定义颜色变量 */
         :root {
-            --bg: #fff;
-            --text: #000;
+            --bg: #ffffff;
+            --text: #202124;
+            --header-link: #000000;
+            --search-bg: rgba(255, 255, 255, 0.9);
+            --search-border: #dfe1e5;
+            --btn-bg: #f8f9fa;
+            --btn-text: #3c4043;
+            --hint-text: #70757a;
+            --nav-img-filter: none;
         }
+
+        /* 暗黑模式变量 */
+        [data-theme="dark"] {
+            --bg: #202124;
+            --text: #e8eaed;
+            --header-link: #e8eaed;
+            --search-bg: rgba(60, 64, 67, 0.9);
+            --search-border: #5f6368;
+            --btn-bg: #303134;
+            --btn-text: #e8eaed;
+            --hint-text: #9aa0a6;
+            --nav-img-filter: brightness(0) invert(1); /* 让导航图标变白 */
+        }
+
         body {
             margin: 0;
             padding: 0;
             font-family: "Product Sans", Arial, sans-serif;
             background-color: var(--bg);
+            color: var(--text);
+            transition: background-color 0.3s, color 0.3s;
             cursor: url(https://cur.cursors-4u.net/nature/nat-10/nat927.png), auto !important;
             overflow-x: hidden;
         }
 
-        /* 樱花画布容器设置 */
         #canvas_sakura {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1; /* 放在内容后面 */
+            z-index: -1;
             pointer-events: none;
         }
 
-        /* 顶部导航栏 */
         header ul {
             list-style-type: none;
             margin: 0;
@@ -41,16 +64,19 @@
             justify-content: flex-end;
         }
         header li a {
-            color: #000;
+            color: var(--header-link);
             display: block;
             text-align: center;
             padding: 8px;
             text-decoration: none;
             font-size: 14px;
         }
-        .kkk { height: 22px; vertical-align: middle; }
+        .kkk { 
+            height: 22px; 
+            vertical-align: middle; 
+            filter: var(--nav-img-filter); /* 图标颜色随模式切换 */
+        }
 
-        /* 主体布局 */
         .main-container {
             text-align: center;
             padding: 0 15px;
@@ -59,7 +85,11 @@
             z-index: 1;
         }
 
-        /* Logo 动画 */
+        /* Logo 颜色在暗黑模式下微调 */
+        [data-theme="dark"] .letter:nth-child(1), 
+        [data-theme="dark"] .letter:nth-child(4) { color: #8ab4f8; }
+        [data-theme="dark"] .letter:nth-child(3) { color: #fdd663; }
+
         .bounce { margin-bottom: 25px; white-space: nowrap; }
         .letter {
             display: inline-block;
@@ -81,22 +111,21 @@
             100% { transform: translate3d(0, -0.4em, 0); text-shadow: rgba(0,0,0,0.1) 0 0.4em 0.2em; }
         }
 
-        /* 搜索框 */
         .search-wrapper {
             display: flex;
             align-items: center;
             width: 580px;
             max-width: 100%;
             margin: 0 auto;
-            border: 1px solid #dfe1e5;
+            border: 1px solid var(--search-border);
             border-radius: 24px;
             padding: 2px 12px;
-            transition: box-shadow 0.3s;
-            background: rgba(255, 255, 255, 0.9); /* 微透明以便透出樱花 */
+            transition: box-shadow 0.3s, background 0.3s;
+            background: var(--search-bg);
             box-sizing: border-box;
         }
         .search-wrapper:hover, .search-wrapper:focus-within {
-            box-shadow: 0 1px 6px rgba(32,33,36,0.2);
+            box-shadow: 0 1px 6px rgba(0,0,0,0.3);
         }
         .searchbar {
             flex-grow: 1;
@@ -106,28 +135,53 @@
             font-size: 16px;
             padding: 0 8px;
             background: transparent;
+            color: var(--text);
         }
-        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; }
+        .icon-btn { background: none; border: none; cursor: pointer; padding: 8px; display: flex; align-items: center; filter: var(--nav-img-filter); }
         .icon-btn img { height: 20px; }
 
         .buttons { margin-top: 25px; }
         .button {
-            background-color: #f8f9fa;
-            border: 1px solid #f8f9fa;
-            color: #3c4043;
+            background-color: var(--btn-bg);
+            border: 1px solid var(--btn-bg);
+            color: var(--btn-text);
             font-size: 14px;
             padding: 10px 18px;
             margin: 4px;
             border-radius: 4px;
             cursor: pointer;
+            transition: background 0.3s;
         }
-        @media (max-width: 480px) { .button { padding: 12px 15px; width: 45%; } }
+        .button:hover { border: 1px solid #dadce0; }
 
-        .hint { color: #70757a; font-size: 12px; margin-top: 15px; line-height: 1.5; }
+        .hint { color: var(--hint-text); font-size: 12px; margin-top: 15px; line-height: 1.5; }
         #visitorCounterContainer { margin-top: 30px; padding-bottom: 20px; }
+
+        /* 2. 暗黑模式切换按钮样式 */
+        .theme-switch {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--btn-bg);
+            border: 1px solid var(--search-border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .theme-switch:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
+
+    <button class="theme-switch" id="theme-toggle" title="切换深浅模式">🌓</button>
 
     <header>
         <ul>
@@ -182,9 +236,31 @@
         </div>
     </div>
 
-    <!-- 脚本部分 -->
     <script>
-        // 搜索逻辑
+        // 3. 主题切换逻辑
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme');
+
+        // 初始化检查
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') themeToggle.textContent = '☀️';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                themeToggle.textContent = '🌓';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeToggle.textContent = '☀️';
+            }
+        });
+
+        // 原有搜索逻辑
         const searchInput = document.getElementById('search-input');
         function handleSearch(e) {
             e.preventDefault();
@@ -204,7 +280,7 @@
             return false;
         }
 
-        // 语音识别
+        // 语音识别逻辑 (保持不变)
         const micBtn = document.getElementById('mic-btn');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -222,7 +298,7 @@
             micBtn.style.display = "none";
         }
 
-        // 樱花特效加载逻辑 (不再需要jQuery)
+        // 樱花和鼠标特效加载
         (function() {
             function loadScript(url, callback) {
                 var script = document.createElement("script");
@@ -231,8 +307,6 @@
                 script.onload = callback;
                 document.body.appendChild(script);
             }
-
-            // 加载樱花和鼠标特效
             loadScript("https://blog-static.cnblogs.com/files/izbw/yinghua.js", function() {
                 console.log("Sakura Loaded");
             });
@@ -241,9 +315,5 @@
             });
         })();
     </script>
-
-
-
-    
 </body>
 </html>
