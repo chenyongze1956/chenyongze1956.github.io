@@ -3,8 +3,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Hub Pro - Stable Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance Hub - Mobile Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,104 +23,104 @@
             .glass-card { @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-custom; }
             .active-currency { @apply bg-primary text-white scale-105 shadow-md; }
             .eos-badge { @apply bg-eos text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase; }
+            /* 针对移动端隐藏不重要的文字 */
+            @media (max-width: 640px) {
+                .hide-mobile { display: none; }
+                .text-adaptive { font-size: 1.25rem; line-height: 1.75rem; }
+            }
         }
     </style>
 </head>
-<body class="p-4 md:p-6 bg-fixed" style="background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);">
+<body class="p-2 md:p-6 bg-fixed" style="background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);">
     
-    <header class="container mx-auto mb-6">
-        <div class="glass-card rounded-2xl p-4 flex flex-wrap justify-between items-center gap-4">
+    <header class="container mx-auto mb-4 md:mb-6">
+        <div class="glass-card rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-wrap justify-between items-center gap-2">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold italic shadow-lg">E</div>
-                <h1 class="text-xl font-bold tracking-tight text-gray-800">FINANCE <span class="text-primary">EOS HUB</span></h1>
+                <div class="w-7 h-7 md:w-8 md:h-8 bg-black rounded-full flex items-center justify-center text-white font-bold italic shadow-lg">E</div>
+                <h1 class="text-lg md:text-xl font-bold tracking-tight text-gray-800">EOS <span class="text-primary">HUB</span></h1>
             </div>
             
-            <div class="flex items-center gap-4">
-                <div class="hidden lg:flex items-center gap-4 border-r border-gray-200 pr-4 mr-2">
-                    <div class="text-right">
-                        <p class="text-[9px] text-gray-400 font-bold uppercase">Mainnet Block</p>
-                        <p id="eos-block" class="text-xs font-mono font-bold text-blue-600">Syncing...</p>
-                    </div>
-                    <div class="text-right border-l border-gray-100 pl-3">
-                        <p class="text-[9px] text-gray-400 font-bold uppercase">RAM Price</p>
-                        <p id="eos-ram" class="text-xs font-mono font-bold text-gray-700">-.---- EOS/KB</p>
-                    </div>
-                </div>
-
-                <div id="ws-status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5">
+            <div class="flex items-center gap-2 md:gap-4">
+                <div id="ws-status" class="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/5">
                     <span id="ws-dot" class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span id="ws-text" class="text-[10px] font-bold text-gray-500 uppercase">Data: Global API</span>
+                    <span id="ws-text" class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase">Live</span>
                 </div>
-                <div class="flex bg-black/5 p-1 rounded-xl" id="currency-toggle">
-                    <button class="px-4 py-1 rounded-lg text-xs font-bold transition-all active-currency" data-curr="usd">USD $</button>
-                    <button class="px-4 py-1 rounded-lg text-xs font-bold transition-all" data-curr="cny">CNY ¥</button>
+                <div class="flex bg-black/5 p-1 rounded-lg" id="currency-toggle">
+                    <button class="px-2 md:px-4 py-0.5 md:py-1 rounded-md text-[10px] md:text-xs font-bold transition-all active-currency" data-curr="usd">USD</button>
+                    <button class="px-2 md:px-4 py-0.5 md:py-1 rounded-md text-[10px] md:text-xs font-bold transition-all" data-curr="cny">CNY</button>
                 </div>
             </div>
         </div>
+        
+        <div class="mt-2 flex justify-between px-2 text-[10px] font-bold text-white/70 uppercase lg:hidden">
+            <span>Block: <span id="eos-block-mobile" class="text-white">#---</span></span>
+            <span>RAM: <span id="eos-ram-mobile" class="text-white">-.--</span></span>
+        </div>
     </header>
 
-    <main class="container mx-auto space-y-6">
-        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-blue-600">
-                <p class="text-[10px] font-bold text-gray-400 uppercase">EOS/USDT <span class="eos-badge ml-1">Market</span></p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="eos-live-price" class="text-3xl font-bold font-mono text-gray-800 tracking-tighter">--.---</h2>
-                    <span id="eos-live-change" class="text-sm font-bold">--.--%</span>
+    <main class="container mx-auto space-y-4 md:space-y-6">
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div class="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl border-l-4 border-blue-600">
+                <p class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase">EOS/USDT</p>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-0 md:gap-2 mt-1">
+                    <h2 id="eos-live-price" class="text-xl md:text-3xl font-bold font-mono text-gray-800 tracking-tighter truncate">--.---</h2>
+                    <span id="eos-live-change" class="text-[10px] md:text-sm font-bold">--.--%</span>
                 </div>
             </div>
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-red-500">
-                <p class="text-[10px] font-bold text-gray-400 uppercase">上证指数 (SH)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="sh-price" class="text-3xl font-bold font-mono text-danger tracking-tighter">----.--</h2>
-                    <span id="sh-change" class="text-sm font-bold text-danger">--.--%</span>
+            <div class="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl border-l-4 border-red-500">
+                <p class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase truncate">上证 (SH)</p>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-0 md:gap-2 mt-1">
+                    <h2 id="sh-price" class="text-xl md:text-3xl font-bold font-mono text-danger tracking-tighter truncate">----.--</h2>
+                    <span id="sh-change" class="text-[10px] md:text-sm font-bold text-danger">--.--%</span>
                 </div>
             </div>
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-green-500 text-success">
-                <p class="text-[10px] font-bold text-gray-400 uppercase">深证成指 (SZ)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="sz-price" class="text-3xl font-bold font-mono tracking-tighter">----.--</h2>
-                    <span id="sz-change" class="text-sm font-bold">--.--%</span>
+            <div class="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl border-l-4 border-green-500">
+                <p class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase truncate">深证 (SZ)</p>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-0 md:gap-2 mt-1">
+                    <h2 id="sz-price" class="text-xl md:text-3xl font-bold font-mono text-success tracking-tighter truncate">----.--</h2>
+                    <span id="sz-change" class="text-[10px] md:text-sm font-bold text-success">--.--%</span>
                 </div>
             </div>
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-purple-500 text-purple-600">
-                <p class="text-[10px] font-bold text-gray-400 uppercase">创业板指 (CYB)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="cyb-price" class="text-3xl font-bold font-mono tracking-tighter">----.--</h2>
-                    <span id="cyb-change" class="text-sm font-bold">--.--%</span>
+            <div class="glass-card p-3 md:p-5 rounded-xl md:rounded-2xl border-l-4 border-purple-500">
+                <p class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase truncate">创业 (CYB)</p>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-0 md:gap-2 mt-1">
+                    <h2 id="cyb-price" class="text-xl md:text-3xl font-bold font-mono text-purple-600 tracking-tighter truncate">----.--</h2>
+                    <span id="cyb-change" class="text-[10px] md:text-sm font-bold text-purple-600">--.--%</span>
                 </div>
             </div>
         </section>
 
-        <section class="glass-card rounded-2xl p-6">
-            <div class="flex justify-between items-center mb-6">
+        <section class="glass-card rounded-xl md:rounded-2xl p-4 md:p-6">
+            <div class="flex justify-between items-center mb-4">
                 <div>
-                    <h2 id="chart-title" class="text-xl font-bold text-gray-800 italic">EOS / USDT Trend (24h)</h2>
-                    <div id="chart-price" class="text-2xl font-mono font-bold text-primary mt-1">---</div>
+                    <h2 id="chart-title" class="text-sm md:text-xl font-bold text-gray-800">EOS Trend</h2>
+                    <div id="chart-price" class="text-lg md:text-2xl font-mono font-bold text-primary">---</div>
                 </div>
-                <div id="rate-info" class="text-[10px] font-bold text-gray-400 bg-white/50 px-3 py-1 rounded-lg">Rate: 1 USD ≈ 7.25 CNY</div>
+                <div class="text-[8px] md:text-[10px] font-bold text-gray-400 bg-black/5 px-2 py-1 rounded-lg">24H Data</div>
             </div>
-            <div class="relative h-[300px] w-full">
+            <div class="relative h-[200px] md:h-[300px] w-full">
                 <canvas id="trendChart"></canvas>
             </div>
         </section>
 
-        <section class="glass-card rounded-2xl overflow-hidden">
-            <div class="p-4 bg-white/50 flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
-                <span><i class="fa fa-globe mr-2"></i>Global Market Assets</span>
-            </div>
+        <section class="glass-card rounded-xl md:rounded-2xl overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
+                <table class="w-full text-left table-fixed md:table-auto">
                     <thead class="bg-gray-50/50 text-gray-400 text-[10px] uppercase">
-                        <tr><th class="px-6 py-4">Asset</th><th class="px-6 py-4 text-right">Price</th><th class="px-6 py-4 text-right">24h Change</th></tr>
+                        <tr>
+                            <th class="px-4 py-3 w-1/3">Asset</th>
+                            <th class="px-4 py-3 text-right w-1/3">Price</th>
+                            <th class="px-4 py-3 text-right w-1/3">24H %</th>
+                        </tr>
                     </thead>
-                    <tbody id="crypto-table-body" class="divide-y divide-gray-100 font-medium"></tbody>
+                    <tbody id="crypto-table-body" class="divide-y divide-gray-100 font-medium text-xs md:text-sm"></tbody>
                 </table>
             </div>
         </section>
     </main>
 
     <script>
-        // 配置：使用 CryptoCompare 替代币安，解决国内超时问题
+        // API逻辑保持上一版本的高稳定性 (CryptoCompare)
         const MARKET_API = 'https://min-api.cryptocompare.com/data/pricemultifull?fsyms=EOS,BTC,ETH,BNB,SOL&tsyms=USDT';
         const STOCK_API = 'https://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006';
         const EOS_NODES = ['https://eos.greymass.com', 'https://api.main.alohaeos.com', 'https://eos.api.eosnation.io'];
@@ -136,24 +136,24 @@
             initChart();
             fetchExchangeRate();
             fetchStockData();
-            fetchMarketData(); // 立即执行
+            fetchMarketData();
             fetchEOSChainData();
-            
-            // 循环任务
-            setInterval(fetchMarketData, 6000); // 6秒更新一次行情
+            setInterval(fetchMarketData, 6000);
             setInterval(fetchStockData, 10000);
             setInterval(fetchEOSChainData, 8000); 
             setTimeout(() => fetchTrendData('EOS'), 1000);
             setupCurrencyToggle();
         });
 
-        // 获取 EOS 链上数据
         async function fetchEOSChainData() {
             const baseUrl = EOS_NODES[Math.floor(Math.random() * EOS_NODES.length)];
             try {
                 const infoRes = await fetch(`${baseUrl}/v1/chain/get_info`);
                 const info = await infoRes.json();
-                if(info.head_block_num) document.getElementById('eos-block').innerText = `#${info.head_block_num}`;
+                if(info.head_block_num) {
+                    const blockText = `#${String(info.head_block_num).slice(-8)}`; // 手机端截短显示
+                    document.getElementById('eos-block-mobile').innerText = blockText;
+                }
 
                 const ramRes = await fetch(`${baseUrl}/v1/chain/get_table_rows`, {
                     method: 'POST',
@@ -162,54 +162,39 @@
                 const ramData = await ramRes.json();
                 if (ramData.rows && ramData.rows[0]) {
                     const row = ramData.rows[0];
-                    const price = (parseFloat(row.quote.balance) / parseFloat(row.base.balance) * 1024).toFixed(4);
-                    document.getElementById('eos-ram').innerText = `${price} EOS/KB`;
+                    const price = (parseFloat(row.quote.balance) / parseFloat(row.base.balance) * 1024).toFixed(3);
+                    document.getElementById('eos-ram-mobile').innerText = `${price} EOS/KB`;
                 }
-            } catch (e) { console.log("EOS Node syncing..."); }
+            } catch (e) { }
         }
 
-        // 获取聚合行情数据 (CryptoCompare)
         async function fetchMarketData() {
             try {
                 const res = await fetch(MARKET_API);
                 const json = await res.json();
                 const raw = json.RAW;
-
                 ['EOS', 'BTC', 'ETH', 'BNB', 'SOL'].forEach(sym => {
                     const data = raw[sym].USDT;
-                    handleMarketData({
-                        s: sym,
-                        c: data.PRICE,
-                        P: data.CHANGEPCT24HOUR
-                    });
+                    handleMarketData({ s: sym, c: data.PRICE, P: data.CHANGEPCT24HOUR });
                 });
-            } catch (e) {
-                console.warn("Market API Error");
-                document.getElementById('ws-text').innerText = 'API Offline';
-            }
+            } catch (e) { }
         }
 
         function handleMarketData(data) {
             const symbol = data.s;
-            const price = parseFloat(data.c);
-            const change = parseFloat(data.P);
-            
-            cryptoData[symbol] = { price, change };
+            cryptoData[symbol] = { price: data.c, change: data.P };
             updateUI(symbol);
-
             if(symbol === 'EOS') {
-                const ep = document.getElementById('eos-live-price');
-                const ec = document.getElementById('eos-live-change');
                 const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-                ep.innerText = (price * rate).toFixed(3);
-                ec.innerText = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                ec.className = `text-sm font-bold ${change >= 0 ? 'text-success' : 'text-danger'}`;
+                document.getElementById('eos-live-price').innerText = (data.c * rate).toFixed(3);
+                const ec = document.getElementById('eos-live-change');
+                ec.innerText = `${data.P >= 0 ? '+' : ''}${data.P.toFixed(2)}%`;
+                ec.className = `text-[10px] md:text-sm font-bold ${data.P >= 0 ? 'text-success' : 'text-danger'}`;
             }
-            
             if(symbol === selectedSym) {
                 const unit = currentCurrency === 'usd' ? '$' : '¥';
                 const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-                document.getElementById('chart-price').innerText = unit + (price * rate).toLocaleString();
+                document.getElementById('chart-price').innerText = unit + (data.c * rate).toLocaleString();
             }
         }
 
@@ -218,7 +203,6 @@
             let row = document.getElementById(`row-${sym}`);
             const data = cryptoData[sym];
             if (!data) return;
-
             if (!row) {
                 row = document.createElement('tr');
                 row.id = `row-${sym}`;
@@ -226,43 +210,38 @@
                 row.onclick = () => fetchTrendData(sym);
                 tbody.appendChild(row);
             }
-
             const unit = currentCurrency === 'usd' ? '$' : '¥';
             const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-            const displayPrice = (data.price * rate).toLocaleString(undefined, { minimumFractionDigits: 2 });
-
             row.innerHTML = `
-                <td class="px-6 py-4 font-bold text-gray-700 uppercase">${sym}/usdt</td>
-                <td class="px-6 py-4 text-right font-mono font-bold">${unit}${displayPrice}</td>
-                <td class="px-6 py-4 text-right ${data.change >= 0 ? 'text-success' : 'text-danger'}">
+                <td class="px-4 py-3 font-bold text-gray-700 truncate">${sym}/USDT</td>
+                <td class="px-4 py-3 text-right font-mono font-bold whitespace-nowrap">${unit}${(data.price * rate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td class="px-4 py-3 text-right ${data.change >= 0 ? 'text-success' : 'text-danger'} whitespace-nowrap">
                     ${data.change >= 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
                 </td>
             `;
         }
 
-        // 图备、指数、汇率函数
         function initChart() {
             const ctx = document.getElementById('trendChart').getContext('2d');
             trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Array(24).fill(''),
-                    datasets: [{ label: 'Price', data: [], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 0 }]
+                    datasets: [{ label: 'Price', data: [], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(0,0,0,0.05)' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
             });
         }
 
         async function fetchTrendData(sym) {
             selectedSym = sym;
             const coinId = coinIds[sym];
-            document.getElementById('chart-title').innerText = `${sym} / USDT Trend (24h)`;
+            document.getElementById('chart-title').innerText = `${sym} Trend`;
             try {
                 const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
                 const data = await res.json();
                 const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
                 const prices = data.prices.filter((_, i) => i % 6 === 0).map(p => p[1] * rate);
-                trendChart.data.labels = prices.map(() => '');
                 trendChart.data.datasets[0].data = prices;
                 trendChart.update();
             } catch (e) { }
@@ -273,7 +252,6 @@
                 const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
                 const data = await res.json();
                 exchangeRate = data.rates.CNY;
-                document.getElementById('rate-info').innerText = `Rate: 1 USD ≈ ${exchangeRate.toFixed(2)} CNY`;
             } catch (e) { }
         }
 
