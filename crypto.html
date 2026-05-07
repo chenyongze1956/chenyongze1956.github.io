@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Hub Pro - Trend Analysis</title>
+    <title>Finance Hub Pro - Stable Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,7 +12,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#3B82F6', success: '#10B981', danger: '#EF4444' },
+                    colors: { primary: '#3B82F6', eos: '#1a1a1a', success: '#10B981', danger: '#EF4444' },
                     boxShadow: { 'custom': '0 4px 20px rgba(0, 0, 0, 0.08)' }
                 }
             }
@@ -22,26 +22,34 @@
         @layer utilities {
             .glass-card { @apply bg-white/90 backdrop-blur-md border border-white/20 shadow-custom; }
             .active-currency { @apply bg-primary text-white scale-105 shadow-md; }
-            .price-up { animation: flash-green 0.7s ease-out; }
-            .price-down { animation: flash-red 0.7s ease-out; }
-            @keyframes flash-green { 0% { background-color: rgba(16, 185, 129, 0.3); } 100% { background-color: transparent; } }
-            @keyframes flash-red { 0% { background-color: rgba(239, 68, 68, 0.3); } 100% { background-color: transparent; } }
+            .eos-badge { @apply bg-eos text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase; }
         }
     </style>
 </head>
-<body class="p-4 md:p-6 bg-fixed" style="background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);">
+<body class="p-4 md:p-6 bg-fixed" style="background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);">
     
     <header class="container mx-auto mb-6">
         <div class="glass-card rounded-2xl p-4 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-2">
-                <i class="fa fa-line-chart text-primary text-xl"></i>
-                <h1 class="text-xl font-bold tracking-tight text-gray-800">FINANCE <span class="text-primary">HUB</span></h1>
+                <div class="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold italic shadow-lg">E</div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">FINANCE <span class="text-primary">EOS HUB</span></h1>
             </div>
             
             <div class="flex items-center gap-4">
+                <div class="hidden lg:flex items-center gap-4 border-r border-gray-200 pr-4 mr-2">
+                    <div class="text-right">
+                        <p class="text-[9px] text-gray-400 font-bold uppercase">Mainnet Block</p>
+                        <p id="eos-block" class="text-xs font-mono font-bold text-blue-600">Syncing...</p>
+                    </div>
+                    <div class="text-right border-l border-gray-100 pl-3">
+                        <p class="text-[9px] text-gray-400 font-bold uppercase">RAM Price</p>
+                        <p id="eos-ram" class="text-xs font-mono font-bold text-gray-700">-.---- EOS/KB</p>
+                    </div>
+                </div>
+
                 <div id="ws-status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/5">
-                    <span id="ws-dot" class="w-2 h-2 rounded-full bg-gray-400"></span>
-                    <span id="ws-text" class="text-[10px] font-bold text-gray-500 uppercase">Initializing</span>
+                    <span id="ws-dot" class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span id="ws-text" class="text-[10px] font-bold text-gray-500 uppercase">Data: Global API</span>
                 </div>
                 <div class="flex bg-black/5 p-1 rounded-xl" id="currency-toggle">
                     <button class="px-4 py-1 rounded-lg text-xs font-bold transition-all active-currency" data-curr="usd">USD $</button>
@@ -52,26 +60,33 @@
     </header>
 
     <main class="container mx-auto space-y-6">
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-blue-600">
+                <p class="text-[10px] font-bold text-gray-400 uppercase">EOS/USDT <span class="eos-badge ml-1">Market</span></p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <h2 id="eos-live-price" class="text-3xl font-bold font-mono text-gray-800 tracking-tighter">--.---</h2>
+                    <span id="eos-live-change" class="text-sm font-bold">--.--%</span>
+                </div>
+            </div>
             <div class="glass-card p-5 rounded-2xl border-l-4 border-red-500">
                 <p class="text-[10px] font-bold text-gray-400 uppercase">上证指数 (SH)</p>
                 <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="sh-price" class="text-3xl font-bold font-mono text-danger">----.--</h2>
+                    <h2 id="sh-price" class="text-3xl font-bold font-mono text-danger tracking-tighter">----.--</h2>
                     <span id="sh-change" class="text-sm font-bold text-danger">--.--%</span>
                 </div>
             </div>
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-green-500">
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-green-500 text-success">
                 <p class="text-[10px] font-bold text-gray-400 uppercase">深证成指 (SZ)</p>
                 <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="sz-price" class="text-3xl font-bold font-mono text-success">----.--</h2>
-                    <span id="sz-change" class="text-sm font-bold text-success">--.--%</span>
+                    <h2 id="sz-price" class="text-3xl font-bold font-mono tracking-tighter">----.--</h2>
+                    <span id="sz-change" class="text-sm font-bold">--.--%</span>
                 </div>
             </div>
-            <div class="glass-card p-5 rounded-2xl border-l-4 border-purple-500">
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-purple-500 text-purple-600">
                 <p class="text-[10px] font-bold text-gray-400 uppercase">创业板指 (CYB)</p>
                 <div class="flex items-baseline gap-2 mt-1">
-                    <h2 id="cyb-price" class="text-3xl font-bold font-mono text-purple-600">----.--</h2>
-                    <span id="cyb-change" class="text-sm font-bold text-purple-600">--.--%</span>
+                    <h2 id="cyb-price" class="text-3xl font-bold font-mono tracking-tighter">----.--</h2>
+                    <span id="cyb-change" class="text-sm font-bold">--.--%</span>
                 </div>
             </div>
         </section>
@@ -79,7 +94,7 @@
         <section class="glass-card rounded-2xl p-6">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 id="chart-title" class="text-xl font-bold text-gray-800 italic">Select an asset to view trend</h2>
+                    <h2 id="chart-title" class="text-xl font-bold text-gray-800 italic">EOS / USDT Trend (24h)</h2>
                     <div id="chart-price" class="text-2xl font-mono font-bold text-primary mt-1">---</div>
                 </div>
                 <div id="rate-info" class="text-[10px] font-bold text-gray-400 bg-white/50 px-3 py-1 rounded-lg">Rate: 1 USD ≈ 7.25 CNY</div>
@@ -90,13 +105,13 @@
         </section>
 
         <section class="glass-card rounded-2xl overflow-hidden">
-            <div class="p-4 border-b border-gray-100 bg-white/50 flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
-                <span><i class="fa fa-bolt text-yellow-500"></i> Market Live (Click to load chart)</span>
+            <div class="p-4 bg-white/50 flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                <span><i class="fa fa-globe mr-2"></i>Global Market Assets</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50/50 text-gray-400 text-[10px] uppercase">
-                        <tr><th class="px-6 py-4">Asset</th><th class="px-6 py-4 text-right">Live Price</th><th class="px-6 py-4 text-right">24h Change</th></tr>
+                        <tr><th class="px-6 py-4">Asset</th><th class="px-6 py-4 text-right">Price</th><th class="px-6 py-4 text-right">24h Change</th></tr>
                     </thead>
                     <tbody id="crypto-table-body" class="divide-y divide-gray-100 font-medium"></tbody>
                 </table>
@@ -105,128 +120,91 @@
     </main>
 
     <script>
-        const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker/solusdt@ticker/dogeusdt@ticker';
-        const BINANCE_REST_API = 'https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","DOGEUSDT"]';
+        // 配置：使用 CryptoCompare 替代币安，解决国内超时问题
+        const MARKET_API = 'https://min-api.cryptocompare.com/data/pricemultifull?fsyms=EOS,BTC,ETH,BNB,SOL&tsyms=USDT';
         const STOCK_API = 'https://qt.gtimg.cn/q=s_sh000001,s_sz399001,s_sz399006';
+        const EOS_NODES = ['https://eos.greymass.com', 'https://api.main.alohaeos.com', 'https://eos.api.eosnation.io'];
         
         let currentCurrency = 'usd';
         let exchangeRate = 7.25;
         let cryptoData = {}; 
-        let pollTimer = null;
-        let ws = null;
         let trendChart = null;
-        let selectedSym = 'btc';
-
-        // CoinGecko ID 映射用于获取历史趋势
-        const coinIds = { btc: 'bitcoin', eth: 'ethereum', bnb: 'binancecoin', sol: 'solana', doge: 'dogecoin' };
+        let selectedSym = 'EOS';
+        const coinIds = { EOS: 'eos', BTC: 'bitcoin', ETH: 'ethereum', BNB: 'binancecoin', SOL: 'solana' };
 
         document.addEventListener('DOMContentLoaded', () => {
             initChart();
             fetchExchangeRate();
             fetchStockData();
-            initConnection();
-            setupCurrencyToggle();
-            setInterval(fetchStockData, 10000);
+            fetchMarketData(); // 立即执行
+            fetchEOSChainData();
             
-            // 默认加载 BTC 图表
-            setTimeout(() => fetchTrendData('btc'), 1000);
+            // 循环任务
+            setInterval(fetchMarketData, 6000); // 6秒更新一次行情
+            setInterval(fetchStockData, 10000);
+            setInterval(fetchEOSChainData, 8000); 
+            setTimeout(() => fetchTrendData('EOS'), 1000);
+            setupCurrencyToggle();
         });
 
-        function initChart() {
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            trendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array(24).fill(''), // 模拟 24 小时
-                    datasets: [{
-                        label: 'Price',
-                        data: [],
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 } } }
-                    }
+        // 获取 EOS 链上数据
+        async function fetchEOSChainData() {
+            const baseUrl = EOS_NODES[Math.floor(Math.random() * EOS_NODES.length)];
+            try {
+                const infoRes = await fetch(`${baseUrl}/v1/chain/get_info`);
+                const info = await infoRes.json();
+                if(info.head_block_num) document.getElementById('eos-block').innerText = `#${info.head_block_num}`;
+
+                const ramRes = await fetch(`${baseUrl}/v1/chain/get_table_rows`, {
+                    method: 'POST',
+                    body: JSON.stringify({ json: true, code: 'eosio', scope: 'eosio', table: 'rammarket', limit: 1 })
+                });
+                const ramData = await ramRes.json();
+                if (ramData.rows && ramData.rows[0]) {
+                    const row = ramData.rows[0];
+                    const price = (parseFloat(row.quote.balance) / parseFloat(row.base.balance) * 1024).toFixed(4);
+                    document.getElementById('eos-ram').innerText = `${price} EOS/KB`;
                 }
-            });
+            } catch (e) { console.log("EOS Node syncing..."); }
         }
 
-        async function fetchTrendData(sym) {
-            selectedSym = sym;
-            const coinId = coinIds[sym];
-            document.getElementById('chart-title').innerText = `${sym.toUpperCase()} / USDT Trend (24h)`;
-            
+        // 获取聚合行情数据 (CryptoCompare)
+        async function fetchMarketData() {
             try {
-                const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
-                const data = await res.json();
-                const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
-                
-                // 抽样，降低数据点密度
-                const prices = data.prices.filter((_, i) => i % 6 === 0).map(p => p[1] * rate);
-                trendChart.data.labels = prices.map(() => '');
-                trendChart.data.datasets[0].data = prices;
-                trendChart.update();
+                const res = await fetch(MARKET_API);
+                const json = await res.json();
+                const raw = json.RAW;
+
+                ['EOS', 'BTC', 'ETH', 'BNB', 'SOL'].forEach(sym => {
+                    const data = raw[sym].USDT;
+                    handleMarketData({
+                        s: sym,
+                        c: data.PRICE,
+                        P: data.CHANGEPCT24HOUR
+                    });
+                });
             } catch (e) {
-                console.error("Trend data fetch failed", e);
+                console.warn("Market API Error");
+                document.getElementById('ws-text').innerText = 'API Offline';
             }
         }
 
-        function initConnection() {
-            if (ws) ws.close();
-            const statusDot = document.getElementById('ws-dot');
-            const statusText = document.getElementById('ws-text');
-
-            ws = new WebSocket(BINANCE_WS_URL);
-            ws.onopen = () => {
-                statusDot.className = 'w-2 h-2 rounded-full bg-success animate-pulse';
-                statusText.innerText = 'WebSocket Live';
-                clearInterval(pollTimer);
-            };
-            ws.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                handleMarketData(message.data || message);
-            };
-            ws.onerror = () => {
-                statusDot.className = 'w-2 h-2 rounded-full bg-yellow-500';
-                statusText.innerText = 'Polling Active';
-                startPolling();
-            };
-            ws.onclose = () => { if (!pollTimer) setTimeout(initConnection, 10000); };
-        }
-
-        async function startPolling() {
-            if (pollTimer) return;
-            const fetchData = async () => {
-                try {
-                    const res = await fetch(BINANCE_REST_API);
-                    const data = await res.json();
-                    data.forEach(item => {
-                        handleMarketData({ s: item.symbol, c: item.lastPrice, P: item.priceChangePercent });
-                    });
-                } catch (e) {}
-            };
-            fetchData();
-            pollTimer = setInterval(fetchData, 5000);
-        }
-
         function handleMarketData(data) {
-            const symbol = data.s.toLowerCase().replace('usdt', '');
+            const symbol = data.s;
             const price = parseFloat(data.c);
             const change = parseFloat(data.P);
-            const oldPrice = cryptoData[symbol]?.price || price;
-            const direction = price > oldPrice ? 'up' : (price < oldPrice ? 'down' : '');
-            cryptoData[symbol] = { price, change, direction };
+            
+            cryptoData[symbol] = { price, change };
             updateUI(symbol);
+
+            if(symbol === 'EOS') {
+                const ep = document.getElementById('eos-live-price');
+                const ec = document.getElementById('eos-live-change');
+                const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
+                ep.innerText = (price * rate).toFixed(3);
+                ec.innerText = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+                ec.className = `text-sm font-bold ${change >= 0 ? 'text-success' : 'text-danger'}`;
+            }
             
             if(symbol === selectedSym) {
                 const unit = currentCurrency === 'usd' ? '$' : '¥';
@@ -239,32 +217,55 @@
             const tbody = document.getElementById('crypto-table-body');
             let row = document.getElementById(`row-${sym}`);
             const data = cryptoData[sym];
+            if (!data) return;
 
             if (!row) {
                 row = document.createElement('tr');
                 row.id = `row-${sym}`;
-                row.className = "hover:bg-primary/5 cursor-pointer transition-colors";
-                row.onclick = () => fetchTrendData(sym); // 点击行更新图表
+                row.className = "hover:bg-primary/5 cursor-pointer border-b border-gray-50 transition-colors";
+                row.onclick = () => fetchTrendData(sym);
                 tbody.appendChild(row);
             }
 
             const unit = currentCurrency === 'usd' ? '$' : '¥';
             const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
             const displayPrice = (data.price * rate).toLocaleString(undefined, { minimumFractionDigits: 2 });
-            const flashClass = data.direction === 'up' ? 'price-up' : (data.direction === 'down' ? 'price-down' : '');
 
             row.innerHTML = `
-                <td class="px-6 py-4 font-bold text-gray-700 uppercase tracking-tight">${sym} / usdt</td>
-                <td class="px-6 py-4 text-right font-mono font-bold ${flashClass}">${unit}${displayPrice}</td>
+                <td class="px-6 py-4 font-bold text-gray-700 uppercase">${sym}/usdt</td>
+                <td class="px-6 py-4 text-right font-mono font-bold">${unit}${displayPrice}</td>
                 <td class="px-6 py-4 text-right ${data.change >= 0 ? 'text-success' : 'text-danger'}">
-                    ${data.change >= 0 ? '+' : ''}${data.change.toFixed(2)}%
+                    ${data.change >= 0 ? '▲' : '▼'} ${Math.abs(data.change).toFixed(2)}%
                 </td>
             `;
+        }
 
-            setTimeout(() => {
-                const td = row.querySelectorAll('td')[1];
-                if(td) td.classList.remove('price-up', 'price-down');
-            }, 600);
+        // 图备、指数、汇率函数
+        function initChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(24).fill(''),
+                    datasets: [{ label: 'Price', data: [], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(0,0,0,0.05)' } } } }
+            });
+        }
+
+        async function fetchTrendData(sym) {
+            selectedSym = sym;
+            const coinId = coinIds[sym];
+            document.getElementById('chart-title').innerText = `${sym} / USDT Trend (24h)`;
+            try {
+                const res = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
+                const data = await res.json();
+                const rate = currentCurrency === 'usd' ? 1 : exchangeRate;
+                const prices = data.prices.filter((_, i) => i % 6 === 0).map(p => p[1] * rate);
+                trendChart.data.labels = prices.map(() => '');
+                trendChart.data.datasets[0].data = prices;
+                trendChart.update();
+            } catch (e) { }
         }
 
         async function fetchExchangeRate() {
@@ -273,7 +274,7 @@
                 const data = await res.json();
                 exchangeRate = data.rates.CNY;
                 document.getElementById('rate-info').innerText = `Rate: 1 USD ≈ ${exchangeRate.toFixed(2)} CNY`;
-            } catch (e) {}
+            } catch (e) { }
         }
 
         async function fetchStockData() {
@@ -282,13 +283,12 @@
                 const text = await res.text();
                 const stocks = text.split(';');
                 const update = (raw, id) => {
-                    const d = raw.split('~');
-                    if(d.length < 6) return;
+                    const d = raw.split('~'); if(d.length < 6) return;
                     document.getElementById(`${id}-price`).innerText = d[3];
                     document.getElementById(`${id}-change`).innerText = (parseFloat(d[5]) >= 0 ? '+' : '') + d[5] + '%';
                 };
                 update(stocks[0], 'sh'); update(stocks[1], 'sz'); update(stocks[2], 'cyb');
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function setupCurrencyToggle() {
@@ -298,7 +298,7 @@
                     btn.classList.add('active-currency');
                     currentCurrency = btn.dataset.curr;
                     Object.keys(cryptoData).forEach(updateUI);
-                    fetchTrendData(selectedSym); // 切换货币同步更新图表
+                    fetchTrendData(selectedSym);
                 };
             });
         }
