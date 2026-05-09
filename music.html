@@ -5,350 +5,289 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <title>ZEN Dashboard Pro - Retro QQ Edition</title>
+    <title>ZEN Dashboard Pro - Nokia Ultimate</title>
     <style>
+
+/* 针对手机窄屏的适配 */
+@media screen and (max-width: 480px) {
+    .phone {
+        transform: scale(0.8); /* 屏幕太小时进一步缩小手机 */
+        margin-top: -20px;
+    }
+    .qq-panel {
+        width: 100%; /* QQ面板在手机上全屏显示更好用 */
+        height: 100%;
+        border-radius: 0;
+    }
+    #live2d-widget {
+        transform: scale(0.7); /* 让猫咪在手机上小一点，别挡住按键 */
+        right: -20px !important;
+        bottom: 0 !important;
+    }
+}
+
+        
         :root { 
             --led-color: #ff4500; 
             --font-pixel: 'Press Start 2P', cursive; 
             --qq-blue: #0099ff;
+            --nokia-green: #9ead86;
+            --nokia-dark: #222b16;
         }
 
         html, body { height: 100%; margin: 0; overflow: hidden; }
         body {
-            /* 保持你原来的动态渐变背景 */
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             display: flex; justify-content: center; align-items: center; min-height: 100vh;
-            touch-action: manipulation;
             font-family: "Microsoft YaHei", sans-serif;
+            touch-action: manipulation;
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* --- 磁带播放器样式 (保持不变) --- */
-        .cassette-player {
-            background: #222; border-radius: 12px; padding: 30px 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8); width: 85%; max-width: 380px;
-            text-align: center; z-index: 10; position: relative; border: 2px solid #444;
-            transition: all 0.3s ease;
+        /* --- 诺基亚模拟器核心 --- */
+        .phone {
+            width: 260px; height: 500px; background: #d1d5db; border-radius: 40px 40px 100px 100px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 20px 30px 60px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; align-items: center; padding: 20px; border: 4px solid #a1a5af;
+            z-index: 50; transform: scale(0.9); position: relative;
         }
-        .tape-window {
-            background: #000; height: clamp(70px, 15vh, 120px); margin-bottom: 20px;
-            display: flex; justify-content: space-around; align-items: center; border: 4px solid #111;
+        .brand { font-weight: bold; color: #7a7e88; font-style: italic; margin-bottom: 10px; font-size: 14px; }
+        .screen-frame {
+            width: 180px; height: 140px; background: #222; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center; border: 4px solid #333;
         }
-        .tape-reel { width: 50px; height: 50px; border: 3px dashed #555; border-radius: 50%; }
-        .tape-reel.playing { animation: rotate 3s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        #timeDisplay { font-family: var(--font-pixel); color: var(--led-color); font-size: 11px; margin-bottom: 20px; text-shadow: 0 0 8px var(--led-color); }
-        .control-btn { background: #444; color: #00f2ff; border: 1px solid #000; padding: 12px 10px; cursor: pointer; margin: 5px; font-family: var(--font-pixel); font-size: 8px; border-radius: 4px; }
+        .lcd {
+            width: 150px; height: 110px; background: #111; position: relative; overflow: hidden;
+            transition: background 1.5s ease;
+        }
+        .phone.powered-on .lcd { background: var(--nokia-green); }
 
-        /* --- QQ 聊天室弹出层样式 --- */
+        /* 内容层切换 */
+        #nokiaIframe, #snakeCanvas, #psTerminal { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; 
+        }
+        .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.5); opacity: 0.7; }
+        .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; image-rendering: pixelated; }
+        .phone.powered-on #psTerminal.active { display: block; background: #012456; color: white; padding: 5px; font-size: 8px; overflow-y: auto; z-index: 10; }
+
+        .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; z-index: 20; }
+        .phone.booting .boot-text { display: block; animation: flicker 0.5s infinite; }
+        @keyframes flicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* 按键 */
+        .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .btn {
+            width: 60px; height: 40px; background: #eee; border-radius: 10px;
+            box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px;
+        }
+        .btn span { font-size: 7px; font-weight: normal; margin-top: 2px; color: #888; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; background: #fff; }
+        .nav-btn { background: #cfd8dc; height: 50px; border-radius: 50%; font-size: 9px; }
+
+        /* 看板娘层级修正 */
+        #live2d-widget { z-index: 999 !important; }
+
+        /* QQ 样式 (保持) */
         .qq-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 95%; max-width: 600px; height: 80vh;
-            background: rgba(238, 247, 255, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 100; border-radius: 8px; border: 1px solid #888;
-            display: flex; flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            opacity: 0;
+            width: 95%; max-width: 500px; height: 70vh; background: rgba(238, 247, 255, 0.95);
+            backdrop-filter: blur(10px); z-index: 2000; border-radius: 8px; border: 1px solid #888;
+            display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;
         }
         .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-
-        .qq-header {
-            height: 60px; background: linear-gradient(to bottom, #72c6fe, #0c99f3);
-            border-radius: 8px 8px 0 0; display: flex; align-items: center; padding: 0 15px; color: white;
-        }
-        .qq-avatar { width: 40px; height: 40px; border: 2px solid white; border-radius: 4px; margin-right: 10px; }
-        .close-qq { margin-left: auto; cursor: pointer; font-size: 24px; }
-
+        .qq-header { height: 50px; background: linear-gradient(to bottom, #72c6fe, #0c99f3); border-radius: 8px 8px 0 0; display: flex; align-items: center; padding: 0 15px; color: white; }
         .chat-box { flex: 1; padding: 15px; overflow-y: auto; background: white; }
-        .msg { margin-bottom: 15px; font-size: 14px; }
-        .msg-name { color: #008000; font-size: 12px; display: block; }
-        .msg-content { background: #f1f1f1; padding: 8px; border-radius: 4px; display: inline-block; margin-top: 4px; }
-
-        .input-area { height: 120px; border-top: 1px solid #ccc; display: flex; flex-direction: column; background: white; }
-        #qq-input { flex: 1; border: none; padding: 10px; outline: none; resize: none; }
-        .send-row { display: flex; justify-content: flex-end; padding: 5px 15px; background: #eee; }
-
-        /* --- 召唤按钮 --- */
-        .qq-trigger {
-            position: fixed; left: 20px; bottom: 20px; width: 50px; height: 50px;
-            background: var(--qq-blue); border-radius: 50%; display: flex;
-            justify-content: center; align-items: center; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 90;
-            font-weight: bold; color: white; border: 2px solid white;
-        }
-
-        /* --- 猫咪气泡优化 (保持不变) --- */
-        .live2d-widget-dialog-container {
-            position: fixed !important; right: 10px !important; bottom: 35% !important;
-            width: 160px !important; z-index: 99 !important; opacity: 0 !important;
-            visibility: hidden !important; transition: all 0.4s ease;
-        }
-        .live2d-widget-dialog-container.active { opacity: 1 !important; visibility: visible !important; }
-
-        @media (max-width: 480px) {
-            .cassette-player { width: 88%; margin-top: -50px; }
-            .qq-panel { width: 100%; height: 100%; border-radius: 0; }
-        }
     </style>
 </head>
 <body>
 
-<!-- 1. 磁带播放器主界面 -->
-<div class="cassette-player">
-    <div style="font-family: var(--font-pixel); color: #666; font-size: 8px; margin-bottom: 12px; letter-spacing: 1px;">AI MUSIC STATION</div>
-    <div class="tape-window">
-        <div class="tape-reel left"></div>
-        <div class="tape-reel right"></div>
+<div class="phone" id="nokiaPhone">
+    <div class="brand"></div>
+    <div class="screen-frame">
+        <div class="lcd">
+            <div class="boot-text">HELLO</div>
+            <iframe src="http://192.168.0.102:8080" id="nokiaIframe" class="active"></iframe>
+            <canvas id="snakeCanvas" width="150" height="110"></canvas>
+            <div id="psTerminal">
+                <div>Windows PowerShell</div>
+                <div>(C) Microsoft Corp.</div><br>
+                <div id="psContent">PS C:\Users\Admin> _</div>
+            </div>
+        </div>
     </div>
-    <div id="timeDisplay">READY</div>
-    <input type="file" id="audioFile" hidden accept="audio/*">
-    <button class="control-btn" onclick="document.getElementById('audioFile').click()">LOAD TAPE</button>
-    <div class="btns">
-        <button class="control-btn" id="playBtn">PLAY</button>
-        <button class="control-btn" id="stopBtn">STOP</button>
+    <div class="keypad">
+        <div class="btn nav-btn" onclick="powerOn()">ON/OFF</div>
+        <div class="btn nav-btn" onclick="toggleQQ()">扣扣</div>
+        <div class="btn nav-btn" onclick="location.reload()">↺</div>
+        
+        <div class="btn" onclick="openUrl()">1<span>网址</span></div>
+        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>
+        <div class="btn">3</div>
+        
+        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>
+        <div class="btn" onclick="toggleGame()">5<span>游戏</span></div>
+        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>
+        
+        <div class="btn">7</div>
+        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>
+        <div class="btn">9</div>
+        
+        <div class="btn">*</div>
+        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>
+        <div class="btn" onclick="resetMode()">#<span>主页</span></div>
     </div>
-    <div style="margin-top:12px; font-size: 9px; color: #fff; font-weight: bold; text-shadow: 1px 1px 2px #000; opacity: 0.8;">[ 点击猫咪互动喵 ]</div>
-    <audio id="mainAudio" playsinline></audio>
+    <div style="margin-top:10px; font-size: 9px; color: #444;">1:网址 | 5:蛇 | 0:终端 | #:主页</div>
 </div>
 
-<!-- 2. QQ 聊天室弹出面板 -->
+<!-- QQ 面板 (保持) -->
 <div class="qq-panel" id="qqPanel">
     <div class="qq-header">
-        <img src="https://q1.qlogo.cn/g?b=qq&nk=10001&s=640" class="qq-avatar">
-        <div>
-            <div style="font-weight:bold; font-size:14px;">Hijiki 猫咪空间</div>
-            <div style="font-size:11px; opacity:0.8;">手机在线 - 正在听磁带</div>
-        </div>
-        <div class="close-qq" onclick="toggleQQ()">×</div>
+        <div style="font-weight:bold;">Hijiki 猫咪空间 (AI)</div>
+        <div style="margin-left:auto; cursor:pointer;" onclick="toggleQQ()">×</div>
     </div>
-    <div class="chat-box" id="msgBox">
-        <div class="msg">
-            <span class="msg-name">系统通知 12:00</span>
-            <div class="msg-content">欢迎来到你的赛博空间喵！</div>
-        </div>
-    </div>
-    <div class="input-area">
-        <textarea id="qq-input" placeholder="输入消息..."></textarea>
-        <div class="send-row">
-            <button class="control-btn" style="font-family:sans-serif; font-size:12px;" onclick="sendQQMsg()">发送</button>
-        </div>
+    <div class="chat-box" id="msgBox"></div>
+    <div style="padding:10px; background:white; border-top:1px solid #ccc; display:flex;">
+        <textarea id="qq-input" style="flex:1; height:40px; padding:5px; outline:none;" placeholder="和猫咪说话..."></textarea>
+        <button onclick="sendQQMsg()" style="background:#0099ff; color:white; border:none; padding:0 15px; cursor:pointer;">发送</button>
     </div>
 </div>
 
-<!-- 3. 召唤 QQ 的按钮 -->
-<div class="qq-trigger" onclick="toggleQQ()">扣扣</div>
+<div class="qq-trigger" onclick="toggleQQ()" style="position:fixed; left:20px; bottom:20px; width:50px; height:50px; background:var(--qq-blue); border-radius:50%; color:white; display:flex; justify-content:center; align-items:center; z-index:90; cursor:pointer; font-weight:bold; border:2px solid white;">扣扣</div>
 
-<!-- 4. 你的鼠标文字特效 -->
 <div id="cursor-text" style="position: fixed; pointer-events: none; z-index: 9999; color: pink; font-size: 14px; text-shadow: 0 0 5px #000;">亲一口，波一个</div>
 
-<!-- 5. JS 逻辑 -->
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 <script>
-    // --- QQ 交互逻辑 ---
-    function toggleQQ() {
-        document.getElementById('qqPanel').classList.toggle('active');
-    }
+    // --- 模拟器状态 ---
+    const phone = document.getElementById('nokiaPhone');
+    const iframe = document.getElementById('nokiaIframe');
+    const canvas = document.getElementById('snakeCanvas');
+    const terminal = document.getElementById('psTerminal');
+    const ctx = canvas.getContext('2d');
+    let isPowered = false, currentMode = 'web'; // web, game, term
 
-    function sendQQMsg() {
-        const input = document.getElementById('qq-input');
-        const box = document.getElementById('msgBox');
-        if(input.value.trim()){
-            const time = new Date().toLocaleTimeString().slice(0,5);
-            box.innerHTML += `<div class="msg"><span class="msg-name" style="color:blue;">我 ${time}</span><div class="msg-content">${input.value}</div></div>`;
-            
-            // 联动 AI 这里的逻辑：当你发送 QQ 消息，猫咪也会回应你
-            const userMsg = input.value;
-            input.value = "";
-            box.scrollTop = box.scrollHeight;
-            
+    function powerOn() {
+        if(!isPowered) {
+            phone.classList.add('booting');
             setTimeout(() => {
-                askAI(userMsg); // 调用你原来的 AI 函数
-                box.innerHTML += `<div class="msg"><span class="msg-name" style="color:red;">Hijiki ${time}</span><div class="msg-content">喵呜！去猫咪对话框看我回复你喵~</div></div>`;
-                box.scrollTop = box.scrollHeight;
-            }, 1000);
-        }
-    }
-
-    // --- 鼠标跟随 (保持) ---
-    const text = document.getElementById('cursor-text');
-    window.onmousemove = (e) => {
-        text.style.left = (e.clientX + 15) + 'px';
-        text.style.top = (e.clientY + 15) + 'px';
-    };
-
-    // --- 么么点击特效 (保持) ---
-    window.onclick = function(event) {
-        if(event.target.tagName === 'BUTTON' || event.target.tagName === 'TEXTAREA') return;
-        const heart = document.createElement("b");
-        heart.innerText = "么么";
-        heart.style.top = (event.clientY - 20) + "px";
-        heart.style.left = (event.clientX) + "px";
-        heart.style.position = "fixed";
-        heart.style.color = "pink";
-        heart.style.transition = "all 0.8s";
-        heart.style.pointerEvents = "none";
-        document.body.appendChild(heart);
-        setTimeout(() => { heart.style.top = (event.clientY - 120) + "px"; heart.style.opacity = 0; }, 10);
-        setTimeout(() => { document.body.removeChild(heart); }, 800);
-    };
-
-    // --- 你原来的 AI 与 播放器 逻辑 ---
-   // --- 1. 初始化 Live2D ---
-L2Dwidget.init({
-    "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
-    "display": { "position": "right", "width": 150, "height": 300, "hOffset": 0, "vOffset": -10 },
-    "mobile": { "show": true, "scale": 0.5 },
-    "dialog": { "enable": true }
-});
-
-// --- 2. DeepSeek API 配置 ---
-const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a'; // 你的 Key
-const API_URL = 'https://api.deepseek.com/chat/completions';
-
-// --- 3. 核心功能：询问 AI 并让猫咪回答 ---
-async function askAI(userText) {
-    if (!userText) return;
-
-    // A. 先在 QQ 窗口显示你的提问
-    updateQQChat("我", userText, "blue");
-    
-    // B. 让猫咪显示“正在思考”的状态
-    showCatSpeech("让我想想喵...", false);
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${API_KEY}` 
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                    { role: "system", content: "你是一只叫Hijiki的黑猫，现在躲在QQ聊天框后面。说话要俏皮，结尾必须带'喵'。回答要简短。" },
-                    { role: "user", content: userText }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        const aiReply = data.choices[0].message.content;
-
-        // C. 在 QQ 窗口显示 AI 的回答
-        updateQQChat("Hijiki (AI)", aiReply, "red");
-        
-        // D. 让猫咪同步说话并语音播报
-        showCatSpeech(aiReply, true);
-
-    } catch (error) {
-        console.error(error);
-        showCatSpeech("哎呀，断网了喵！");
-    }
-}
-
-// --- 4. 辅助函数：更新 QQ 对话框内容 ---
-function updateQQChat(name, text, color) {
-    const box = document.getElementById('msgBox');
-    const time = new Date().toLocaleTimeString().slice(0, 5);
-    box.innerHTML += `
-        <div class="msg">
-            <span class="msg-name" style="color:${color};">${name} ${time}</span>
-            <div class="msg-content">${text}</div>
-        </div>`;
-    box.scrollTop = box.scrollHeight;
-}
-
-// --- 5. 辅助函数：控制猫咪气泡和语音 ---
-function showCatSpeech(text, needSpeak = true) {
-    const container = document.querySelector('.live2d-widget-dialog-container');
-    const dialogBox = document.querySelector('.live2d-widget-dialog');
-    
-    if (dialogBox) {
-        dialogBox.innerText = text;
-        if(container) container.classList.add('active');
-
-        if (needSpeak) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN';
-            utterance.pitch = 1.3; // 稍微调高音调，更像猫
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // 8秒后隐藏气泡
-        setTimeout(() => {
-            if(container) container.classList.remove('active');
-        }, 8000);
-    }
-}
-
-// --- 6. 绑定点击猫咪触发语音识别 ---
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
-if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.onresult = (e) => {
-        const result = e.results[0][0].transcript;
-        askAI(result); // 识别完成后自动调用 AI
-    };
-}
-
-// --- 7. 页面加载后的事件监听 ---
-window.onload = function() {
-    // A. 监听 QQ 输入框的发送按钮
-    window.sendQQMsg = function() {
-        const input = document.getElementById('qq-input');
-        const text = input.value.trim();
-        if (text) {
-            askAI(text); // 调用 AI
-            input.value = "";
-        }
-    };
-
-    // B. 监听猫咪 Canvas 点击
-    const checkCanvas = setInterval(() => {
-        const canvas = document.getElementById('live2dcanvas');
-        if (canvas) {
-            clearInterval(checkCanvas);
-            canvas.style.pointerEvents = "auto";
-            canvas.style.cursor = "pointer";
-            
-            canvas.onclick = () => {
-                showCatSpeech("请说话，我在听喵...", false);
-                if (recognition) {
-                    try { recognition.start(); } catch(e) { console.log("正在重连识别喵"); }
-                } else {
-                    showCatSpeech("你的浏览器不支持语音识别喵，请在QQ框打字喵！");
-                }
-            };
-        }
-    }, 1000);
-};
-    // 播放器控制
-    const audio = document.getElementById('mainAudio');
-    const playBtn = document.getElementById('playBtn');
-    const reels = document.querySelectorAll('.tape-reel');
-
-    document.getElementById('audioFile').onchange = (e) => {
-        const file = e.target.files[0];
-        if(file) { audio.src = URL.createObjectURL(file); document.getElementById('timeDisplay').innerText = "TAPE READY"; }
-    };
-    playBtn.onclick = () => {
-        if(!audio.src) return showCatSpeech("还没装磁带喵！");
-        if(audio.paused) {
-            audio.play().then(() => {
-                playBtn.innerText = "PAUSE";
-                reels.forEach(r => r.classList.add('playing'));
-            });
+                phone.classList.remove('booting');
+                phone.classList.add('powered-on');
+                isPowered = true;
+            }, 1500);
         } else {
-            audio.pause(); playBtn.innerText = "PLAY";
-            reels.forEach(r => r.classList.remove('playing'));
+            phone.classList.remove('powered-on');
+            isPowered = false;
+            stopGame();
         }
+    }
+
+    function resetMode() {
+        if(!isPowered) return;
+        stopGame();
+        currentMode = 'web';
+        [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+        iframe.classList.add('active');
+    }
+
+    // --- 浏览器功能 ---
+    function openUrl() {
+        if(!isPowered) return;
+        const url = prompt("输入网址:", "http://");
+        if(url) {
+            resetMode();
+            iframe.src = url;
+        }
+    }
+
+    // --- PowerShell 功能 ---
+    function toggleTerminal() {
+        if(!isPowered) return;
+        stopGame();
+        currentMode = 'term';
+        [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+        terminal.classList.add('active');
+        const cmd = prompt("PowerShell 入口 (输入: help, ls, box)");
+        let res = cmd === 'ls' ? "蛇.exe  猫.sys  web.ink" : (cmd === 'help' ? "指令: ls, date, clear, box" : "命令不正确。");
+        document.getElementById('psContent').innerHTML += `<br>PS C:\\> ${cmd}<br>${res}<br>PS C:\\> _`;
+    }
+
+    // --- 贪吃蛇功能 ---
+    let snake, food, direction, gameLoop;
+    function toggleGame() {
+        if(!isPowered) return;
+        if(currentMode === 'game') { resetMode(); return; }
+        currentMode = 'game';
+        [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+        canvas.classList.add('active');
+        startGame();
+    }
+
+    function startGame() {
+        snake = [{x:70, y:50}, {x:60, y:50}];
+        direction = 'RIGHT';
+        spawnFood();
+        if(gameLoop) clearInterval(gameLoop);
+        gameLoop = setInterval(drawGame, 150);
+    }
+    function stopGame() { clearInterval(gameLoop); gameLoop = null; }
+    function spawnFood() { food = { x: Math.floor(Math.random()*14)*10, y: Math.floor(Math.random()*10)*10 }; }
+    function snakeMove(d) { if(currentMode === 'game') direction = d; }
+    function drawGame() {
+        ctx.fillStyle = "#9ead86"; ctx.fillRect(0,0,150,110);
+        let head = {...snake[0]};
+        if(direction==='UP') head.y-=10; if(direction==='DOWN') head.y+=10;
+        if(direction==='LEFT') head.x-=10; if(direction==='RIGHT') head.x+=10;
+        if(head.x<0) head.x=140; if(head.x>140) head.x=0; if(head.y<0) head.y=100; if(head.y>100) head.y=0;
+        if(head.x === food.x && head.y === food.y) spawnFood(); else snake.pop();
+        if(snake.some(s => s.x === head.x && s.y === head.y)) return startGame();
+        snake.unshift(head);
+        ctx.fillStyle = "#222b16";
+        ctx.fillRect(food.x+1, food.y+1, 8, 8);
+        snake.forEach(s => ctx.fillRect(s.x+1, s.y+1, 8, 8));
+    }
+
+    // --- AI 与 QQ 逻辑 (保持你的 Key) ---
+    const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
+    async function askAI(text) {
+        updateQQChat("我", text, "blue");
+        try {
+            const resp = await fetch('https://api.deepseek.com/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{role:"system", content:"你是Hijiki猫喵，在诺基亚里玩耍。说话带喵，回答简短。"}, {role:"user", content:text}]
+                })
+            });
+            const data = await resp.json();
+            const aiReply = data.choices[0].message.content;
+            updateQQChat("Hijiki (AI)", aiReply, "red");
+            showCatSpeech(aiReply);
+        } catch(e) { showCatSpeech("断网了喵..."); }
+    }
+    function sendQQMsg() { const input = document.getElementById('qq-input'); if(input.value.trim()){ askAI(input.value); input.value=""; } }
+    function toggleQQ() { document.getElementById('qqPanel').classList.toggle('active'); }
+    function updateQQChat(n,t,c) { const b = document.getElementById('msgBox'); b.innerHTML += `<div><span style="color:${c};font-size:12px;">${n}:</span> <span style="font-size:14px;">${t}</span></div>`; b.scrollTop = b.scrollHeight; }
+    function showCatSpeech(t) { 
+        const dialog = document.querySelector('.live2d-widget-dialog');
+        if(dialog) { dialog.innerText = t; document.querySelector('.live2d-widget-dialog-container').classList.add('active'); }
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(t));
+    }
+
+    // --- 初始化 ---
+    L2Dwidget.init({
+        "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
+        "display": { "position": "right", "width": 150, "height": 280, "hOffset": 0, "vOffset": -10 },
+        "dialog": { "enable": true }
+    });
+
+    window.onmousemove = (e) => { 
+        const t = document.getElementById('cursor-text');
+        t.style.left = e.clientX + 15 + 'px'; t.style.top = e.clientY + 15 + 'px'; 
     };
 </script>
 </body>
