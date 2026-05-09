@@ -89,7 +89,7 @@
 <body>
 
 <div class="phone" id="nokiaPhone">
-    <div class="brand" style="font-size:10px; color:#888; margin-bottom:5px;"></div>
+    <div class="brand" style="font-size:10px; color:#888; margin-bottom:5px;">NOKIA 1100 Pro</div>
     <div class="screen-frame" id="sFrame">
         <div class="lcd">
             <div class="boot-text">HIJIKI</div>
@@ -120,7 +120,7 @@
         <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>
         <div class="btn">9</div>
         
-        <div class="btn">*</div>
+        <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>
         <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>
         <div class="btn" onclick="resetMode()">#<span>相机</span></div>
     </div>
@@ -340,6 +340,69 @@
         "display": { "position": "right", "width": 140, "height": 260, "hOffset": 0, "vOffset": -10 },
         "dialog": { "enable": true }
     });
+
+
+
+// --- 音乐播放逻辑 ---
+let audio = new Audio('https://www.joy127.com/url/148587.mp3'); // 你可以换成任何 8-bit 音乐链接
+let isPlaying = false;
+let musicInterval;
+
+function toggleMusic() {
+    if (!isPowered) return;
+    
+    if (isPlaying) {
+        stopMusic();
+        showCatSpeech("音乐停了喵~");
+    } else {
+        stopAll(); // 切换模式时关闭其他功能
+        currentMode = 'music';
+        canvas.classList.add('active');
+        audio.play();
+        isPlaying = true;
+        showCatSpeech("来点 8-bit 摇滚喵！");
+        startMusicVisual();
+    }
+}
+
+function stopMusic() {
+    audio.pause();
+    audio.currentTime = 0;
+    isPlaying = false;
+    clearInterval(musicInterval);
+    if (currentMode === 'music') {
+        canvas.classList.remove('active');
+    }
+}
+
+// 简单的像素频谱动画
+function startMusicVisual() {
+    musicInterval = setInterval(() => {
+        if (currentMode !== 'music') return;
+        
+        ctx.fillStyle = "#9ead86"; // 诺基亚绿底色
+        ctx.fillRect(0, 0, 150, 110);
+        
+        ctx.fillStyle = "#222b16"; // 深色像素
+        for (let i = 0; i < 15; i++) {
+            const h = Math.random() * 80;
+            // 绘制跳动的音量条
+            ctx.fillRect(i * 10 + 2, 90 - h, 6, h);
+        }
+        
+        // 绘制一个旋转的磁带或音符占位符
+        ctx.fillText("♫ NOW PLAYING", 20, 105);
+    }, 100);
+}
+
+// 别忘了在 stopAll() 函数里加入停止音乐的逻辑
+function stopAll() {
+    stopGame();
+    stopCamera();
+    stopMusic(); // <-- 新增这一行
+    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+}
+    
 </script>
 </body>
 </html>
