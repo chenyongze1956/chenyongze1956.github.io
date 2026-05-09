@@ -5,37 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <title>ZEN Dashboard Pro - Nokia Ultimate</title>
+    <title>ZEN Nokia Pro - PowerShell Edition</title>
     <style>
-
-/* 针对手机窄屏的适配 */
-@media screen and (max-width: 480px) {
-    .phone {
-        transform: scale(0.8); /* 屏幕太小时进一步缩小手机 */
-        margin-top: -20px;
-    }
-    .qq-panel {
-        width: 100%; /* QQ面板在手机上全屏显示更好用 */
-        height: 100%;
-        border-radius: 0;
-    }
-    #live2d-widget {
-        transform: scale(0.7); /* 让猫咪在手机上小一点，别挡住按键 */
-        right: -20px !important;
-        bottom: 0 !important;
-    }
-}
-
-        
         :root { 
-            --led-color: #ff4500; 
-            --font-pixel: 'Press Start 2P', cursive; 
-            --qq-blue: #0099ff;
             --nokia-green: #9ead86;
             --nokia-dark: #222b16;
+            --qq-blue: #0099ff;
+            --ps-blue: #012456;
         }
 
-        html, body { height: 100%; margin: 0; overflow: hidden; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: #222; }
         body {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
             background-size: 400% 400%;
@@ -46,17 +25,15 @@
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* --- 诺基亚模拟器核心 --- */
         .phone {
             width: 260px; height: 500px; background: #d1d5db; border-radius: 40px 40px 100px 100px;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 20px 30px 60px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center; padding: 20px; border: 4px solid #a1a5af;
             z-index: 50; transform: scale(0.9); position: relative;
         }
-        .brand { font-weight: bold; color: #7a7e88; font-style: italic; margin-bottom: 10px; font-size: 14px; }
         .screen-frame {
             width: 180px; height: 140px; background: #222; border-radius: 12px;
-            display: flex; justify-content: center; align-items: center; border: 4px solid #333;
+            display: flex; justify-content: center; align-items: center; border: 4px solid #333; position: relative;
         }
         .lcd {
             width: 150px; height: 110px; background: #111; position: relative; overflow: hidden;
@@ -64,65 +41,72 @@
         }
         .phone.powered-on .lcd { background: var(--nokia-green); }
 
-        /* 内容层切换 */
+        /* 扫描线特效 */
+        .pixel-cam-active::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 2px; pointer-events: none; z-index: 10;
+        }
+
         #nokiaIframe, #snakeCanvas, #psTerminal { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; 
         }
-        .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.5); opacity: 0.7; }
-        .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; image-rendering: pixelated; }
-        .phone.powered-on #psTerminal.active { display: block; background: #012456; color: white; padding: 5px; font-size: 8px; overflow-y: auto; z-index: 10; }
+        .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.2); opacity: 0.7; }
+        .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; }
+        .phone.powered-on #psTerminal.active { 
+            display: block; background: var(--ps-blue) !important; color: #fff; 
+            padding: 5px; font-size: 8px; font-family: monospace; z-index: 10; overflow-y: auto; 
+        }
 
-        .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; z-index: 20; }
+        .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; }
         .phone.booting .boot-text { display: block; animation: flicker 0.5s infinite; }
         @keyframes flicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        /* 按键 */
         .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .btn {
             width: 60px; height: 40px; background: #eee; border-radius: 10px;
             box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center;
             font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px;
         }
-        .btn span { font-size: 7px; font-weight: normal; margin-top: 2px; color: #888; }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; background: #fff; }
-        .nav-btn { background: #cfd8dc; height: 50px; border-radius: 50%; font-size: 9px; }
+        .btn span { font-size: 7px; color: #888; margin-top: 2px; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; }
 
-        /* 看板娘层级修正 */
-        #live2d-widget { z-index: 999 !important; }
-
-        /* QQ 样式 (保持) */
+        #live2d-widget { z-index: 99999 !important; }
         .qq-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 95%; max-width: 500px; height: 70vh; background: rgba(238, 247, 255, 0.95);
-            backdrop-filter: blur(10px); z-index: 2000; border-radius: 8px; border: 1px solid #888;
-            display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;
+            width: 90%; max-width: 400px; height: 70vh; background: #fff; z-index: 10000;
+            border-radius: 8px; display: flex; flex-direction: column; transition: 0.3s; opacity: 0;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5); border: 1px solid #ccc;
         }
         .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        .qq-header { height: 50px; background: linear-gradient(to bottom, #72c6fe, #0c99f3); border-radius: 8px 8px 0 0; display: flex; align-items: center; padding: 0 15px; color: white; }
-        .chat-box { flex: 1; padding: 15px; overflow-y: auto; background: white; }
+        
+        @media screen and (max-width: 480px) {
+            .phone { transform: scale(0.85); margin-top: -20px; }
+            #live2d-widget { transform: scale(0.6); right: -30px !important; bottom: -20px !important; }
+        }
     </style>
 </head>
 <body>
 
 <div class="phone" id="nokiaPhone">
-    <div class="brand"></div>
-    <div class="screen-frame">
+    <div class="brand" style="font-size:10px; color:#888; margin-bottom:5px;">NOKIA 1100 Pro</div>
+    <div class="screen-frame" id="sFrame">
         <div class="lcd">
-            <div class="boot-text">HELLO</div>
+            <div class="boot-text">HIJIKI</div>
             <iframe src="http://192.168.0.102:8080" id="nokiaIframe" class="active"></iframe>
             <canvas id="snakeCanvas" width="150" height="110"></canvas>
             <div id="psTerminal">
-                <div>Windows PowerShell</div>
-                <div>(C) Microsoft Corp.</div><br>
-                <div id="psContent">PS C:\Users\Admin> _</div>
+                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v3.0</div>
+                <div id="psLog"></div>
+                <div id="psLine">PS C:\Hijiki> _</div>
             </div>
         </div>
     </div>
+    
     <div class="keypad">
-        <div class="btn nav-btn" onclick="powerOn()">ON/OFF</div>
-        <div class="btn nav-btn" onclick="toggleQQ()">扣扣</div>
-        <div class="btn nav-btn" onclick="location.reload()">↺</div>
+        <div class="btn" style="background:#cfd8dc;" onclick="powerOn()">ON/OFF</div>
+        <div class="btn" style="background:#cfd8dc;" onclick="toggleQQ()">扣扣</div>
+        <div class="btn" style="background:#cfd8dc;" onclick="location.reload()">↺</div>
         
         <div class="btn" onclick="openUrl()">1<span>网址</span></div>
         <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>
@@ -138,37 +122,34 @@
         
         <div class="btn">*</div>
         <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>
-        <div class="btn" onclick="resetMode()">#<span>主页</span></div>
+        <div class="btn" onclick="resetMode()">#<span>相机</span></div>
     </div>
-    <div style="margin-top:10px; font-size: 9px; color: #444;">1:网址 | 5:蛇 | 0:终端 | #:主页</div>
 </div>
 
-<!-- QQ 面板 (保持) -->
+<video id="webcam" autoplay playsinline style="display:none;"></video>
+
 <div class="qq-panel" id="qqPanel">
-    <div class="qq-header">
-        <div style="font-weight:bold;">Hijiki 猫咪空间 (AI)</div>
-        <div style="margin-left:auto; cursor:pointer;" onclick="toggleQQ()">×</div>
+    <div style="background:var(--qq-blue); color:white; padding:10px; display:flex; justify-content:space-between; font-weight:bold;">
+        <span>Hijiki 猫咪空间</span>
+        <span onclick="toggleQQ()" style="cursor:pointer;">✕</span>
     </div>
-    <div class="chat-box" id="msgBox"></div>
-    <div style="padding:10px; background:white; border-top:1px solid #ccc; display:flex;">
-        <textarea id="qq-input" style="flex:1; height:40px; padding:5px; outline:none;" placeholder="和猫咪说话..."></textarea>
-        <button onclick="sendQQMsg()" style="background:#0099ff; color:white; border:none; padding:0 15px; cursor:pointer;">发送</button>
+    <div id="msgBox" style="flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; font-size:14px;"></div>
+    <div style="padding:10px; border-top:1px solid #ddd; display:flex;">
+        <input id="qq-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="和猫咪聊天...">
+        <button onclick="sendQQMsg()" style="padding:8px 15px; background:var(--qq-blue); color:white; border:none; margin-left:5px; border-radius:4px;">发送</button>
     </div>
 </div>
-
-<div class="qq-trigger" onclick="toggleQQ()" style="position:fixed; left:20px; bottom:20px; width:50px; height:50px; background:var(--qq-blue); border-radius:50%; color:white; display:flex; justify-content:center; align-items:center; z-index:90; cursor:pointer; font-weight:bold; border:2px solid white;">扣扣</div>
-
-<div id="cursor-text" style="position: fixed; pointer-events: none; z-index: 9999; color: pink; font-size: 14px; text-shadow: 0 0 5px #000;">亲一口，波一个</div>
 
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
 <script>
-    // --- 模拟器状态 ---
     const phone = document.getElementById('nokiaPhone');
     const iframe = document.getElementById('nokiaIframe');
     const canvas = document.getElementById('snakeCanvas');
     const terminal = document.getElementById('psTerminal');
+    const video = document.getElementById('webcam');
     const ctx = canvas.getContext('2d');
-    let isPowered = false, currentMode = 'web'; // web, game, term
+    
+    let isPowered = false, currentMode = 'web', videoStream = null;
 
     function powerOn() {
         if(!isPowered) {
@@ -177,118 +158,188 @@
                 phone.classList.remove('booting');
                 phone.classList.add('powered-on');
                 isPowered = true;
+                showCatSpeech("系统启动成功喵！");
             }, 1500);
         } else {
             phone.classList.remove('powered-on');
             isPowered = false;
-            stopGame();
+            stopAll();
         }
     }
 
-    function resetMode() {
-        if(!isPowered) return;
+    function stopAll() {
         stopGame();
-        currentMode = 'web';
+        stopCamera();
         [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
-        iframe.classList.add('active');
     }
 
-    // --- 浏览器功能 ---
-    function openUrl() {
-        if(!isPowered) return;
-        const url = prompt("输入网址:", "http://");
-        if(url) {
-            resetMode();
-            iframe.src = url;
-        }
-    }
+    // --- 终端逻辑 ---
+    const commands = {
+        'help': 'ls: 查看文件\nwhoami: 用户名\ncat secrets.txt: 秘密\nclear: 清屏\nsnake: 启动游戏\ncamera: 开启相机\nexit: 关闭终端',
+        'ls': 'Mode  Name\n----  ----\n-a--  apps.exe\n-a--  cat_pic.png\n-a--  secrets.txt',
+        'whoami': 'root_cat_hijiki',
+        'cat secrets.txt': '秘密是：其实我是一只AI猫喵！',
+        'date': () => new Date().toLocaleTimeString()
+    };
 
-    // --- PowerShell 功能 ---
     function toggleTerminal() {
         if(!isPowered) return;
-        stopGame();
+        stopAll();
         currentMode = 'term';
-        [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
         terminal.classList.add('active');
-        const cmd = prompt("PowerShell 入口 (输入: help, ls, box)");
-        let res = cmd === 'ls' ? "蛇.exe  猫.sys  web.ink" : (cmd === 'help' ? "指令: ls, date, clear, box" : "命令不正确。");
-        document.getElementById('psContent').innerHTML += `<br>PS C:\\> ${cmd}<br>${res}<br>PS C:\\> _`;
+        handleTerminalInput();
     }
 
-    // --- 贪吃蛇功能 ---
-    let snake, food, direction, gameLoop;
+    function handleTerminalInput() {
+        const cmd = prompt("PowerShell (输入 help 查看命令):");
+        if (!cmd) return;
+        const log = document.getElementById('psLog');
+        const cleanCmd = cmd.toLowerCase().trim();
+        log.innerHTML += `\nPS C:\\Hijiki> ${cmd}`;
+        let output = "";
+        if (commands[cleanCmd]) {
+            output = typeof commands[cleanCmd] === 'function' ? commands[cleanCmd]() : commands[cleanCmd];
+        } else if (cleanCmd === 'clear') {
+            log.innerHTML = "";
+        } else if (cleanCmd === 'snake') {
+            toggleGame(); return;
+        } else if (cleanCmd === 'camera') {
+            toggleCamera(); return;
+        } else if (cleanCmd === 'exit') {
+            resetMode(); return;
+        } else {
+            output = `'${cmd}' 不是内部或外部命令。`;
+        }
+        if(output) log.innerHTML += `\n${output}`;
+        terminal.scrollTop = terminal.scrollHeight;
+        setTimeout(handleTerminalInput, 500);
+    }
+
+    // --- 像素相机逻辑 ---
+    async function toggleCamera() {
+        if(!isPowered) return;
+        stopAll();
+        currentMode = 'camera';
+        canvas.classList.add('active');
+        document.getElementById('sFrame').classList.add('pixel-cam-active');
+
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = videoStream;
+            video.onloadedmetadata = () => {
+                video.play();
+                drawPixel();
+            };
+            showCatSpeech("赛博相机开启喵！");
+        } catch (e) { 
+            alert("无摄像头权限喵"); 
+            resetMode(); 
+        }
+    }
+
+    function drawPixel() {
+        if (currentMode !== 'camera') return;
+        ctx.drawImage(video, 0, 0, 150, 110);
+        const data = ctx.getImageData(0, 0, 150, 110).data;
+        ctx.fillStyle = "#9ead86"; ctx.fillRect(0,0,150,110);
+        const size = 4;
+        for(let y=0; y<110; y+=size) {
+            for(let x=0; x<150; x+=size) {
+                const i = (y*150 + x)*4;
+                const avg = (data[i]+data[i+1]+data[i+2])/3;
+                let c = avg < 128 ? 40 : 160;
+                ctx.fillStyle = `rgb(${c-20},${c},${c-50})`;
+                ctx.fillRect(x,y,size,size);
+            }
+        }
+        requestAnimationFrame(drawPixel);
+    }
+
+    function stopCamera() { 
+        if(videoStream) {
+            videoStream.getTracks().forEach(t=>t.stop());
+            videoStream = null;
+        }
+        document.getElementById('sFrame').classList.remove('pixel-cam-active'); 
+    }
+
+    // --- 贪吃蛇 ---
+    let snake, food, dir, gLoop;
     function toggleGame() {
         if(!isPowered) return;
-        if(currentMode === 'game') { resetMode(); return; }
+        stopAll();
         currentMode = 'game';
-        [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
         canvas.classList.add('active');
-        startGame();
+        snake = [{x:50,y:50}]; food = {x:100,y:70}; dir='RIGHT';
+        gLoop = setInterval(() => {
+            ctx.fillStyle = "#9ead86"; ctx.fillRect(0,0,150,110);
+            let h = {...snake[0]};
+            if(dir==='UP') h.y-=10; if(dir==='DOWN') h.y+=10;
+            if(dir==='LEFT') h.x-=10; if(dir==='RIGHT') h.x+=10;
+            snake.unshift(h);
+            if(h.x===food.x && h.y===food.y) food={x:Math.floor(Math.random()*14)*10, y:Math.floor(Math.random()*10)*10};
+            else snake.pop();
+            ctx.fillStyle = "#222b16";
+            snake.forEach(s=>ctx.fillRect(s.x,s.y,9,9));
+            ctx.fillRect(food.x, food.y, 9, 9);
+        }, 150);
+    }
+    function stopGame() { clearInterval(gLoop); }
+    function snakeMove(d) { dir = d; }
+
+    // --- 修复后的 resetMode ---
+    function resetMode() {
+        if(!isPowered) return;
+        
+        // 如果当前是相机，就退回 Web 主页
+        if (currentMode === 'camera') {
+            stopAll();
+            currentMode = 'web';
+            iframe.classList.add('active');
+            showCatSpeech("已退回主页喵~");
+        } 
+        // 如果当前在其他模式，点击 # 键直接进相机
+        else {
+            toggleCamera();
+        }
     }
 
-    function startGame() {
-        snake = [{x:70, y:50}, {x:60, y:50}];
-        direction = 'RIGHT';
-        spawnFood();
-        if(gameLoop) clearInterval(gameLoop);
-        gameLoop = setInterval(drawGame, 150);
-    }
-    function stopGame() { clearInterval(gameLoop); gameLoop = null; }
-    function spawnFood() { food = { x: Math.floor(Math.random()*14)*10, y: Math.floor(Math.random()*10)*10 }; }
-    function snakeMove(d) { if(currentMode === 'game') direction = d; }
-    function drawGame() {
-        ctx.fillStyle = "#9ead86"; ctx.fillRect(0,0,150,110);
-        let head = {...snake[0]};
-        if(direction==='UP') head.y-=10; if(direction==='DOWN') head.y+=10;
-        if(direction==='LEFT') head.x-=10; if(direction==='RIGHT') head.x+=10;
-        if(head.x<0) head.x=140; if(head.x>140) head.x=0; if(head.y<0) head.y=100; if(head.y>100) head.y=0;
-        if(head.x === food.x && head.y === food.y) spawnFood(); else snake.pop();
-        if(snake.some(s => s.x === head.x && s.y === head.y)) return startGame();
-        snake.unshift(head);
-        ctx.fillStyle = "#222b16";
-        ctx.fillRect(food.x+1, food.y+1, 8, 8);
-        snake.forEach(s => ctx.fillRect(s.x+1, s.y+1, 8, 8));
+    function openUrl() {
+        const u = prompt("输入网址", "http://");
+        if(u) { stopAll(); iframe.src = u; iframe.classList.add('active'); currentMode = 'web';}
     }
 
-    // --- AI 与 QQ 逻辑 (保持你的 Key) ---
+    // --- AI 逻辑 ---
     const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
-    async function askAI(text) {
-        updateQQChat("我", text, "blue");
+    async function askAI(t) {
+        const box = document.getElementById('msgBox');
+        box.innerHTML += `<div style="margin-bottom:8px;"><b>我:</b> ${t}</div>`;
         try {
-            const resp = await fetch('https://api.deepseek.com/chat/completions', {
+            const r = await fetch('https://api.deepseek.com/chat/completions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [{role:"system", content:"你是Hijiki猫喵，在诺基亚里玩耍。说话带喵，回答简短。"}, {role:"user", content:text}]
-                })
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}`},
+                body: JSON.stringify({model: "deepseek-chat", messages: [{role:"system", content:"你是Hijiki猫喵。"}, {role:"user", content:t}]})
             });
-            const data = await resp.json();
-            const aiReply = data.choices[0].message.content;
-            updateQQChat("Hijiki (AI)", aiReply, "red");
-            showCatSpeech(aiReply);
+            const d = await r.json();
+            const reply = d.choices[0].message.content;
+            box.innerHTML += `<div style="margin-bottom:8px; color:red;"><b>猫:</b> ${reply}</div>`;
+            box.scrollTop = box.scrollHeight;
+            showCatSpeech(reply);
         } catch(e) { showCatSpeech("断网了喵..."); }
     }
-    function sendQQMsg() { const input = document.getElementById('qq-input'); if(input.value.trim()){ askAI(input.value); input.value=""; } }
+    function sendQQMsg() { const i = document.getElementById('qq-input'); if(i.value) { askAI(i.value); i.value=''; } }
     function toggleQQ() { document.getElementById('qqPanel').classList.toggle('active'); }
-    function updateQQChat(n,t,c) { const b = document.getElementById('msgBox'); b.innerHTML += `<div><span style="color:${c};font-size:12px;">${n}:</span> <span style="font-size:14px;">${t}</span></div>`; b.scrollTop = b.scrollHeight; }
-    function showCatSpeech(t) { 
-        const dialog = document.querySelector('.live2d-widget-dialog');
-        if(dialog) { dialog.innerText = t; document.querySelector('.live2d-widget-dialog-container').classList.add('active'); }
+    function showCatSpeech(t) {
+        const d = document.querySelector('.live2d-widget-dialog');
+        if(d) d.innerText = t;
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(t));
     }
 
-    // --- 初始化 ---
     L2Dwidget.init({
         "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
-        "display": { "position": "right", "width": 150, "height": 280, "hOffset": 0, "vOffset": -10 },
+        "display": { "position": "right", "width": 140, "height": 260, "hOffset": 0, "vOffset": -10 },
         "dialog": { "enable": true }
     });
-
-    window.onmousemove = (e) => { 
-        const t = document.getElementById('cursor-text');
-        t.style.left = e.clientX + 15 + 'px'; t.style.top = e.clientY + 15 + 'px'; 
-    };
 </script>
 </body>
 </html>
