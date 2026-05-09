@@ -1,7 +1,4 @@
-
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
+<!DOCTYPE html><html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,44 +15,38 @@
             font-family: "STKaiti", "KaiTi", "Microsoft JhengHei", serif;
             overflow: hidden; touch-action: manipulation;
         }
-
         @keyframes gradientFlow {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
         /* 2. 響應式尺寸 */
         :root {
-            --cell-size: 55px;
-            --font-size: 1.8rem;
+            --cell-size: 50px;
+            --font-size: 1.6rem;
         }
-
         @media screen and (max-width: 500px) {
             :root {
-                --cell-size: 45px;
-                --font-size: 1.5rem;
+                --cell-size: 42px;
+                --font-size: 1.4rem;
             }
             .title-h1 { font-size: 2.2rem !important; }
         }
-
         /* 3. 織錦外框與格子 */
         .brocade-frame {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border: 8px double #b89150;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             backdrop-filter: blur(5px);
             border-radius: 4px;
         }
-
         .grid {
             display: grid;
             grid-template-columns: repeat(7, var(--cell-size));
-            gap: 2px;
+            gap: 4px;
             background-color: rgba(184, 145, 80, 0.3);
         }
-
         .cell {
             width: var(--cell-size);
             height: var(--cell-size);
@@ -70,25 +61,23 @@
             user-select: none;
             color: #2c3e50;
         }
-
         .cell:hover {
             background: #8c2727;
             color: white !important;
             transform: scale(1.1);
             z-index: 10;
         }
-
         .highlight-active {
-            background: #fff9c4;
-            color: #8c2727;
+            background: #fff9c4 !important;
+            color: #8c2727 !important;
+            border: 1px solid #b89150;
         }
-
         /* 4. 信息面板 */
         .info-panel {
             margin-top: 2rem;
             width: 90%;
-            max-width: 450px;
-            background: rgba(0, 0, 0, 0.7);
+            max-width: 500px;
+            background: rgba(0, 0, 0, 0.75);
             color: white;
             padding: 20px;
             border-radius: 20px;
@@ -96,19 +85,16 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
         }
-
-        .audio-wave {
-            display: inline-block;
-            margin-left: 8px;
+        .poem-text {
             color: #ffed86;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
-
     <div class="title-area text-center mb-6">
         <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇璣織錦</h1>
-        <p class="text-white/80 italic mt-2 text-sm">錦字迴環 </p>
+        <p class="text-white/80 italic mt-2 text-sm"></p>
     </div>
 
     <div class="brocade-frame">
@@ -117,72 +103,57 @@
 
     <div class="info-panel">
         <div class="flex items-center justify-center mb-2">
-            <i class="fa fa-volume-up text-white/40 text-xs mr-2"></i>
-            <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">語音初始化中...</span>
+            <i class="fa fa-refresh text-white/40 text-xs mr-2"></i>
+            <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">點擊矩陣切換迴環詩文</span>
         </div>
-        <div id="output" class="text-2xl font-bold min-h-[1.5em] text-white">
-            觸碰錦字，讀取迴環詩文
+        <div id="output" class="text-2xl font-bold min-h-[1.5em] poem-text">
+            正在載入詩文...
         </div>
     </div>
 
     <script>
-        /**
-         * 根據您提供的迴環詩文重新排列
-         * 採用 7x4 矩陣適配您的原代碼邏輯
-         */
+        // 16個核心字 + 5個裝飾字填充 (適配 7x3 矩陣)
         const xuanjiData = [
-            "龍","虎","繁","文","藻","旗","凋",
-            "華","曜","榮","容","飾","觀","壯",
-            "麗","衣","繡","曜","顏","充","藻",
-            "文","繁","虎","龍","榮","曜","華"
+            "思","感","自","寧","孜","孜","傷",
+            "情","時","在","君","側","夢","想",
+            "勞","形","","迴","環","詩",""
+        ];
+
+        // 你要求的五段一字不漏的詩句
+        const poems = [
+            "思感自寧，孜孜傷情，時在君側，夢想勞形。",
+            "寧自感思，孜孜傷情；側君在時，夢想勞形。",
+            "寧自感思，夢想勞形；側君在時，孜孜傷情。",
+            "孜孜傷情，側君在時；夢想勞形，寧自感思。",
+            "孜孜傷情，寧自感思，夢想勞形，側君在時。"
         ];
 
         const matrix = document.getElementById('matrix');
         const output = document.getElementById('output');
-        const voiceStatus = document.getElementById('voice-status');
         const synth = window.speechSynthesis;
-        let lastReadRow = -1;
-
-        function getChineseVoice() {
-            const allVoices = synth.getVoices();
-            return allVoices.find(v => v.lang.includes('zh')) || allVoices[0];
-        }
-
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {
-                const voice = getChineseVoice();
-                if (voice) voiceStatus.innerText = "中文語音引擎已就緒";
-            };
-        }
+        let currentIdx = 0;
 
         function speakText(text) {
             synth.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-            const voice = getChineseVoice();
-            if (voice) utterance.voice = voice;
+            utterance.lang = 'zh-TW';
             utterance.rate = 0.8; 
             synth.speak(utterance);
         }
 
         function init() {
-            const COL_SIZE = 7;
             xuanjiData.forEach((char, i) => {
-                const r = Math.floor(i / COL_SIZE);
-                const c = i % COL_SIZE;
                 const div = document.createElement('div');
                 div.className = 'cell';
+                div.id = 'cell-' + i;
                 div.innerText = char;
                 
-                // 視覺強化：對角線或首尾著色
-                if (c === 0 || c === 6) div.style.color = '#8c2727';
-
+                // 點擊任何格子都會切換下一首詩
                 const triggerAction = () => {
-                    if (lastReadRow !== r) {
-                        showPath(r, COL_SIZE);
-                        lastReadRow = r;
-                    }
+                    showPoem();
                 };
 
+                div.onclick = triggerAction;
                 div.onmouseenter = triggerAction;
                 div.ontouchstart = (e) => {
                     e.preventDefault();
@@ -190,31 +161,42 @@
                 };
                 matrix.appendChild(div);
             });
+
+            // 初始顯示第一首
+            setTimeout(showPoem, 300);
         }
 
-        function showPath(row, colSize) {
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
-            const cells = document.querySelectorAll('.cell');
-            let text = "";
+        function showPoem() {
+            const poemText = poems[currentIdx];
             
-            cells.forEach((cell, i) => {
-                const r = Math.floor(i / colSize);
-                if (r === row) {
-                    cell.classList.add('highlight-active');
-                    text += cell.innerText;
+            // 更新下方文字顯示 (確保一字不漏)
+            output.innerHTML = `「${poemText}」`;
+            
+            // 清除所有高亮
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
+
+            // 語音播放
+            speakText(poemText);
+
+            // 核心16字高亮邏輯
+            // 由於前16字是核心，我們簡單讓前16個格子的顏色閃動
+            const pureChars = poemText.replace(/[，；。！]/g, '');
+            [...pureChars].forEach((char, i) => {
+                // 這裡我們簡化處理：只要是出現在詩中的字，對應格子就閃爍
+                const gridIdx = xuanjiData.indexOf(char);
+                if(gridIdx !== -1) {
+                    setTimeout(() => {
+                        const cell = document.getElementById('cell-' + gridIdx);
+                        if(cell) cell.classList.add('highlight-active');
+                    }, i * 50);
                 }
             });
 
-            output.innerHTML = `<span class="text-yellow-400">「</span>${text}<span class="text-yellow-400">」</span> <i class="fa fa-rss animate-pulse audio-wave"></i>`;
-            speakText(text);
+            // 指向下一首
+            currentIdx = (currentIdx + 1) % poems.length;
         }
 
-        // 激活音訊
-        document.body.addEventListener('touchstart', () => {
-            synth.speak(new SpeechSynthesisUtterance(''));
-            voiceStatus.innerText = "音訊通道已激活";
-        }, { once: true });
-
+        // 啟動
         init();
     </script>
 </body>
