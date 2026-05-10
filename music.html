@@ -1,12 +1,13 @@
 
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <title>ZEN Nokia Pro - PowerShell Edition</title>
     <style>
         :root { 
             --nokia-green: #9ead86;
@@ -31,6 +32,8 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 20px 30px 60px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center; padding: 20px; border: 4px solid #a1a5af;
             z-index: 50; transform: scale(0.9); position: relative;
+
+            transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
         }
         .screen-frame {
             width: 180px; height: 140px; background: #222; border-radius: 12px;
@@ -117,7 +120,7 @@
         <div class="btn" onclick="toggleGame()">5<span>游戏</span></div>
         <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>
         
-        <div class="btn">7</div>
+<div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>
         <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>
         <div class="btn">9</div>
         
@@ -403,6 +406,41 @@ function stopAll() {
     stopMusic(); // <-- 新增这一行
     [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
 }
+
+
+// --- 换壳逻辑 ---
+const phoneSkins = [
+    { bg: '#d1d5db', border: '#a1a5af', btn: '#eee' }, // 经典银
+    { bg: '#222', border: '#444', btn: '#333' },    // 酷炫黑
+    { bg: '#e94560', border: '#a01a30', btn: '#ffccd5' }, // 樱花红
+    { bg: '#0f3460', border: '#0a213d', btn: '#1a1a2e' }, // 深海蓝
+    { bg: '#ffb400', border: '#cc9000', btn: '#fff4cc' }  // 黄色特仕版
+];
+let skinIndex = 0;
+
+function changePhoneSkin() {
+    if(!isPowered) return;
+    
+    skinIndex = (skinIndex + 1) % phoneSkins.length;
+    const skin = phoneSkins[skinIndex];
+    
+    // 修改手机壳颜色
+    phone.style.background = skin.bg;
+    phone.style.borderColor = skin.border;
+    
+    // 修改所有按钮的背景颜色
+    const btns = document.querySelectorAll('.btn');
+    btns.forEach(btn => {
+        // 如果是特殊颜色按键（如ON/OFF）则跳过，或者统一换色
+        if(!btn.style.background || btn.style.background.includes('rgb(238, 238, 238)') || btn.style.background === 'eee') {
+            btn.style.background = skin.btn;
+        }
+    });
+
+    showCatSpeech("新手机壳好看喵？");
+}
+
+
     
 </script>
 </body>
