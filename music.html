@@ -8,6 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <title>ZEN Nokia Pro - PowerShell Edition</title>
     <style>
         :root { 
             --nokia-green: #9ead86;
@@ -88,6 +89,23 @@
             .phone { transform: scale(0.85); margin-top: -20px; }
             #live2d-widget { transform: scale(0.6); right: -30px !important; bottom: -20px !important; }
         }
+
+
+
+#cryptoPanel {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--nokia-green); color: var(--nokia-dark);
+    display: none; flex-direction: column; padding: 5px; box-sizing: border-box;
+    font-size: 9px; font-family: 'Press Start 2P', cursive; /* 引用你已有的复古字体 */
+    z-index: 15;
+}
+.crypto-item {
+    display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark);
+    margin-bottom: 4px; padding-bottom: 2px;
+}
+.crypto-up { color: #006400; font-weight: bold; }
+.crypto-down { color: #8b0000; font-weight: bold; }
+        
     </style>
 </head>
 <body>
@@ -122,8 +140,7 @@
         
 <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>
         <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>
-        <div class="btn">9</div>
-        
+<div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>        
         <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>
         <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>
         <div class="btn" onclick="resetMode()">#<span>相机</span></div>
@@ -440,6 +457,73 @@ function changePhoneSkin() {
     showCatSpeech("新手机壳好看喵？");
 }
 
+
+
+    // --- 加密货币监控逻辑 ---
+let cryptoInterval;
+
+function toggleCrypto() {
+    if (!isPowered) return;
+    stopAll();
+    currentMode = 'crypto';
+    
+    // 创建或获取加密面板
+    let panel = document.getElementById('cryptoPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'cryptoPanel';
+        document.querySelector('.lcd').appendChild(panel);
+    }
+    panel.style.display = 'flex';
+    panel.innerHTML = "FETCHING DATA...";
+    
+    fetchCryptoData();
+    cryptoInterval = setInterval(fetchCryptoData, 10000); // 每 10 秒刷新一次
+}
+
+async function fetchCryptoData() {
+    const panel = document.getElementById('cryptoPanel');
+    if (currentMode !== 'crypto') return;
+
+    try {
+        // 使用 Binance 公开 API（无需 API Key）
+        const response = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
+        const data = await response.json();
+        
+        panel.innerHTML = '<div style="font-size:7px; margin-bottom:5px; border-bottom:1px solid">CRYPTO MARKET</div>';
+        
+        data.forEach(coin => {
+            const symbol = coin.symbol.replace('USDT', '');
+            const price = parseFloat(coin.lastPrice).toFixed(symbol === 'SOL' ? 2 : 1);
+            const change = parseFloat(coin.priceChangePercent).toFixed(1);
+            const colorClass = change >= 0 ? 'crypto-up' : 'crypto-down';
+            const arrow = change >= 0 ? '▲' : '▼';
+
+            panel.innerHTML += `
+                <div class="crypto-item">
+                    <span>${symbol}</span>
+                    <span>$${price}</span>
+                    <span class="${colorClass}">${arrow}${Math.abs(change)}%</span>
+                </div>
+            `;
+        });
+        panel.innerHTML += '<div style="font-size:6px; margin-top:5px; opacity:0.6">AUTO-REFRESH: 10S</div>';
+        
+    } catch (e) {
+        panel.innerHTML = "NETWORK ERROR喵";
+    }
+}
+
+// 修改已有的 stopAll 函数，增加停止加密监控的逻辑
+function stopAll() {
+    stopGame();
+    stopCamera();
+    stopMusic();
+    if (cryptoInterval) clearInterval(cryptoInterval); // <-- 新增
+    const cp = document.getElementById('cryptoPanel');
+    if (cp) cp.style.display = 'none'; // <-- 新增
+    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+}
 
     
 </script>
