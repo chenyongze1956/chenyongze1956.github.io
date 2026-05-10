@@ -10,6 +10,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <title>ZEN Nokia Pro - PowerShell Edition</title>
     <style>
+
+#animeBox {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; display: none; z-index: 12;
+}
+#animeBox iframe { width: 100%; height: 100%; border: none; }
+/* 模拟诺基亚低分屏看视频的颗粒感 */
+.lcd-scanline {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+    background-size: 100% 2px; pointer-events: none; z-index: 13;
+}
+
+
+        
         :root { 
             --nokia-green: #9ead86;
             --nokia-dark: #222b16;
@@ -132,8 +147,7 @@
         
         <div class="btn" onclick="openUrl()">1<span>网址</span></div>
         <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>
-        <div class="btn">3</div>
-        
+<div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        
         <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>
         <div class="btn" onclick="toggleGame()">5<span>游戏</span></div>
         <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>
@@ -525,6 +539,48 @@ function stopAll() {
     [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
 }
 
+
+
+
+    // --- 动漫频道逻辑 ---
+function toggleAnime() {
+    if (!isPowered) return;
+    stopAll();
+    currentMode = 'anime';
+
+    let box = document.getElementById('animeBox');
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'animeBox';
+        // 这里推荐一个 24小时不间断的 YouTube 直播 ID（例如 24小时动画轮播）
+        // 如果你有具体的 m3u8 地址，可以换成 <video> 标签
+        box.innerHTML = `
+            <div class="lcd-scanline"></div>
+            <iframe src="https://www.youtube.com/embed/live_stream?channel=UC77X9UoKg9W89S6uYmPndA&autoplay=1&mute=0" 
+                    allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        `;
+        document.querySelector('.lcd').appendChild(box);
+    }
+    box.style.display = 'block';
+    showCatSpeech("正在为您调台到动漫频道喵！");
+}
+
+// 修改 stopAll 增加关闭动漫的逻辑
+function stopAll() {
+    stopGame();
+    stopCamera();
+    stopMusic();
+    if (cryptoInterval) clearInterval(cryptoInterval);
+    
+    // 隐藏所有面板
+    const cp = document.getElementById('cryptoPanel');
+    if (cp) cp.style.display = 'none';
+    
+    const ab = document.getElementById('animeBox');
+    if (ab) ab.style.display = 'none'; // <-- 新增
+    
+    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+}
     
 </script>
 </body>
