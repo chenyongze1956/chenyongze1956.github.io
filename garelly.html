@@ -1,250 +1,223 @@
 
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<!DOCTYPE html><html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Movie Explorer Pro</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         :root { --primary: #e94560; --tomato: #ff6347; --popcorn: #ffb400; }
-        body { margin: 0; padding: 0; min-height: 100vh;  background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);  font-family: 'Segoe UI', system-ui, sans-serif; display: flex; align-items: center; justify-content: center; color: #fff; overflow-x: hidden; }
+        body { margin: 0; padding: 0; min-height: 100vh; background: #0f0f1e; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; display: flex; align-items: center; justify-content: center; color: #fff; overflow-x: hidden; }
         
-        /* 动态背景 */
-        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; background-position: center; filter: blur(40px) brightness(0.3); transform: scale(1.1); transition: 1.5s; }
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background-size: cover; background-position: center; filter: blur(35px) brightness(0.25); transition: 1.5s; }
         
-        .container { width: 92%; max-width: 500px; background: rgba(15, 15, 30, 0.75); backdrop-filter: blur(20px); padding: 25px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.6); z-index: 10; margin: 20px 0; }
-        
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        input[type="text"] { flex: 1; padding: 15px; border-radius: 15px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-size: 1rem; outline: none; }
-        button { padding: 0 20px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .container { width: 95%; max-width: 480px; background: rgba(25, 25, 40, 0.85); backdrop-filter: blur(25px); padding: 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); margin: 15px 0; box-shadow: 0 20px 60px rgba(0,0,0,0.8); z-index: 10; }
 
-        #resultArea { display: none; animation: fadeIn 0.8s ease; text-align: left; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* 金句區塊 */
+        .quote-box { position: relative; padding: 25px 20px; background: linear-gradient(135deg, rgba(233,69,96,0.15), rgba(255,255,255,0.05)); border-radius: 20px; margin: 15px 0; border: 1px solid rgba(233,69,96,0.2); }
+        .quote-box::before { content: '“'; position: absolute; top: -5px; left: 10px; font-size: 4rem; color: var(--primary); opacity: 0.2; font-family: serif; }
 
-        /* 金句卡片样式 */
-        .quote-card {
-            position: relative;
-            margin: 20px 0;
-            padding: 35px 20px;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            display: none;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-        }
-        .quote-bg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            filter: brightness(0.4) blur(1px);
-            opacity: 0.7;
-            z-index: 1;
-        }
-        .quote-content { position: relative; z-index: 2; text-align: center; }
-        .quote-text {
-            font-size: 1.15rem;
-            line-height: 1.6;
-            color: #fff;
-            font-family: "STKaiti", "KaiTi", serif;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-            margin-bottom: 15px;
-            display: block;
-        }
-        .quote-line { width: 40px; height: 2px; background: var(--primary); margin: 0 auto 12px; }
-        .quote-author { font-size: 0.7rem; color: var(--popcorn); letter-spacing: 2px; opacity: 0.9; }
+        /* 點播按鈕 */
+        .play-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 15px 0; }
+        .play-btn { font-size: 0.7rem; padding: 10px 5px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; color: white; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .play-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
 
-        /* 其他原有组件样式 */
-        .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; margin: 15px 0; background: #000; display: none; }
-        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-        .comparison-card { display: flex; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 15px; margin: 15px 0; justify-content: space-around; }
-        .score-item { text-align: center; }
-        .score-val { font-size: 1.4rem; font-weight: 900; display: block; }
-        .score-label { font-size: 0.6rem; color: #aaa; }
-        .desc { font-size: 0.85rem; color: #ddd; line-height: 1.5; max-height: 80px; overflow-y: auto; margin: 15px 0; }
-        
-        .cast-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
-        .cast-item { flex: 0 0 65px; text-align: center; font-size: 0.65rem; }
-        .cast-img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); margin-bottom: 5px; }
-        
-        .link-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
-        .link-btn { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.75rem; color: white; text-decoration: none; text-align: center; }
+        /* 演員抽屜 & 遮罩 */
+        #drawerOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; }
+        .drawer { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #161625; border-radius: 24px 24px 0 0; z-index: 1100; padding: 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; border-top: 1px solid rgba(255,255,255,0.1); }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        /* 溯源层 */
-        #actorModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; padding: 40px 20px; backdrop-filter: blur(15px); overflow-y: auto; }
-        .work-item { display: flex; align-items: center; gap: 15px; margin-bottom: 12px; background: rgba(255,255,255,0.08); padding: 10px; border-radius: 15px; }
-        .work-img { width: 45px; height: 65px; border-radius: 8px; object-fit: cover; }
+        /* 膠片模板 (隱藏) */
+        #snapshotZone { background: #fff; padding: 15px 15px 40px 15px; width: 340px; position: fixed; left: -2000px; color: #111; }
+        .snap-poster { width: 100%; height: 450px; object-fit: cover; border-radius: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .snap-quote { font-family: "STKaiti", "KaiTi", serif; font-size: 1rem; color: #666; margin: 20px 0 10px; border-left: 3px solid #e94560; padding-left: 12px; line-height: 1.4; }
+        .snap-note { font-family: "STKaiti", "KaiTi", serif; font-size: 1.2rem; font-weight: bold; color: #000; line-height: 1.5; min-height: 50px; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
     <div class="bg-overlay" id="bgOverlay"></div>
-    
+
     <div class="container">
-        <h2 style="margin-top:0; letter-spacing: 2px;">🎬 MOVIE <span style="color:var(--primary)">EXPLORER</span></h2>
-        <div class="search-box">
-            <input type="text" id="keywordInput" placeholder="搜索影视、动漫...">
-            <button id="searchBtn">搜索</button>
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="keywordInput" class="flex-1 bg-white/10 p-3 rounded-xl outline-none text-sm border border-white/5" placeholder="搜索影視、動漫...">
+            <button id="searchBtn" class="bg-[#e94560] px-6 rounded-xl font-bold shadow-lg shadow-red-900/20">搜索</button>
         </div>
 
-        <div id="resultArea">
-            <div id="movieMeta" style="font-size: 0.8rem; color: var(--primary); font-weight: bold;"></div>
-            <h1 id="mTitle" style="margin: 5px 0; font-size: 1.6rem;"></h1>
-            
-            <!-- 预告片 -->
-            <div id="videoWrapper" class="video-wrapper">
-                <iframe id="trailerFrame" src="" allowfullscreen></iframe>
+        <div id="resultArea" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h1 id="mTitle" class="text-2xl font-bold mb-1"></h1>
+            <div id="mMeta" class="text-[10px] text-white/40 tracking-widest uppercase mb-4"></div>
+
+            <div id="videoBox" class="rounded-2xl overflow-hidden mb-4 hidden aspect-video shadow-2xl">
+                <iframe id="trailerFrame" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
             </div>
 
-            <!-- 金句卡片 -->
-            <div id="quoteCard" class="quote-card">
-                <div id="quoteBg" class="quote-bg"></div>
-                <div class="quote-content">
-                    <div class="quote-line"></div>
-                    <span id="quoteText" class="quote-text"></span>
-                    <div id="quoteAuthor" class="quote-author"></div>
-                </div>
+            <div id="quoteArea" class="quote-box">
+                <p id="quoteContent" class="text-sm italic leading-relaxed text-white/90"></p>
+                <div id="quoteAuthor" class="text-right text-[10px] text-[#e94560] mt-3 font-bold"></div>
             </div>
 
-            <!-- 评分栏 -->
-            <div class="comparison-card">
-                <div class="score-item">
-                    <span style="font-size:1.5rem">🍅</span>
-                    <span id="criticsScore" class="score-val" style="color:var(--tomato)">--%</span>
-                    <span class="score-label">烂番茄度</span>
-                </div>
-                <div class="score-item">
-                    <span style="font-size:1.5rem">🍿</span>
-                    <span id="audienceScore" class="score-val" style="color:var(--popcorn)">--%</span>
-                    <span class="score-label">爆米花指数</span>
-                </div>
+            <div class="play-bar">
+                <a id="linkYT" target="_blank" class="play-btn"><i class="fa fa-youtube-play text-red-500 text-lg"></i>YouTube</a>
+                <a id="linkBili" target="_blank" class="play-btn"><i class="fa fa-television text-blue-400 text-lg"></i>B站</a>
+                <a id="linkIQ" target="_blank" class="play-btn"><i class="fa fa-play-circle text-green-500 text-lg"></i>愛奇藝</a>
+                <a id="linkTX" target="_blank" class="play-btn"><i class="fa fa-vimeo text-blue-500 text-lg"></i>騰訊</a>
+                <a id="linkDB" target="_blank" class="play-btn"><i class="fa fa-book text-green-700 text-lg"></i>豆瓣</a>
+                <a id="linkNF" target="_blank" class="play-btn"><i class="fa fa-film text-red-700 text-lg"></i>Netflix</a>
             </div>
 
-            <p id="mDesc" class="desc"></p>
-            
-            <div style="font-size: 0.8rem; margin: 15px 0 8px; color: #aaa;">🌟 领衔主演 (点击查看代表作)</div>
-            <div class="cast-scroll" id="castList"></div>
-
-            <div class="link-bar">
-                <a id="dbLink" target="_blank" class="link-btn" style="background:#00b51e;">豆瓣</a>
-                <a id="rtLink" target="_blank" class="link-btn" style="background:#fa320a;">烂番茄</a>
-                <a id="ytLink" target="_blank" class="link-btn">YouTube</a>
+            <div class="bg-white/5 p-4 rounded-2xl mb-4 border border-white/10">
+                <textarea id="userNote" class="w-full bg-transparent text-sm outline-none resize-none placeholder:text-white/20" rows="2" placeholder="這一刻的觀影感悟..."></textarea>
+                <button id="saveSnapBtn" class="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl text-xs font-bold mt-2 transition-all"><i class="fa fa-camera mr-2"></i> 生成膠片快照</button>
             </div>
+
+            <div class="flex justify-around bg-white/5 py-4 rounded-2xl mb-4 border border-white/5">
+                <div class="text-center"><span id="score1" class="text-lg font-black text-red-500">--</span><span class="text-[8px] block opacity-30 uppercase tracking-tighter">Tomato</span></div>
+                <div class="text-center"><span id="score2" class="text-lg font-black text-yellow-500">--</span><span class="text-[8px] block opacity-30 uppercase tracking-tighter">Popcorn</span></div>
+                <div class="text-center"><span id="score3" class="text-lg font-black text-blue-400">--</span><span class="text-[8px] block opacity-30 uppercase tracking-tighter">TMDB</span></div>
+            </div>
+
+            <div class="text-xs text-white/30 mb-3 ml-1 uppercase tracking-widest">Cast & Works</div>
+            <div id="castList" class="flex gap-4 overflow-x-auto no-scrollbar pb-2"></div>
         </div>
     </div>
 
-    <!-- 演员溯源模态框 -->
-    <div id="actorModal">
-        <div style="max-width: 450px; margin: 0 auto;">
-            <button style="background:var(--primary); border:none; color:#fff; padding:10px 20px; border-radius:10px; margin-bottom:20px;" onclick="document.getElementById('actorModal').style.display='none'">关闭</button>
-            <h2 id="actorName" style="color:var(--primary); margin:0 0 20px 0;"></h2>
-            <div id="actorWorksList"></div>
+    <div id="drawerOverlay" onclick="closeDrawer()"></div>
+    <div id="actorDrawer" class="drawer">
+        <div class="w-12 h-1 bg-white/20 mx-auto mb-6 rounded-full cursor-pointer" onclick="closeDrawer()"></div>
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="actorName" class="text-xl font-bold text-[#e94560]"></h2>
+            <button onclick="closeDrawer()" class="bg-white/10 px-4 py-1 rounded-full text-xs">關閉</button>
         </div>
+        <div id="actorWorks" class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+    </div>
+
+    <div id="snapshotZone">
+        <img id="snapPoster" class="snap-poster" src="">
+        <div id="snapQuote" class="snap-quote"></div>
+        <div id="snapNote" class="snap-note"></div>
+        <div id="snapDate" style="text-align:right; font-size:0.65rem; color:#bbb; margin-top:15px;"></div>
     </div>
 
 <script>
-    const TMDB_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
-    const kwInput = document.getElementById('keywordInput');
-    const searchBtn = document.getElementById('searchBtn');
+    const API_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
+    const kwIn = document.getElementById('keywordInput');
 
-    kwInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchBtn.click(); });
+    // 搜索回車監聽
+    kwIn.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('searchBtn').click(); });
 
-    searchBtn.onclick = async () => {
-        const kw = kwInput.value.trim();
-        if (!kw) return;
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(kw)}&language=zh-CN`);
-            const data = await res.json();
-            if (data.results?.length > 0) showResult(data.results[0]);
-        } catch(e) { alert("搜索失败"); }
+    document.getElementById('searchBtn').onclick = async () => {
+        const query = kwIn.value.trim();
+        if(!query) return;
+        const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=zh-CN`);
+        const data = await res.json();
+        if(data.results?.[0]) showMovie(data.results[0]);
     };
 
-    async function showResult(item) {
+    async function showMovie(item) {
         const type = item.media_type || (item.title ? 'movie' : 'tv');
-        const detailRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}?api_key=${TMDB_KEY}&language=zh-CN`);
-        const detail = await detailRes.json();
+        const res = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}?api_key=${API_KEY}&language=zh-CN&append_to_response=videos,credits`);
+        const movie = await res.json();
 
-        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('resultArea').classList.remove('hidden');
+        document.getElementById('mTitle').innerText = movie.title || movie.name;
+        document.getElementById('mMeta').innerText = `${(movie.release_date || movie.first_air_date || '').split('-')[0]} / ${movie.genres.map(g=>g.name).join(' · ')}`;
         
-        // 背景与标题
-        if (detail.backdrop_path) {
-            document.getElementById('bgOverlay').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${detail.backdrop_path})`;
-        }
+        if(movie.backdrop_path) document.getElementById('bgOverlay').style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
 
-        document.getElementById('mTitle').innerText = detail.title || detail.name;
-        document.getElementById('movieMeta').innerText = `${(detail.release_date || detail.first_air_date || '').split('-')[0]} · ${detail.genres?.map(g => g.name).slice(0,2).join('/')}`;
-        document.getElementById('mDesc').innerText = detail.overview || "暂无简介。";
+        // 金句處理
+        const goldenQuote = movie.overview ? (movie.overview.split(/[。！？]/)[0] + "。") : "暫無簡介";
+        document.getElementById('quoteContent').innerText = goldenQuote;
+        document.getElementById('quoteAuthor').innerText = `—— 《${movie.title || movie.name}》`;
 
-        // 评分模拟逻辑
-        const rawScore = detail.vote_average * 10;
-        document.getElementById('criticsScore').innerText = Math.round(rawScore + (Math.random()*8-4)) + "%";
-        document.getElementById('audienceScore').innerText = Math.round(rawScore + (Math.random()*12-2)) + "%";
+        // 點播鏈接
+        const t = movie.title || movie.name;
+        document.getElementById('linkYT').href = `https://www.youtube.com/results?search_query=${t}+official+trailer`;
+        document.getElementById('linkBili').href = `https://search.bilibili.com/all?keyword=${t}`;
+        document.getElementById('linkIQ').href = `https://so.iqiyi.com/so/q_${t}`;
+        document.getElementById('linkTX').href = `https://v.qq.com/x/search/?q=${t}`;
+        document.getElementById('linkDB').href = `https://www.douban.com/search?q=${t}`;
+        document.getElementById('linkNF').href = `https://www.netflix.com/search?q=${t}`;
 
-        // --- 金句功能实现 ---
-        const quoteCard = document.getElementById('quoteCard');
-        if (detail.overview && detail.overview.length > 10) {
-            const firstSentence = detail.overview.split(/[。！？]/)[0];
-            document.getElementById('quoteText').innerText = `“ ${firstSentence} ”`;
-            document.getElementById('quoteAuthor').innerText = `—— 《${detail.title || detail.name}》`;
-            if (detail.backdrop_path) {
-                document.getElementById('quoteBg').style.backgroundImage = `url(https://image.tmdb.org/t/p/w500${detail.backdrop_path})`;
-            }
-            quoteCard.style.display = 'block';
-        } else {
-            quoteCard.style.display = 'none';
-        }
-
-        // 预告片逻辑
-        document.getElementById('videoWrapper').style.display = 'none';
-        const vRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/videos?api_key=${TMDB_KEY}`);
-        const vData = await vRes.json();
-        const trailer = vData.results.find(v => v.site === 'YouTube' && v.type === 'Trailer');
-        if (trailer) {
-            document.getElementById('videoWrapper').style.display = 'block';
+        // 預告片
+        const trailer = movie.videos.results.find(v => v.type === 'Trailer');
+        const vBox = document.getElementById('videoBox');
+        if(trailer) {
+            vBox.classList.remove('hidden');
             document.getElementById('trailerFrame').src = `https://www.youtube.com/embed/${trailer.key}`;
-        }
+        } else { vBox.classList.add('hidden'); }
 
-        // 演员列表
-        const creditsRes = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}/credits?api_key=${TMDB_KEY}&language=zh-CN`);
-        const creditsData = await creditsRes.json();
-        const castList = document.getElementById('castList');
-        castList.innerHTML = '';
-        creditsData.cast.slice(0, 8).forEach(p => {
+        // 評分
+        document.getElementById('score1').innerText = Math.round(movie.vote_average * 10 + 2) + "%";
+        document.getElementById('score2').innerText = Math.round(movie.vote_average * 10 - 4) + "%";
+        document.getElementById('score3').innerText = movie.vote_average.toFixed(1);
+
+        // 演員
+        const castArea = document.getElementById('castList');
+        castArea.innerHTML = '';
+        movie.credits.cast.slice(0, 10).forEach(c => {
+            if(!c.profile_path) return;
             const div = document.createElement('div');
-            div.className = 'cast-item';
-            div.style.cursor = 'pointer';
-            div.onclick = () => fetchActorHistory(p.id, p.name);
-            div.innerHTML = `<img src="${p.profile_path ? 'https://image.tmdb.org/t/p/w200'+p.profile_path : 'https://via.placeholder.com/60'}" class="cast-img"><div>${p.name}</div>`;
-            castList.appendChild(div);
+            div.className = 'flex-shrink-0 text-center w-14 cursor-pointer active:scale-90 transition-transform';
+            div.onclick = () => openActor(c.id, c.name);
+            div.innerHTML = `<img src="https://image.tmdb.org/t/p/w200${c.profile_path}" class="w-14 h-14 rounded-full object-cover mb-1 border-2 border-white/10 shadow-lg shadow-black/50"><div class="text-[8px] truncate opacity-60">${c.name}</div>`;
+            castArea.appendChild(div);
         });
 
-        // 外部链接
-        document.getElementById('dbLink').href = `https://www.douban.com/search?q=${encodeURIComponent(detail.title || detail.name)}`;
-        document.getElementById('rtLink').href = `https://www.rottentomatoes.com/search?search=${encodeURIComponent(detail.title || detail.name)}`;
-        document.getElementById('ytLink').href = `https://www.youtube.com/results?search_query=${encodeURIComponent((detail.title || detail.name) + " trailer")}`;
+        // 快照數據準備
+        document.getElementById('snapPoster').src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+        document.getElementById('snapQuote').innerText = `“ ${goldenQuote} ”`;
+        document.getElementById('snapDate').innerText = `${new Date().toLocaleDateString()} / ${movie.title || movie.name}`;
     }
 
-    async function fetchActorHistory(personId, name) {
-        const modal = document.getElementById('actorModal');
-        const list = document.getElementById('actorWorksList');
-        document.getElementById('actorName').innerText = `${name} 代表作`;
-        modal.style.display = 'block';
-        list.innerHTML = '检索中...';
+    async function openActor(id, name) {
+        const drawer = document.getElementById('actorDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        const worksArea = document.getElementById('actorWorks');
+        document.getElementById('actorName').innerText = name;
+        
+        drawer.style.display = 'block';
+        overlay.style.display = 'block';
+        worksArea.innerHTML = '<div class="col-span-2 text-center py-20 opacity-30 text-xs">作品集加載中...</div>';
 
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/person/${personId}/combined_credits?api_key=${TMDB_KEY}&language=zh-CN`);
-            const data = await res.json();
-            const bestWorks = data.cast.sort((a, b) => b.popularity - a.popularity).slice(0, 8);
-            list.innerHTML = bestWorks.map(m => `
-                <div class="work-item">
-                    <img class="work-img" src="${m.poster_path ? 'https://image.tmdb.org/t/p/w200'+m.poster_path : 'https://via.placeholder.com/50'}">
-                    <div>
-                        <div style="font-weight:bold;">${m.title || m.name}</div>
-                        <div style="font-size:0.7rem; color:#aaa;">${(m.release_date || m.first_air_date || '').split('-')[0]} · 评分: ${m.vote_average.toFixed(1)}</div>
-                    </div>
+        const res = await fetch(`https://api.themoviedb.org/3/person/${id}/combined_credits?api_key=${API_KEY}&language=zh-CN`);
+        const data = await res.json();
+        const top = data.cast.sort((a,b) => b.vote_count - a.vote_count).slice(0, 10);
+        
+        worksArea.innerHTML = top.map(w => `
+            <div class="bg-white/5 p-2 rounded-xl flex gap-3 items-center border border-white/5">
+                <img src="${w.poster_path ? 'https://image.tmdb.org/t/p/w200'+w.poster_path : 'https://via.placeholder.com/40x60'}" class="w-10 h-14 rounded object-cover shadow-md">
+                <div class="overflow-hidden">
+                    <div class="text-[10px] font-bold truncate text-white/90">${w.title || w.name}</div>
+                    <div class="text-[8px] opacity-30 mt-1">${(w.release_date || w.first_air_date || '----').split('-')[0]}</div>
                 </div>
-            `).join('');
-        } catch(e) { list.innerHTML = '溯源失败。'; }
+            </div>
+        `).join('');
     }
+
+    function closeDrawer() {
+        document.getElementById('actorDrawer').style.display = 'none';
+        document.getElementById('drawerOverlay').style.display = 'none';
+    }
+
+    document.getElementById('saveSnapBtn').onclick = function() {
+        const zone = document.getElementById('snapshotZone');
+        const note = document.getElementById('userNote').value || "未語，心已動。";
+        document.getElementById('snapNote').innerText = note;
+        
+        const btn = this;
+        btn.innerText = "正在渲染...";
+        btn.disabled = true;
+
+        html2canvas(zone, { useCORS: true, scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `CineMoment-${document.getElementById('mTitle').innerText}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            btn.innerHTML = '<i class="fa fa-camera mr-2"></i> 生成膠片快照';
+            btn.disabled = false;
+        });
+    };
 </script>
-</body>
-</html>
+</body></html>
