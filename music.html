@@ -1,36 +1,22 @@
 
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <title>ZEN Nokia Pro - PowerShell Edition</title>
+    <title>ZEN Nokia Pro - Nyan Edition</title>
     <style>
 
-#animeBox {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; display: none; z-index: 12;
+@media screen and (max-width: 360px) {
+    .phone {
+        transform: scale(0.7);
+        margin-top: -50px;
+    }
 }
-#animeBox iframe { width: 100%; height: 100%; border: none; }
-/* 模拟诺基亚低分屏看视频的颗粒感 */
-.lcd-scanline {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-    background-size: 100% 2px; pointer-events: none; z-index: 13;
-}
-
 
         
-        :root { 
-            --nokia-green: #9ead86;
-            --nokia-dark: #222b16;
-            --qq-blue: #0099ff;
-            --ps-blue: #012456;
-        }
-
+        :root { --nokia-green: #9ead86; --nokia-dark: #222b16; --qq-blue: #0099ff; --ps-blue: #012456; }
         html, body { height: 100%; margin: 0; overflow: hidden; background: #222; }
         body {
             background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
@@ -41,95 +27,68 @@
             touch-action: manipulation;
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-
+        
+        /* 手机外壳 */
         .phone {
             width: 260px; height: 500px; background: #d1d5db; border-radius: 40px 40px 100px 100px;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 20px 30px 60px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center; padding: 20px; border: 4px solid #a1a5af;
             z-index: 50; transform: scale(0.9); position: relative;
-
-            transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+            transition: background 0.5s ease, border-color 0.5s ease;
         }
         .screen-frame {
             width: 180px; height: 140px; background: #222; border-radius: 12px;
             display: flex; justify-content: center; align-items: center; border: 4px solid #333; position: relative;
         }
-        .lcd {
-            width: 150px; height: 110px; background: #111; position: relative; overflow: hidden;
-            transition: background 1.5s ease;
-        }
+        .lcd { width: 150px; height: 110px; background: #111; position: relative; overflow: hidden; transition: background 1.5s ease; }
         .phone.powered-on .lcd { background: var(--nokia-green); }
 
-        /* 扫描线特效 */
-        .pixel-cam-active::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 2px; pointer-events: none; z-index: 10;
-        }
-
-        #nokiaIframe, #snakeCanvas, #psTerminal { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; 
-        }
+        /* 各种显示面板 */
+        #nokiaIframe, #snakeCanvas, #psTerminal, #animeBox { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; }
+        #animeBox { background: #000; z-index: 12; }
+        .lcd-scanline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.15) 50%); background-size: 100% 2px; pointer-events: none; z-index: 13; }
         .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.2); opacity: 0.7; }
         .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; }
-        .phone.powered-on #psTerminal.active { 
-            display: block; background: var(--ps-blue) !important; color: #fff; 
-            padding: 5px; font-size: 8px; font-family: monospace; z-index: 10; overflow-y: auto; 
-        }
-
+        .phone.powered-on #psTerminal.active { display: block; background: var(--ps-blue) !important; color: #fff; padding: 5px; font-size: 8px; font-family: monospace; z-index: 10; overflow-y: auto; }
+        
+        .pixel-cam-active::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 2px; pointer-events: none; z-index: 10; }
         .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; }
         .phone.booting .boot-text { display: block; animation: flicker 0.5s infinite; }
         @keyframes flicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
+        /* 按键 */
         .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .btn {
-            width: 60px; height: 40px; background: #eee; border-radius: 10px;
-            box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px;
-        }
+        .btn { width: 60px; height: 40px; background: #eee; border-radius: 10px; box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px; }
         .btn span { font-size: 7px; color: #888; margin-top: 2px; }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; 
+                    
+                            
+                    function playVibration() {
+    if (navigator.vibrate) {
+        navigator.vibrate(50); // 震动 50 毫秒
+    }
+}
+                    
+                    }
 
-        #live2d-widget { z-index: 99999 !important; }
-        .qq-panel {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 90%; max-width: 400px; height: 70vh; background: #fff; z-index: 10000;
-            border-radius: 8px; display: flex; flex-direction: column; transition: 0.3s; opacity: 0;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.5); border: 1px solid #ccc;
-        }
+        /* QQ 面板 */
+        .qq-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 90%; max-width: 400px; height: 70vh; background: #fff; z-index: 10000; border-radius: 8px; display: flex; flex-direction: column; transition: 0.3s; opacity: 0; box-shadow: 0 10px 50px rgba(0,0,0,0.5); border: 1px solid #ccc; }
         .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        
-        @media screen and (max-width: 480px) {
-            .phone { transform: scale(0.85); margin-top: -20px; }
-            #live2d-widget { transform: scale(0.6); right: -30px !important; bottom: -20px !important; }
-        }
 
-
-
-#cryptoPanel {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--nokia-green); color: var(--nokia-dark);
-    display: none; flex-direction: column; padding: 5px; box-sizing: border-box;
-    font-size: 9px; font-family: 'Press Start 2P', cursive; /* 引用你已有的复古字体 */
-    z-index: 15;
-}
-.crypto-item {
-    display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark);
-    margin-bottom: 4px; padding-bottom: 2px;
-}
-.crypto-up { color: #006400; font-weight: bold; }
-.crypto-down { color: #8b0000; font-weight: bold; }
-        
+        /* 加密货币面板 */
+        #cryptoPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--nokia-green); color: var(--nokia-dark); display: none; flex-direction: column; padding: 5px; box-sizing: border-box; font-size: 9px; font-family: 'Press Start 2P', cursive; z-index: 15; }
+        .crypto-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark); margin-bottom: 4px; padding-bottom: 2px; }
+        .crypto-up { color: #006400; font-weight: bold; }
+        .crypto-down { color: #8b0000; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="phone" id="nokiaPhone">
-    <div class="brand" style="font-size:10px; color:#888; margin-bottom:5px;"></div>
     <div class="screen-frame" id="sFrame">
         <div class="lcd">
             <div class="boot-text">HIJIKI</div>
-            <iframe src="http://192.168.0.102:8080" id="nokiaIframe" class="active"></iframe>
+            <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>
             <canvas id="snakeCanvas" width="150" height="110"></canvas>
             <div id="psTerminal">
                 <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v3.0</div>
@@ -143,17 +102,15 @@
         <div class="btn" style="background:#cfd8dc;" onclick="powerOn()">ON/OFF</div>
         <div class="btn" style="background:#cfd8dc;" onclick="toggleQQ()">扣扣</div>
         <div class="btn" style="background:#cfd8dc;" onclick="location.reload()">↺</div>
-        
         <div class="btn" onclick="openUrl()">1<span>网址</span></div>
         <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>
-<div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        
+        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>
         <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>
         <div class="btn" onclick="toggleGame()">5<span>游戏</span></div>
         <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>
-        
-<div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>
+        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>
         <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>
-<div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>        
+        <div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>
         <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>
         <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>
         <div class="btn" onclick="resetMode()">#<span>相机</span></div>
@@ -184,6 +141,9 @@
     const ctx = canvas.getContext('2d');
     
     let isPowered = false, currentMode = 'web', videoStream = null;
+    let gLoop, musicInterval, cryptoInterval, nyanInterval;
+    let audio = new Audio('https://www.joy127.com/url/148587.mp3');
+    let isPlaying = false;
 
     function powerOn() {
         if(!isPowered) {
@@ -202,18 +162,24 @@
     }
 
     function stopAll() {
-        stopGame();
-        stopCamera();
+        clearInterval(gLoop);
+        clearInterval(musicInterval);
+        clearInterval(cryptoInterval);
+        clearInterval(nyanInterval);
+        audio.pause(); audio.currentTime = 0; isPlaying = false;
+        if(videoStream) { videoStream.getTracks().forEach(t=>t.stop()); videoStream = null; }
+        document.getElementById('sFrame').classList.remove('pixel-cam-active');
+        const cp = document.getElementById('cryptoPanel'); if(cp) cp.style.display = 'none';
+        const ab = document.getElementById('animeBox'); if(ab) ab.style.display = 'none';
         [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
     }
 
     // --- 终端逻辑 ---
     const commands = {
-        'help': 'ls: 查看文件\nwhoami: 用户名\ncat secrets.txt: 秘密\nclear: 清屏\nsnake: 启动游戏\ncamera: 开启相机\nexit: 关闭终端',
-        'ls': 'Mode  Name\n----  ----\n-a--  apps.exe\n-a--  cat_pic.png\n-a--  secrets.txt',
+        'help': 'ls: 查看文件\nnyancat: 启动彩虹猫\nwhoami: 用户名\ncat secrets.txt: 秘密\nclear: 清屏\nsnake: 游戏\ncamera: 相机\nexit: 退出',
+        'ls': 'Mode  Name\n----  ----\n-a--  apps.exe\n-a--  nyancat.sh\n-a--  secrets.txt',
         'whoami': 'root_cat_hijiki',
-        'cat secrets.txt': '秘密是：其实我是一只AI猫喵！',
-        'date': () => new Date().toLocaleTimeString()
+        'cat secrets.txt': '其实我是一只AI猫喵！'
     };
 
     function toggleTerminal() {
@@ -225,50 +191,82 @@
     }
 
     function handleTerminalInput() {
+        if(currentMode !== 'term') return;
         const cmd = prompt("PowerShell (输入 help 查看命令):");
         if (!cmd) return;
         const log = document.getElementById('psLog');
         const cleanCmd = cmd.toLowerCase().trim();
         log.innerHTML += `\nPS C:\\Hijiki> ${cmd}`;
-        let output = "";
-        if (commands[cleanCmd]) {
-            output = typeof commands[cleanCmd] === 'function' ? commands[cleanCmd]() : commands[cleanCmd];
+        
+        if (cleanCmd === 'nyancat') {
+            startNyanCat();
+            return;
         } else if (cleanCmd === 'clear') {
             log.innerHTML = "";
-        } else if (cleanCmd === 'snake') {
-            toggleGame(); return;
-        } else if (cleanCmd === 'camera') {
-            toggleCamera(); return;
+        } else if (commands[cleanCmd]) {
+            log.innerHTML += `\n${commands[cleanCmd]}`;
         } else if (cleanCmd === 'exit') {
             resetMode(); return;
         } else {
-            output = `'${cmd}' 不是内部或外部命令。`;
+            log.innerHTML += `\n'${cmd}' 未识别命令。`;
         }
-        if(output) log.innerHTML += `\n${output}`;
         terminal.scrollTop = terminal.scrollHeight;
         setTimeout(handleTerminalInput, 500);
     }
 
-    // --- 像素相机逻辑 ---
+    // --- Nyancat 彩虹猫核心代码 ---
+    function startNyanCat() {
+        stopAll();
+        currentMode = 'nyan';
+        canvas.classList.add('active');
+        showCatSpeech("Nyan Nyan Nyan Nyan!");
+        let frame = 0;
+        const colors = ['#ff0000', '#ff9900', '#ffff00', '#33ff00', '#0099ff', '#6633ff'];
+        
+        nyanInterval = setInterval(() => {
+            ctx.fillStyle = "#014482"; // 背景深蓝
+            ctx.fillRect(0, 0, 150, 110);
+            
+            // 绘制星星
+            ctx.fillStyle = "#fff";
+            for(let i=0; i<6; i++) {
+                let s = (frame + i*20) % 150;
+                ctx.fillRect(150 - s, (i*20)%110, 2, 2);
+            }
+
+            // 绘制彩虹
+            const wave = Math.sin(frame * 0.5) * 5;
+            colors.forEach((c, i) => {
+                ctx.fillStyle = c;
+                ctx.fillRect(0, 40 + wave + (i*4), 80, 4);
+            });
+
+            // 绘制像素猫 (极简版)
+            ctx.fillStyle = "#ffcc99"; // 饼干体
+            ctx.fillRect(80, 42 + wave, 25, 18);
+            ctx.fillStyle = "#ff99ff"; // 内馅
+            ctx.fillRect(83, 45 + wave, 19, 12);
+            ctx.fillStyle = "#333";    // 头和腿
+            ctx.fillRect(100, 48 + wave, 10, 10); // 头
+            ctx.fillRect(102, 45 + wave, 2, 3);   // 耳
+            ctx.fillRect(107, 45 + wave, 2, 3);   // 耳
+            
+            frame += 5;
+        }, 100);
+    }
+
+    // --- 像素相机 ---
     async function toggleCamera() {
         if(!isPowered) return;
         stopAll();
         currentMode = 'camera';
         canvas.classList.add('active');
         document.getElementById('sFrame').classList.add('pixel-cam-active');
-
         try {
             videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
             video.srcObject = videoStream;
-            video.onloadedmetadata = () => {
-                video.play();
-                drawPixel();
-            };
-            showCatSpeech("赛博相机开启喵！");
-        } catch (e) { 
-            alert("无摄像头权限喵"); 
-            resetMode(); 
-        }
+            video.onloadedmetadata = () => { video.play(); drawPixel(); };
+        } catch (e) { alert("无摄像头权限喵"); resetMode(); }
     }
 
     function drawPixel() {
@@ -276,29 +274,19 @@
         ctx.drawImage(video, 0, 0, 150, 110);
         const data = ctx.getImageData(0, 0, 150, 110).data;
         ctx.fillStyle = "#9ead86"; ctx.fillRect(0,0,150,110);
-        const size = 4;
-        for(let y=0; y<110; y+=size) {
-            for(let x=0; x<150; x+=size) {
+        for(let y=0; y<110; y+=4) {
+            for(let x=0; x<150; x+=4) {
                 const i = (y*150 + x)*4;
                 const avg = (data[i]+data[i+1]+data[i+2])/3;
-                let c = avg < 128 ? 40 : 160;
-                ctx.fillStyle = `rgb(${c-20},${c},${c-50})`;
-                ctx.fillRect(x,y,size,size);
+                ctx.fillStyle = avg < 128 ? "#222b16" : "#8ca075";
+                ctx.fillRect(x,y,3,3);
             }
         }
         requestAnimationFrame(drawPixel);
     }
 
-    function stopCamera() { 
-        if(videoStream) {
-            videoStream.getTracks().forEach(t=>t.stop());
-            videoStream = null;
-        }
-        document.getElementById('sFrame').classList.remove('pixel-cam-active'); 
-    }
-
     // --- 贪吃蛇 ---
-    let snake, food, dir, gLoop;
+    let snake, food, dir;
     function toggleGame() {
         if(!isPowered) return;
         stopAll();
@@ -318,45 +306,95 @@
             ctx.fillRect(food.x, food.y, 9, 9);
         }, 150);
     }
-    function stopGame() { clearInterval(gLoop); }
     function snakeMove(d) { dir = d; }
 
-    // --- 修复后的 resetMode ---
     function resetMode() {
         if(!isPowered) return;
-        
-        // 如果当前是相机，就退回 Web 主页
-        if (currentMode === 'camera') {
-            stopAll();
-            currentMode = 'web';
-            iframe.classList.add('active');
-            showCatSpeech("已退回主页喵~");
-        } 
-        // 如果当前在其他模式，点击 # 键直接进相机
-        else {
-            toggleCamera();
-        }
+        if (currentMode === 'camera') { stopAll(); currentMode = 'web'; iframe.classList.add('active'); }
+        else { toggleCamera(); }
     }
 
     function openUrl() {
-        const u = prompt("输入网址", "http://");
+        const u = prompt("输入网址", "https://");
         if(u) { stopAll(); iframe.src = u; iframe.classList.add('active'); currentMode = 'web';}
     }
 
-    // --- AI 逻辑 ---
-    const API_KEY = 'sk-29e9cc216a944dd2a5f518ace2d4d65a';
+    // --- 音乐 ---
+    function toggleMusic() {
+        if (!isPowered) return;
+        if (isPlaying) { stopMusic(); } 
+        else {
+            stopAll(); currentMode = 'music'; canvas.classList.add('active');
+            audio.play(); isPlaying = true;
+            musicInterval = setInterval(() => {
+                ctx.fillStyle = "#9ead86"; ctx.fillRect(0, 0, 150, 110);
+                ctx.fillStyle = "#222b16";
+                for (let i = 0; i < 15; i++) {
+                    const h = Math.random() * 80;
+                    ctx.fillRect(i * 10 + 2, 90 - h, 6, h);
+                }
+                ctx.fillText("♫ 8-BIT BEAT", 20, 105);
+            }, 100);
+        }
+    }
+    function stopMusic() { audio.pause(); audio.currentTime = 0; isPlaying = false; clearInterval(musicInterval); }
+
+    // --- 换壳 ---
+    const phoneSkins = [{ bg: '#d1d5db', border: '#a1a5af' }, { bg: '#222', border: '#444' }, { bg: '#e94560', border: '#a01a30' }, { bg: '#0f3460', border: '#0a213d' }];
+    let skinIndex = 0;
+    function changePhoneSkin() {
+        skinIndex = (skinIndex + 1) % phoneSkins.length;
+        phone.style.background = phoneSkins[skinIndex].bg;
+        phone.style.borderColor = phoneSkins[skinIndex].border;
+    }
+
+    // --- 加密货币 ---
+    function toggleCrypto() {
+        if (!isPowered) return;
+        stopAll(); currentMode = 'crypto';
+        let panel = document.getElementById('cryptoPanel') || (() => {
+            let p = document.createElement('div'); p.id = 'cryptoPanel';
+            document.querySelector('.lcd').appendChild(p); return p;
+        })();
+        panel.style.display = 'flex';
+        const fetchC = async () => {
+            try {
+                const r = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
+                const data = await r.json();
+                panel.innerHTML = '<div style="border-bottom:1px solid">CRYPTO</div>';
+                data.forEach(c => {
+                    panel.innerHTML += `<div class="crypto-item"><span>${c.symbol.replace('USDT','')}</span><span>$${parseFloat(c.lastPrice).toFixed(1)}</span></div>`;
+                });
+            } catch(e) { panel.innerHTML = "网络错误"; }
+        };
+        fetchC(); cryptoInterval = setInterval(fetchC, 10000);
+    }
+
+    // --- 动漫 ---
+    function toggleAnime() {
+        if (!isPowered) return;
+        stopAll(); currentMode = 'anime';
+        let box = document.getElementById('animeBox') || (() => {
+            let b = document.createElement('div'); b.id = 'animeBox';
+            b.innerHTML = `<div class="lcd-scanline"></div><iframe width="100%" height="100%" src="https://www.youtube.com/embed/24Yuzq3DQk0" frameborder="0" allow="autoplay" allowfullscreen></iframe>`;
+            document.querySelector('.lcd').appendChild(b); return b;
+        })();
+        box.style.display = 'block';
+    }
+
+    // --- AI & QQ ---
     async function askAI(t) {
         const box = document.getElementById('msgBox');
-        box.innerHTML += `<div style="margin-bottom:8px;"><b>我:</b> ${t}</div>`;
+        box.innerHTML += `<div><b>我:</b> ${t}</div>`;
         try {
             const r = await fetch('https://api.deepseek.com/chat/completions', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}`},
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer sk-29e9cc216a944dd2a5f518ace2d4d65a`},
                 body: JSON.stringify({model: "deepseek-chat", messages: [{role:"system", content:"你是Hijiki猫喵。"}, {role:"user", content:t}]})
             });
             const d = await r.json();
             const reply = d.choices[0].message.content;
-            box.innerHTML += `<div style="margin-bottom:8px; color:red;"><b>猫:</b> ${reply}</div>`;
+            box.innerHTML += `<div style="color:red;"><b>猫:</b> ${reply}</div>`;
             box.scrollTop = box.scrollHeight;
             showCatSpeech(reply);
         } catch(e) { showCatSpeech("断网了喵..."); }
@@ -369,217 +407,7 @@
         window.speechSynthesis.speak(new SpeechSynthesisUtterance(t));
     }
 
-    L2Dwidget.init({
-        "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json", "scale": 1 },
-        "display": { "position": "right", "width": 140, "height": 260, "hOffset": 0, "vOffset": -10 },
-        "dialog": { "enable": true }
-    });
-
-
-
-// --- 音乐播放逻辑 ---
-let audio = new Audio('https://www.joy127.com/url/148587.mp3'); // 你可以换成任何 8-bit 音乐链接
-let isPlaying = false;
-let musicInterval;
-
-function toggleMusic() {
-    if (!isPowered) return;
-    
-    if (isPlaying) {
-        stopMusic();
-        showCatSpeech("音乐停了喵~");
-    } else {
-        stopAll(); // 切换模式时关闭其他功能
-        currentMode = 'music';
-        canvas.classList.add('active');
-        audio.play();
-        isPlaying = true;
-        showCatSpeech("来点 8-bit 摇滚喵！");
-        startMusicVisual();
-    }
-}
-
-function stopMusic() {
-    audio.pause();
-    audio.currentTime = 0;
-    isPlaying = false;
-    clearInterval(musicInterval);
-    if (currentMode === 'music') {
-        canvas.classList.remove('active');
-    }
-}
-
-// 简单的像素频谱动画
-function startMusicVisual() {
-    musicInterval = setInterval(() => {
-        if (currentMode !== 'music') return;
-        
-        ctx.fillStyle = "#9ead86"; // 诺基亚绿底色
-        ctx.fillRect(0, 0, 150, 110);
-        
-        ctx.fillStyle = "#222b16"; // 深色像素
-        for (let i = 0; i < 15; i++) {
-            const h = Math.random() * 80;
-            // 绘制跳动的音量条
-            ctx.fillRect(i * 10 + 2, 90 - h, 6, h);
-        }
-        
-        // 绘制一个旋转的磁带或音符占位符
-        ctx.fillText("♫ NOW PLAYING", 20, 105);
-    }, 100);
-}
-
-// 别忘了在 stopAll() 函数里加入停止音乐的逻辑
-function stopAll() {
-    stopGame();
-    stopCamera();
-    stopMusic(); // <-- 新增这一行
-    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
-}
-
-
-// --- 换壳逻辑 ---
-const phoneSkins = [
-    { bg: '#d1d5db', border: '#a1a5af', btn: '#eee' }, // 经典银
-    { bg: '#222', border: '#444', btn: '#333' },    // 酷炫黑
-    { bg: '#e94560', border: '#a01a30', btn: '#ffccd5' }, // 樱花红
-    { bg: '#0f3460', border: '#0a213d', btn: '#1a1a2e' }, // 深海蓝
-    { bg: '#ffb400', border: '#cc9000', btn: '#fff4cc' }  // 黄色特仕版
-];
-let skinIndex = 0;
-
-function changePhoneSkin() {
-    if(!isPowered) return;
-    
-    skinIndex = (skinIndex + 1) % phoneSkins.length;
-    const skin = phoneSkins[skinIndex];
-    
-    // 修改手机壳颜色
-    phone.style.background = skin.bg;
-    phone.style.borderColor = skin.border;
-    
-    // 修改所有按钮的背景颜色
-    const btns = document.querySelectorAll('.btn');
-    btns.forEach(btn => {
-        // 如果是特殊颜色按键（如ON/OFF）则跳过，或者统一换色
-        if(!btn.style.background || btn.style.background.includes('rgb(238, 238, 238)') || btn.style.background === 'eee') {
-            btn.style.background = skin.btn;
-        }
-    });
-
-    showCatSpeech("新手机壳好看喵？");
-}
-
-
-
-    // --- 加密货币监控逻辑 ---
-let cryptoInterval;
-
-function toggleCrypto() {
-    if (!isPowered) return;
-    stopAll();
-    currentMode = 'crypto';
-    
-    // 创建或获取加密面板
-    let panel = document.getElementById('cryptoPanel');
-    if (!panel) {
-        panel = document.createElement('div');
-        panel.id = 'cryptoPanel';
-        document.querySelector('.lcd').appendChild(panel);
-    }
-    panel.style.display = 'flex';
-    panel.innerHTML = "FETCHING DATA...";
-    
-    fetchCryptoData();
-    cryptoInterval = setInterval(fetchCryptoData, 10000); // 每 10 秒刷新一次
-}
-
-async function fetchCryptoData() {
-    const panel = document.getElementById('cryptoPanel');
-    if (currentMode !== 'crypto') return;
-
-    try {
-        // 使用 Binance 公开 API（无需 API Key）
-        const response = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbols=["BTCUSDT","ETHUSDT","SOLUSDT"]');
-        const data = await response.json();
-        
-        panel.innerHTML = '<div style="font-size:7px; margin-bottom:5px; border-bottom:1px solid">CRYPTO MARKET</div>';
-        
-        data.forEach(coin => {
-            const symbol = coin.symbol.replace('USDT', '');
-            const price = parseFloat(coin.lastPrice).toFixed(symbol === 'SOL' ? 2 : 1);
-            const change = parseFloat(coin.priceChangePercent).toFixed(1);
-            const colorClass = change >= 0 ? 'crypto-up' : 'crypto-down';
-            const arrow = change >= 0 ? '▲' : '▼';
-
-            panel.innerHTML += `
-                <div class="crypto-item">
-                    <span>${symbol}</span>
-                    <span>$${price}</span>
-                    <span class="${colorClass}">${arrow}${Math.abs(change)}%</span>
-                </div>
-            `;
-        });
-        panel.innerHTML += '<div style="font-size:6px; margin-top:5px; opacity:0.6">AUTO-REFRESH: 10S</div>';
-        
-    } catch (e) {
-        panel.innerHTML = "NETWORK ERROR喵";
-    }
-}
-
-// 修改已有的 stopAll 函数，增加停止加密监控的逻辑
-function stopAll() {
-    stopGame();
-    stopCamera();
-    stopMusic();
-    if (cryptoInterval) clearInterval(cryptoInterval); // <-- 新增
-    const cp = document.getElementById('cryptoPanel');
-    if (cp) cp.style.display = 'none'; // <-- 新增
-    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
-}
-
-
-
-
-    // --- 动漫频道逻辑 ---
-function toggleAnime() {
-    if (!isPowered) return;
-    stopAll();
-    currentMode = 'anime';
-
-    let box = document.getElementById('animeBox');
-    if (!box) {
-        box = document.createElement('div');
-        box.id = 'animeBox';
-        // 这里推荐一个 24小时不间断的 YouTube 直播 ID（例如 24小时动画轮播）
-        // 如果你有具体的 m3u8 地址，可以换成 <video> 标签
-        box.innerHTML = `
-            <div class="lcd-scanline"></div>
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/24Yuzq3DQk0?si=4-Qx5ipEj5ToR9H4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-        `;
-        document.querySelector('.lcd').appendChild(box);
-    }
-    box.style.display = 'block';
-    showCatSpeech("正在为您调台到动漫频道喵！");
-}
-
-// 修改 stopAll 增加关闭动漫的逻辑
-function stopAll() {
-    stopGame();
-    stopCamera();
-    stopMusic();
-    if (cryptoInterval) clearInterval(cryptoInterval);
-    
-    // 隐藏所有面板
-    const cp = document.getElementById('cryptoPanel');
-    if (cp) cp.style.display = 'none';
-    
-    const ab = document.getElementById('animeBox');
-    if (ab) ab.style.display = 'none'; // <-- 新增
-    
-    [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
-}
-    
+    L2Dwidget.init({ "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json" }, "display": { "position": "right", "width": 100, "height": 200 }, "dialog": { "enable": true } });
 </script>
 </body>
 </html>
