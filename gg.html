@@ -6,199 +6,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
     <style>
-        /* 核心变量定义 */
         :root {
-            --ink: #3a2e24;       /* 书墨色 */
-            --paper: #f4e9d4;     /* 宣纸色 */
-            --blood: #b72d2d;     /* 朱砂红 */
-            --gold: #c5a059;      /* 描金色 */
-            --totem-opacity: 0.1; /* 图腾初始透明度 */
+            --ink: #3a2e24;
+            --paper: #f4e9d4;
+            --blood: #b72d2d;
+            --gold: #c5a059;
+            --totem-opacity: 0.12;
         }
 
-
-    
-
-
-        /* 基础样式 reset */
         body {
-            margin: 0;
-   background: linear-gradient(135deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);            color: var(--ink);
+            margin: 0;   
+   background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);    
+            color: var(--ink);
             font-family: 'PingFang SC', "Microsoft YaHei", serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            padding: 15px 0;
         }
 
-        /* 宣纸/羊皮纸容器 */
+        /* 宣纸容器 */
         .container {
             width: 95%;
-            max-width: 650px;
+            max-width: 600px;
             background-color: var(--paper);
             background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
-            padding: clamp(20px, 5vw, 40px);
-            box-shadow: 0 25px 70px rgba(0,0,0,0.6), inset 0 0 80px rgba(139, 69, 19, 0.15);
+            padding: 20px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
             border: 1px solid #d2c1a5;
             position: relative;
-            border-radius: 2px;
-            filter: sepia(0.1);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
 
-        /* 顶部标题设计 */
         .header {
             text-align: center;
             border-bottom: 2px double var(--gold);
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
         }
-
         .title {
             font-family: 'Zhi Mang Xing', cursive;
-            font-size: clamp(2rem, 8vw, 3rem);
+            font-size: 2.6rem;
             color: var(--blood);
-            margin: 5px 0;
-            text-shadow: 0 0 10px rgba(183, 45, 45, 0.2);
+            margin: 0;
         }
 
-        .subtitle {
-            font-size: 0.8rem;
-            letter-spacing: 3px;
-            opacity: 0.7;
-            text-transform: uppercase;
-        }
-
-        /* 泊宫卡片网格 */
         .bogong-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 20px;
         }
-
         .card {
             background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(139, 69, 19, 0.2);
-            padding: 15px 5px;
+            border: 1px solid rgba(139, 69, 19, 0.15);
+            padding: 10px 2px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 4px;
+            border-radius: 2px;
         }
+        .card.active { background: var(--blood); color: white; }
+        .star-main { font-family: 'Zhi Mang Xing'; font-size: 1.4rem; }
+        .star-sub { font-size: 0.7rem; color: var(--gold); }
 
-        .card:hover {
-            border-color: var(--gold);
-            transform: translateY(-2px);
-        }
-
-        .card.active {
-            background: var(--blood);
-            border-color: var(--blood);
-            color: white;
-            box-shadow: 0 5px 20px rgba(183, 45, 45, 0.4);
-            transform: translateY(-5px);
-        }
-
-        .star-main { font-family: 'Zhi Mang Xing'; font-size: 1.8rem; margin: 5px 0; }
-        .star-sub { font-size: 1rem; color: var(--gold); }
-        .card.active .star-sub { color: white; opacity: 0.8; }
-        .card-label { font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px; }
-
-        /* 中央展示区：重点修改 */
+        /* 展示面板 - 修复读取问题的核心 */
         .display-panel {
             width: 100%;
-            min-height: 380px;
+            height: 420px; 
             border: 1px inset rgba(139, 69, 19, 0.1);
-            padding: 30px;
-            box-sizing: border-box;
-            position: relative; /* 关键：为了定位图腾 */
+            position: relative;
+            /* 开启双向滚动能力 */
+            overflow: auto; 
+            background: rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
-        /* 古代图腾图层 */
+        /* 动画底层图腾 */
         .totem-layer {
             position: absolute;
-            width: 80%;
+            width: 280px;
+            height: 280px;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1.2s;
+            pointer-events: none;
+        }
+        .totem-layer.active { opacity: var(--totem-opacity); }
+
+        /* 文字内容盒 */
+        .oracle-box {
+            writing-mode: vertical-rl; /* 竖排模式 */
             height: 80%;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1; /* 在文字下方 */
-            opacity: 0;
-            transition: opacity 1s ease-in-out, transform 1s ease-in-out;
-            transform: scale(1.1) rotate(-5deg);
-            pointer-events: none; /* 穿透点击 */
-            filter: blur(0.5px); /* 模拟墨迹边缘 */
-        }
-
-        /* 图腾显现状态 */
-        .totem-layer.active {
-            opacity: var(--totem-opacity);
-            transform: scale(1) rotate(0deg);
-        }
-
-        /* SVG 图腾样式 */
-        .totem-svg {
-            width: 100%;
-            height: 100%;
-            fill: none;
-            stroke: var(--ink); /* 使用墨色描边 */
-            stroke-width: 1.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        /* 解码文字盒 */
-        .oracle-box {
-            writing-mode: vertical-rl; /* 电脑端默认竖排 */
-            text-orientation: mixed;
-            display: flex;
             flex-direction: row;
-            z-index: 2; /* 在图腾上方 */
-            height: 350px;
+            z-index: 2;
+            padding: 20px 40px; /* 增加左右内边距，确保最右边的字不贴边 */
         }
 
-        /* 文字行样式 */
         .oracle-line {
             font-family: 'Ma Shan Zheng', serif;
-            font-size: clamp(1.2rem, 5vw, 1.6rem);
+            font-size: 1.5rem;
             line-height: 2.2;
-            margin-left: 20px;
+            margin-left: 25px; /* 行间距 */
             opacity: 0;
-            transform: translateX(20px);
-            transition: all 0.8s ease;
-            color: var(--ink);
-            white-space: nowrap;
+            transform: translateX(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap; /* 强制单行竖排 */
         }
+        .active-line { opacity: 1; transform: translateX(0); }
+        .highlight { color: var(--blood); font-weight: bold; }
 
-        .active-line {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        /* 滚动条美化 */
+        .display-panel::-webkit-scrollbar { width: 6px; height: 6px; }
+        .display-panel::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
-        /* 强调词：使用朱砂红 */
-        .highlight { color: var(--blood); }
-
-        /* 手机端适配：泊宫卡片变两行，文字恢复横排 */
+        /* 针对手机/窄屏的终极优化 */
         @media (max-width: 768px) {
-            .bogong-grid { grid-template-columns: repeat(2, 1fr); }
-            
+            .display-panel {
+                height: auto;
+                min-height: 350px;
+                padding: 20px 10px;
+            }
             .oracle-box {
-                writing-mode: horizontal-tb; /* 手机端恢复横排 */
+                writing-mode: horizontal-tb; /* 手机端切换为标准横排，解决无法读取问题 */
                 flex-direction: column;
                 height: auto;
-                text-align: center;
+                width: 100%;
+                padding: 10px;
             }
             .oracle-line {
                 margin-left: 0;
-                margin-bottom: 15px;
-                transform: translateY(10px);
-                white-space: normal;
+                margin-bottom: 18px;
+                white-space: normal; /* 允许换行 */
+                text-align: left;
+                transform: translateY(15px);
+                font-size: 1.2rem;
             }
             .active-line { transform: translateY(0); }
+            .bogong-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -206,7 +156,7 @@
 
 <div class="container">
     <div class="header">
-        <div class="subtitle">戊辰年十一月初十 · 坤造</div>
+        <div class="subtitle">【格局：白虎衔刀】</div>
         <h1 class="title">演禽通纂</h1>
     </div>
 
@@ -214,104 +164,97 @@
         <div class="card" onclick="decode('left_sub', this)">
             <div class="card-label">左辅 (气象)</div>
             <div class="star-main">娄犴</div>
-            <div class="star-sub">娄岸</div>
+            <div class="star-sub">动中求财</div>
         </div>
-        
         <div class="card active" onclick="decode('main', this)">
-            <div class="card-label">正印 (命元)</div>
+            <div class="card-label">命元 (正印)</div>
             <div class="star-main">女燕</div>
-            <div class="star-sub">女刀</div>
+            <div class="star-sub">权威衔刀</div>
         </div>
-
         <div class="card" onclick="decode('guest', this)">
             <div class="card-label">外缘 (客将)</div>
             <div class="star-main">翼蛇</div>
-            <div class="star-sub">翼月</div>
+            <div class="star-sub">折腾起运</div>
         </div>
-
         <div class="card" onclick="decode('right_sub', this)">
             <div class="card-label">右弼 (根基)</div>
             <div class="star-main">昴鸡</div>
-            <div class="star-sub">昴草</div>
+            <div class="star-sub">傲骨权威</div>
         </div>
     </div>
 
     <div class="display-panel">
-        <div id="totemDisplay" class="totem-layer active">
-            <svg class="totem-svg" viewBox="0 0 100 100">
-                <path d="M50,20 C60,30 80,40 90,40 C80,50 60,60 50,70 C40,60 20,50 10,40 C20,40 40,30 50,20 Z" stroke-width="2"/> <path d="M50,70 L50,90 M40,85 L50,90 L60,85" stroke-width="1.5"/> <path d="M30,35 A20,20 0 0,0 15,25 M70,35 A20,20 0 0,1 85,25" stroke-width="1"/> </svg>
-        </div>
-
-        <div id="oracleOutput" class="oracle-box">
-            </div>
+        <div id="totemDisplay" class="totem-layer active"></div>
+        <div id="oracleOutput" class="oracle-box"></div>
     </div>
-
-
-
-    
 </div>
 
 <script>
-    // 定义 SVG 图腾数据 (内联存储，无需外部图片)
     const totems = {
-        main: `<svg class="totem-svg" viewBox="0 0 100 100"><path d="M50,20 C60,30 80,40 90,40 C80,50 60,60 50,70 C40,60 20,50 10,40 C20,40 40,30 50,20 Z" stroke-width="2"/><path d="M50,70 L50,90 M40,85 L50,90 L60,85" stroke-width="1.5"/><path d="M30,35 A20,20 0 0,0 15,25 M70,35 A20,20 0 0,1 85,25" stroke-width="1"/></svg>`, // 燕
-        left_sub: `<svg class="totem-svg" viewBox="0 0 100 100"><path d="M30,40 A20,25 0 0,1 70,40 L70,70 A20,10 0 0,1 30,70 Z" stroke-width="2"/><path d="M30,45 L15,35 M70,45 L85,35 M50,40 L50,30" stroke-width="1.5"/><path d="M40,70 L35,85 M60,70 L65,85" stroke-width="1.5"/></svg>`, // 犴
-        guest: `<svg class="totem-svg" viewBox="0 0 100 100"><path d="M20,50 C20,30 40,20 50,20 C70,20 80,40 80,60 C80,80 60,90 40,85 C30,80 20,70 20,50 Z" stroke-width="2"/><path d="M50,20 C60,10 80,10 90,20" stroke-width="1.5"/><path d="M35,60 L45,70 M65,60 L55,70" stroke-width="1"/></svg>`, // 蛇
-        right_sub: `<svg class="totem-svg" viewBox="0 0 100 100"><circle cx="50" cy="40" r="15" stroke-width="2"/><path d="M35,40 A30,40 0 0,0 50,80 A30,40 0 0,0 65,40 Z" stroke-width="2"/><path d="M50,25 L50,15 M45,20 L55,20" stroke-width="1.5"/><path d="M35,60 L20,70 M65,60 L80,70" stroke-width="1"/></svg>` // 鸡
+        main: `<svg viewBox="0 0 100 100" fill="none" stroke="#3a2e24" stroke-width="2"><path d="M50,20 C70,30 90,40 90,50 C90,60 70,70 50,80 C30,70 10,60 10,50 C10,40 30,30 50,20 Z"/><path d="M10,50 H90" stroke="#b72d2d" stroke-width="4"/></svg>`,
+        left_sub: `<svg viewBox="0 0 100 100" fill="none" stroke="#3a2e24" stroke-width="2"><path d="M10,10 L90,90 M90,10 L10,90" stroke-dasharray="4"/></svg>`,
+        guest: `<svg viewBox="0 0 100 100" fill="none" stroke="#3a2e24" stroke-width="2"><path d="M20,50 Q50,0 80,50 T20,100"/></svg>`,
+        right_sub: `<svg viewBox="0 0 100 100" fill="none" stroke="#3a2e24" stroke-width="2"><circle cx="50" cy="40" r="15"/><path d="M50,25 V10 M40,15 H60"/></svg>`
     };
 
-    // 演禽通纂断语数据
     const dataset = {
         main: [
-            "主星<span class='highlight'>女土蝠</span>，化象海燕。",
-          
+            "格局综评：<span class='highlight'>白虎衔刀·格局</span>",
+            "主星女燕入命，化象为海燕衔刀，凌厉果决。",
+            "古籍云：此格主肃杀之气，巾帼不让须眉。",
+            "骨子里有极强的掌控欲与成事之志，是不折不扣的行动派。",
+            "早年虽经风浪，然‘刀’锋已出，中晚年必成权威之象。"
         ],
         left_sub: [
-            "副将<span class='highlight'>娄金犴</span>，禀金气之烈。",
-          
+            "气象解读：<span class='highlight'>动中求财 · 愈折愈强</span>",
+            "主星入野，生机全在一个‘行’字。",
+            "你属于典型的‘劳碌见财’，越是折腾、越往外走，财运越旺。",
+            "莫要守在一处，远方、异地或变动频繁的行业才是你的宝库。",
+            "每一次环境的转换，都是你利禄翻倍的契机。"
         ],
         guest: [
-            "客将<span class='highlight'>翼火蛇</span>，化象为龙。",
-           
+            "外缘客将：<span class='highlight'>翼火蛇 · 借势而为</span>",
+            "外环境变幻如蛇，虽然波折，但贵人多潜伏其中。",
+            "善于在动荡中捕捉先机，是你在社交中的天赋。",
+            "翼蛇主飞行，预示你的事业版图常有跨越式的跳跃发展。",
+            "保持敏锐，顺势而动，则天下无不可成之事。"
         ],
         right_sub: [
-            "副将<span class='highlight'>昴日鸡</span>，日精之气。",
-            
+            "心性本原：<span class='highlight'>昴日鸡 · 骨子里的高傲</span>",
+            "昴日鸡为日之精，天生自备一股<span class='highlight'>硬气</span>与不凡。",
+            "这种傲气让你在专业领域追求极致，从而成为不可替代的权威。",
+            "虽不善谄媚，但凭真本事立身，自然赢得众人敬畏。",
+            "这种权威感是你立命的根本，也是你最大的魅力所在。"
         ]
     };
 
     function decode(key, el) {
-        // 1. 更新卡片激活状态
         document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
 
-        // 2. 更新图腾展示 (先淡出，更换，再淡入)
         const totemDisplay = document.getElementById('totemDisplay');
         totemDisplay.classList.remove('active');
         
         setTimeout(() => {
             totemDisplay.innerHTML = totems[key];
             totemDisplay.classList.add('active');
-        }, 300); // 等待淡出动画
+        }, 300);
 
-        // 3. 更新解码文字
         const output = document.getElementById('oracleOutput');
-        output.innerHTML = ''; // 清空当前内容
+        output.innerHTML = '';
         
         dataset[key].forEach((text, i) => {
             const p = document.createElement('div');
             p.className = 'oracle-line';
             p.innerHTML = text;
             output.appendChild(p);
-            // 延迟显示动画 (逐行浮现)
+            // 延迟浮现
             setTimeout(() => p.classList.add('active-line'), i * 350);
         });
 
-        // 4. 震动反馈 (移动端手感)
         if (navigator.vibrate) navigator.vibrate(15);
     }
 
-    // 页面加载完成自动初始化显示“主将”
     window.onload = () => {
         decode('main', document.querySelector('.card.active'));
     };
