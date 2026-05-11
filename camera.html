@@ -1,49 +1,74 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Face Tracker (Stable Version)</title>
-    <script src="https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AI Face Tracker - Universal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'SF Mono', Monaco, monospace; }
-        .camera-box { position: relative; width: 80vw; max-width: 360px; aspect-ratio: 3/4; border: 2px solid #22d3ee; border-radius: 20px; overflow: hidden; background: #000; box-shadow: 0 0 40px rgba(34, 211, 238, 0.1); }
-        #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        :root { --neon: #22d3ee; --bg: #0f172a; }
+        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, system-ui, sans-serif; }
         
-        #fpp-panel {
-            position: fixed; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.85);
-            border: 1px solid #22d3ee; border-radius: 12px; padding: 15px;
-            color: #22d3ee; font-size: 12px; min-width: 160px; z-index: 50;
-            backdrop-filter: blur(10px); display: none;
+        /* 响应式相机容器 */
+        .camera-box { 
+            position: relative; width: 90vw; max-width: 420px; aspect-ratio: 3/4; 
+            border: 2px solid var(--neon); border-radius: 24px; overflow: hidden; 
+            background: #000; z-index: 10; box-shadow: 0 0 30px rgba(34, 211, 238, 0.15);
+        }
+        #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+        /* 浮动信息面板 */
+        #fpp-panel { 
+            position: fixed; top: 20px; left: 20px; width: 200px; 
+            background: rgba(15, 23, 42, 0.85); border: 1px solid var(--neon); 
+            border-radius: 16px; padding: 15px; color: var(--neon); z-index: 100; 
+            backdrop-filter: blur(10px); display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        @media (max-width: 600px) {
+            #fpp-panel { top: 10px; left: 10px; width: 160px; padding: 10px; font-size: 12px; }
         }
 
         .hud { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            background: rgba(15, 23, 42, 0.95); padding: 20px; border-radius: 16px; 
-            color: #22d3ee; font-size: 11px; z-index: 100; border: 1px solid #22d3ee; 
-            width: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(15, 23, 42, 0.95); padding: 30px; border-radius: 24px; 
+            color: var(--neon); text-align: center; z-index: 200; border: 1px solid var(--neon); width: 280px; 
         }
         
-        #startBtn { margin-top: 15px; width: 100%; padding: 12px; background: #22d3ee; color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        #startBtn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
-        .debug-info { margin-top: 10px; background: #000; padding: 8px; border-radius: 4px; max-height: 140px; overflow-y: auto; color: #94a3b8; line-height: 1.4; border: 1px solid #1e293b; text-align: left;}
+        #startBtn { 
+            margin-top: 20px; width: 100%; padding: 15px; background: var(--neon); 
+            color: #0f172a; border: none; border-radius: 12px; font-weight: bold; 
+            cursor: pointer; transition: all 0.3s;
+        }
+        #startBtn:active { transform: scale(0.95); opacity: 0.8; }
+        
+        .status-tag { font-size: 10px; background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #94a3b8; }
+        #f-oracle { margin-top: 10px; color: #fbbf24; border-top: 1px dashed rgba(34,211,238,0.3); padding-top: 10px; font-size: 11px; }
     </style>
 </head>
 <body>
+
     <div id="fpp-panel">
-        <div style="font-weight:bold; border-bottom:1px solid #22d3ee; margin-bottom:8px; padding-bottom:4px;">FACE++ 实时分析</div>
-        <div>性别: <span id="f-gender">等待检测...</span></div>
-        <div>年龄: <span id="f-age">-</span></div>
-        <div>情绪: <span id="f-emotion">-</span></div>
-        <div style="font-size:9px; color:#64748b; margin-top:8px;">状态: <span id="f-status">初始化中</span></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-weight:bold;">📡 观相定格</span>
+            <span id="api-status" class="status-tag">待机</span>
+        </div>
+        <div style="line-height:1.8;">
+            性别: <span id="f-gender" style="color:#fff">-</span><br>
+            寿元: <span id="f-age" style="color:#fff">-</span><br>
+            心境: <span id="f-emotion" style="color:#fff">-</span>
+        </div>
+        <div id="f-oracle">系统就绪，等待捕获</div>
     </div>
 
-    <div class="hud">
-        <div id="status" style="font-weight: bold; font-size: 14px;">📡 SYSTEM: READY</div>
-        <div class="debug-info" id="debug">请开启 Allow-CORS 插件后点击启动...</div>
-        <button id="startBtn">开启混合追踪引擎</button>
+    <div class="hud" id="main-hud">
+        <div style="font-size:18px; font-weight:bold; margin-bottom:10px;">通用混合追踪引擎</div>
+        <div id="debug-msg" style="font-size:11px; color:#94a3b8; line-height:1.4;">
+            桌面端：请开启 CORS 插件<br>
+            移动端：需在 HTTPS 部署后测试
+        </div>
+        <button id="startBtn">启动 AI 追踪</button>
     </div>
 
     <div class="camera-box">
@@ -52,164 +77,137 @@
     </div>
 
     <script>
-        // 凭据已更新
         const API_KEY = "Hpmt9Yim0zlRYwkhGllCMFkLama9vxNu";
         const API_SECRET = "PhCtY0gKGC6Ys6k80vTdYQ7SVcHvH_o9";
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        const log = (msg) => {
-            const d = document.getElementById('debug');
-            d.innerHTML += `> ${msg}<br>`;
-            d.scrollTop = d.scrollHeight;
-        };
-
         let faceMesh;
         let isActive = false;
-        let lastFppTime = 0;
 
-        // Live2D 初始化
+        // Live2D 适配
         L2Dwidget.init({ 
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": 150, "height": 280 }
+            "display": { "position": "right", "width": isMobile ? 80 : 120, "height": isMobile ? 160 : 240 }
         });
-
-        async function callFacePlusPlus() {
-            if (!isActive) return;
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('captureCanvas');
-            const statusNode = document.getElementById('f-status');
-            
-            if (video.videoWidth === 0) return;
-
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            // 正常绘制画面（不镜像，方便 API 识别）
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // 使用 toDataURL 获取 Base64 字符串（有时比 Blob 在 Localhost 下更稳）
-            const imageData = canvas.toDataURL('image/jpeg', 0.6);
-            
-            // 将 Base64 转换为 Blob
-            fetch(imageData)
-                .then(res => res.blob())
-                .then(blob => {
-                    const formData = new FormData();
-                    formData.append('api_key', API_KEY);
-                    formData.append('api_secret', API_SECRET);
-                    formData.append('image_file', blob);
-                    formData.append('return_attributes', 'gender,age,emotion');
-
-                    statusNode.innerText = "📡 云端分析中...";
-                    
-                    const xhr = new XMLHttpRequest();
-                    // 强制使用 HTTPS 节点
-                    xhr.open('POST', 'https://api-cn.faceplusplus.com/facepp/v3/detect', true);
-
-                    xhr.onload = function() {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            if (xhr.status === 200) {
-                                if (data.faces && data.faces.length > 0) {
-                                    const attrs = data.faces[0].attributes;
-                                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '男' : '女';
-                                    document.getElementById('f-age').innerText = Math.round(attrs.age.value);
-                                    
-                                    const emotion = attrs.emotion;
-                                    const topEmotion = Object.keys(emotion).reduce((a, b) => emotion[a] > emotion[b] ? a : b);
-                                    const emotionMap = {
-                                        sadness: "忧郁", neutral: "淡定", disgust: "厌恶", 
-                                        anger: "生气", surprise: "惊讶", fear: "害怕", happiness: "开心"
-                                    };
-                                    document.getElementById('f-emotion').innerText = emotionMap[topEmotion] || topEmotion;
-                                    statusNode.innerText = "✅ 同步完成";
-                                } else {
-                                    statusNode.innerText = "❓ 未识别到人脸";
-                                }
-                            } else {
-                                statusNode.innerText = "❌ API 报错";
-                                console.error("Face++ 错误:", data.error_message);
-                            }
-                        } catch (e) {
-                            statusNode.innerText = "数据解析失败";
-                        }
-                    };
-
-                    xhr.onerror = () => {
-                        statusNode.innerText = "🚫 请求被拦截";
-                        log("警告：API 请求被拦截，请确认 CORS 插件状态。");
-                    };
-
-                    xhr.send(formData);
-                });
-        }
 
         async function initSystem() {
             const btn = document.getElementById('startBtn');
             const video = document.getElementById('video');
-            const hud = document.querySelector('.hud');
-            
+            const debug = document.getElementById('debug-msg');
             btn.disabled = true;
-            btn.innerText = "引擎初始化中...";
 
             try {
+                // 1. 摄像头参数全平台兼容优化
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480, facingMode: "user" } 
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
                 });
                 video.srcObject = stream;
-                log("✅ 摄像头已授权");
 
+                // 2. 初始化 FaceMesh
                 faceMesh = new FaceMesh({
-                    locateFile: (file) => `https://fastly.jsdelivr.net/npm/@mediapipe/face_mesh/${file.includes('simd') ? file.replace('_simd', '') : file}`
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
                 });
 
-                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5 });
+                faceMesh.setOptions({ 
+                    maxNumFaces: 1, 
+                    refineLandmarks: !isMobile, // 移动端降级以保性能
+                    minDetectionConfidence: 0.6 
+                });
 
                 faceMesh.onResults(results => {
-                    if (results.multiFaceLandmarks?.[0]) {
-                        document.getElementById('status').innerText = "🚀 STATUS: TRACKING";
+                    if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+                        if (!isActive) {
+                            isActive = true;
+                            document.getElementById('fpp-panel').style.display = 'block';
+                            document.getElementById('main-hud').style.display = 'none';
+                            startDataLoop();
+                        }
+                        // 映射头部转动到 Live2D
                         const nose = results.multiFaceLandmarks[0][1];
-                        const x = (0.5 + (0.5 - nose.x) * 2.5) * window.innerWidth;
-                        const y = (0.5 + (nose.y - 0.5) * 2.5) * window.innerHeight;
-                        
+                        const x = (0.5 + (0.5 - nose.x) * 2) * window.innerWidth;
+                        const y = (0.5 + (nose.y - 0.5) * 2) * window.innerHeight;
                         const l2d = document.querySelector('#live2dcanvas');
-                        if (l2d) {
-                            l2d.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
-                        }
-
-                        // 5秒采样一次
-                        const now = Date.now();
-                        if (now - lastFppTime > 5000) {
-                            lastFppTime = now;
-                            callFacePlusPlus();
-                        }
+                        if (l2d) l2d.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
                     }
                 });
 
                 await faceMesh.initialize();
-                log("✨ AI 模型加载成功");
-                
-                isActive = true;
-                document.getElementById('fpp-panel').style.display = 'block';
-
-                setTimeout(() => {
-                    hud.style.opacity = "0";
-                    hud.style.transform = "translate(-50%, -80%) scale(0.9)";
-                    hud.style.pointerEvents = "none";
-                }, 2000);
-                
-                const detectLoop = async () => {
-                    if (isActive && video.readyState >= 2) {
-                        await faceMesh.send({ image: video });
-                    }
-                    requestAnimationFrame(detectLoop);
+                const loop = async () => {
+                    if (video.readyState >= 2) await faceMesh.send({ image: video });
+                    requestAnimationFrame(loop);
                 };
-                detectLoop();
-
-            } catch (e) {
-                log(`❌ 致命错误: ${e.message}`);
+                loop();
+            } catch (err) {
                 btn.disabled = false;
-                btn.innerText = "重新尝试";
+                debug.innerText = "启动失败: 需 HTTPS 环境及摄像头授权";
+            }
+        }
+
+        async function startDataLoop() {
+            if (!isActive) return;
+            await callFacePlusPlus();
+            // 动态调整频率：手机 10s，电脑 8s
+            setTimeout(startDataLoop, isMobile ? 10000 : 8000);
+        }
+
+        async function callFacePlusPlus() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('captureCanvas');
+            const statusTag = document.getElementById('api-status');
+            const oracle = document.getElementById('f-oracle');
+
+            if (video.videoWidth === 0) return;
+
+            statusTag.innerText = "采样中...";
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // 镜像翻转补偿补丁（提高识别率的关键）
+            ctx.save();
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0);
+            ctx.restore();
+            
+            try {
+                const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.8));
+                const formData = new FormData();
+                formData.append('api_key', API_KEY);
+                formData.append('api_secret', API_SECRET);
+                formData.append('image_file', blob);
+                formData.append('return_attributes', 'gender,age,emotion,beauty,skinstatus');
+
+                const response = await fetch('https://api-cn.faceplusplus.com/facepp/v3/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.faces && data.faces[0]) {
+                    const attrs = data.faces[0].attributes;
+                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '乾造' : '坤造';
+                    document.getElementById('f-age').innerText = Math.round(attrs.age.value) + " 载";
+                    
+                    const emoMap = { sadness:'忧虑', neutral:'清静', happiness:'喜乐', anger:'嗔怒', surprise:'惊奇', fear:'恐慌', disgust:'嫌恶' };
+                    const topEmo = Object.keys(attrs.emotion).reduce((a, b) => attrs.emotion[a] > attrs.emotion[b] ? a : b);
+                    document.getElementById('f-emotion').innerText = emoMap[topEmo] || '恬淡';
+
+                    let score = (attrs.beauty.male_score + attrs.beauty.female_score) / 2;
+                    oracle.innerText = score > 70 ? "天庭饱满，格局大开。" : "神气收敛，利于成事。";
+                    statusTag.innerText = "成功";
+                } else {
+                    statusTag.innerText = "无脸";
+                    oracle.innerText = "未捕获真容，请正对镜头。";
+                }
+            } catch (err) {
+                statusTag.innerText = "拦截";
+                oracle.innerText = "跨域受限。请检查插件或 HTTPS 环境。";
             }
         }
 
