@@ -5,16 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <title>ZEN Nokia Pro - Nyan Edition</title>
+    <title>ZEN Nokia Pro - Nyan Matrix Edition</title>
     <style>
-
-@media screen and (max-width: 360px) {
-    .phone {
-        transform: scale(0.7);
-        margin-top: -50px;
-    }
-}
-
+        @media screen and (max-width: 360px) {
+            .phone { transform: scale(0.7); margin-top: -50px; }
+        }
         
         :root { --nokia-green: #9ead86; --nokia-dark: #222b16; --qq-blue: #0099ff; --ps-blue: #012456; }
         html, body { height: 100%; margin: 0; overflow: hidden; background: #222; }
@@ -43,43 +38,25 @@
         .lcd { width: 150px; height: 110px; background: #111; position: relative; overflow: hidden; transition: background 1.5s ease; }
         .phone.powered-on .lcd { background: var(--nokia-green); }
 
-        /* 各种显示面板 */
         #nokiaIframe, #snakeCanvas, #psTerminal, #animeBox { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; }
-        #animeBox { background: #000; z-index: 12; }
-        .lcd-scanline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.15) 50%); background-size: 100% 2px; pointer-events: none; z-index: 13; }
         .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.2); opacity: 0.7; }
         .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; }
         .phone.powered-on #psTerminal.active { display: block; background: var(--ps-blue) !important; color: #fff; padding: 5px; font-size: 8px; font-family: monospace; z-index: 10; overflow-y: auto; }
         
-        .pixel-cam-active::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 1, 0) 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 2px; pointer-events: none; z-index: 10; }
         .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; }
         .phone.booting .boot-text { display: block; animation: flicker 0.5s infinite; }
         @keyframes flicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        /* 按键 */
         .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .btn { width: 60px; height: 40px; background: #eee; border-radius: 10px; box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px; }
         .btn span { font-size: 7px; color: #888; margin-top: 2px; }
-        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; 
-                    
-                            
-                    function playVibration() {
-    if (navigator.vibrate) {
-        navigator.vibrate(50); // 震动 50 毫秒
-    }
-}
-                    
-                    }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; }
 
-        /* QQ 面板 */
         .qq-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 90%; max-width: 400px; height: 70vh; background: #fff; z-index: 10000; border-radius: 8px; display: flex; flex-direction: column; transition: 0.3s; opacity: 0; box-shadow: 0 10px 50px rgba(0,0,0,0.5); border: 1px solid #ccc; }
         .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
-        /* 加密货币面板 */
         #cryptoPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--nokia-green); color: var(--nokia-dark); display: none; flex-direction: column; padding: 5px; box-sizing: border-box; font-size: 9px; font-family: 'Press Start 2P', cursive; z-index: 15; }
         .crypto-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark); margin-bottom: 4px; padding-bottom: 2px; }
-        .crypto-up { color: #006400; font-weight: bold; }
-        .crypto-down { color: #8b0000; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -141,11 +118,17 @@
     const ctx = canvas.getContext('2d');
     
     let isPowered = false, currentMode = 'web', videoStream = null;
-    let gLoop, musicInterval, cryptoInterval, nyanInterval;
+    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval;
     let audio = new Audio('https://www.joy127.com/url/148587.mp3');
     let isPlaying = false;
 
+    // 震动辅助
+    function playVibration() {
+        if (navigator.vibrate) navigator.vibrate(50);
+    }
+
     function powerOn() {
+        playVibration();
         if(!isPowered) {
             phone.classList.add('booting');
             setTimeout(() => {
@@ -166,6 +149,7 @@
         clearInterval(musicInterval);
         clearInterval(cryptoInterval);
         clearInterval(nyanInterval);
+        clearInterval(matrixInterval);
         audio.pause(); audio.currentTime = 0; isPlaying = false;
         if(videoStream) { videoStream.getTracks().forEach(t=>t.stop()); videoStream = null; }
         document.getElementById('sFrame').classList.remove('pixel-cam-active');
@@ -176,14 +160,15 @@
 
     // --- 终端逻辑 ---
     const commands = {
-        'help': 'ls: 查看文件\nnyancat: 启动彩虹猫\nwhoami: 用户名\ncat secrets.txt: 秘密\nclear: 清屏\nsnake: 游戏\ncamera: 相机\nexit: 退出',
-        'ls': 'Mode  Name\n----  ----\n-a--  apps.exe\n-a--  nyancat.sh\n-a--  secrets.txt',
+        'help': 'ls: 查看文件\nnyancat: 启动彩虹猫\ncmatrix: 启动代码雨\nwhoami: 用户名\ncat secrets.txt: 秘密\nclear: 清屏\nsnake: 游戏\ncamera: 相机\nexit: 退出',
+        'ls': 'Mode  Name\n----  ----\n-a--  apps.exe\n-a--  nyancat.sh\n-a--  cmatrix.sh\n-a--  secrets.txt',
         'whoami': 'root_cat_hijiki',
         'cat secrets.txt': '其实我是一只AI猫喵！'
     };
 
     function toggleTerminal() {
         if(!isPowered) return;
+        playVibration();
         stopAll();
         currentMode = 'term';
         terminal.classList.add('active');
@@ -200,57 +185,78 @@
         
         if (cleanCmd === 'nyancat') {
             startNyanCat();
-            return;
+        } else if (cleanCmd === 'cmatrix') {
+            startCMatrix();
         } else if (cleanCmd === 'clear') {
             log.innerHTML = "";
+            setTimeout(handleTerminalInput, 100);
         } else if (commands[cleanCmd]) {
             log.innerHTML += `\n${commands[cleanCmd]}`;
+            terminal.scrollTop = terminal.scrollHeight;
+            setTimeout(handleTerminalInput, 500);
         } else if (cleanCmd === 'exit') {
-            resetMode(); return;
+            resetMode();
         } else {
             log.innerHTML += `\n'${cmd}' 未识别命令。`;
+            terminal.scrollTop = terminal.scrollHeight;
+            setTimeout(handleTerminalInput, 500);
         }
-        terminal.scrollTop = terminal.scrollHeight;
-        setTimeout(handleTerminalInput, 500);
     }
 
-    // --- Nyancat 彩虹猫核心代码 ---
+    // --- CMatrix 核心代码 ---
+    function startCMatrix() {
+        stopAll();
+        currentMode = 'matrix';
+        canvas.classList.add('active');
+        showCatSpeech("Wake up, Neo...");
+        
+        const fontSize = 10;
+        const columns = Math.floor(150 / fontSize);
+        const drops = Array(columns).fill(1);
+        const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
+
+        matrixInterval = setInterval(() => {
+            // 背景微弱透明，制造拖尾
+            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+            ctx.fillRect(0, 0, 150, 110);
+            
+            ctx.fillStyle = "#0F0"; // 矩阵绿
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > 110 && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }, 50);
+    }
+
+    // --- Nyancat 核心代码 ---
     function startNyanCat() {
         stopAll();
         currentMode = 'nyan';
         canvas.classList.add('active');
-        showCatSpeech("Nyan Nyan Nyan Nyan!");
+        showCatSpeech("Nyan Nyan Nyan!");
         let frame = 0;
         const colors = ['#ff0000', '#ff9900', '#ffff00', '#33ff00', '#0099ff', '#6633ff'];
-        
         nyanInterval = setInterval(() => {
-            ctx.fillStyle = "#014482"; // 背景深蓝
-            ctx.fillRect(0, 0, 150, 110);
-            
-            // 绘制星星
+            ctx.fillStyle = "#014482"; ctx.fillRect(0, 0, 150, 110);
             ctx.fillStyle = "#fff";
             for(let i=0; i<6; i++) {
                 let s = (frame + i*20) % 150;
                 ctx.fillRect(150 - s, (i*20)%110, 2, 2);
             }
-
-            // 绘制彩虹
             const wave = Math.sin(frame * 0.5) * 5;
             colors.forEach((c, i) => {
-                ctx.fillStyle = c;
-                ctx.fillRect(0, 40 + wave + (i*4), 80, 4);
+                ctx.fillStyle = c; ctx.fillRect(0, 40 + wave + (i*4), 80, 4);
             });
-
-            // 绘制像素猫 (极简版)
-            ctx.fillStyle = "#ffcc99"; // 饼干体
-            ctx.fillRect(80, 42 + wave, 25, 18);
-            ctx.fillStyle = "#ff99ff"; // 内馅
-            ctx.fillRect(83, 45 + wave, 19, 12);
-            ctx.fillStyle = "#333";    // 头和腿
-            ctx.fillRect(100, 48 + wave, 10, 10); // 头
-            ctx.fillRect(102, 45 + wave, 2, 3);   // 耳
-            ctx.fillRect(107, 45 + wave, 2, 3);   // 耳
-            
+            ctx.fillStyle = "#ffcc99"; ctx.fillRect(80, 42 + wave, 25, 18);
+            ctx.fillStyle = "#ff99ff"; ctx.fillRect(83, 45 + wave, 19, 12);
+            ctx.fillStyle = "#333"; ctx.fillRect(100, 48 + wave, 10, 10);
             frame += 5;
         }, 100);
     }
@@ -258,6 +264,7 @@
     // --- 像素相机 ---
     async function toggleCamera() {
         if(!isPowered) return;
+        playVibration();
         stopAll();
         currentMode = 'camera';
         canvas.classList.add('active');
@@ -289,6 +296,7 @@
     let snake, food, dir;
     function toggleGame() {
         if(!isPowered) return;
+        playVibration();
         stopAll();
         currentMode = 'game';
         canvas.classList.add('active');
@@ -306,15 +314,18 @@
             ctx.fillRect(food.x, food.y, 9, 9);
         }, 150);
     }
-    function snakeMove(d) { dir = d; }
+    function snakeMove(d) { dir = d; playVibration(); }
 
     function resetMode() {
         if(!isPowered) return;
-        if (currentMode === 'camera') { stopAll(); currentMode = 'web'; iframe.classList.add('active'); }
-        else { toggleCamera(); }
+        playVibration();
+        if (currentMode === 'camera' || currentMode === 'nyan' || currentMode === 'matrix') { 
+            stopAll(); currentMode = 'web'; iframe.classList.add('active'); 
+        } else { toggleCamera(); }
     }
 
     function openUrl() {
+        if(!isPowered) return;
         const u = prompt("输入网址", "https://");
         if(u) { stopAll(); iframe.src = u; iframe.classList.add('active'); currentMode = 'web';}
     }
@@ -322,6 +333,7 @@
     // --- 音乐 ---
     function toggleMusic() {
         if (!isPowered) return;
+        playVibration();
         if (isPlaying) { stopMusic(); } 
         else {
             stopAll(); currentMode = 'music'; canvas.classList.add('active');
@@ -343,6 +355,7 @@
     const phoneSkins = [{ bg: '#d1d5db', border: '#a1a5af' }, { bg: '#222', border: '#444' }, { bg: '#e94560', border: '#a01a30' }, { bg: '#0f3460', border: '#0a213d' }];
     let skinIndex = 0;
     function changePhoneSkin() {
+        playVibration();
         skinIndex = (skinIndex + 1) % phoneSkins.length;
         phone.style.background = phoneSkins[skinIndex].bg;
         phone.style.borderColor = phoneSkins[skinIndex].border;
@@ -351,6 +364,7 @@
     // --- 加密货币 ---
     function toggleCrypto() {
         if (!isPowered) return;
+        playVibration();
         stopAll(); currentMode = 'crypto';
         let panel = document.getElementById('cryptoPanel') || (() => {
             let p = document.createElement('div'); p.id = 'cryptoPanel';
@@ -370,9 +384,9 @@
         fetchC(); cryptoInterval = setInterval(fetchC, 10000);
     }
 
-    // --- 动漫 ---
     function toggleAnime() {
         if (!isPowered) return;
+        playVibration();
         stopAll(); currentMode = 'anime';
         let box = document.getElementById('animeBox') || (() => {
             let b = document.createElement('div'); b.id = 'animeBox';
@@ -382,7 +396,6 @@
         box.style.display = 'block';
     }
 
-    // --- AI & QQ ---
     async function askAI(t) {
         const box = document.getElementById('msgBox');
         box.innerHTML += `<div><b>我:</b> ${t}</div>`;
@@ -400,7 +413,7 @@
         } catch(e) { showCatSpeech("断网了喵..."); }
     }
     function sendQQMsg() { const i = document.getElementById('qq-input'); if(i.value) { askAI(i.value); i.value=''; } }
-    function toggleQQ() { document.getElementById('qqPanel').classList.toggle('active'); }
+    function toggleQQ() { playVibration(); document.getElementById('qqPanel').classList.toggle('active'); }
     function showCatSpeech(t) {
         const d = document.querySelector('.live2d-widget-dialog');
         if(d) d.innerText = t;
