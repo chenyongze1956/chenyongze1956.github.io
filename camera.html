@@ -4,59 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AI 古籍观相 - 移动端优化版</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
         :root { --neon: #22d3ee; --bg: #0f172a; --gold: #fbbf24; }
-        body { background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, system-ui, sans-serif; }
         
-        .camera-box { position: relative; width: 90vw; max-width: 420px; aspect-ratio: 3/4; border: 2px solid var(--neon); border-radius: 24px; overflow: hidden; background: #000; z-index: 10; box-shadow: 0 0 30px rgba(34, 211, 238, 0.15); }
+        /* 修改后的绚丽背景 */
+        body { 
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); 
+            background-size: 400% 400%; /* 增加背景尺寸让色彩更丝滑 */
+            animation: gradientBG 15s ease infinite; /* 可选：增加一个缓慢流动的动画 */
+            margin: 0; 
+            overflow: hidden; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            font-family: -apple-system, sans-serif; 
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 手机相机适配 */
+        .camera-box { position: relative; width: 95vw; max-width: 420px; aspect-ratio: 3/4; border: 2px solid var(--gold); border-radius: 20px; overflow: hidden; background: #000; z-index: 5; box-shadow: 0 0 30px rgba(0, 0, 0, 0.3); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* 相法面板 */
-        #fpp-panel { position: fixed; top: 20px; left: 20px; width: 230px; background: rgba(15, 23, 42, 0.9); border: 1.5px solid var(--gold); border-radius: 16px; padding: 15px; color: var(--gold); z-index: 100; backdrop-filter: blur(10px); display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .data-item { line-height: 1.6; font-size: 13px; margin-bottom: 4px; border-bottom: 1px solid rgba(251,191,36,0.2); padding-bottom: 4px; }
-        .data-item span { color: #fff; float: right; }
+        /* 相法面板优化（手机适配） */
+        #fpp-panel { 
+            position: fixed; top: 10px; left: 10px; right: 10px; 
+            max-width: 260px; background: rgba(15, 23, 42, 0.92); 
+            border: 1.5px solid var(--gold); border-radius: 12px; 
+            padding: 12px; color: var(--gold); z-index: 1000; 
+            backdrop-filter: blur(8px); display: none;
+        }
         
-        .ancient-box { margin-top: 10px; font-size: 11px; color: #e2e8f0; line-height: 1.5; }
-        .ancient-item { margin-bottom: 5px; }
-        .ancient-label { color: var(--gold); font-weight: bold; margin-right: 4px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+        .data-cell { background: rgba(251, 191, 36, 0.1); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+        .data-cell span { color: #fff; float: right; }
 
-        #shareBtn { margin-top: 12px; width: 100%; padding: 10px; background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold); color: var(--gold); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: none; transition: all 0.2s; }
-        #shareBtn:active { background: var(--gold); color: #0f172a; }
+        .ancient-box { margin-top: 8px; font-size: 11px; color: #e2e8f0; line-height: 1.4; border-top: 1px dashed rgba(251,191,36,0.3); padding-top: 8px; }
+        .ancient-item { margin-bottom: 4px; display: flex; }
+        .label { color: var(--gold); font-weight: bold; min-width: 35px; }
 
-        .hud { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.95); padding: 30px; border-radius: 24px; color: var(--neon); text-align: center; z-index: 200; border: 1px solid var(--neon); width: 280px; }
-        #startBtn { margin-top: 20px; width: 100%; padding: 15px; background: var(--neon); color: #0f172a; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .status-tag { font-size: 10px; background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #94a3b8; }
-        #f-oracle { margin-top: 10px; color: #fbbf24; border-top: 1px dashed rgba(251,191,36,0.3); padding-top: 10px; font-size: 11px; font-style: italic; }
+        /* 引导与按钮 */
+        .hud { position: fixed; inset: 0;             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: var(--gold); text-align: center; }
+        #startBtn { margin-top: 20px; padding: 15px 50px; background: var(--gold); color: #000; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); }
         
-        #live2dcanvas { pointer-events: none; z-index: 50 !important; }
+        #shareBtn { margin-top: 10px; width: 100%; padding: 8px; background: transparent; border: 1px solid var(--gold); color: var(--gold); border-radius: 6px; font-size: 11px; display: none; }
+
+        /* 确保猫猫不挡住面板 */
+        #live2dcanvas { pointer-events: none !important; z-index: 500 !important; }
     </style>
 </head>
 <body>
+
     <div id="fpp-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-weight:bold; letter-spacing:1px;">📜 麻衣柳庄神相</span>
-            <span id="api-status" class="status-tag">候旨</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:bold; font-size:14px;">📜 麻衣柳庄神相</span>
+            <span id="api-status" style="font-size:10px; opacity:0.7;">待命</span>
         </div>
-        <div class="data-item">命格 <span id="f-gender">-</span></div>
-        <div class="data-item">寿元 <span id="f-age">-</span></div>
-        <div class="data-item">气色 <span id="f-emotion">-</span></div>
+        
+        <div class="grid-info">
+            <div class="data-cell">命格 <span id="f-gender">-</span></div>
+            <div class="data-cell">气色 <span id="f-emotion">-</span></div>
+        </div>
+        <div class="data-cell">寿元 <span id="f-age">-</span></div>
         
         <div class="ancient-box">
-            <div class="ancient-item"><span class="ancient-label">【眼】</span><span id="p-eye">观瞧中...</span></div>
-            <div class="ancient-item"><span class="ancient-label">【鼻】</span><span id="p-nose">审视中...</span></div>
-            <div class="ancient-item"><span class="ancient-label">【口】</span><span id="p-mouth">端详中...</span></div>
+            <div class="ancient-item"><div class="label">【眼】</div><div id="p-eye">待观...</div></div>
+            <div class="ancient-item"><div class="label">【鼻】</div><div id="p-nose">待审...</div></div>
+            <div class="ancient-item"><div class="label">【口】</div><div id="p-mouth">待定...</div></div>
         </div>
 
-        <div id="f-oracle">正在读取乾坤气场...</div>
-        <button id="shareBtn" onclick="handleShare()">📤 分享此份报告</button>
+        <div id="f-oracle" style="font-size:11px; color:var(--gold); margin-top:8px; border-top:1px solid rgba(251,191,36,0.1); padding-top:8px; font-style:italic;">[系统] 正在捕捉面部气场...</div>
+        <button id="shareBtn" onclick="handleShare()">📤 保存/分享相书</button>
     </div>
 
     <div class="hud" id="main-hud">
-        <div style="font-size:18px; font-weight:bold; margin-bottom:10px;">通用混合追踪引擎</div>
-        <div id="debug-msg" style="font-size:11px; color:#94a3b8;">猫猫将随你的头部动作实时转动</div>
-        <button id="startBtn">启动 AI 追踪</button>
+        <h2 style="letter-spacing:4px;">古籍神相追踪系统</h2>
+        <p style="padding:0 40px; color:#94a3b8; font-size:12px; line-height:1.6;">猫猫随影而动，相由此心而生<br>请确保在 HTTPS 协议下允许相机权限</p>
+        <button id="startBtn">开启法眼</button>
     </div>
 
     <div class="camera-box">
@@ -69,13 +101,13 @@
         const API_SECRET = "PhCtY0gKGC6Ys6k80vTdYQ7SVcHvH_o9";
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         
-        let faceMesh;
         let isActive = false;
-        let lastResult = ""; 
+        let lastResult = "";
 
-        L2Dwidget.init({ 
+        // 1. Live2D 初始化
+        L2Dwidget.init({
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": isMobile ? 110 : 160, "height": isMobile ? 220 : 320, "hOffset": 0, "vOffset": -20 },
+            "display": { "position": "right", "width": isMobile ? 120 : 160, "height": isMobile ? 240 : 320, "hOffset": 0, "vOffset": -10 },
             "mobile": { "show": true, "scale": 0.5 },
             "react": { "opacity": 1 }
         });
@@ -83,24 +115,25 @@
         async function initSystem() {
             const btn = document.getElementById('startBtn');
             const video = document.getElementById('video');
-            const debug = document.getElementById('debug-msg');
             const hud = document.getElementById('main-hud');
 
-            // 核心修改：点击立即隐藏HUD，防止阻塞
-            hud.style.display = 'none';
+            hud.style.display = 'none'; 
             btn.disabled = true;
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
+                    video: { 
+                        facingMode: "user", 
+                        width: isMobile ? { ideal: 480 } : { ideal: 1280 },
+                        height: isMobile ? { ideal: 640 } : { ideal: 720 }
+                    } 
                 });
                 video.srcObject = stream;
 
-                faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
-                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+                const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}` });
+                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
                 faceMesh.onResults(results => {
-                    // 使用 try-catch 保护追踪逻辑，确保猫猫一定会动
                     try {
                         if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
                             if (!isActive) {
@@ -110,15 +143,15 @@
                             }
 
                             const nose = results.multiFaceLandmarks[0][1];
-                            const targetX = (0.5 + (0.5 - nose.x) * 3.5) * window.innerWidth;
-                            const targetY = (0.5 + (nose.y - 0.5) * 3.5) * window.innerHeight;
-
+                            const targetX = (0.5 + (0.5 - nose.x) * 3.2) * window.innerWidth;
+                            const targetY = (0.5 + (nose.y - 0.5) * 3.2) * window.innerHeight;
+                            
                             const l2dCanvas = document.getElementById('live2dcanvas');
                             if (l2dCanvas) {
                                 l2dCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: targetX, clientY: targetY, bubbles: true }));
                             }
                         }
-                    } catch(e) { console.error("Tracking Error", e); }
+                    } catch (e) { console.log("Tracking error suppressed."); }
                 });
 
                 await faceMesh.initialize();
@@ -128,16 +161,15 @@
                 };
                 loop();
             } catch (err) {
-                hud.style.display = 'block';
-                btn.disabled = false;
-                debug.innerText = "启动失败: 请检查 HTTPS 环境与相机权限";
+                hud.style.display = 'flex';
+                alert("无法启动相机，请确保：\n1. 使用 HTTPS 连接\n2. 已授予浏览器相机权限");
             }
         }
 
         async function startDataLoop() {
             if (!isActive) return;
             await callFacePlusPlus();
-            setTimeout(startDataLoop, isMobile ? 12000 : 8000);
+            setTimeout(startDataLoop, 10000); 
         }
 
         async function callFacePlusPlus() {
@@ -168,37 +200,31 @@
                     const attrs = data.faces[0].attributes;
                     const b = (attrs.beauty.male_score + attrs.beauty.female_score) / 2;
 
-                    // 1. 更新基础数据
-                    const gender = attrs.gender.value === 'Male' ? '乾造' : '坤造';
+                    const gender = attrs.gender.value === 'Male' ? '乾造 (阳)' : '坤造 (阴)';
                     const age = Math.round(attrs.age.value);
-                    const emoMap = { sadness:'忧虑', neutral:'清静', happiness:'喜乐', anger:'嗔怒', surprise:'惊奇', fear:'恐慌', disgust:'嫌恶' };
-                    const topEmo = emoMap[Object.keys(attrs.emotion).reduce((a, b) => attrs.emotion[a] > attrs.emotion[b] ? a : b)] || '恬淡';
+                    const emoMap = { sadness:'忧思', neutral:'恬淡', happiness:'喜乐', anger:'嗔怒', surprise:'惊奇', fear:'惊惶', disgust:'嫌恶' };
+                    const topEmo = emoMap[Object.keys(attrs.emotion).reduce((a, b) => attrs.emotion[a] > attrs.emotion[b] ? a : b)] || '清静';
 
                     document.getElementById('f-gender').innerText = gender;
                     document.getElementById('f-age').innerText = age + " 载";
                     document.getElementById('f-emotion').innerText = topEmo;
 
-                    // 2. 融入《麻衣/柳庄》相法逻辑 (带空值保护)
-                    // 眼相
-                    let eyeTxt = b > 75 ? "目若朗星，神骨清秀。" : "目神收敛，大智若愚。";
-                    if(attrs.eyestatus && attrs.eyestatus.left_eye_status.no_glass_eye_close > 20) eyeTxt = "目长而秀，神韵深藏。";
+                    let eyeTxt = b > 75 ? "目若朗星，神骨清秀，贵相也。" : "目神收敛，大智若愚，稳重之象。";
+                    if(attrs.eyestatus && attrs.eyestatus.left_eye_status.no_glass_eye_close > 20) eyeTxt = "目长而秀，神韵深藏，主寿。";
                     document.getElementById('p-eye').innerText = eyeTxt;
 
-                    // 鼻相
-                    let noseTxt = attrs.skinstatus.health > 70 ? "鼻若截筒，准头圆润。" : "山根平直，财路稳固。";
+                    let noseTxt = attrs.skinstatus.health > 70 ? "鼻若截筒，准头圆润，财星照。 " : "山根平直，财路稳固，宜守。";
                     document.getElementById('p-nose').innerText = noseTxt;
 
-                    // 嘴相
-                    let mouthTxt = "口纳灵气，福泽深厚。";
-                    if(attrs.mouthstatus && attrs.mouthstatus.mouth_close > 80) mouthTxt = "唇红齿白，食禄无忧。";
+                    let mouthTxt = "口纳灵气，食禄无忧。";
+                    if(attrs.mouthstatus && attrs.mouthstatus.mouth_close > 80) mouthTxt = "唇红齿白，福泽深厚。";
                     document.getElementById('p-mouth').innerText = mouthTxt;
 
-                    // 3. 柳庄总断
-                    let oracleTxt = b > 70 ? "柳庄曰：气血充盈，骨格清奇，乃大成之相。" : "麻衣曰：神气平和，稳中求进，利于成事。";
+                    let oracleTxt = b > 72 ? "柳庄神断：气血充盈，骨格清奇，乃大成之相。" : "麻衣神断：神气平和，气守丹田，稳中求进。";
                     document.getElementById('f-oracle').innerText = oracleTxt;
 
-                    statusTag.innerText = "观毕";
-                    lastResult = `【AI神相】此君${gender}，年${age}，气色${topEmo}。断语：${oracleTxt}`;
+                    statusTag.innerText = "断毕";
+                    lastResult = `【AI神相】此君${gender}，气色${topEmo}。${oracleTxt}`;
                     document.getElementById('shareBtn').style.display = 'block';
                 }
             } catch (err) { statusTag.innerText = "网络阻滞"; }
@@ -206,12 +232,9 @@
 
         async function handleShare() {
             if (navigator.share) {
-                try { await navigator.share({ title: 'AI 观相报告', text: lastResult, url: window.location.href }); } catch (e) {}
+                try { await navigator.share({ title: 'AI 神相报告', text: lastResult, url: window.location.href }); } catch (e) {}
             } else {
-                const temp = document.createElement("textarea");
-                temp.value = lastResult; document.body.appendChild(temp); temp.select();
-                document.execCommand("copy"); document.body.removeChild(temp);
-                alert("报告已复制！");
+                alert("相书已存：\n" + lastResult);
             }
         }
 
