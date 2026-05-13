@@ -4,24 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>AI 古籍观相 - 移动端优化版</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        :root { --neon: #22d3ee; --bg: #0f172a; --gold: #fbbf24; }
+        :root { --gold: #fbbf24; --glass: rgba(15, 23, 42, 0.88); }
         
-        /* 修改后的绚丽背景 */
         body { 
             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); 
-            background-size: 400% 400%; /* 增加背景尺寸让色彩更丝滑 */
-            animation: gradientBG 15s ease infinite; /* 可选：增加一个缓慢流动的动画 */
-            margin: 0; 
-            overflow: hidden; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            font-family: -apple-system, sans-serif; 
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+            margin: 0; overflow: hidden; height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            font-family: -apple-system, system-ui, sans-serif;
+        }
+
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(15px);
+            z-index: 1;
         }
 
         @keyframes gradientBG {
@@ -29,65 +28,91 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        
-        /* 手机相机适配 */
-        .camera-box { position: relative; width: 95vw; max-width: 420px; aspect-ratio: 3/4; border: 2px solid var(--gold); border-radius: 20px; overflow: hidden; background: #000; z-index: 5; box-shadow: 0 0 30px rgba(0, 0, 0, 0.3); }
+
+        .camera-box { 
+            position: relative; width: 85vw; max-width: 400px; aspect-ratio: 3/4; 
+            margin-top: 10vh; border-radius: 24px; overflow: hidden; 
+            z-index: 5; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* 相法面板优化（手机适配） */
+        /* --- 可折叠面板样式 --- */
         #fpp-panel { 
-            position: fixed; top: 10px; left: 10px; right: 10px; 
-            max-width: 260px; background: rgba(15, 23, 42, 0.92); 
-            border: 1.5px solid var(--gold); border-radius: 12px; 
-            padding: 12px; color: var(--gold); z-index: 1000; 
-            backdrop-filter: blur(8px); display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--glass); border-top: 1.5px solid var(--gold);
+            border-radius: 24px 24px 0 0;
+            padding: 15px 24px calc(20px + env(safe-area-inset-bottom));
+            color: #fff; z-index: 1000; backdrop-filter: blur(25px);
+            display: none; box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1); /* 弹性弹出效果 */
         }
+
+        /* 收起状态：只露出顶部一小截 */
+        #fpp-panel.collapsed {
+            transform: translateY(calc(100% - 55px - env(safe-area-inset-bottom)));
+        }
+
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 12px; cursor: pointer;
+        }
+
+        #toggle-btn {
+            background: rgba(251, 191, 36, 0.2); border: 1px solid var(--gold);
+            color: var(--gold); padding: 3px 12px; border-radius: 12px; font-size: 11px;
+        }
+
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .data-cell { background: rgba(255, 255, 255, 0.08); padding: 10px 5px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .data-cell label { display: block; font-size: 10px; color: #aaa; margin-bottom: 4px; }
+        .data-cell span { color: var(--gold); font-size: 14px; font-weight: bold; }
+
+        .ancient-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 15px; margin-bottom: 12px; }
+        .ancient-item { font-size: 12px; margin-bottom: 6px; display: flex; line-height: 1.5; }
+        .tag { color: var(--gold); font-weight: bold; min-width: 40px; }
+
+        .hud { position: fixed; inset: 0;             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); 
+ display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: #fff; text-align: center; backdrop-filter: blur(10px); }
+        #startBtn { margin-top: 30px; padding: 18px 60px; background: var(--gold); color: #000; border: none; border-radius: 40px; font-weight: 900; font-size: 18px; letter-spacing: 2px; }
         
-        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
-        .data-cell { background: rgba(251, 191, 36, 0.1); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
-        .data-cell span { color: #fff; float: right; }
+        #shareBtn { width: 100%; padding: 14px; background: var(--gold); border: none; color: #000; border-radius: 12px; font-weight: bold; font-size: 14px; }
 
-        .ancient-box { margin-top: 8px; font-size: 11px; color: #e2e8f0; line-height: 1.4; border-top: 1px dashed rgba(251,191,36,0.3); padding-top: 8px; }
-        .ancient-item { margin-bottom: 4px; display: flex; }
-        .label { color: var(--gold); font-weight: bold; min-width: 35px; }
-
-        /* 引导与按钮 */
-        .hud { position: fixed; inset: 0;             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: var(--gold); text-align: center; }
-        #startBtn { margin-top: 20px; padding: 15px 50px; background: var(--gold); color: #000; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); }
-        
-        #shareBtn { margin-top: 10px; width: 100%; padding: 8px; background: transparent; border: 1px solid var(--gold); color: var(--gold); border-radius: 6px; font-size: 11px; display: none; }
-
-        /* 确保猫猫不挡住面板 */
         #live2dcanvas { pointer-events: none !important; z-index: 500 !important; }
     </style>
 </head>
 <body>
 
     <div id="fpp-panel">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:bold; font-size:14px;">📜 麻衣柳庄神相</span>
-            <span id="api-status" style="font-size:10px; opacity:0.7;">待命</span>
+        <div class="panel-header" onclick="togglePanel()">
+            <span style="font-weight:bold; font-size:15px; letter-spacing:1px;">📜 麻衣柳庄神断</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span id="api-status" style="font-size:10px; opacity:0.6;">待命</span>
+                <button id="toggle-btn">收起</button>
+            </div>
         </div>
         
-        <div class="grid-info">
-            <div class="data-cell">命格 <span id="f-gender">-</span></div>
-            <div class="data-cell">气色 <span id="f-emotion">-</span></div>
-        </div>
-        <div class="data-cell">寿元 <span id="f-age">-</span></div>
-        
-        <div class="ancient-box">
-            <div class="ancient-item"><div class="label">【眼】</div><div id="p-eye">待观...</div></div>
-            <div class="ancient-item"><div class="label">【鼻】</div><div id="p-nose">待审...</div></div>
-            <div class="ancient-item"><div class="label">【口】</div><div id="p-mouth">待定...</div></div>
-        </div>
+        <div id="panel-content">
+            <div class="grid-info">
+                <div class="data-cell"><label>命格</label><span id="f-gender">-</span></div>
+                <div class="data-cell"><label>气色</label><span id="f-emotion">-</span></div>
+                <div class="data-cell"><label>寿元</label><span id="f-age">-</span></div>
+            </div>
+            
+            <div class="ancient-box">
+                <div class="ancient-item"><span class="tag">【眼】</span><span id="p-eye">待观其神...</span></div>
+                <div class="ancient-item"><span class="tag">【鼻】</span><span id="p-nose">待审其势...</span></div>
+                <div class="ancient-item"><span class="tag">【口】</span><span id="p-mouth">待定其方...</span></div>
+            </div>
 
-        <div id="f-oracle" style="font-size:11px; color:var(--gold); margin-top:8px; border-top:1px solid rgba(251,191,36,0.1); padding-top:8px; font-style:italic;">[系统] 正在捕捉面部气场...</div>
-        <button id="shareBtn" onclick="handleShare()">📤 保存/分享相书</button>
+            <div id="f-oracle" style="font-size:11px; color:var(--gold); font-style:italic; margin-bottom:12px;">正在捕捉乾坤气场...</div>
+            <button id="shareBtn" onclick="handleShare()" style="display:none;">📤 保存相书报告</button>
+        </div>
     </div>
 
     <div class="hud" id="main-hud">
-        <h2 style="letter-spacing:4px;">古籍神相追踪系统</h2>
-        <p style="padding:0 40px; color:#94a3b8; font-size:12px; line-height:1.6;">猫猫随影而动，相由此心而生<br>请确保在 HTTPS 协议下允许相机权限</p>
+        <h2 style="margin-bottom:10px;">古籍神相系统</h2>
+        <p style="font-size:12px; color:#94a3b8; line-height:1.8;">请面朝光源，确保环境明亮<br>猫猫将随你的动作实时感应</p>
         <button id="startBtn">开启法眼</button>
     </div>
 
@@ -104,19 +129,25 @@
         let isActive = false;
         let lastResult = "";
 
-        // 1. Live2D 初始化
         L2Dwidget.init({
             "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": isMobile ? 120 : 160, "height": isMobile ? 240 : 320, "hOffset": 0, "vOffset": -10 },
+            "display": { "position": "right", "width": isMobile ? 100 : 160, "height": isMobile ? 200 : 320, "vOffset": -20 },
             "mobile": { "show": true, "scale": 0.5 },
             "react": { "opacity": 1 }
         });
+
+        // 控制面板收起展开
+        function togglePanel() {
+            const panel = document.getElementById('fpp-panel');
+            const btn = document.getElementById('toggle-btn');
+            panel.classList.toggle('collapsed');
+            btn.innerText = panel.classList.contains('collapsed') ? "展开" : "收起";
+        }
 
         async function initSystem() {
             const btn = document.getElementById('startBtn');
             const video = document.getElementById('video');
             const hud = document.getElementById('main-hud');
-
             hud.style.display = 'none'; 
             btn.disabled = true;
 
@@ -134,24 +165,20 @@
                 faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
                 faceMesh.onResults(results => {
-                    try {
-                        if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-                            if (!isActive) {
-                                isActive = true;
-                                document.getElementById('fpp-panel').style.display = 'block';
-                                startDataLoop();
-                            }
-
-                            const nose = results.multiFaceLandmarks[0][1];
-                            const targetX = (0.5 + (0.5 - nose.x) * 3.2) * window.innerWidth;
-                            const targetY = (0.5 + (nose.y - 0.5) * 3.2) * window.innerHeight;
-                            
-                            const l2dCanvas = document.getElementById('live2dcanvas');
-                            if (l2dCanvas) {
-                                l2dCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: targetX, clientY: targetY, bubbles: true }));
-                            }
+                    if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+                        if (!isActive) {
+                            isActive = true;
+                            document.getElementById('fpp-panel').style.display = 'block';
+                            startDataLoop();
                         }
-                    } catch (e) { console.log("Tracking error suppressed."); }
+                        const nose = results.multiFaceLandmarks[0][1];
+                        const targetX = (0.5 + (0.5 - nose.x) * 3) * window.innerWidth;
+                        const targetY = (0.5 + (nose.y - 0.5) * 3) * window.innerHeight;
+                        const l2dCanvas = document.getElementById('live2dcanvas');
+                        if (l2dCanvas) {
+                            l2dCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: targetX, clientY: targetY, bubbles: true }));
+                        }
+                    }
                 });
 
                 await faceMesh.initialize();
@@ -161,8 +188,7 @@
                 };
                 loop();
             } catch (err) {
-                hud.style.display = 'flex';
-                alert("无法启动相机，请确保：\n1. 使用 HTTPS 连接\n2. 已授予浏览器相机权限");
+                alert("请在 HTTPS 下运行并开启相机权限");
             }
         }
 
@@ -178,7 +204,7 @@
             const statusTag = document.getElementById('api-status');
             if (video.videoWidth === 0) return;
 
-            statusTag.innerText = "观气中...";
+            statusTag.innerText = "观气...";
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
@@ -200,41 +226,34 @@
                     const attrs = data.faces[0].attributes;
                     const b = (attrs.beauty.male_score + attrs.beauty.female_score) / 2;
 
-                    const gender = attrs.gender.value === 'Male' ? '乾造 (阳)' : '坤造 (阴)';
-                    const age = Math.round(attrs.age.value);
+                    // 填充数据
+                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '乾造' : '坤造';
+                    document.getElementById('f-age').innerText = Math.round(attrs.age.value) + " 岁";
                     const emoMap = { sadness:'忧思', neutral:'恬淡', happiness:'喜乐', anger:'嗔怒', surprise:'惊奇', fear:'惊惶', disgust:'嫌恶' };
-                    const topEmo = emoMap[Object.keys(attrs.emotion).reduce((a, b) => attrs.emotion[a] > attrs.emotion[b] ? a : b)] || '清静';
+                    document.getElementById('f-emotion').innerText = emoMap[Object.keys(attrs.emotion).reduce((a, b) => attrs.emotion[a] > attrs.emotion[b] ? a : b)] || '清静';
 
-                    document.getElementById('f-gender').innerText = gender;
-                    document.getElementById('f-age').innerText = age + " 载";
-                    document.getElementById('f-emotion').innerText = topEmo;
+                    document.getElementById('p-eye').innerText = b > 75 ? "目若朗星，神骨清秀。" : "目神收敛，大智若愚。";
+                    document.getElementById('p-nose').innerText = attrs.skinstatus.health > 70 ? "鼻若截筒，准头圆润。" : "山根平直，财路稳固。";
+                    document.getElementById('p-mouth').innerText = "口纳灵气，食禄无忧。";
+                    document.getElementById('f-oracle').innerText = b > 70 ? "柳庄神断：此乃大成之相。" : "麻衣神断：神气平和，稳中求进。";
 
-                    let eyeTxt = b > 75 ? "目若朗星，神骨清秀，贵相也。" : "目神收敛，大智若愚，稳重之象。";
-                    if(attrs.eyestatus && attrs.eyestatus.left_eye_status.no_glass_eye_close > 20) eyeTxt = "目长而秀，神韵深藏，主寿。";
-                    document.getElementById('p-eye').innerText = eyeTxt;
-
-                    let noseTxt = attrs.skinstatus.health > 70 ? "鼻若截筒，准头圆润，财星照。 " : "山根平直，财路稳固，宜守。";
-                    document.getElementById('p-nose').innerText = noseTxt;
-
-                    let mouthTxt = "口纳灵气，食禄无忧。";
-                    if(attrs.mouthstatus && attrs.mouthstatus.mouth_close > 80) mouthTxt = "唇红齿白，福泽深厚。";
-                    document.getElementById('p-mouth').innerText = mouthTxt;
-
-                    let oracleTxt = b > 72 ? "柳庄神断：气血充盈，骨格清奇，乃大成之相。" : "麻衣神断：神气平和，气守丹田，稳中求进。";
-                    document.getElementById('f-oracle').innerText = oracleTxt;
-
-                    statusTag.innerText = "断毕";
-                    lastResult = `【AI神相】此君${gender}，气色${topEmo}。${oracleTxt}`;
+                    statusTag.innerText = "观毕";
                     document.getElementById('shareBtn').style.display = 'block';
+                    
+                    // 得到结果时自动展开面板
+                    document.getElementById('fpp-panel').classList.remove('collapsed');
+                    document.getElementById('toggle-btn').innerText = "收起";
+                    
+                    lastResult = `【AI神相】命格：${document.getElementById('f-gender').innerText}，年龄：${document.getElementById('f-age').innerText}。${document.getElementById('f-oracle').innerText}`;
                 }
-            } catch (err) { statusTag.innerText = "网络阻滞"; }
+            } catch (err) { statusTag.innerText = "重试"; }
         }
 
         async function handleShare() {
             if (navigator.share) {
-                try { await navigator.share({ title: 'AI 神相报告', text: lastResult, url: window.location.href }); } catch (e) {}
+                try { await navigator.share({ title: 'AI 神相报告', text: lastResult }); } catch (e) {}
             } else {
-                alert("相书已存：\n" + lastResult);
+                alert("相语已复制：\n" + lastResult);
             }
         }
 
