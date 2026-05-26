@@ -16,6 +16,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -35,6 +37,7 @@
 <html lang="en">
 
 <head>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tweet • Post</title>
@@ -497,6 +500,55 @@
                                 </div>
                             </article>
 
+
+
+                                   <!-- Another VIP Reply -->
+                               <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
+                                    </div>
+  
+                                 <div class="prose-text">
+            无挂碍故，无有恐怖，远离颠倒梦想，究竟涅槃，乘一叶小舟，驶向花开的彼岸。
+            <div class="prose-divider"></div>
+        </div>
+
+        <div class="tweet-actions-list">
+             </div>
+
+
+                                    
+                                    <alt="Post image"  class="post-image">                                      <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
                             <!-- Show More Button -->
                            
                             </button>
@@ -542,6 +594,40 @@
 
 <style>
 
+
+/* 散文体容器样式 */
+.prose-tweet {
+    padding: 20px;
+    background: #fdfdfd; /* 微微偏暖的底色，更有纸张感 */
+    border-radius: 16px;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin: 10px 0;
+}
+
+/* 散文段落优化 */
+.prose-text {
+  /* 引入书法字体 */
+    font-family: 'Ma Shan Zheng', cursive; 
+    font-size: 20px; /* 书法字体通常需要稍大一些才清晰 */
+    line-height: 2.0; /* 行草需要更大的行间距来体现留白 */
+    color: #2c2c2c;
+    letter-spacing: 1px;
+    padding: 20px;
+    border-radius: 8px;
+
+    
+}
+
+/* 装饰性装饰线 */
+.prose-divider {
+    width: 30px;
+    height: 2px;
+    background: #ccc;
+    margin: 10px auto;
+}
+
+    
 
 
     @keyframes rainbow-color-change {
