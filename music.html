@@ -4,7 +4,18 @@
 
 
 
-<!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style>   
+
+<!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
+
+
+.dream-pixel {
+    position: absolute;
+    width: 5px; height: 5px;
+    animation: fadeDream 2s infinite;
+}
+@keyframes fadeDream { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    
     
   /* 爆炸后的样式 */
 .phone.exploded { 
@@ -31,7 +42,23 @@
         .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }        .btn { width: 60px; height: 40px; background: #eee; border-radius: 10px; box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px; }        .btn span { font-size: 7px; color: #888; margin-top: 2px; }        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; }
         .qq-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 90%; max-width: 400px; height: 70vh; background: #fff; z-index: 10000; border-radius: 8px; display: flex; flex-direction: column; transition: 0.3s; opacity: 0; box-shadow: 0 10px 50px rgba(0,0,0,0.5); border: 1px solid #ccc; }        .qq-panel.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         #cryptoPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--nokia-green); color: var(--nokia-dark); display: none; flex-direction: column; padding: 5px; box-sizing: border-box; font-size: 9px; font-family: 'Press Start 2P', cursive; z-index: 15; }        .crypto-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark); margin-bottom: 4px; padding-bottom: 2px; }    </style></head><body>
-<div class="phone" id="nokiaPhone">    <div class="screen-frame" id="sFrame">        <div class="lcd">           <div class="boot-text" id="bootIcon">HIJIKI</div>           <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>            <canvas id="snakeCanvas" width="150" height="110"></canvas>            <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#cfd8dc;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#cfd8dc;" onclick="toggleQQ()">扣扣</div>      <div class="btn" style="background:#cfd8dc;" onclick="softReset()">↺<span>重置</span></div>       <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>        <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
+<div class="phone" id="nokiaPhone">    <div class="screen-frame" id="sFrame">    
+    
+    
+
+    
+    
+    
+    
+    <div class="lcd">           <div class="boot-text" id="bootIcon">HIJIKI</div>           <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>            <canvas id="snakeCanvas" width="150" height="110"></canvas> 
+        
+    <div id="dreamBox" style="position:absolute; top:0; left:0; width:150px; height:110px; background:var(--nokia-green); display:none; flex-direction:column; align-items:center; justify-content:center; padding:5px; box-sizing:border-box; text-align:center; z-index:20;">
+    <div id="dreamContent" style="font-size:8px; color:var(--nokia-dark); font-family:monospace; margin-bottom:5px; height:20px; overflow:hidden;"></div>
+    <div id="dreamVisual" style="width:120px; height:60px; background:#444; border:2px solid #222; position:relative; overflow:hidden;"></div>
+</div>
+        
+        
+        <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>     <div class="btn" onclick="toggleDream()">#<span>梦境</span></div>      <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>        <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
 <video id="webcam" autoplay playsinline style="display:none;"></video>
 <div class="qq-panel" id="qqPanel">    <div style="background:var(--qq-blue); color:white; padding:10px; display:flex; justify-content:space-between; font-weight:bold;">        <span>Hijiki 猫咪空间</span>        <span onclick="toggleQQ()" style="cursor:pointer;">✕</span>    </div>    <div id="msgBox" style="flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; font-size:14px;"></div>    <div style="padding:10px; border-top:1px solid #ddd; display:flex;">        <input id="qq-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="和猫咪聊天...">        <button onclick="sendQQMsg()" style="padding:8px 15px; background:var(--qq-blue); color:white; border:none; margin-left:5px; border-radius:4px;">发送</button>    </div></div>
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script>    const phone = document.getElementById('nokiaPhone');    const iframe = document.getElementById('nokiaIframe');    const canvas = document.getElementById('snakeCanvas');    const terminal = document.getElementById('psTerminal');    const video = document.getElementById('webcam');    const ctx = canvas.getContext('2d');        let isPowered = false, currentMode = 'web', videoStream = null;    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval, slInterval;    let audio = new Audio('https://www.joy127.com/url/148587.mp3');    let isPlaying = false;
@@ -172,5 +199,38 @@ function softReset() {
     }
 }
 
+
+
+function toggleDream() {
+    if (!isPowered) return;
+    playVibration();
+    stopAll();
+    currentMode = 'dream';
+    
+    const dreamBox = document.getElementById('dreamBox');
+    const dreamContent = document.getElementById('dreamContent');
+    const dreamVisual = document.getElementById('dreamVisual');
+    dreamBox.style.display = 'flex';
+    
+    const theme = prompt("你想让猫咪梦见什么？", "星空");
+    if (!theme) return resetMode();
+    
+    dreamContent.innerText = `猫咪正在梦见: "${theme}"...`;
+    dreamVisual.innerHTML = ''; // 清空之前梦境
+    
+   // 在 toggleDream 函数中修改像素点坐标逻辑
+for (let i = 0; i < 50; i++) {
+    let pixel = document.createElement('div');
+    pixel.className = 'dream-pixel';
+    // 适配新的 dreamVisual 大小 (120x60)
+    pixel.style.left = Math.random() * 115 + 'px'; 
+    pixel.style.top = Math.random() * 55 + 'px';
+    pixel.style.backgroundColor = `hsl(${Math.random() * 360}, 50%, 50%)`;
+    dreamVisual.appendChild(pixel);
+}
+    // 调用AI生成梦境描述
+    askAI(`用猫咪的语气，描述一下梦见“${theme}”的感觉，要短且充满幻觉感。`);
+}
+    
 
         </script></body></html>
