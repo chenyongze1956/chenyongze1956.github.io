@@ -18,6 +18,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -529,7 +531,7 @@
 
 
                                     
-                                    <alt="Post image"  class="post-image">                                      <div class="tweet-actions-list">
+                                                                          <div class="tweet-actions-list">
                                         <button class="tweet-action-button" onclick="handleReply(this)">
                                             <i class="far fa-comment"></i>
                                             <span>0</span>
@@ -548,6 +550,92 @@
                                     </div>
                                 </div>
                             </article>
+
+
+
+  <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
+                                    </div>
+  
+                                <div id="game-section" style="width: 90%; max-width: 480px; margin: 30px auto; background: #fdfaf2; padding: 20px; border: 2px solid #8b4513; border-radius: 10px; text-align: center;">
+    <div id="game-box" style="width: 100%; height: 150px; border: 2px solid #535353; position: relative; overflow: hidden; background: white; margin: 10px auto;">
+        <div id="dino" style="width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; background: url(https://assets.codepen.io/1480814/dd.png) 0px 0px no-repeat;">
+            <span id="fire" style="display:none; position: absolute; top: -15px; right: -15px; font-size: 20px;" class="fire-effect">🔥</span>
+        </div>
+        <div id="obstacle" style="width: 30px; height: 30px; position: absolute; bottom: 0; right: -50px; animation: move 2s infinite linear; background: url(https://assets.codepen.io/1480814/cc1.png) no-repeat center/contain;"></div>
+        <div id="game-over" style="position: absolute; top: 40px; left: 0; width: 100%; display: none; font-size: 20px; color: red; font-weight: bold;">GAME OVER<br><small style="font-size: 12px; color: #555;">按 Start 键重置</small></div>
+    </div>
+</div>
+            <div class="prose-divider"></div>
+        </div>
+
+        <div class="tweet-actions-list">
+             </div>
+
+
+                                    
+                                                                          <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+
+
+
+
+
+                            
+
+<article>
+
+
+<style>
+    .jump { animation: jump-anim 0.6s linear; }
+    @keyframes jump-anim { 0% { bottom: 0; } 50% { bottom: 80px; } 100% { bottom: 0; } }
+    @keyframes move { from { right: -50px; } to { right: 100%; } }
+    .mutated { filter: hue-rotate(180deg) saturate(3) brightness(1.2); transform: scale(1.2); transition: all 0.3s; }
+    .fire-effect { animation: flame-flicker 0.2s infinite alternate; }
+    @keyframes flame-flicker { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+</style>
+
+
+
+
+
+    
+</article>
+
+
+
+
+
+                            
 
                             <!-- Show More Button -->
                            
@@ -3547,6 +3635,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
             </script>
 
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const dino = document.getElementById('dino');
+        const obstacle = document.getElementById('obstacle');
+        const gameOverText = document.getElementById('game-over');
+        const fireIcon = document.getElementById('fire');
+        let isGameOver = false;
+        let jumpCount = 0;
+
+        function jump() {
+            if (isGameOver) return;
+            if (!dino.classList.contains('jump')) {
+                dino.classList.add('jump');
+                jumpCount++;
+                if (jumpCount >= 5) {
+                    dino.classList.add('mutated');
+                    fireIcon.style.display = 'block';
+                }
+                setTimeout(() => dino.classList.remove('jump'), 600);
+            }
+        }
+
+        function gameLoop() {
+            // 手柄逻辑
+            const gp = navigator.getGamepads()[0];
+            if (gp) {
+                if (gp.buttons[9] && gp.buttons[9].pressed) location.reload();
+                for (let i = 0; i < gp.buttons.length; i++) {
+                    if (i !== 9 && gp.buttons[i].pressed) { jump(); break; }
+                }
+            }
+            // 碰撞检测
+            if (!isGameOver) {
+                const dRect = dino.getBoundingClientRect();
+                const oRect = obstacle.getBoundingClientRect();
+                if (dRect.right > oRect.left + 5 && dRect.left < oRect.right - 5 && dRect.bottom > oRect.top + 5) {
+                    isGameOver = true;
+                    obstacle.style.animationPlayState = 'paused';
+                    gameOverText.style.display = 'block';
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        
+        window.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space' || e.code === 'ArrowUp') jump();
+            if (e.code === 'Enter') location.reload();
+        });
+        gameLoop();
+    });
+</script>
 
 
 
