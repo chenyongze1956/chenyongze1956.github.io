@@ -1,181 +1,125 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<html lang="en">
+
+  <head>
     <meta charset="UTF-8">
-    <title></title>
-    <style>
-        /* 导入圆润可爱的字体 */
-        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+    <title>Walk Loop (SVG Spritesheet)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="./style.css">
 
-        body {
-            /* 柔和的马卡龙渐变背景 */
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', cursive;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+  </head>
+    
+  <body>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
+    <path fill="hsl(0,100%,50%)" stroke="none" d="M72.2 24.6c0 8.6-7 15.6-15.6 15.6S41 33.2 41 24.6 48 9 56.6 9s15.6 7 15.6 15.6m84.4-14.9c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6m99-1.7C247 8 240 15 240 23.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6S264.2 8 255.6 8m99-2C346 6 339 13 339 21.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6S363.2 6 354.6 6m100.3.7c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6m101 1.6c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6"/>
+    <path fill="none" stroke="hsl(0,100%,50%)" stroke-linecap="round" stroke-width="10" d="M54 52.7C39.7 65 48.3 105 43.5 117.5s-16.2 13.5-29 14 M77.3 89.7C58 81.7 61.3 57 56.6 52c-29.7 2-28.7 30.7-21.7 42 M64.7 143.7c5.5-15 7.8-25.7-1.7-38.7s-9-17-9-17l1-35.1m65.3 75.4c12-1.7 27.3-5.7 28-10.3 2.7-16.7-9.7-58.7 2.7-62.7 0 0-3 28.3 6.7 41.7s13.3 28.3 1.7 47 M168.3 94.3c-14-12.3-9.7-37.3-12.7-42-12-1.7-27.7 19.7-11 43.7M254 50.4c.6 6.4-.8 13.5-.5 20.3.4 10 2.1 19.4 6.8 26.4 M237.7 130.3c14.3-8.3 28.3-13.6 17.3-22s-21.7-37.3-6.3-56 M253 144c3.3-16.3 15.6-19.6-.3-50s-.7-43-.7-43m88.3 93.3c4.7-12.3 13.3-32 9-48.7s-5.2-38 2.2-47.3 M347.3 134.7c7.7-9.7 15.7-18.3 8.3-31.7-4.8-8.8-2.5-29.7-1.4-43s-.2-11.8-.2-11.8 M358.7 95.3c-11-6-5.8-47.2-5.8-47.2m-1.9.9c-6 3.3-11.7 37.3-4.3 47m92.3-2c-1.6-6.9-4.9-15.7-2.7-25.7s11-20.3 15.3-20.7c9.3 1.3 2.7 17.3 7 26s11 16.3 14.3 18.3 M450 53c5 60-8.7 74.7-22.3 90 M468 144c-5.3-24.7-16.3-48-23.3-58 0 0-4.3-13 2.3-26.7m76.7 28C526.7 71 532 55 552 50c6.7 0 5.7 16.3 11 20.7s15.7 14.7 22.3 15 M578.7 143c-7.7-25.3-13.3-36.7-22.3-48s-1-41.3-1-41.3m-40.7 86.6c13.7-9.7 26.3-15.3 29-36s2-43.3 5-50"/>
 
-        /* 可爱的白色圆角卡片 */
-        .window {
- background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff); 
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 15px 35px rgba(255, 182, 193, 0.3);
-            text-align: center;
-            width: 320px;
-            position: relative;
-            border: 4px solid #fff;
-        }
 
-        /* 装饰用的小爱心/星星（使用伪元素） */
-        .window::before {
-            content: '🌸';
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            font-size: 30px;
-        }
-
-        .logo {
-            margin-bottom: 30px;
-        }
-
-        .top-title {
-            font-size: 24px;
-            color: #ff8a80;
-            margin-bottom: 5px;
-        }
-
-        .main-title {
-            font-size: 42px;
-            color: #ffb1bb;
-            margin: 10px 0;
-            text-shadow: 2px 2px 0px #fff;
-        }
-
-        .sub-title {
-            font-size: 20px;
-            color: #81c784;
-            letter-spacing: 2px;
-        }
-
-        /* 圆润可爱的进度条容器 */
-        .container {
-            width: 240px;
-            height: 20px;
-            background: #f0f0f0;
-            border-radius: 20px;
-            margin: 30px auto 15px;
-            padding: 4px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* 渐变流光进度条 */
-        .box-wrapper {
-            height: 100%;
-            width: 100%;
-            position: relative;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .box {
-            width: 80px;
-            height: 100%;
-            background: linear-gradient(90deg, #ffc1cc, #ffecb3, #b2ebf2);
-            border-radius: 20px;
-            position: absolute;
-            animation: loader 1.5s infinite ease-in-out;
-        }
-
-        .status-text {
-            font-size: 16px;
-            color: #90a4ae;
-            margin-top: 10px;
-        }
-
-        #countdown-num {
-            color: #ff80ab;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        @keyframes loader {
-            0% { transform: translateX(-100px); }
-            100% { transform: translateX(250px); }
-        }
-
-        a {
-            color: #4fc3f7;
-            text-decoration: none;
-            border-bottom: 2px dashed #4fc3f7;
-        }
-
-        /* 漂浮装饰 */
-        .decor {
-            position: absolute;
-            font-size: 20px;
-            animation: float 3s infinite ease-in-out;
-            opacity: 0.6;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-    </style>
-</head>
-<body>
-
-<div class="window">
-    <div class="logo">
-        <div class="top-title">BoogleXp Adventure</div>
-        <div class="main-title">太赞了！</div>
-        <div class="sub-title">真的太棒了～</div>
-    </div>
-
-    <div class="container">
-        <div class="box-wrapper">
-            <div class="box"></div>
-        </div>
-    </div>
-
-    <div class="status-text">
-        <span id="status-msg">正在努力加载奇迹中...</span>
-        <br><br>
-        <span id="countdown-num">5</span> 秒后进入世界
-    </div>
+<div id="countdown-msg" style="text-align: center; margin: 20px; font-family: sans-serif; color: #;">
+     <span id="seconds"></span> 
 </div>
 
-<script type="text/javascript">
-    var num = 5;
-    var numDisplay = document.getElementById('countdown-num');
-    var msgDisplay = document.getElementById('status-msg');
+      
+</svg>
+    <script src='https://unpkg.com/gsap@3/dist/gsap.min.js'></script>
+<script src='https://unpkg.com/gsap/dist/Observer.min.js'></script><script  src="./script.js"></script>
 
-    // 随机加载文案，增加可爱感
-    var messages = ["正在收集阳光...", "正在召唤...", "正在计算获胜概率...", "奇迹快要发生啦！"];
+  </body>
+  
+</html>
 
-    function countDown() {
-        if (num > 0) {
-            numDisplay.innerText = num;
-            // 每秒随机换个可爱文案
-            msgDisplay.innerText = messages[Math.floor(Math.random() * messages.length)];
-            num--;
-            setTimeout(countDown, 1000);
-        } else {
-            numDisplay.innerText = "0";
-            msgDisplay.innerText = "出发啦！";
+
+<style>
+
+#seconds{
+
+
+
+  opacity:0.0;
+    
+}
+    
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    /* 核心修改：改为垂直和水平居中 */
+    align-items: center; 
+    justify-content: center; 
+    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+}
+
+svg {
+    /* 适当调大尺寸以便看清，并确保其作为容器居中 */
+    width: 30%; 
+    max-width: 300px;
+    overflow: hidden;
+    /* 这一行保证行人在自身坐标系中也是居中的 */
+    display: block;
+}
+    </style>
+
+
+    <script>
+const walkLoop = gsap.to("path", {
+  x: -500,
+  ease: "steps(5)",
+  repeat: -1
+});
+
+const colorLoop = gsap.to("path", {
+  duration: 12,
+  fill: (i) => (i == 0 ? "hsl(720,100%,50%)" : "none"),
+  stroke: (i) => (i == 0 ? "none" : "hsl(720,100%,50%)"),
+  repeat: -1
+});
+
+
+        // 在原来的 script 中加入这几行，确保手机上点击也能跳跃
+window.addEventListener('touchstart', (e) => {
+    // 阻止默认点击行为（如页面滚动），让游戏体验更好
+    e.preventDefault();
+    jump();
+}, { passive: false });
+
+
+
+        // 定义一个全局变量控制状态
+let isWalking = true;
+
+function toggleWalk() {
+    if (isWalking) {
+        walkLoop.pause();
+    } else {
+        walkLoop.resume();
+    }
+    isWalking = !isWalking;
+}
+
+// 同时监听鼠标点击（桌面）和触摸（移动端）
+window.addEventListener('mousedown', toggleWalk);
+window.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // 防止双重触发
+    toggleWalk();
+}, { passive: false });
+
+
+
+
+let timeLeft = 10;
+    const secondsSpan = document.getElementById('seconds');
+    
+    const timer = setInterval(() => {
+        timeLeft--;
+        secondsSpan.innerText = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
             window.location.href = "https://chenyongze1956.github.io/login.html";
         }
-    }
+    }, 1000);
 
-    window.onload = countDown;
-</script>
 
-</body>
-</html>
+        
+        </script>
