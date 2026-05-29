@@ -11,6 +11,8 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
 
 
@@ -339,8 +341,11 @@ function toggleBlog() {
     
     // 3. 填充数据
     const posts = [
-        { title: "今天", date: "2026-05-29", content: "今天天气很好，适合在手机里睡大觉喵。" },
-        { title: "关于迷你博客", date: "2026-05-28", content: "真的很有趣，瞬间最高兴了！" }
+        { title: "未完待续", date: "2026-05-30", content: "。。。。。。" },
+        { title: "演唱会", date: "2026-05-29", content: "还行，听着高兴就行" },
+        { title: "穿越小说", date: "2026-05-28", content: "小说中写道有个玩桶戏的人，他的桶能装一升米，但这个桶不是家里盛米的那种桶，它只有桶边，却没有桶底。在玩魔术时，他先将两张席子铺在地上，然后把一个量米的空的升子放进桶里，等他从桶里取出升子时，升子里已装满了白米。他就这样不停地从桶中舀出一升一升米，不一会儿，先前铺的两张席子上就已堆满了白米。接下来，他又把这些米一升一升舀回桶里，舀完之后，再举起桶，人们看到的仍是一只空桶。观看魔术的人对变白米倒不觉得十分惊奇，但对这位魔术师能变出那么多的白米却有些不可思议。" },
+        
+
     ];
     
     blogList.innerHTML = posts.map(p => `
