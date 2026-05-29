@@ -9,6 +9,8 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
 
 
@@ -42,6 +44,23 @@
        
    } 
 
+
+    #blogPanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 110px;
+    background: var(--nokia-green);
+    color: var(--nokia-dark);
+    display: none;
+    flex-direction: column;
+    padding: 5px;
+    box-sizing: border-box;
+    font-family: monospace;
+    z-index: 100; /* 确保层级高于一切 */
+    overflow-y: auto;
+}
 
 .dream-pixel {
     position: absolute;
@@ -89,6 +108,14 @@
     
     
     <div class="lcd">  <div id="boot-bg"></div> <div class="boot-text" id="bootIcon"></div>         <div class="boot-text" id="bootIcon"></div>           <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>            <canvas id="snakeCanvas" width="150" height="110"></canvas> 
+
+
+       <div id="blogPanel" style="position:absolute; top:0; left:0; width:150px; height:110px; background:var(--nokia-green); display:none; flex-direction:column; padding:5px; box-sizing:border-box; font-family:monospace; z-index:100; overflow-y:auto;">
+    <h3 style="font-size: 10px; margin: 0 0 5px 0; border-bottom: 1px solid var(--nokia-dark);">我的碎碎念</h3>
+    <div id="blogList" style="font-size: 8px; line-height: 1.2; color: var(--nokia-dark);"></div>
+    <button onclick="hideBlog()" style="margin-top:auto; font-size: 8px; cursor:pointer;">关闭</button>
+</div>
+        
         
     <div id="dreamBox" style="position:absolute; top:0; left:0; width:150px; height:110px; background:var(--nokia-green); display:none; flex-direction:column; align-items:center; justify-content:center; padding:5px; box-sizing:border-box; text-align:center; z-index:20;">
     <div id="dreamContent" style="font-size:8px; color:var(--nokia-dark); font-family:monospace; margin-bottom:5px; height:20px; overflow:hidden;"></div>
@@ -96,7 +123,7 @@
 </div>
         
         
-        <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>     <div class="btn" onclick="toggleDream()">#<span>梦境</span></div>      <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleCrypto()">9<span>加密</span></div>        <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
+        <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>     <div class="btn" onclick="toggleDream()">#<span>梦境</span></div>      <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleBlog()">9<span>博客</span></div>       <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
 <video id="webcam" autoplay playsinline style="display:none;"></video>
 <div class="qq-panel" id="qqPanel">    <div style="background:var(--qq-blue); color:white; padding:10px; display:flex; justify-content:space-between; font-weight:bold;">        <span>Hijiki 猫咪空间</span>        <span onclick="toggleQQ()" style="cursor:pointer;">✕</span>    </div>    <div id="msgBox" style="flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; font-size:14px;"></div>    <div style="padding:10px; border-top:1px solid #ddd; display:flex;">        <input id="qq-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="和猫咪聊天...">        <button onclick="sendQQMsg()" style="padding:8px 15px; background:var(--qq-blue); color:white; border:none; margin-left:5px; border-radius:4px;">发送</button>    </div></div>
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script>    const phone = document.getElementById('nokiaPhone');    const iframe = document.getElementById('nokiaIframe');    const canvas = document.getElementById('snakeCanvas');    const terminal = document.getElementById('psTerminal');    const video = document.getElementById('webcam');    const ctx = canvas.getContext('2d');        let isPowered = false, currentMode = 'web', videoStream = null;    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval, slInterval;    let audio = new Audio('https://www.joy127.com/url/148587.mp3');    let isPlaying = false;
@@ -295,7 +322,44 @@ for (let i = 0; i < 50; i++) {
     askAI(`用猫咪的语气，描述一下梦见“${theme}”的感觉，要短且充满幻觉感。`);
 }
     
+// 打开博客
+function toggleBlog() {
+    if (!isPowered) return; 
+    playVibration(); 
+    
+    // 1. 关闭其他所有屏幕内容，防止冲突
+    stopAll(); 
+    
+    // 2. 明确设置模式并显示面板
+    currentMode = 'blog';
+    const blogPanel = document.getElementById('blogPanel');
+    const blogList = document.getElementById('blogList');
+    
+    blogPanel.style.display = 'flex'; 
+    
+    // 3. 填充数据
+    const posts = [
+        { title: "今天", date: "2026-05-29", content: "今天天气很好，适合在手机里睡大觉喵。" },
+        { title: "关于迷你博客", date: "2026-05-28", content: "真的很有趣，瞬间最高兴了！" }
+    ];
+    
+    blogList.innerHTML = posts.map(p => `
+        <div style="margin-bottom: 8px; border-bottom: 1px dashed #555;">
+            <div style="font-weight:bold;">${p.title}</div>
+            <div style="font-size: 6px;">${p.date}</div>
+            <div style="margin-top: 2px;">${p.content}</div>
+        </div>
+    `).join('');
+}
 
+// 关闭博客
+function hideBlog() {
+    playVibration();
+    document.getElementById('blogPanel').style.display = 'none';
+    currentMode = 'web';
+    // 回到主屏 iframe
+    iframe.classList.add('active'); 
+}
         </script></body></html>
 
 
