@@ -20,6 +20,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -683,6 +685,17 @@
 <style>
 
 
+
+@font-face {
+    font-family: 'MyCustomFont'; /* 给字体取个名字 */
+    src: url('https://od.lk/s/NDBfMTEzNjM2MjI2Xw/d.ttf') format('truetype'),
+         url('https://od.lk/s/NDBfMTM5MTE2Njk5Xw/FOT-TsukuAOldMinPr6N-L.otf') format('opentype'),
+         url('fonts/my-font.ttc') format('truetype'); /* TTC 通常也是 Truetype 格式 */
+    font-weight: normal;
+    font-style: normal;
+}
+
+
 /* 散文体容器样式 */
 .prose-tweet {
     padding: 20px;
@@ -696,7 +709,7 @@
 /* 散文段落优化 */
 .prose-text {
   /* 引入书法字体 */
-    font-family: 'Ma Shan Zheng', cursive; 
+font-family: 'MyCustomFont', sans-serif;
     font-size: 20px; /* 书法字体通常需要稍大一些才清晰 */
     line-height: 2.0; /* 行草需要更大的行间距来体现留白 */
     color: #2c2c2c;
@@ -1204,6 +1217,18 @@ body{
 
 
 <style>
+
+@font-face {
+    font-family: 'MyCustomFont'; /* 给字体取个名字 */
+    src: url('fonts/my-font.ttf') format('truetype'),
+         url('fonts/my-font.otf') format('opentype'),
+         url('fonts/my-font.ttc') format('truetype'); /* TTC 通常也是 Truetype 格式 */
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+    
 
 :root {
     --twitter-blue: #1DA1F2;
