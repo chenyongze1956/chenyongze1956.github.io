@@ -1,7 +1,11 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 
   <head>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
     <meta charset="UTF-8">
     <title>Walk Loop (SVG Spritesheet)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="./style.css">
@@ -9,17 +13,15 @@
   </head>
     
   <body>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150">
-    <path fill="hsl(0,100%,50%)" stroke="none" d="M72.2 24.6c0 8.6-7 15.6-15.6 15.6S41 33.2 41 24.6 48 9 56.6 9s15.6 7 15.6 15.6m84.4-14.9c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6m99-1.7C247 8 240 15 240 23.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6S264.2 8 255.6 8m99-2C346 6 339 13 339 21.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6S363.2 6 354.6 6m100.3.7c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6m101 1.6c-8.6 0-15.6 7-15.6 15.6s7 15.6 15.6 15.6 15.6-7 15.6-15.6-7-15.6-15.6-15.6"/>
-    <path fill="none" stroke="hsl(0,100%,50%)" stroke-linecap="round" stroke-width="10" d="M54 52.7C39.7 65 48.3 105 43.5 117.5s-16.2 13.5-29 14 M77.3 89.7C58 81.7 61.3 57 56.6 52c-29.7 2-28.7 30.7-21.7 42 M64.7 143.7c5.5-15 7.8-25.7-1.7-38.7s-9-17-9-17l1-35.1m65.3 75.4c12-1.7 27.3-5.7 28-10.3 2.7-16.7-9.7-58.7 2.7-62.7 0 0-3 28.3 6.7 41.7s13.3 28.3 1.7 47 M168.3 94.3c-14-12.3-9.7-37.3-12.7-42-12-1.7-27.7 19.7-11 43.7M254 50.4c.6 6.4-.8 13.5-.5 20.3.4 10 2.1 19.4 6.8 26.4 M237.7 130.3c14.3-8.3 28.3-13.6 17.3-22s-21.7-37.3-6.3-56 M253 144c3.3-16.3 15.6-19.6-.3-50s-.7-43-.7-43m88.3 93.3c4.7-12.3 13.3-32 9-48.7s-5.2-38 2.2-47.3 M347.3 134.7c7.7-9.7 15.7-18.3 8.3-31.7-4.8-8.8-2.5-29.7-1.4-43s-.2-11.8-.2-11.8 M358.7 95.3c-11-6-5.8-47.2-5.8-47.2m-1.9.9c-6 3.3-11.7 37.3-4.3 47m92.3-2c-1.6-6.9-4.9-15.7-2.7-25.7s11-20.3 15.3-20.7c9.3 1.3 2.7 17.3 7 26s11 16.3 14.3 18.3 M450 53c5 60-8.7 74.7-22.3 90 M468 144c-5.3-24.7-16.3-48-23.3-58 0 0-4.3-13 2.3-26.7m76.7 28C526.7 71 532 55 552 50c6.7 0 5.7 16.3 11 20.7s15.7 14.7 22.3 15 M578.7 143c-7.7-25.3-13.3-36.7-22.3-48s-1-41.3-1-41.3m-40.7 86.6c13.7-9.7 26.3-15.3 29-36s2-43.3 5-50"/>
+  <div id="lottie-container"></div>
 
+    <div id="countdown-msg" style="text-align: center; margin: 20px; font-family: sans-serif;">
+        <span id="seconds"></span> 
+    </div>
 
-<div id="countdown-msg" style="text-align: center; margin: 20px; font-family: sans-serif; color: #;">
-     <span id="seconds"></span> 
-</div>
-
-      
-</svg>
+    <script src='https://unpkg.com/gsap@3/dist/gsap.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <script src="./script.js"></script>
     <script src='https://unpkg.com/gsap@3/dist/gsap.min.js'></script>
 <script src='https://unpkg.com/gsap/dist/Observer.min.js'></script><script  src="./script.js"></script>
 
@@ -30,96 +32,70 @@
 
 <style>
 
-#seconds{
-
-
-
-  opacity:0.0;
-    
+#lottie-container {
+    width: 30%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: block;
 }
-    
+
+#seconds {
+    opacity: 0.0;
+}
+
 body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100vh;
     display: flex;
-    /* 核心修改：改为垂直和水平居中 */
+    flex-direction: column; /* 让内容垂直排列 */
     align-items: center; 
     justify-content: center; 
     background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-}
-
-svg {
-    /* 适当调大尺寸以便看清，并确保其作为容器居中 */
-    width: 30%; 
-    max-width: 300px;
-    overflow: hidden;
-    /* 这一行保证行人在自身坐标系中也是居中的 */
-    display: block;
 }
     </style>
 
 
     <script>
-const walkLoop = gsap.to("path", {
-  x: -500,
-  ease: "steps(5)",
-  repeat: -1
+// 1. 初始化 Lottie 动画
+const animation = lottie.loadAnimation({
+    container: document.getElementById('lottie-container'),
+    renderer: 'svg',
+    loop: true,
+    autoplay: true,
+    path: 'https://od.lk/s/NDBfMTM5MjA1NDAwXw/jump-rope-fun-play-relax-svgrepo-com.json'
 });
 
-const colorLoop = gsap.to("path", {
-  duration: 12,
-  fill: (i) => (i == 0 ? "hsl(720,100%,50%)" : "none"),
-  stroke: (i) => (i == 0 ? "none" : "hsl(720,100%,50%)"),
-  repeat: -1
-});
+// 2. 状态控制
+let isPlaying = true;
 
-
-        // 在原来的 script 中加入这几行，确保手机上点击也能跳跃
-window.addEventListener('touchstart', (e) => {
-    // 阻止默认点击行为（如页面滚动），让游戏体验更好
-    e.preventDefault();
-    jump();
-}, { passive: false });
-
-
-
-        // 定义一个全局变量控制状态
-let isWalking = true;
-
-function toggleWalk() {
-    if (isWalking) {
-        walkLoop.pause();
+function toggleAnimation() {
+    if (isPlaying) {
+        animation.pause();
     } else {
-        walkLoop.resume();
+        animation.play();
     }
-    isWalking = !isWalking;
+    isPlaying = !isPlaying;
 }
 
-// 同时监听鼠标点击（桌面）和触摸（移动端）
-window.addEventListener('mousedown', toggleWalk);
+// 监听交互
+window.addEventListener('mousedown', toggleAnimation);
 window.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // 防止双重触发
-    toggleWalk();
+    e.preventDefault();
+    toggleAnimation();
 }, { passive: false });
 
-
-
-
-let timeLeft = 10;
-    const secondsSpan = document.getElementById('seconds');
-    
-    const timer = setInterval(() => {
-        timeLeft--;
-        secondsSpan.innerText = timeLeft;
-        
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            window.location.href = "https://chenyongze1956.github.io/login.html";
-        }
-    }, 1000);
-
-
+// 3. 倒计时逻辑
+let timeLeft = 20;
+const secondsSpan = document.getElementById('seconds');
+const timer = setInterval(() => {
+    timeLeft--;
+    secondsSpan.innerText = timeLeft;
+    if (timeLeft <= 0) {
+        clearInterval(timer);
+        window.location.href = "https://chenyongze1956.github.io/login.html";
+    }
+}, 1000);
         
         </script>
