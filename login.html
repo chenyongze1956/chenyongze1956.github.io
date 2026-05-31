@@ -1,5 +1,7 @@
 
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -66,6 +68,35 @@
                 box-shadow: 0 0 10px rgba(30, 144, 255, 0.8);
             }
         }
+
+
+/* 悬停图片弹出层样式 */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-image {
+    visibility: hidden;
+    width: 200px; /* 图片宽度 */
+    position: absolute;
+    z-index: 1000;
+    bottom: 120%; /* 弹出在头像上方 */
+    left: 50%;
+    margin-left: -100px; /* 居中 */
+    border: 3px solid white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* 鼠标悬停时显示 */
+.user-card:hover .tooltip-image {
+    visibility: visible;
+    opacity: 1;
+}
+        
     </style>
     <style>
         body {
@@ -373,12 +404,15 @@
         
         
         <div class="users-container">
-            <div class="user-card active" data-username="Administrator">
-                <div class="user-avatar">
-                    <img src="https://i.ibb.co/R4vzqcYb/image.jpg" alt="Administrator">
-                </div>
-                <div class="user-name">Administrator</div>
-            </div>
+      <div class="user-card active" data-username="Administrator">
+    <div class="tooltip-container">
+        <div class="user-avatar">
+            <img src="https://i.ibb.co/R4vzqcYb/image.jpg" alt="Administrator">
+        </div>
+        <img class="tooltip-image" src="https://od.lk/s/NDBfMTM5Mjk2ODMyXw/Hello%20Kitty%20Pink%20GIF.gif" alt="Tooltip">
+    </div>
+    <div class="user-name">Administrator</div>
+</div>
             
             <div class="user-card" data-username="User">
             
