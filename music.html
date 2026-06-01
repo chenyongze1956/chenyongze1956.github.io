@@ -130,7 +130,14 @@
         <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>     <div class="btn" onclick="toggleDream()">#<span>梦境</span></div>      <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleBlog()">9<span>博客</span></div>       <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
 <video id="webcam" autoplay playsinline style="display:none;"></video>
 <div class="qq-panel" id="qqPanel">    <div style="background:var(--qq-blue); color:white; padding:10px; display:flex; justify-content:space-between; font-weight:bold;">        <span>Hijiki 猫咪空间</span>        <span onclick="toggleQQ()" style="cursor:pointer;">✕</span>    </div>    <div id="msgBox" style="flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; font-size:14px;"></div>    <div style="padding:10px; border-top:1px solid #ddd; display:flex;">        <input id="qq-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="和猫咪聊天...">        <button onclick="sendQQMsg()" style="padding:8px 15px; background:var(--qq-blue); color:white; border:none; margin-left:5px; border-radius:4px;">发送</button>    </div></div>
-<script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script>    const phone = document.getElementById('nokiaPhone');    const iframe = document.getElementById('nokiaIframe');    const canvas = document.getElementById('snakeCanvas');    const terminal = document.getElementById('psTerminal');    const video = document.getElementById('webcam');    const ctx = canvas.getContext('2d');        let isPowered = false, currentMode = 'web', videoStream = null;    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval, slInterval;    let audio = new Audio('https://www.joy127.com/url/148587.mp3');    let isPlaying = false;
+<script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script>    const phone = document.getElementById('nokiaPhone');    const iframe = document.getElementById('nokiaIframe');    const canvas = document.getElementById('snakeCanvas');    const terminal = document.getElementById('psTerminal');    const video = document.getElementById('webcam');    const ctx = canvas.getContext('2d');        let isPowered = false, currentMode = 'web', videoStream = null;    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval, slInterval;    // 播放列表
+const musicList = [
+    { title: "歌曲1", url: "https://www.joy127.com/url/148587.mp3" },
+    { title: "歌曲2", url: "https://www.joy127.com/url/152038.mp3" }, // 换成你想听的音乐链接
+    { title: "歌曲3", url: "https://www.joy127.com/url/152030.mp3" }
+];
+let currentTrackIndex = 0;
+let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false;
     function playVibration() { if (navigator.vibrate) navigator.vibrate(50); }
    function powerOn() {
     playVibration();
@@ -223,8 +230,45 @@
 
     function openUrl() {        if(!isPowered) return;        const u = prompt("输入网址", "https://");        if(u) { stopAll(); iframe.src = u; iframe.classList.add('active'); currentMode = 'web';}    }
 
-    function toggleMusic() {        if (!isPowered) return; playVibration();        if (isPlaying) { stopMusic(); }         else {            stopAll(); currentMode = 'music'; canvas.classList.add('active');            audio.play(); isPlaying = true;            musicInterval = setInterval(() => {                ctx.fillStyle = "#9ead86"; ctx.fillRect(0, 0, 150, 110);                ctx.fillStyle = "#222b16";                for (let i = 0; i < 15; i++) { const h = Math.random() * 80; ctx.fillRect(i * 10 + 2, 90 - h, 6, h); }            }, 100);        }    }
-    function stopMusic() { audio.pause(); audio.currentTime = 0; isPlaying = false; clearInterval(musicInterval); }
+    function toggleMusic() {
+    if (!isPowered) return;
+    playVibration();
+    
+    // 如果已经在播放，点击则“切歌”而不是停止
+    if (isPlaying) {
+        currentTrackIndex = (currentTrackIndex + 1) % musicList.length;
+        audio.src = musicList[currentTrackIndex].url;
+        audio.play();
+        showCatSpeech(`正在切换到: ${musicList[currentTrackIndex].title} 喵~`);
+    } else {
+        // 如果未播放，则开始播放
+        stopAll();
+        currentMode = 'music';
+        canvas.classList.add('active');
+        
+        audio.src = musicList[currentTrackIndex].url;
+        audio.play();
+        isPlaying = true;
+        
+        musicInterval = setInterval(() => {
+            ctx.fillStyle = "#9ead86";
+            ctx.fillRect(0, 0, 150, 110);
+            ctx.fillStyle = "#222b16";
+            for (let i = 0; i < 15; i++) {
+                const h = Math.random() * 80;
+                ctx.fillRect(i * 10 + 2, 90 - h, 6, h);
+            }
+        }, 100);
+        showCatSpeech(`播放: ${musicList[currentTrackIndex].title} 喵~`);
+    }
+}
+    function stopMusic() {
+    audio.pause();
+    isPlaying = false;
+    clearInterval(musicInterval);
+    // 隐藏可视化界面
+    canvas.classList.remove('active');
+}
 
     let skinIndex = 0;
     function changePhoneSkin() {        if(!isPowered) return;        playVibration();        const phoneSkins = [            { bg: '#d1d5db', border: '#a1a5af' }, { bg: '#222', border: '#444' },            { bg: '#e94560', border: '#a01a30' }, { bg: '#0f3460', border: '#0a213d' },            { bg: '#9ead86', border: '#222b16' }        ];        skinIndex = (skinIndex + 1) % phoneSkins.length;        phone.style.background = phoneSkins[skinIndex].bg;        phone.style.borderColor = phoneSkins[skinIndex].border;        showCatSpeech("新衣服好看喵？");    }
