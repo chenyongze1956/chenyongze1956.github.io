@@ -15,6 +15,8 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
 
 
@@ -186,9 +188,12 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
     document.getElementById('twitchBox').innerHTML = '';
     const cp = document.getElementById('cryptoPanel'); if(cp) cp.style.display = 'none';
     const ab = document.getElementById('animeBox'); if(ab) ab.style.display = 'none';
-    
+
+            document.querySelector('.lcd').style.backgroundImage = "url('https://od.lk/s/NDBfMTM5NDIxNDcxXw/Wave%20Sea%20GIF.gif')";
+
     // 确保 iframe, canvas, terminal 移除 active
     [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
+
 }
 
     // --- Twitch 功能 ---
@@ -228,7 +233,22 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
 
     function resetMode() {        if(!isPowered) return; playVibration();        if (['camera','nyan','matrix','sl','twitch'].includes(currentMode)) {             stopAll(); currentMode = 'web'; iframe.classList.add('active');         } else { toggleCamera(); }    }
 
-    function openUrl() {        if(!isPowered) return;        const u = prompt("输入网址", "https://");        if(u) { stopAll(); iframe.src = u; iframe.classList.add('active'); currentMode = 'web';}    }
+   function openUrl() {
+    if(!isPowered) return;
+    const u = prompt("输入网址", "https://");
+    if(u) { 
+        stopAll(); 
+        
+        // --- 新增：强制移除 LCD 背景图 ---
+        const lcd = document.querySelector('.lcd');
+        lcd.style.backgroundImage = 'none'; 
+        // ------------------------------
+        
+        iframe.src = u; 
+        iframe.classList.add('active'); 
+        currentMode = 'web';
+    }
+}
 
     function toggleMusic() {
     if (!isPowered) return;
