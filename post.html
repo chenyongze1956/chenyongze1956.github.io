@@ -22,6 +22,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -504,6 +506,58 @@
                                 </div>
                             </article>
 
+  <!-- Chained reply tweet -->
+                            <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+                                   <div class="replied-to">
+                                        Replying to <a href="/toda">@toda</a>
+                                    </div>
+  
+                                <div id="game-section" style="width: 90%; max-width: 480px; margin: 30px auto; background: #fdfaf2; padding: 20px; border: 2px solid #8b4513; border-radius: 10px; text-align: center;">
+    <div id="game-box" style="width: 100%; height: 150px; border: 2px solid #535353; position: relative; overflow: hidden; background: white; margin: 10px auto;">
+        <div id="dino" style="width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; background: url(https://assets.codepen.io/1480814/dd.png) 0px 0px no-repeat;">
+            <span id="fire" style="display:none; position: absolute; top: -15px; right: -15px; font-size: 20px;" class="fire-effect">🔥</span>
+        </div>
+        <div id="obstacle" style="width: 30px; height: 30px; position: absolute; bottom: 0; right: 20px; animation: move 2s infinite linear; background: url(https://assets.codepen.io/1480814/cc1.png) no-repeat center/contain;"></div>
+        <div id="game-over" style="position: absolute; top: 40px; left: 0; width: 100%; display: none; font-size: 20px; color: red; font-weight: bold;">GAME OVER<br><small style="font-size: 12px; color: #555;">按 Start 键重置</small></div>
+    </div>
+</div>
+            <div class="prose-divider"></div>
+        </div>
+
+        <div class="tweet-actions-list">
+             </div>
+
+
+                                    
+                                                                          <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
 
 
                                    <!-- Another VIP Reply -->
@@ -555,58 +609,6 @@
 
 
 
-  <!-- Chained reply tweet -->
-                            <article class="tweet reply">
-                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
-                                <div class="tweet-content">
-                                    <div class="tweet-header">
-                                        <div class="tweet-author-info">
-                                            <span class="tweet-name">CC</span>
-                                            <i class="fas fa-check-circle verified-badge-blue"></i>
-                                            <span class="tweet-username">@yoshi</span>
-                                            <span class="tweet-time">· 15m</span>
-                                        </div>
-                                    </div>
-                                   <div class="replied-to">
-                                        Replying to <a href="/toda">@toda</a>
-                                    </div>
-  
-                                <div id="game-section" style="width: 90%; max-width: 480px; margin: 30px auto; background: #fdfaf2; padding: 20px; border: 2px solid #8b4513; border-radius: 10px; text-align: center;">
-    <div id="game-box" style="width: 100%; height: 150px; border: 2px solid #535353; position: relative; overflow: hidden; background: white; margin: 10px auto;">
-        <div id="dino" style="width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; background: url(https://assets.codepen.io/1480814/dd.png) 0px 0px no-repeat;">
-            <span id="fire" style="display:none; position: absolute; top: -15px; right: -15px; font-size: 20px;" class="fire-effect">🔥</span>
-        </div>
-        <div id="obstacle" style="width: 30px; height: 30px; position: absolute; bottom: 0; right: -50px; animation: move 2s infinite linear; background: url(https://assets.codepen.io/1480814/cc1.png) no-repeat center/contain;"></div>
-        <div id="game-over" style="position: absolute; top: 40px; left: 0; width: 100%; display: none; font-size: 20px; color: red; font-weight: bold;">GAME OVER<br><small style="font-size: 12px; color: #555;">按 Start 键重置</small></div>
-    </div>
-</div>
-            <div class="prose-divider"></div>
-        </div>
-
-        <div class="tweet-actions-list">
-             </div>
-
-
-                                    
-                                                                          <div class="tweet-actions-list">
-                                        <button class="tweet-action-button" onclick="handleReply(this)">
-                                            <i class="far fa-comment"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-retweet"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
-                                            <i class="far fa-heart"></i>
-                                            <span>100</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-rocket"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </article>
 
 
 
