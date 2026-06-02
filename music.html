@@ -97,7 +97,7 @@
     
     @media screen and (max-width: 360px) {            .phone { transform: scale(0.7); margin-top: -50px; }        }                :root { --nokia-green: #9ead86; --nokia-dark: #222b16; --qq-blue: #0099ff; --ps-blue: #012456; }        html, body { height: 100%; margin: 0; overflow: hidden; background: #222; }        body {            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);            background-size: 400% 400%;            animation: gradientBG 15s ease infinite;            display: flex; justify-content: center; align-items: center; min-height: 100vh;            font-family: "Microsoft YaHei", sans-serif;            touch-action: manipulation;        }        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }                .phone {            width: 260px; height: 500px; background: #d1d5db; border-radius: 40px 40px 100px 100px;            box-shadow: inset 0 0 15px rgba(0,0,0,0.4), 20px 30px 60px rgba(0,0,0,0.6);            display: flex; flex-direction: column; align-items: center; padding: 20px; border: 4px solid #a1a5af;            z-index: 50; transform: scale(0.9); position: relative;            transition: background 0.5s ease, border-color 0.5s ease;        }        .screen-frame {    
         
-        width: 180px; height: 140px; background: #222; border-radius: 12px;            display: flex; justify-content: center; align-items: center; border: 4px solid #333; position: relative;        }        .lcd { width: 150px; height: 110px; background: #111; position: relative; overflow: hidden; transition: background 1.5s ease; }        .phone.powered-on .lcd { background: var(--nokia-green);background-image: url('');background-size: cover;
+        width: 180px; height: 140px; background: #222; border-radius: 12px;            display: flex; justify-content: center; align-items: center; border: 4px solid #333; position: relative;        }        .lcd { width: 150px; height: 110px; background: #111; position: relative; overflow: hidden; transition: background 1.5s ease; }        .phone.powered-on .lcd { background: var(--nokia-green);background-image: url('https://i.ibb.co/00xfYyz/Wave-Sea-GIF.gif');background-size: cover;
      /* 默认隐藏 屏幕背景图片*/ }
         #nokiaIframe, #snakeCanvas, #psTerminal, #twitchBox, #animeBox { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: none; }        .phone.powered-on #nokiaIframe.active { display: block; filter: grayscale(1) contrast(1.2); opacity: 0.7; }        .phone.powered-on #snakeCanvas.active { display: block; z-index: 5; }        .phone.powered-on #psTerminal.active { display: block; background: var(--ps-blue) !important; color: #fff; padding: 5px; font-size: 8px; font-family: monospace; z-index: 10; overflow-y: auto; }                .boot-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--nokia-dark); font-size: 20px; font-weight: bold; display: none; }        .phone.booting .boot-text { display: block; animation: flicker 0.5s infinite; }        @keyframes flicker { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         .keypad { margin-top: 25px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }        .btn { width: 60px; height: 40px; background: #eee; border-radius: 10px; box-shadow: 0 4px #bbb; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; color: #555; cursor: pointer; user-select: none; font-size: 11px; }        .btn span { font-size: 7px; color: #888; margin-top: 2px; }        .btn:active { transform: translateY(2px); box-shadow: 0 2px #999; }
@@ -414,6 +414,11 @@ function hideBlog() {
     iframe.classList.add('active'); 
 }
         </script></body></html>
+
+
+
+
+
 
 
 
