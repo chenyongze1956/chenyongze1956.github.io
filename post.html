@@ -24,6 +24,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -609,7 +611,70 @@
 
 
 
+ <article class="tweet reply">
+                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
+                                <div class="tweet-content">
+                                    <div class="tweet-header">
+                                        <div class="tweet-author-info">
+                                            <span class="tweet-name">CC</span>
+                                            <i class="fas fa-check-circle verified-badge-blue"></i>
+                                            <span class="tweet-username">@yoshi</span>
+                                            <span class="tweet-time">· 15m</span>
+                                        </div>
+                                    </div>
+        
+  <div class="rps-container">
+    <form class="rps-form">
+        <input type="radio" id="rock-rock" name="rps-radio">
+        <input type="radio" id="rock-paper" name="rps-radio">
+        <input type="radio" id="rock-scissors" name="rps-radio">
+        <input type="radio" id="paper-rock" name="rps-radio">
+        <input type="radio" id="paper-paper" name="rps-radio">
+        <input type="radio" id="paper-scissors" name="rps-radio">
+        <input type="radio" id="scissors-rock" name="rps-radio">
+        <input type="radio" id="scissors-paper" name="rps-radio">
+        <input type="radio" id="scissors-scissors" name="rps-radio">
 
+        <div class="rps-main">
+            <div id="hands">
+                <div class="hand" id="computer-hand">
+                    <div class="fist"></div><div class="finger finger-1"></div><div class="finger finger-2"></div><div class="finger finger-3"></div><div class="finger finger-4"></div><div class="thumb"></div><div class="arm"></div>
+                </div>
+                <div class="hand" id="user-hand">
+                    <div class="fist"></div><div class="finger finger-1"></div><div class="finger finger-2"></div><div class="finger finger-3"></div><div class="finger finger-4"></div><div class="thumb"></div><div class="arm"></div>
+                </div>
+                <div id="icons">
+                    <div><label for="rock-rock">✊</label><label for="paper-rock">✊</label><label for="scissors-rock">✊</label></div>
+                    <div><label for="rock-paper">🖐️</label><label for="paper-paper">🖐️</label><label for="scissors-paper">🖐️</label></div>
+                    <div><label for="rock-scissors">✌</label><label for="paper-scissors">✌</label><label for="scissors-scissors">✌</label></div>
+                </div>
+            </div>
+            <div id="message"><h2></h2><input type="reset" value="Refresh"></div>
+        </div>
+    </form>
+</div>
+
+
+                                                                          <div class="tweet-actions-list">
+                                        <button class="tweet-action-button" onclick="handleReply(this)">
+                                            <i class="far fa-comment"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-retweet"></i>
+                                            <span>0</span>
+                                        </button>
+                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
+                                            <i class="far fa-heart"></i>
+                                            <span>100</span>
+                                        </button>
+                                        <button class="tweet-action-button">
+                                            <i class="fas fa-rocket"></i>
+                                        </button>
+                                    </div>
+                                </div>             </div>
+    </div>
+</article>
 
 
 
@@ -686,7 +751,105 @@
 
 <style>
 
+<style>
+<style>
+/* 确保 label 可以被点击且能穿透 */
+.rps-container label {
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    position: relative;
+}
 
+/* 强制 radio 选中后立即生效，通过提高优先级来覆盖动画 */
+.rps-container input:checked ~ .rps-main .hand {
+    animation: none !important;
+    transition: all 0.2s ease;
+}
+
+/* 缩放控制：用 zoom 实现简单的缩小，而不破坏文档流 */
+.rps-main { 
+    zoom: 0.35; /* 在桌面端自动适配，移动端通过容器宽度约束 */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rps-form { 
+    position: static !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+    align-items: center !important; 
+}
+
+/* 调整手部间距，使其在窄屏下不溢出 */
+.rps-container .hand { margin: 10px; }
+
+/* 响应式媒体查询：针对屏幕更小的移动设备 */
+@media (max-width: 480px) {
+    .rps-main { zoom: 0.28; } /* 移动端再稍微缩小一点 */
+    .rps-container { padding: 5px; }
+}
+
+/* --- 原有逻辑保持不变 --- */
+.rps-container input[type="radio"] { position: absolute; opacity: 0; }
+.rps-container .hand { width: 200px; height: 200px; position: relative; transform: rotate(10deg); display: inline-block; }
+.rps-container .hand > div { position: absolute; box-sizing: border-box; border: 2px solid black; background: gold; }
+
+/* 手势样式定义 (省略部分以节省篇幅，请保留你现有的 finger/fist 定义) */
+.rps-container .fist { height: 110px; left: 40px; top: 50px; width: 90px; border-radius: 20px 0 0 20px; }
+.rps-container .finger { width: 70px; height: 30px; border-radius: 20px; left: 80px; transform-origin: 0 50%; }
+.rps-container .finger-1 { top: 50px; }.rps-container .finger-2 { top: 78px; left: 84px; }.rps-container .finger-3 { top: 106px; }.rps-container .finger-4 { top: 134px; height: 26px; left: 76px; }
+.rps-container .thumb { width: 35px; height: 70px; border-radius: 0 20px 20px 20px; top: 50px; left: 80px; border-left: 0; box-shadow: -17px 6px 0 -15px black; }
+.rps-container .arm { width: 22px; height: 70px; left: 20px; top: 70px; border-top: 2px solid black; border-bottom: 2px solid black; border-left: 0; }
+
+/* 联动逻辑 */
+.rps-container input:checked ~ .rps-main .hand { animation: none !important; }
+.rps-container #user-hand { transform: rotateY(180deg); }
+.rps-container #message { display: none; text-align: center; font-family: sans-serif; font-weight: bold; }
+.rps-container input:checked ~ .rps-main #message { display: block; }
+
+
+
+    /* 当用户选中“剪刀”时，改变 user-hand 的手指形状 */
+.rps-container input[id$="scissors"]:checked ~ .rps-main #user-hand .finger-1 {
+    width: 130px;
+    transform: rotate(-5deg);
+}
+.rps-container input[id$="scissors"]:checked ~ .rps-main #user-hand .finger-2 {
+    width: 130px;
+    transform: rotate(5deg);
+}
+
+/* 当用户选中“布”时，改变手指位置 */
+.rps-container input[id$="paper"]:checked ~ .rps-main #user-hand .finger-1,
+.rps-container input[id$="paper"]:checked ~ .rps-main #user-hand .finger-2,
+.rps-container input[id$="paper"]:checked ~ .rps-main #user-hand .finger-3,
+.rps-container input[id$="paper"]:checked ~ .rps-main #user-hand .finger-4 {
+    left: 124px;
+    width: 80px;
+}
+
+
+    /* 补充电脑手势逻辑：当用户选定后，根据不同的 ID 改变电脑手部形状 */
+
+/* 电脑出剪刀 */
+.rps-container input[id^="scissors"]:checked ~ .rps-main #computer-hand .finger-1 { width: 130px; transform: rotate(-5deg); }
+.rps-container input[id^="scissors"]:checked ~ .rps-main #computer-hand .finger-2 { width: 130px; transform: rotate(5deg); }
+
+/* 电脑出布 (注意：这里需要将所有的手指都向右移动) */
+.rps-container input[id^="paper"]:checked ~ .rps-main #computer-hand .finger-1,
+.rps-container input[id^="paper"]:checked ~ .rps-main #computer-hand .finger-2,
+.rps-container input[id^="paper"]:checked ~ .rps-main #computer-hand .finger-3,
+.rps-container input[id^="paper"]:checked ~ .rps-main #computer-hand .finger-4 { 
+    left: 124px; width: 80px; border-left: 0; border-radius: 0 20px 20px 0; 
+}
+
+/* 电脑出石头 (默认状态即为石头，无需额外规则，但如果需要显式重置，需确保动画暂停) */
+.rps-container input:checked ~ .rps-main #computer-hand { animation: none !important; }
 
 @font-face {
     font-family: 'MyCustomFont'; /* 给字体取个名字 */
@@ -3714,6 +3877,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 </script>
 
+
+
+<script>
+document.querySelectorAll('.rps-container label').forEach(label => {
+    label.addEventListener('click', function() {
+        const hands = ['rock', 'paper', 'scissors'];
+        const computerHand = hands[Math.floor(Math.random() * hands.length)];
+        const userHand = this.getAttribute('for').split('-')[1]; // 获取用户选择的类型
+
+        // 逻辑：更新电脑的手势
+        // 你需要在这里添加代码，动态修改电脑 hand 的 class 或者触发对应的 radio
+        // 比如：document.getElementById('computer-' + computerHand).checked = true;
+        
+        console.log("用户出: " + userHand + ", 电脑出: " + computerHand);
+    });
+});
+</script>
 
 
 
