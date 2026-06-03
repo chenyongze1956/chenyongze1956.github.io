@@ -179,6 +179,11 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
     clearInterval(nyanInterval); clearInterval(matrixInterval); clearInterval(slInterval);
     audio.pause(); audio.currentTime = 0; isPlaying = false;
     if(videoStream) { videoStream.getTracks().forEach(t=>t.stop()); videoStream = null; }
+
+
+        
+    const wifiCanvas = document.getElementById('wifiCanvas');
+    if (wifiCanvas) wifiCanvas.style.display = 'none';
     
     // --- 新增：强制隐藏梦境框 ---
     document.getElementById('dreamBox').style.display = 'none';
@@ -193,6 +198,10 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
 
             document.querySelector('.lcd').style.backgroundImage = "url('https://od.lk/s/NDBfMTM5NDIxNDcxXw/Wave%20Sea%20GIF.gif')";
 
+
+
+
+    
     // 确保 iframe, canvas, terminal 移除 active
     [iframe, canvas, terminal].forEach(el => el.classList.remove('active'));
 
