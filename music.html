@@ -19,6 +19,8 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
 
 
@@ -406,34 +408,38 @@ for (let i = 0; i < 50; i++) {
 // 打开博客
 function toggleBlog() {
     if (!isPowered) return; 
-    playVibration(); 
-    
-    // 1. 关闭其他所有屏幕内容，防止冲突
-    stopAll(); 
-    
-    // 2. 明确设置模式并显示面板
+    playVibration();
+    stopAll();
     currentMode = 'blog';
+    
     const blogPanel = document.getElementById('blogPanel');
     const blogList = document.getElementById('blogList');
-    
-    blogPanel.style.display = 'flex'; 
-    
-    // 3. 填充数据
-    const posts = [
-        { title: "人鬼记", date: "2026-05-31", content: "缟衣人不见，独上寺南楼。人鬼真的可以相逢么？如果可以，我们应当无惧生死，就算不能，也应当无畏。在黄泉路上，喝下孟婆汤，历经万千轮回，终有一日在奈何桥上相拥。只怕那时的妳，不是当初的妳，我，亦不是那时的我。" },
-        { title: "演唱会", date: "2026-05-29", content: "还行，听着高兴就行" },
-        { title: "穿越小说", date: "2026-05-28", content: "小说中写道有个玩桶戏的人，他的桶能装一升米，但这个桶不是家里盛米的那种桶，它只有桶边，却没有桶底。在玩魔术时，他先将两张席子铺在地上，然后把一个量米的空的升子放进桶里，等他从桶里取出升子时，升子里已装满了白米。他就这样不停地从桶中舀出一升一升米，不一会儿，先前铺的两张席子上就已堆满了白米。接下来，他又把这些米一升一升舀回桶里，舀完之后，再举起桶，人们看到的仍是一只空桶。观看魔术的人对变白米倒不觉得十分惊奇，但对这位魔术师能变出那么多的白米却有些不可思议。" },
-     
+    blogPanel.style.display = 'flex';
+    blogList.innerHTML = "正在连接服务器..."; // 加载状态
 
-    ];
-    
-    blogList.innerHTML = posts.map(p => `
-        <div style="margin-bottom: 8px; border-bottom: 1px dashed #555;">
-            <div style="font-weight:bold;">${p.title}</div>
-            <div style="font-size: 6px;">${p.date}</div>
-            <div style="margin-top: 2px;">${p.content}</div>
-        </div>
-    `).join('');
+    // 目标 RSS 源
+    const rssUrl = 'https://www.leavesongs.com/feed/';
+    const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+    fetch(api)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                // 将获取到的条目渲染到屏幕
+                blogList.innerHTML = data.items.slice(0, 5).map(item => `
+                    <div style="margin-bottom: 8px; border-bottom: 1px dashed #555;">
+                        <div style="font-weight:bold;"><a href="${item.link}" target="_blank" style="color:var(--nokia-dark);">${item.title}</a></div>
+                        <div style="font-size: 6px;">${new Date(item.pubDate).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } else {
+                throw new Error("RSS 加载失败");
+            }
+        })
+        .catch(err => {
+            blogList.innerHTML = "加载失败喵... 离线缓存：<br>" + 
+                "<div style='margin-top:5px;'>[连接被重置] 请检查网络环境</div>";
+        });
 }
 
 // 关闭博客
