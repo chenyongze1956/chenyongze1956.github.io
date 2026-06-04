@@ -1,156 +1,319 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
     
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Long+Cang&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=Long+Cang&display=swap');
+        /* 全局背景 */
+        html { height: 100%;      background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+ background-attachment: fixed; }
+        body { margin: 0; padding: 30px 0; display: flex; flex-direction: column; align-items: center; font-family: "STKaiti", "Kaiti", serif; }
+
+        /* --- 书页核心：霉斑、帘纹、做旧纸张 --- */
+       #result { 
+            width: 90%; max-width: 480px; padding: 40px; 
+            background: #fdfaf2; 
+            border: 2px solid #8b4513; 
+            outline: 10px solid #fdfaf2; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative; 
+            color: #333;
 
 
-@keyframes rainbow-color-change {
-    0%, 100% { color: #ff0000; } /* Red */
-    14% { color: #ff8b00; } /* Orange */
-    28% { color: #e8ff00; } /* Yellow */
-    42% { color: #5dff00; } /* Green */
-    56% { color: #00b9ff; } /* Blue */
-    70% { color: #5d00ff; } /* Indigo */
-    84% { color: #e800ff; } /* Violet */
-}
-        
-        /* 1. 全屏渐变背景，固定不动 */
-        html {
-            height: 100%;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            background-attachment: fixed;
+           background-color: #f4e9d4;
+    
+    /* 2. 模拟纸张纤维：利用多重径向渐变制造不均匀的黄斑和尘渍 */
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        url("https://www.transparenttextures.com/patterns/parchment.png"); /* 羊皮纸纹理遮罩 */
 
+    /* 3. 书页阴影：外层大阴影模拟厚度，内阴影（inset）模拟边缘卷曲和氧化变深 */
+    box-shadow: 
+        0 20px 50px rgba(0,0,0,0.3),
+        inset 0 0 60px rgba(139, 69, 19, 0.2), /* 边缘泛黄 */
+        inset 5px 5px 15px rgba(139, 69, 19, 0.1); 
+
+    /* 4. 纸张边缘：稍微加一点圆角，模拟磨损 */
+    border-radius: 2px;
+    
+    /* 5. 关键：使用滤镜增加暖色调和对比度 */
+    filter: sepia(0.2) contrast(1.1);
+
+           
+ 
+           
+        }
+        #result::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.05"/></svg>');
+            pointer-events: none; z-index: 1;
         }
 
-      h2{
+        /* 装饰角标 */
+        .corner { position: absolute; width: 30px; height: 30px; border: 1.5px solid rgba(139, 69, 19, 0.4); z-index: 2; }
+        .top-left { top: 15px; left: 15px; border-right: 0; border-bottom: 0; }
+        .bottom-right { bottom: 15px; right: 15px; border-left: 0; border-top: 0; }
+
+        h2 { text-align: center; color: #7b3221; font-family: 'Zhi Mang Xing', cursive; font-size: 50px; margin: 0; font-weight: normal;color: #3b2a26;
+    
+    /* 3. 飞白效果：通过轻微的文本阴影模拟墨迹边缘的干枯感 */
+    text-shadow: 
+        0.5px 0.5px 1px rgba(0,0,0,0.1),
+        -0.5px -0.5px 0px rgba(255,255,255,0.3);
+    
+    /* 4. 运笔动态：狂草字体适合稍微倾斜，模拟书法家的手势 */
+    transform: rotate(-1deg) skewX(-2deg); 
+           
+        margin: 10px 0;
+        text-align: center;
+        /* 模拟宣纸拓印的斑驳感 */
+        background: linear-gradient(135deg, #5d1a0b 0%, #3a1107 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
 
 
 
-      }
-        p{
-
-
-
-        }
-
-        /* 2. BODY 变成全屏的 Flex 容器 */
-        body {
-            /* 移除 max-width 和 margin，让 body 覆盖整个视口 */
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            background-color: transparent; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             
-            /* 启用 Flexbox 并居中所有内容 */
-            display: flex;
-            justify-content: center; /* 水平居中 */
-            align-items: center;     /* 垂直居中 */
-            text-align: center;
-                                animation: rainbow-color-change 3s linear infinite alternate;
+           
+           }
 
+        /* --- 星宿点阵绘图区 --- */
+        .star-map-area {
+            width: 100%; height: 160px; margin: 15px 0; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #constellation-svg {
+            width: 200px; height: 120px; filter: drop-shadow(0 0 2px rgba(166, 44, 43, 0.3));
+        }
+        .star-dot { fill: #a62c2b; }
+        .star-line { stroke: #a62c2b; stroke-width: 1; stroke-dasharray: 2,2; opacity: 0.4; }
+        #star-name-seal { font-family:'Ma Shan Zheng'; color:#a62c2b; font-size:18px; position: absolute; bottom: 0; }
+
+        h3 { font-family: 'Ma Shan Zheng', cursive; color: #8b4513; border-bottom: 1px solid rgba(139, 69, 19, 0.2); padding-bottom: 5px; margin: 25px 0 10px 0; font-size: 22px; font-weight: normal; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 16px; z-index: 2; position: relative; }
+        .label { color: #6d4c41; }
+        .val { font-weight: bold; color: #263238; }
+        .oracle-box { background: rgba(139, 69, 19, 0.04); padding: 18px; border-radius: 2px; color: #5d4037; line-height: 1.8; margin: 15px 0; border: 1px inset rgba(139, 69, 19, 0.1); font-size: 15px; }
+
+        /* 竖排印章 */
+        .footer-area { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+        .seal { 
+            width: 62px; height: 62px; color: #a62c2b; border: 3px solid #a62c2b; outline: 1px solid #a62c2b; outline-offset: -5px; 
+            display: flex; justify-content: center; align-items: center; font-family: 'Ma Shan Zheng', 'Zhi Mang Xing', 'Long Cang', cursive; font-weight: 900; font-size: 24px; 
+            writing-mode: vertical-rl; text-orientation: upright; transform: rotate(-7deg); opacity: 0.9;
+            -webkit-mask-image: repeating-linear-gradient(45deg, white 0, white 2px, transparent 3px);
+            text-shadow: 0 0 1px rgba(62, 39, 35, 0.2);
+    
+    /* 2. 模拟拓印不匀（透明度微调） */
+    opacity: 0.82;
+
+
+
+            /* 核心字体：Long Cang */
+    font-family: 'Long Cang', cursive;
+    
+    /* 1. 瘦劲：字体不宜过粗，字径稍大以显清雅 */
+  
+    
+    /* 2. 墨色：不宜焦黑，用带有灰度的“黛色” */
+    
+    /* 3. 疏落：增加字间距，营造清冷婉约的留白感 */
+  
+    
+    /* 4. 水墨洇散：模拟宣纸上淡淡的墨晕 */
+    text-shadow: 0.3px 0.3px 1.5px rgba(47, 53, 66, 0.2);
+    
+    
+    
+    /* 6. 融合纹理 */
+    mix-blend-mode: multiply;
+    opacity: 0.88;
         }
 
-        /* 3. 结果容器样式：固定宽度，在 Flex 容器中居中 */
-        #result {
-            /* 设置最大宽度，确保在移动端不会超过屏幕 */
-            max-width: 500px; 
-            width: 90%; /* 在移动端至少占据 90% 宽度 */
-            padding: 20px;
-            
-            /* 移除重复的渐变背景，改为白色以提高可读性 */
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            color: #333; /* 确保文字颜色 */
-            
-            /* 样式和布局 */
-            text-align: left; 
-            border: 1px solid #ccc;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            /* z-index 确保它在最上层 */
-            z-index: 10;
-
-        }
-
-        #result h2 {
-            text-align: center; 
-            color: #1a1a1a;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-
-        hr {
-            border: 0;
-            border-top: 1px dashed #ccc;
-        }
-        
-        /* 隐藏最外层的 H1/P 标签，让 #result 成为唯一居中的内容块 */
-        .header-info {
-             display: none; 
-        }
+        #save-btn { margin: 30px 0; padding: 12px 45px; background: #7b3221; color: white; border: none; border-radius: 4px; font-family: 'Ma Shan Zheng', cursive; font-size: 18px; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
-    <div id="result"></div> 
-    
-    <script type="module">
-        // 确保浏览器重新加载 calendar.js
-        import { Calendar } from './calendar.js?v=999'; 
-        
-        // 测试日期 (今日日期: 2025年12月13日)
-        const y = 2025;
-        const m = 12;
-        const d = 14;
 
-        const resultDiv = document.getElementById('result');
+    <div id="result">
+        <div class="corner top-left"></div>
+        <div class="corner bottom-right"></div>
         
-        if (resultDiv) { 
+        <h2>演禽秘傳</h2>
+        
+        <div class="star-map-area">
+            <svg id="constellation-svg" viewBox="0 0 200 120"></svg>
+            <div id="star-name-seal"></div>
+        </div>
+
+        <div id="content-area">正在焚香推演...</div>
+        
+        <div class="footer-area">
+            <div id="qrcode"></div>
+            <div class="seal">演禽秘傳</div>
+        </div>
+    </div>
+
+    <button id="save-btn">📜 封存命书</button>
+
+    <script type="module">
+        import { Calendar } from './calendar.js?v=1.2';
+
+        const StarLegendOracle = {
+            "角": { name: "角木蛟", legend: "龙角之首，春生之精。其气刚健，如蛟龙出海，主事业开新局，贵气盈门。", extra: "龙抬头，宜奋发向上。" },
+            "亢": { name: "亢金龙", legend: "九天威龙，志气高昂。亢龙有悔，贵在知止。其性孤高，需防高处不胜寒。", extra: "处事宜柔不宜刚。" },
+            "氐": { name: "氐土貉", legend: "苍龙之胸，根基之所。其性稳健，善于经营。如貉之灵动，处变不惊。", extra: "宜策划长远，莫急功近利。" },
+            "房": { name: "房日兔", legend: "大罗天之祥瑞，苍龙之腹。主姻缘与福禄，气场柔和，万物生发。", extra: "和气致祥，必有贵人相助。" },
+            "心": { name: "心月狐", legend: "月华内敛，狐心玲珑。才情过人，但易多思伤神，宿命多变。", extra: "宜静心守正，看破幻象。" },
+            "尾": { name: "尾火虎", legend: "龙尾之火，威震山林。其气猛烈，扫除障碍，晚景大吉。", extra: "适合处理积压已久的难题。" },
+            "箕": { name: "箕水豹", legend: "风神之使，其性如风，行踪难测。主变动中求财，得天时之利。", extra: "宜动不宜静，利于远行。" },
+            "斗": { name: "斗木獬", legend: "北方之首，天庙之精。獬豸秉公，主正义与名望。志存高远。", extra: "文昌气盛，利文书契约。" },
+            "牛": { name: "牛金牛", legend: "金牛耕天，任劳任怨。虽宿命辛劳，但积存丰厚。后福绵长。", extra: "理财储蓄之机，忌投机。" },
+            "女": { name: "女土蝠", legend: "织女遗风，福从天降。其性细致，工于心计。宿命带福。", extra: "凡事求细，防小人是非。" },
+            "虚": { name: "虚日鼠", legend: "北天虚空，空灵变幻。性格机警，如鼠之精明。", extra: "宜放空心态，暂缓决策。" },
+            "危": { name: "危月燕", legend: "天之危屋，月燕归巢。宿命多波折，但能在危难中见转机。", extra: "步步为营，可转危为安。" },
+            "室": { name: "室火猪", legend: "天之深宫，火猪护佑。主权柄与富贵，性烈而直，能成大器。", extra: "权力场升温，利职场晋升。" },
+            "壁": { name: "壁水貐", legend: "藏经之壁，水貐护法。主文化传承，性格内向而博学。", extra: "宜钻研技术或深度思考。" },
+            "奎": { name: "奎木狼", legend: "西天虎头，木狼骁勇。主兵权与武勋，宿命带威严。", extra: "适合处理矛盾纠纷。" },
+            "娄": { name: "娄金狗", legend: "天之库房，金狗巡游。主福报与聚财，忠诚可靠。", extra: "诚实守信能带来意外田财。" },
+            "胃": { name: "胃土雉", legend: "天之仓库，雉鸡报晓。主丰衣足食，宿命安稳。", extra: "利于纳财，注意肠胃健康。" },
+            "昴": { name: "昴日鸡", legend: "光明之主，邪祟克星。性格清高，坎坷中见光明。", extra: "驱散霉运之日，适合大扫除。" },
+            "毕": { name: "毕月乌", legend: "雨师之后，月乌衔情。感性温婉，多得异性相助。", extra: "利于约会、家人团聚。" },
+            "觜": { name: "觜火猴", legend: "天之尖兵，火猴机敏。虽有波折，但极具适应力。", extra: "变通为上，灵活转身即是路。" },
+            "参": { name: "参水猿", legend: "西方之脊，白虎之心。猿性聪慧，博识多动。", extra: "利于头脑风暴，防做事反复。" },
+            "井": { name: "井木犴", legend: "南方之始，井泉之精。犴性正直，主法度与规矩。", extra: "适合制定计划或签订合同。" },
+            "鬼": { name: "鬼金羊", legend: "天之灵魂，金羊静谧。直觉敏锐，才华横溢。", extra: "宜冥想修行，忌嘈杂之处。" },
+            "柳": { name: "柳土璋", legend: "南方之柳，璋玉之温。其气柔韧，主名声远播。", extra: "谨言慎行，注意维护形象。" },
+            "星": { name: "星日马", legend: "天之骏马，奔腾不息。宿命奔波，但事业跨度极大。", extra: "行动力极强，开启新项目。" },
+            "张": { name: "张月鹿", legend: "天之宝盖，月鹿献瑞。主名利双收，能得长辈提携。", extra: "贵人运强，宜请教前辈。" },
+            "翼": { name: "翼火蛇", legend: "天之羽翼，火蛇飞腾。主才艺与远行，宿命清高。", extra: "利于展示汇报，低调行事。" },
+            "轸": { name: "轸水蚓", legend: "天之车辙，水蚓疏通。宿命稳健，主家道兴隆。", extra: "稳扎稳打，细水长流。" }
+        };
+
+        const StarMansionOracle = {
+            "角": "角星造作主荣昌，外进田财及库藏。嫁娶夫妻多得意，人才辈出永安康。",
+            "亢": "亢星照耀事难成，家财散尽主人惊。娶亲定是多灾难，修造之时祸重重。",
+            "氐": "氐星造作有灾殃，费尽心机总成空。埋葬若还逢此日，家族必定见孤鸿。",
+            "房": "房星造作大吉昌，金银财宝满仓箱。嫁娶此时多子孙，修造埋葬福绵长。",
+            "心": "心星造作祸重重，家中定必有哀翁。埋葬若然用此日，子孙难免受灾凶。",
+            "尾": "尾星造作得天恩，富贵荣华达圣门。招财进宝兴家产，和气盈门万事亨。",
+            "箕": "箕星造作主荣昌，外进田财及库藏。开门放水多吉庆，家道兴隆永安康。",
+            "斗": "斗星造作主荣华，进职加官产万家。修造埋葬多吉利，世代兴隆永无涯。",
+            "牛": "牛星造作事难成，家财散尽主人惊。嫁娶若还逢此日，子孙难免受灾凌。",
+            "女": "女星造作损牛羊，兄弟不和闹公堂。埋葬若然用此日，家破人亡受灾殃。",
+            "虚": "虚星造作主灾殃，家中定必有哀伤。开门放水多凶祸，埋葬之时见祸殃。",
+            "危": "危星造作损人丁，修造埋葬事难兴。嫁娶若还逢此日，十年之内见灾惊。",
+            "室": "室星造作主荣昌，富贵荣华达圣门。开门放水多吉庆，代代兴隆永安康。",
+            "壁": "壁星造作主荣昌，外进田财及库藏。埋葬若然用此日，代代兴隆永无央。",
+            "奎": "奎星造作大吉昌，进职加官产万家。嫁娶此时多子孙，家道兴隆永无涯。",
+            "娄": "娄星造作主荣昌，财帛丰盈百事亨。埋葬若还逢此日，代代兴隆永无央。",
+            "胃": "胃星造作大吉昌，金银财宝满仓箱。嫁娶此时多子孙，家道兴隆永安康。",
+            "昴": "昴星造作祸重重，家中定必有哀翁。开门放水多凶祸，埋葬之时见祸殃。",
+            "毕": "毕星造作主荣昌，进职加官产万家。嫁娶此时多子孙，家道兴隆永无央。",
+            "觜": "觜星造作主灾殃，家中定必有哀伤。开门放水多凶祸，埋葬之时见祸殃。",
+            "参": "参星造作主荣昌，财帛丰盈百事亨。嫁娶此时多子孙，代代兴隆永无央。",
+            "井": "井星造作大吉昌，进职加官产万家。修造埋葬多吉庆，代代兴隆永无涯。",
+            "鬼": "鬼星造作事难成，家财散尽主人惊。埋葬若还逢此日，子孙难免受灾凌。",
+            "柳": "柳星造作主灾殃，家中定必有哀伤。嫁娶若还逢此日，十年之内见灾惊。",
+            "星": "星宿造作主荣昌，财帛丰盈百事亨。埋葬若还逢此日，代代兴隆永无央。",
+            "张": "张星造作主荣昌，进职加官产万家。开门放水多吉庆，代代兴隆永无涯。",
+            "翼": "翼星造作事难成，家财散尽主人惊。埋葬若还逢此日，子孙难免受灾凌。",
+            "轸": "轸星造作大吉昌，进职加官产万家。嫁娶此时多子孙，家道兴隆永安康。"
+        };
+
+        function drawStarMap(seedText) {
+            const svg = document.getElementById('constellation-svg');
+            svg.innerHTML = '';
+            const points = [];
+            const count = 5 + (seedText.length % 3); // 随机生成5-7个点
             
-            // --- 开始计算 ---
-            const data = Calendar.solarToLunar(y, m, d);
-            
-            // 节日信息
-            let festivalDisplay = ''; 
-            if (data.solarFestival) {
-                festivalDisplay += `公历节日: **${data.solarFestival}**<br>`;
+            // 简单的伪随机坐标生成
+            for (let i = 0; i < count; i++) {
+                points.push({
+                    x: 40 + Math.abs(Math.sin(seedText.charCodeAt(0) + i) * 120),
+                    y: 20 + Math.abs(Math.cos(seedText.charCodeAt(0) * i) * 80)
+                });
             }
-            if (data.lunarFestival) {
-                festivalDisplay += `农历节日: **${data.lunarFestival}**<br>`;
+
+            // 画连线
+            let pathData = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                pathData += ` L ${points[i].x} ${points[i].y}`;
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", points[i-1].x); line.setAttribute("y1", points[i-1].y);
+                line.setAttribute("x2", points[i].x); line.setAttribute("y2", points[i].y);
+                line.setAttribute("class", "star-line");
+                svg.appendChild(line);
             }
-            if (!festivalDisplay) {
-                festivalDisplay = '<br>';
-            }
-            
-            // --- 输出结果到页面 ---
-            resultDiv.innerHTML = `
-                <h2>演禽术推算</h2>
-                <p style="text-align: center; color: #555;">公历日期: ${y}年${m}月${d}日</p>
-                
-                <hr style="margin: 15px 0;">
-                
-                <h3>基本历法信息</h3>
-                公历: **${data.solarYear}年${data.solarMonth}月${data.solarDay}日** (星期${data.weekDay})<br>
-                农历: **${data.lunarYear}年** (${data.cYear}年, ${data.zodiac}年)<br>
-                农历日期: **${data.cMonth}月 ${data.cDay}** ${data.isLeap ? '(闰月)' : ''}<br>
-                <br>
-                ${festivalDisplay}
-                <hr>                                
-                
-                <h3>推算详情</h3>
-                当日干支: **${data.dayJiaZi}**<br>
-                当日纳音: **${data.dayNaYin}**<br>
-                当日星宿: **${data.starMansion}宿**<br>
-                <br>
-                推算结果: **${data.yanyingShu}**
-            `;
-            
-        } else {
-            console.error("致命错误：未能找到 ID 为 'result' 的 DOM 元素。");
+
+            // 画星点
+            points.forEach(p => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", p.x); circle.setAttribute("cy", p.y);
+                circle.setAttribute("r", "2.5"); circle.setAttribute("class", "star-dot");
+                svg.appendChild(circle);
+            });
         }
+
+        const now = new Date();
+        const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
+
+        try {
+            const data = Calendar.solarToLunar(y, m, d);
+            const mansion = data.starMansion;
+            const legend = StarLegendOracle[mansion] || { name: mansion, legend: "天机推演中...", extra: "静心守正。" };
+            const oracle = StarMansionOracle[mansion] || "天道循环，顺时而动。";
+
+            // 绘制星图
+            drawStarMap(mansion);
+            document.getElementById('star-name-seal').innerText = `〔 ${mansion}宿星位 〕`;
+
+            document.getElementById('content-area').innerHTML = `
+                <p style="text-align: center; font-size: 14px; margin: 5px 0 20px; color: #7f6b5f;">
+                    公元 ${y}年${m}月${d}日 · 农历 ${data.lunarYear}年 ${data.cMonth}${data.cDay}
+                </p>
+                
+                <h3>📅 课式排布</h3>
+                <div class="info-row"><span class="label">岁次干支</span><span class="val">${data.cYear}年 ${data.cMonth} ${data.dayJiaZi}日</span></div>
+                <div class="info-row"><span class="label">当日纳音</span><span class="val">${data.dayNaYin}</span></div>
+                <div class="info-row"><span class="label">演禽归类</span><span class="val">${data.yanyingShu}</span></div>
+
+                <h3>📜 宿命释义</h3>
+                <div class="oracle-box">
+                    <b style="color:#7b3221">【${legend.name}】</b> ${legend.legend}<br>
+                    <b style="color:#2e7d32; margin-top:8px; display:block;">【锦囊】</b> ${legend.extra}
+                </div>
+
+                <h3>✨ 星宿秘断</h3>
+                <div class="oracle-box" style="text-align: center; font-style: italic;">“ ${oracle} ”</div>
+            `;
+
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.href, width: 60, height: 60,
+                colorDark : "#3e2723", colorLight : "#e8dcc4"
+            });
+
+        } catch (e) {
+            document.getElementById('content-area').innerHTML = "推演失败，请检查 calendar.js。";
+        }
+
+        document.getElementById('save-btn').addEventListener('click', function() {
+            html2canvas(document.getElementById('result'), { scale: 3, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `演禽命书_${y}${m}${d}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
     </script>
 </body>
 </html>
