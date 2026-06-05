@@ -21,6 +21,8 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">       <style> 
 
 
@@ -315,7 +317,11 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
     function toggleQQ() { playVibration(); document.getElementById('qqPanel').classList.toggle('active'); }
     function showCatSpeech(t) {        const d = document.querySelector('.live2d-widget-dialog'); if(d) d.innerText = t;        if(window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(t));    }
 
-    L2Dwidget.init({ "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json" }, "display": { "position": "right", "width": 100, "height": 200 }, "dialog": { "enable": true } });
+
+    L2Dwidget.init({ "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json" }, "display": { "position": "right", "width": 100, "height": 200 }, "dialog": { "enable": true } });
+
+
+
 
 
 let resetClicks = 0;
@@ -524,6 +530,13 @@ function toggleWifiCrack() {
         }
     }, 50);
 } </script></body></html>
+
+
+
+
+
+
+
 
 
 
