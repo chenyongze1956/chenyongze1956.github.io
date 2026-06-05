@@ -28,6 +28,9 @@
 
 
 
+
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -266,7 +269,7 @@
                                             <span class="tweet-username">@luigi</span>
                                             <span class="tweet-time">· 2h</span>
                             </div>
-                            <p>战国游戏～～～</p>
+                            <p>游戏开发中～～～</p>
                             <div class="post-media">
 
 
@@ -581,10 +584,13 @@
                                         Replying to <a href="/toda">@toda</a>
                                     </div>
   
-                                 <div class="prose-text">
-            无挂碍故，无有恐怖，远离颠倒梦想，究竟涅槃，乘一叶小舟，驶向花开的彼岸。
-            <div class="prose-divider"></div>
-        </div>
+                    <div class="prose-text">
+    
+    <div id="game-wrapper" style="margin-top:15px; border-radius:12px; overflow:hidden; background:#000;">
+        <canvas id="snakeGame" width="300" height="300" style="width:100%; display:block;"></canvas>
+        <div style="color:white; font-size:12px; padding:5px; text-align:center;">无挂碍故，无有恐怖，远离颠倒梦想，究竟涅槃，乘一叶小舟，驶向花开的彼岸。</div>
+    </div>
+</div>
 
         <div class="tweet-actions-list">
              </div>
@@ -3895,6 +3901,50 @@ document.querySelectorAll('.rps-container label').forEach(label => {
         console.log("用户出: " + userHand + ", 电脑出: " + computerHand);
     });
 });
+
+
+(function() {
+    const canvas = document.getElementById("snakeGame");
+    if (!canvas) return; // 防止重复加载
+    const ctx = canvas.getContext("2d");
+    
+    let snake_body = [{x: 100, y: 100}];
+    let snake_food = {x: 200, y: 200};
+    let snake_dx = 20, snake_dy = 0;
+
+    function snake_draw() {
+        // 清屏
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, 300, 300);
+        
+        // 逻辑更新
+        const head = {x: snake_body[0].x + snake_dx, y: snake_body[0].y + snake_dy};
+        snake_body.unshift(head);
+        
+        if (head.x === snake_food.x && head.y === snake_food.y) {
+            snake_food = {x: Math.floor(Math.random()*15)*20, y: Math.floor(Math.random()*15)*20};
+        } else {
+            snake_body.pop();
+        }
+        
+        // 渲染
+        ctx.fillStyle = "red";
+        ctx.fillRect(snake_food.x, snake_food.y, 18, 18);
+        ctx.fillStyle = "lime";
+        snake_body.forEach(p => ctx.fillRect(p.x, p.y, 18, 18));
+    }
+
+    // 键盘控制（仅在点击画布后有效）
+    document.addEventListener("keydown", e => {
+        if (e.key === "ArrowUp" && snake_dy === 0) { snake_dx = 0; snake_dy = -20; }
+        if (e.key === "ArrowDown" && snake_dy === 0) { snake_dx = 0; snake_dy = 20; }
+        if (e.key === "ArrowLeft" && snake_dx === 0) { snake_dx = -20; snake_dy = 0; }
+        if (e.key === "ArrowRight" && snake_dx === 0) { snake_dx = 20; snake_dy = 0; }
+    });
+
+    setInterval(snake_draw, 150);
+})();
+</script>
 </script>
 
 
