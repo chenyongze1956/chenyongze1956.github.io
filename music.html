@@ -47,6 +47,18 @@
 
     
 }
+
+
+#shelfGrid img {
+    width: 50px !important; 
+    height: 60px !important;
+    display: block !important;
+    object-fit: cover; /* 自动裁剪以填充，不会变形 */
+    border: 1px solid #fff;
+}
+
+
+    
 .phone.booting #boot-bg { display: block; }
 
    body  {
@@ -113,13 +125,31 @@
         #cryptoPanel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--nokia-green); color: var(--nokia-dark); display: none; flex-direction: column; padding: 5px; box-sizing: border-box; font-size: 9px; font-family: 'Press Start 2P', cursive; z-index: 15; }        .crypto-item { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--nokia-dark); margin-bottom: 4px; padding-bottom: 2px; }    </style></head><body>
 <div class="phone" id="nokiaPhone">    <div class="screen-frame" id="sFrame">    
     
+  
     
+    
+    
+    <div class="lcd">  <div id="boot-bg"></div> <div class="boot-text" id="bootIcon"></div>         <div class="boot-text" id="bootIcon"></div>      <div id="animeShelf" style="
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 150px; 
+    height: 110px; 
+    background: #222; 
+    z-index: 999; 
+    display: none; 
+    padding: 5px; 
+    overflow-y: auto; 
+    border: 1px solid #5fbfff; 
+    box-sizing: border-box;
+">
+    <div style="color:#5fbfff; text-align:center; font-size: 10px; margin-bottom:5px; font-weight:bold;">图片浏览</div>
+    <div id="shelfGrid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:5px;">
+        </div>
+    <button onclick="hideShelf()" style="width:100%; margin-top:5px; font-size:8px;">关闭</button>
+</div>
 
-    
-    
-    
-    
-    <div class="lcd">  <div id="boot-bg"></div> <div class="boot-text" id="bootIcon"></div>         <div class="boot-text" id="bootIcon"></div>           <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>            <canvas id="snakeCanvas" width="150" height="110"></canvas> 
+           <iframe src="about:blank" id="nokiaIframe" class="active"></iframe>            <canvas id="snakeCanvas" width="150" height="110"></canvas> 
 
 
        <div id="blogPanel" style="position:absolute; top:0; left:0; width:150px; height:110px; background:var(--nokia-green); display:none; flex-direction:column; padding:5px; box-sizing:border-box; font-family:monospace; z-index:100; overflow-y:auto;">
@@ -135,7 +165,7 @@
 </div>
         
         
-        <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>    <div class="btn" onclick="toggleWifiCrack()">#<span>破解</span></div>    <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleBlog()">9<span>博客</span></div>       <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
+        <div id="psTerminal">                <div style="color: #5fbfff; border-bottom: 1px solid #333; margin-bottom: 5px;">PowerShell - Hijiki v4.0</div>                <div id="psLog"></div>                <div id="psLine">PS C:\Hijiki> _</div>            </div>            <div id="twitchBox" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none;"></div>        </div>    </div>        <div class="keypad">        <div class="btn" style="background:#eee;" onclick="powerOn()">ON/OFF</div>        <div class="btn" style="background:#eee;" onclick="toggleQQ()">扣扣</div>    <div class="btn" onclick="toggleShelf()"><span>图片</span></div>    <div class="btn" onclick="openUrl()">1<span>网址</span></div>        <div class="btn" onclick="snakeMove('UP')">2<span>↑</span></div>        <div class="btn" onclick="toggleAnime()">3<span>动漫</span></div>        <div class="btn" onclick="snakeMove('LEFT')">4<span>←</span></div>        <div class="btn" onclick="toggleTwitch()">5<span>直播</span></div>        <div class="btn" onclick="snakeMove('RIGHT')">6<span>→</span></div>        <div class="btn" onclick="changePhoneSkin()">7<span>换壳</span></div>        <div class="btn" onclick="snakeMove('DOWN')">8<span>↓</span></div>        <div class="btn" onclick="toggleBlog()">9<span>博客</span></div>       <div class="btn" onclick="toggleMusic()">*<span>音乐</span></div>        <div class="btn" onclick="toggleTerminal()">0<span>终端</span></div>        <div class="btn" onclick="resetMode()">#<span>相机</span></div>    </div></div>
 <video id="webcam" autoplay playsinline style="display:none;"></video>
 <div class="qq-panel" id="qqPanel">    <div style="background:var(--qq-blue); color:white; padding:10px; display:flex; justify-content:space-between; font-weight:bold;">        <span>Hijiki 猫咪空间</span>        <span onclick="toggleQQ()" style="cursor:pointer;">✕</span>    </div>    <div id="msgBox" style="flex:1; padding:10px; overflow-y:auto; background:#f5f5f5; font-size:14px;"></div>    <div style="padding:10px; border-top:1px solid #ddd; display:flex;">        <input id="qq-input" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;" placeholder="和猫咪聊天...">        <button onclick="sendQQMsg()" style="padding:8px 15px; background:var(--qq-blue); color:white; border:none; margin-left:5px; border-radius:4px;">发送</button>    </div></div>
 <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script><script>    const phone = document.getElementById('nokiaPhone');    const iframe = document.getElementById('nokiaIframe');    const canvas = document.getElementById('snakeCanvas');    const terminal = document.getElementById('psTerminal');    const video = document.getElementById('webcam');    const ctx = canvas.getContext('2d');        let isPowered = false, currentMode = 'web', videoStream = null;    let gLoop, musicInterval, cryptoInterval, nyanInterval, matrixInterval, slInterval;    // 播放列表
@@ -202,7 +232,7 @@ let audio = new Audio(musicList[currentTrackIndex].url);   let isPlaying = false
 
             document.querySelector('.lcd').style.backgroundImage = "url('https://od.lk/s/NDBfMTM5NDIxNDcxXw/Wave%20Sea%20GIF.gif')";
 
-
+document.getElementById('animeShelf').style.display = 'none';
 
 
     
@@ -529,7 +559,72 @@ function toggleWifiCrack() {
             showCatSpeech("系统阵列已解锁喵！权限已完全获取！");
         }
     }, 50);
-} </script></body></html>
+} 
+
+
+
+const animeList = [
+    { 
+        title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDgzMjgzXw/girl-8937918_640.png", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    },
+      { 
+        title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDgzMTk4Xw/joyful-anime-celebration-stockcake.jpg", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    },{
+        title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDgzODY0Xw/224738-176131725837dc.jpg", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    },
+        
+      {
+          title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDg0MjM3Xw/ccc.jpg", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    },{
+        title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDgzMjAyXw/vibrant-anime-girl-stockcake.jpg", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    },
+        
+      {
+          title: "", 
+        img: "https://od.lk/s/NDBfMTMyMDg0MDc4Xw/220338-17549210181986.jpg", // 必须确保是以 .jpg, .png, .gif 结尾的直链
+        url: "" 
+    }
+];
+
+
+    
+function toggleShelf() {
+    if(!isPowered) return;
+    playVibration();
+    stopAll(); // 确保把 iframe, canvas 等都关掉
+    
+    const shelf = document.getElementById('animeShelf');
+    const grid = document.getElementById('shelfGrid');
+    shelf.style.display = 'block'; // 现在的 absolute 会直接覆盖在 LCD 上
+    
+    // 生成书架列表 (注意调整图片大小以适应 150x110 的 LCD)
+    grid.innerHTML = animeList.map(item => `
+        <div onclick="playAnime('${item.url}')" style="cursor:pointer; text-align:center;">
+            <img src="${item.img}" style="width:50px; height:60px; border-radius:3px;">
+            <div style="color:#fff; font-size:7px;">${item.title}</div>
+        </div>
+    `).join('');
+}
+
+function hideShelf() {
+    document.getElementById('animeShelf').style.display = 'none';
+    // 恢复原来的主屏幕
+    document.getElementById('nokiaIframe').classList.add('active');
+}
+
+
+
+</script></body></html>
 
 
 
