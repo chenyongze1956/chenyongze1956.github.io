@@ -1,9 +1,65 @@
+
+
 <!DOCTYPE html><html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
+
+/* 新增的响应式布局样式 */
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+@media (min-width: 900px) {
+    .main-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+    }
+}
+
+.writing-desk {
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border: 2px solid #b89150;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.desk-title {
+    color: #8c2727;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #b89150;
+    padding-bottom: 10px;
+}
+
+#myWriting {
+    width: 100%;
+    height: 250px;
+    background: transparent;
+    border: 1px dashed #b89150;
+    padding: 10px;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #2c3e50;
+    resize: none;
+    outline: none;
+}
+
+
+        
         /* 1. 全屏流動漸變背景 */
         body {
             margin: 0; padding: 0;
@@ -89,26 +145,59 @@
             color: #ffed86;
             line-height: 1.6;
         }
+
+
+     body {
+    /* 移除原本的 overflow: hidden，改為自動 */
+    overflow-y: auto; 
+    height: auto;
+    padding-bottom: 50px;
+
+         background-attachment: fixed; /* 让背景固定，不随页面滚动而晃动 */
+    background-size: cover;
+}   
+
+
+
+        @media screen and (max-width: 600px) {
+    .main-layout { gap: 15px; padding: 0 10px; }
+    .writing-desk { width: 100%; padding: 15px; } /* 铺满宽度更好看 */
+    .brocade-frame { padding: 10px; }
+}
     </style>
 </head>
 <body>
     <div class="title-area text-center mb-6">
         <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇璣織錦</h1>
-        <p class="text-white/80 italic mt-2 text-sm"></p>
     </div>
 
-    <div class="brocade-frame">
-        <div id="matrix" class="grid"></div>
-    </div>
+    <div class="main-layout">
+        
+        <div class="flex flex-col items-center">
+            <div class="brocade-frame">
+                <div id="matrix" class="grid"></div>
+            </div>
 
-    <div class="info-panel">
-        <div class="flex items-center justify-center mb-2">
-            <i class="fa fa-refresh text-white/40 text-xs mr-2"></i>
-            <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">點擊矩陣切換迴環詩文</span>
+            <div class="info-panel">
+                <div class="flex items-center justify-center mb-2">
+                    <i class="fa fa-refresh text-white/40 text-xs mr-2"></i>
+                    <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">點擊矩陣切換迴環詩文</span>
+                </div>
+                <div id="output" class="text-2xl font-bold min-h-[1.5em] poem-text">
+                    正在載入詩文...
+                </div>
+            </div>
         </div>
-        <div id="output" class="text-2xl font-bold min-h-[1.5em] poem-text">
-            正在載入詩文...
+
+        <div class="writing-desk">
+            <h2 class="desk-title">錦書藏卷</h2>
+            <textarea id="myWriting" placeholder="在此铺纸，落笔成文..."></textarea>
+            <div class="mt-4 flex justify-end gap-3">
+                <button onclick="saveWriting()" class="px-4 py-1 bg-[#8c2727] text-white rounded hover:bg-[#b89150] transition">保存寄語</button>
+            </div>
         </div>
+
+
     </div>
 
     <script>
@@ -198,6 +287,21 @@
 
         // 啟動
         init();
+
+
+
+function saveWriting() {
+            const text = document.getElementById('myWriting').value;
+            localStorage.setItem('xuanji_user_writing', text);
+            alert('锦书已收录，下次访问依然可见。');
+        }
+document.addEventListener('DOMContentLoaded', () => {
+            init(); // 啟動矩陣
+            const saved = localStorage.getItem('xuanji_user_writing');
+            if (saved) {
+                document.getElementById('myWriting').value = saved;
+            }
+        });
     </script>
 </body>
 </html>
