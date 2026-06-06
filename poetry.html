@@ -291,10 +291,18 @@
 
 
 function saveWriting() {
-            const text = document.getElementById('myWriting').value;
-            localStorage.setItem('xuanji_user_writing', text);
-            alert('锦书已收录，下次访问依然可见。');
-        }
+    const text = document.getElementById('myWriting').value;
+    const timestamp = new Date().toLocaleString();
+    // 将内容和时间打包存入
+    const record = { time: timestamp, content: text };
+    
+    // 获取旧记录并追加
+    let history = JSON.parse(localStorage.getItem('xuanji_history') || '[]');
+    history.push(record);
+    localStorage.setItem('xuanji_history', JSON.stringify(history));
+    
+    alert('锦书已入册。');
+}
 document.addEventListener('DOMContentLoaded', () => {
             init(); // 啟動矩陣
             const saved = localStorage.getItem('xuanji_user_writing');
