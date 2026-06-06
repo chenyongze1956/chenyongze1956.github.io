@@ -7,6 +7,21 @@
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
 
+/* 针对移动端的特殊优化 */
+@media screen and (max-width: 600px) {
+    #myWriting {
+        height: 300px; /* 强制手机上的输入区域高一点，避免被键盘遮挡 */
+        font-size: 16px; /* 苹果手机输入框自动放大时，设为16px可防止跳动 */
+    }
+    
+    /* 当键盘弹出时，确保页面可以滚动 */
+    body:has(#myWriting:focus) {
+        padding-bottom: 300px; /* 给底部留出空间，键盘就不会挡住按钮了 */
+    }
+}
+
+
+        
 /* 新增的响应式布局样式 */
 .main-layout {
     display: flex;
@@ -292,16 +307,21 @@
 
 function saveWriting() {
     const text = document.getElementById('myWriting').value;
-    const timestamp = new Date().toLocaleString();
-    // 将内容和时间打包存入
-    const record = { time: timestamp, content: text };
-    
-    // 获取旧记录并追加
-    let history = JSON.parse(localStorage.getItem('xuanji_history') || '[]');
-    history.push(record);
-    localStorage.setItem('xuanji_history', JSON.stringify(history));
-    
-    alert('锦书已入册。');
+    try {
+        localStorage.setItem('xuanji_user_writing', text);
+        // 增加视觉反馈
+        const btn = document.querySelector('button[onclick="saveWriting()"]');
+        const originalText = btn.innerText;
+        btn.innerText = '已入册';
+        btn.classList.replace('bg-[#8c2727]', 'bg-green-700');
+        
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.classList.replace('bg-green-700', 'bg-[#8c2727]');
+        }, 2000);
+    } catch (e) {
+        alert('空间不足，无法保存。');
+    }
 }
 document.addEventListener('DOMContentLoaded', () => {
             init(); // 啟動矩陣
@@ -310,6 +330,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('myWriting').value = saved;
             }
         });
+
+
+
+                
     </script>
 </body>
 </html>
