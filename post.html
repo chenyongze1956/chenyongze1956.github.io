@@ -33,6 +33,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -232,16 +234,7 @@
                 <!-- Left Sidebar -->
                 <aside class="sidebar">
                     <nav class="sidebar-nav">
-                        <a href="/" class="sidebar-link">
-                            
-                        </a>
-                        <a href="/explore" class="sidebar-link">
-                           
-                        </a>
-                        <a href="/notifications" class="sidebar-link">
-                          
-                        </a>
-                        <a href="/profile" class="sidebar-link">
+               
                           
                         </a>
                         
@@ -379,9 +372,15 @@
                                     <div class="replied-to">
                                         Replying to <a href="/peach">@peach</a>
                                     </div>
-                                    <img src="https://i.ibb.co/RGP2Y20w/Screenshot-4.png"
-
-                                    alt="Post image" class="post-image">                                    <div class="tweet-actions-list">
+                                  
+                                    <div class="game-wrapper">
+    <canvas id="gameCanvas" width="700" height="500"></canvas>
+    <div id="scoreBoard">P1: 0 | P2: 0</div>
+</div>
+                                    
+                                    
+                                    
+                                    <div class="tweet-actions-list">
                                     <div class="tweet-actions-list">
                                         <button class="tweet-action-button" onclick="handleReply(this)">
                                             <i class="far fa-comment"></i>
@@ -757,13 +756,151 @@
     <script src="../assets/js/post.js"></script>
 </body>
 
+
+    <script>
+(function() {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d"); // 统一使用 ctx
+    
+    let p1 = { x: 100, y: 250, size: 20, xVel: 0, yVel: 0 };
+    let p2 = { x: 600, y: 250, size: 20, xVel: 0, yVel: 0 };
+    let ball = { x: 350, y: 250, size: 8, xVel: 0, yVel: 0 };
+    let keys = {};
+
+    window.addEventListener("keydown", e => {
+        if([37, 38, 39, 40, 87, 83, 65, 68].includes(e.keyCode)) e.preventDefault();
+        keys[e.keyCode] = true;
+    });
+    window.addEventListener("keyup", e => keys[e.keyCode] = false);
+
+    function draw() {
+        // 1. 绘制背景
+        ctx.fillStyle = "#66aa66"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+
+        // 2. 绘制球
+        ctx.fillStyle = "black"; 
+        ctx.beginPath(); 
+        ctx.arc(ball.x, ball.y, ball.size, 0, Math.PI * 2); 
+        ctx.fill();
+
+        // 3. 绘制红方
+        ctx.fillStyle = "red"; 
+        ctx.beginPath(); 
+        ctx.arc(p1.x, p1.y, p1.size, 0, Math.PI * 2); 
+        ctx.fill();
+
+        // 4. 绘制蓝方
+        ctx.fillStyle = "blue"; 
+        ctx.beginPath(); 
+        ctx.arc(p2.x, p2.y, p2.size, 0, Math.PI * 2); 
+        ctx.fill();
+    }
+
+ function loop() {
+        // --- 1. 移动处理 ---
+        if(keys[87]) p1.y -= 4; if(keys[83]) p1.y += 4;
+        if(keys[65]) p1.x -= 4; if(keys[68]) p1.x += 4;
+        if(keys[38]) p2.y -= 4; if(keys[40]) p2.y += 4;
+        if(keys[37]) p2.x -= 4; if(keys[39]) p2.x += 4;
+
+        // --- 2. 碰撞检测逻辑 ---
+        // 对比红方和黑球
+        checkCollision(p1, ball);
+        // 对比蓝方和黑球
+        checkCollision(p2, ball);
+
+        // 更新球的坐标
+        ball.x += ball.xVel;
+        ball.y += ball.yVel;
+        
+        // 给球加点摩擦力，让它动起来后慢慢停下
+        ball.xVel *= 0.98;
+        ball.yVel *= 0.98;
+
+        // --- 3. 绘图 ---
+        draw(); 
+        requestAnimationFrame(loop);
+    }
+
+    // 新增：碰撞检测函数
+    function checkCollision(p, b) {
+        let dx = b.x - p.x;
+        let dy = b.y - p.y;
+        let distance = Math.sqrt(dx * dx + dy * dy);
+        let minDistance = p.size + b.size;
+
+        if (distance < minDistance) {
+            // 如果撞到了，把球“踢”向远离玩家的方向
+            // 根据玩家和球的角度计算反弹速度
+            let angle = Math.atan2(dy, dx);
+            let speed = 8; // 踢球力度
+            b.xVel = Math.cos(angle) * speed;
+            b.yVel = Math.sin(angle) * speed;
+        }
+    }
+    
+    loop();
+})();
+</script>
+
 </html>
 
 
 <style>
 
 <style>
+
+
+
+
+    
 <style>
+
+
+#icons {
+    display: flex;          /* 开启弹性布局 */
+    flex-direction: row;    /* 明确设置为横向排列 (默认值) */
+    gap: 20px;              /* 设置图标组之间的间距 */
+    justify-content: center; /* 如果你想让它们在屏幕中央对齐 */
+    align-items: center;    /* 垂直居中对齐 */
+}
+
+/* 如果你也想让 div 内部的 label 也横向排列 */
+#icons div {
+    display: flex;
+    gap: 10px;              /* 内部 label 之间的间距 */
+}
+
+
+    
+.game-wrapper {
+    margin: 15px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #66aa66; /* 足球场绿色 */
+    border: 2px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#gameCanvas {
+    width: 100%;       /* 填满推文宽度 */
+    height: auto;      /* 保持比例 */
+    display: block;
+}
+#scoreBoard {
+    background: rgba(0,0,0,0.6);
+    color: white;
+    width: 100%;
+    text-align: center;
+    font-family: sans-serif;
+    font-weight: bold;
+    padding: 8px 0;
+}
+
+
+    
 /* 确保 label 可以被点击且能穿透 */
 .rps-container label {
     cursor: pointer;
