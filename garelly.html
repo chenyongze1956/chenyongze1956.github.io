@@ -1,11 +1,14 @@
 
 
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         :root { --primary: #e94560; --tomato: #ff6347; --popcorn: #ffb400; }
@@ -110,7 +113,20 @@
         <div id="snapDate" style="text-align:right; font-size:0.65rem; color:#bbb; margin-top:15px;"></div>
     </div>
 
+
+
+    <div id="custom-bubble" style="display:none; position:fixed; bottom:220px; right:20px; background:white; color:black; padding:10px; border-radius:10px; z-index:9999; box-shadow:0 0 10px rgba(0,0,0,0.2);">
+    你好呀！
+</div>
+
 <script>
+
+L2Dwidget.init({ "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json" }, "display": { "position": "right", "width": 100, "height": 200 }, "dialog": { "enable": true } });
+
+
+
+
+    
     const API_KEY = 'a2a3fdd1a00d32cca3550a8884a82327';
     const kwIn = document.getElementById('keywordInput');
 
@@ -285,6 +301,33 @@ noteArea.oninput = () => {
         btn.disabled = false;
     });
 };
+
     
+// 注意：live2d-widget 的全局消息发送通常需要通过特定的方法
+// 如果你的插件版本支持，可以使用 L2Dwidget.emit 或相关方法
+// 但最稳妥的办法是给它添加一个消息触发器
+
+const bubble = document.getElementById('custom-bubble');
+
+noteArea.addEventListener('input', () => {
+    let val = noteArea.value;
+    
+    // 定义不同情绪的触发词
+    const happyKeywords = ['好看', '精彩', '棒', '喜欢'];
+    const sadKeywords = ['伤感', '悲伤', '感人', '难过', '哭'];
+    
+    // 检查是否包含“开心”类词汇
+    if(happyKeywords.some(keyword => val.includes(keyword))) {
+        bubble.innerText = "哇！看来你真的很喜欢这部电影呢！";
+        bubble.style.display = 'block';
+        setTimeout(() => { bubble.style.display = 'none'; }, 3000);
+    } 
+    // 检查是否包含“伤感”类词汇
+    else if(sadKeywords.some(keyword => val.includes(keyword))) {
+        bubble.innerText = "你动情了...";
+        bubble.style.display = 'block';
+        setTimeout(() => { bubble.style.display = 'none'; }, 3000);
+    }
+});
 </script>
 </body></html>
