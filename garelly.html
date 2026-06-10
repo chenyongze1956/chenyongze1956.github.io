@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html><html lang="zh-CN"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -69,6 +71,14 @@
 
             <div class="bg-white/5 p-4 rounded-2xl mb-4 border border-white/10">
                 <textarea id="userNote" class="w-full bg-transparent text-sm outline-none resize-none placeholder:text-white/20" rows="2" placeholder="這一刻的觀影感悟..."></textarea>
+
+<div id="sentimentIndicator" class="flex gap-2 items-center mt-2 text-[10px] opacity-50">
+    <span>目前氛围：</span>
+    <div id="colorDot" class="w-2 h-2 rounded-full bg-gray-500"></div>
+    <span id="moodLabel">平靜</span>
+</div>
+
+                
                 <button id="saveSnapBtn" class="w-full bg-green-600 hover:bg-green-500 py-3 rounded-xl text-xs font-bold mt-2 transition-all"><i class="fa fa-camera mr-2"></i> 生成膠片快照</button>
             </div>
 
@@ -219,5 +229,62 @@
             btn.disabled = false;
         });
     };
+
+
+
+// 添加到 <script> 标签内
+const moodMap = {
+    "震撼": { color: "#e94560", label: "震撼" }, // 红色
+    "悲伤": { color: "#4a90e2", label: "忧郁" }, // 蓝色
+    "开心": { color: "#ffb400", label: "愉悦" }, // 黄色
+    "感人": { color: "#50c878", label: "治愈" }, // 绿色
+    "恐怖": { color: "#333333", label: "惊悚" }  // 深灰
+};
+
+const noteArea = document.getElementById('userNote');
+noteArea.oninput = () => {
+    const text = noteArea.value;
+    let found = { color: "#e94560", label: "思绪" }; // 默认颜色
+    
+    for (let key in moodMap) {
+        if (text.includes(key)) {
+            found = moodMap[key];
+            break;
+        }
+    }
+    
+    document.getElementById('colorDot').className = `w-2 h-2 rounded-full`;
+    document.getElementById('colorDot').style.backgroundColor = found.color;
+    document.getElementById('moodLabel').innerText = found.label;
+    
+    // 更新胶片预览的边框颜色
+    document.getElementById('snapQuote').style.borderLeftColor = found.color;
+};
+
+
+
+    document.getElementById('saveSnapBtn').onclick = function() {
+    const zone = document.getElementById('snapshotZone');
+    const note = document.getElementById('userNote').value || "未語，心已動。";
+    document.getElementById('snapNote').innerText = note;
+    
+    // 获取当前氛围颜色
+    const moodColor = document.getElementById('colorDot').style.backgroundColor;
+    document.getElementById('snapQuote').style.borderLeftColor = moodColor; // 确保快照颜色一致
+
+    const btn = this;
+    btn.innerText = "正在渲染...";
+    btn.disabled = true;
+
+    html2canvas(zone, { useCORS: true, scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `CineMoment-${document.getElementById('mTitle').innerText}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        btn.innerHTML = '<i class="fa fa-camera mr-2"></i> 生成膠片快照';
+        btn.disabled = false;
+    });
+};
+    
 </script>
 </body></html>
