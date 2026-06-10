@@ -248,34 +248,7 @@ L2Dwidget.init({ "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-s
 
 
 
-// 添加到 <script> 标签内
-const moodMap = {
-    "震撼": { color: "#e94560", label: "震撼" }, // 红色
-    "悲伤": { color: "#4a90e2", label: "忧郁" }, // 蓝色
-    "开心": { color: "#ffb400", label: "愉悦" }, // 黄色
-    "感人": { color: "#50c878", label: "治愈" }, // 绿色
-    "恐怖": { color: "#333333", label: "惊悚" }  // 深灰
-};
 
-const noteArea = document.getElementById('userNote');
-noteArea.oninput = () => {
-    const text = noteArea.value;
-    let found = { color: "#e94560", label: "思绪" }; // 默认颜色
-    
-    for (let key in moodMap) {
-        if (text.includes(key)) {
-            found = moodMap[key];
-            break;
-        }
-    }
-    
-    document.getElementById('colorDot').className = `w-2 h-2 rounded-full`;
-    document.getElementById('colorDot').style.backgroundColor = found.color;
-    document.getElementById('moodLabel').innerText = found.label;
-    
-    // 更新胶片预览的边框颜色
-    document.getElementById('snapQuote').style.borderLeftColor = found.color;
-};
 
 
 
@@ -309,25 +282,64 @@ noteArea.oninput = () => {
 
 const bubble = document.getElementById('custom-bubble');
 
+// 添加到 <script> 标签内
+const moodMap = {
+    "震撼": { color: "#e94560", label: "震撼" }, // 红色
+    "悲伤": { color: "#4a90e2", label: "忧郁" }, // 蓝色
+    "开心": { color: "#ffb400", label: "愉悦" }, // 黄色
+    "感人": { color: "#50c878", label: "治愈" }, // 绿色
+    "恐怖": { color: "#333333", label: "惊悚" }  // 深灰
+};
+
+const noteArea = document.getElementById('userNote');
+
+noteArea.oninput = () => {
+    const text = noteArea.value;
+    let found = { color: "#e94560", label: "思绪" }; // 默认颜色
+    
+    for (let key in moodMap) {
+        if (text.includes(key)) {
+            found = moodMap[key];
+            break;
+        }
+    }
+    
+    document.getElementById('colorDot').className = `w-2 h-2 rounded-full`;
+    document.getElementById('colorDot').style.backgroundColor = found.color;
+    document.getElementById('moodLabel').innerText = found.label;
+    
+    // 更新胶片预览的边框颜色
+    document.getElementById('snapQuote').style.borderLeftColor = found.color;
+};
+    
+
 noteArea.addEventListener('input', () => {
-    let val = noteArea.value;
+
+
+        const text = noteArea.value;
+
     
     // 定义不同情绪的触发词
     const happyKeywords = ['好看', '精彩', '棒', '喜欢'];
     const sadKeywords = ['伤感', '悲伤', '感人', '难过', '哭'];
     
     // 检查是否包含“开心”类词汇
-    if(happyKeywords.some(keyword => val.includes(keyword))) {
+    if(happyKeywords.some(keyword => text.includes(keyword))) {
         bubble.innerText = "哇！看来你真的很喜欢这部电影呢！";
         bubble.style.display = 'block';
         setTimeout(() => { bubble.style.display = 'none'; }, 3000);
     } 
     // 检查是否包含“伤感”类词汇
-    else if(sadKeywords.some(keyword => val.includes(keyword))) {
+    else if(sadKeywords.some(keyword => text.includes(keyword))) {
         bubble.innerText = "你动情了...";
         bubble.style.display = 'block';
         setTimeout(() => { bubble.style.display = 'none'; }, 3000);
     }
+
+
+
+
+    
 });
 </script>
 </body></html>
