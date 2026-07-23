@@ -1,262 +1,359 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>修行路 - 移动端完美适配版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .tool-active { @apply bg-blue-600 text-white scale-105 shadow-md; }
-            .tool-button { @apply flex items-center justify-center w-10 h-10 md:w-full md:h-12 rounded-lg p-2 transition-all active:scale-90; }
-            .color-swatch { @apply w-7 h-7 md:w-8 md:h-8 rounded-full cursor-pointer border-2 border-transparent; }
-            .color-swatch.active { @apply border-white ring-2 ring-blue-600; }
+    <!-- 关键：禁止用户随意缩放页面，适配移动端视口 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            box-sizing: border-box;
+            /* 禁用移动端长按选中文字、高亮等默认行为，提升游戏体验 */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
-        
-        /* 强制锁定高度，防止移动端地址栏弹缩导致背景留白[cite: 1] */
-        html, body {
-            @apply h-full w-full overflow-hidden m-0 p-0 select-none touch-none;
-            position: fixed; 
+        body {
+            margin: 0;
+            padding: 10px;
+    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-
-        /* 独立背景层：使用 fixed 确保覆盖物理全屏[cite: 1] */
-        #bg-layer {
-            @apply fixed inset-0 -z-10;
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            background-attachment: fixed;
+        .game-container {
+            width: 100%;
+            max-width: 360px; /* 限制最大宽度，在PC端保持掌机精致感，手机端自动撑满 */
+            background: #16213e;
+            border: 4px solid #0f3460;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            text-align: center;
         }
-
-        /* 画布透明化，露出底下的渐变[cite: 1] */
-        #drawingCanvas { 
-            @apply block;
-            background: transparent;
-            touch-action: none;
+        h2 {
+            margin: 5px 0 12px 0;
+            font-size: 18px;
+            letter-spacing: 2px;
         }
-
-        .toolbar { @apply bg-white/90 backdrop-blur shadow-xl p-2 z-10 absolute rounded-xl flex; }
-        
-        /* 响应式布局：移动端顶部横排，桌面端左侧竖排[cite: 1] */
-        .toolbar-main { 
-            @apply top-2 left-2 right-2 flex-row justify-around 
-                   md:flex-col md:w-44 md:top-4 md:left-4 md:right-auto; 
+        .screen {
+            background: #e0f8cf;
+            color: #306230;
+            border: 4px solid #8bac0f;
+            border-radius: 8px;
+            height: 170px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
         }
-
-        .control-bar {
-            @apply bottom-4 left-1/2 -translate-x-1/2 w-[92%] max-w-md 
-                   bg-white/90 backdrop-blur p-3 rounded-2xl shadow-2xl flex items-center gap-3 z-10;
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: bold;
         }
-
-        #brush-cursor {
-            @apply fixed pointer-events-none border border-gray-400 rounded-full z-[100] mix-blend-difference hidden md:block;
+        .pet-avatar {
+            font-size: 55px;
+            margin: 5px 0;
+            transition: transform 0.2s;
+        }
+        .pet-message {
+            font-size: 12px;
+            font-weight: bold;
+            min-height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stats {
+            margin: 12px 0;
+            text-align: left;
+            font-size: 12px;
+        }
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .stat-label {
+            width: 45px;
+            font-weight: bold;
+        }
+        .stat-bar-container {
+            flex: 1;
+            background: #333;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 8px;
+        }
+        .stat-bar {
+            height: 100%;
+            width: 100%;
+            background: #e94560;
+            transition: width 0.3s;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 6px; /* 增大手机端点击热区，防止误触 */
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.1s;
+            touch-action: manipulation; /* 消除移动端点击延迟 */
+        }
+        button:active {
+            transform: scale(0.96);
+            background: #c73650;
         }
     </style>
 </head>
 <body>
 
-<!-- 固定背景层[cite: 1] -->
-<div id="bg-layer"></div>
-
-<div id="brush-cursor"></div>
-
-<div class="relative h-full w-full">
-    <canvas id="drawingCanvas"></canvas>
-
-    <!-- 工具栏[cite: 1] -->
-    <div class="toolbar toolbar-main">
-        <button class="tool-button tool-active" data-tool="pencil" title="铅笔"><i class="fa fa-pencil"></i></button>
-        <button class="tool-button" data-tool="eraser" title="橡皮擦"><i class="fa fa-eraser"></i></button>
-        <button class="tool-button" data-tool="rectangle" title="矩形"><i class="fa fa-square-o"></i></button>
-        <button class="tool-button" data-tool="circle" title="圆形"><i class="fa fa-circle-o"></i></button>
-        <div class="w-px h-6 bg-gray-300 md:w-full md:h-px md:my-2"></div>
-        <button class="tool-button text-blue-600" data-action="undo" title="撤销"><i class="fa fa-reply"></i></button>
-        <button class="tool-button text-green-600" data-action="save" title="保存"><i class="fa fa-download"></i></button>
-        <button class="tool-button text-red-500" data-action="clear" title="清空"><i class="fa fa-trash-o"></i></button>
+<div class="game-container">
+    <h2>POKÉ-CHICK</h2>
+    
+    <div class="screen" id="screen">
+        <div class="status-bar">
+            <span id="ageText">形态: 未孵化</span>
+            <span id="weightText">重: 10g</span>
+        </div>
+        
+        <div class="pet-avatar" id="petAvatar">🥚</div>
+        
+        <div class="pet-message" id="petMessage">神秘精灵蛋，请选择孵化环境~</div>
     </div>
 
-    <!-- 颜色与粗细控制[cite: 1] -->
-    <div class="control-bar">
-        <div class="flex gap-2 flex-1 justify-center">
-            <div class="color-swatch active bg-black" data-color="#000000"></div>
-            <div class="color-swatch bg-red-500" data-color="#ef4444"></div>
-            <div class="color-swatch bg-blue-500" data-color="#3b82f6"></div>
-            <div class="color-swatch bg-green-500" data-color="#22c55e"></div>
+    <div class="stats" id="statsContainer" style="display:none;">
+        <div class="stat-row">
+            <span class="stat-label">饱腹</span>
+            <div class="stat-bar-container"><div class="stat-bar" id="hungerBar" style="width: 100%;"></div></div>
         </div>
-        <div class="w-px h-8 bg-gray-200"></div>
-        <div class="flex items-center gap-2 flex-1">
-            <input type="range" id="brushSize" min="1" max="50" value="5" class="w-full accent-blue-600">
-            <span id="sizeValue" class="text-xs font-bold w-5">5</span>
+        <div class="stat-row">
+            <span class="stat-label">情绪</span>
+            <div class="stat-bar-container"><div class="stat-bar" id="happinessBar" style="width: 100%;"></div></div>
         </div>
+        <div class="stat-row">
+            <span class="stat-label">精力</span>
+            <div class="stat-bar-container"><div class="stat-bar" id="energyBar" style="width: 100%;"></div></div>
+        </div>
+    </div>
+
+    <div class="controls" id="controlPanel">
+        <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
+        <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
     </div>
 </div>
 
 <script>
-    let canvas, ctx;
-    let isDrawing = false;
-    let startX, startY;
-    let snapshot;
-    let currentTool = 'pencil';
-    let currentColor = '#000000';
-    let currentSize = 5;
-    let historyStack = [];
+    let pet = {
+        state: 'egg', 
+        type: 'normal', 
+        hunger: 100,
+        happiness: 100,
+        energy: 100,
+        age: 0,
+        weight: 10,
+        isSleeping: false,
+        hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
+    };
 
-    document.addEventListener('DOMContentLoaded', () => {
-        canvas = document.getElementById('drawingCanvas');
-        ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
-        resizeCanvas();
-        saveState(); // 保存初始空白状态[cite: 1]
-        setupEvents();
-        
-        // 监听窗口缩放，重新校准高度[cite: 1]
-        window.addEventListener('resize', resizeCanvas);
-    });
+    const speciesData = {
+        normal: { name: "普通小鸡", avatar: "🐥", color: "#e0f8cf" },
+        fire:   { name: "火炎鸡 🔥", avatar: "🐓", color: "#ffcccc" },
+        electric:{ name: "雷电鸡 ⚡", avatar: "🦅", color: "#fff0cc" },
+        ice:    { name: "冰霜鸡 ❄️", avatar: "🐧", color: "#ccf2ff" },
+        god:    { name: "黄金神鸡 👑", avatar: "🐉", color: "#ffe680" }
+    };
 
-    function resizeCanvas() {
-        const temp = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        // 使用 innerHeight 确保在移动端浏览器导航栏变化时依然铺满[cite: 1]
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        ctx.putImageData(temp, 0, 0);
-        
-        // 重新初始化 context 属性[cite: 1]
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-    }
+    const avatarEl = document.getElementById('petAvatar');
+    const messageEl = document.getElementById('petMessage');
+    const hungerBar = document.getElementById('hungerBar');
+    const happinessBar = document.getElementById('happinessBar');
+    const energyBar = document.getElementById('energyBar');
+    const ageText = document.getElementById('ageText');
+    const weightText = document.getElementById('weightText');
+    const screenEl = document.getElementById('screen');
+    const controlPanel = document.getElementById('controlPanel');
+    const statsContainer = document.getElementById('statsContainer');
 
-    function getCoords(e) {
-        const rect = canvas.getBoundingClientRect();
-        // 兼容鼠标和触控坐标获取[cite: 1]
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
-        };
-    }
-
-    function setupEvents() {
-        // 工具与颜色切换逻辑[cite: 1]
-        document.querySelectorAll('[data-tool]').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('tool-active'));
-                btn.classList.add('tool-active');
-                currentTool = btn.dataset.tool;
-            };
-        });
-
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-            swatch.onclick = () => {
-                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-                swatch.classList.add('active');
-                currentColor = swatch.dataset.color;
-            };
-        });
-
-        document.getElementById('brushSize').oninput = (e) => {
-            currentSize = e.target.value;
-            document.getElementById('sizeValue').innerText = currentSize;
-        };
-
-        // 操作逻辑实现[cite: 1]
-        document.querySelectorAll('[data-action]').forEach(btn => {
-            btn.onclick = () => {
-                const action = btn.dataset.action;
-                if(action === 'undo') undo();
-                if(action === 'clear') {
-                    if(confirm("确定要清空画布吗？")) {
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        saveState();
-                    }
-                }
-                if(action === 'save') {
-                    const link = document.createElement('a');
-                    link.download = `drawing-${Date.now()}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                }
-            };
-        });
-
-        // 鼠标事件[cite: 1]
-        canvas.onmousedown = (e) => start(getCoords(e));
-        canvas.onmousemove = (e) => {
-            const coords = getCoords(e);
-            move(coords);
-            updateCursor(e);
-        };
-        canvas.onmouseup = stop;
-
-        // 触控事件[cite: 1]
-        canvas.ontouchstart = (e) => { 
-            start(getCoords(e)); 
-            e.preventDefault(); 
-        };
-        canvas.ontouchmove = (e) => { 
-            move(getCoords(e)); 
-            e.preventDefault(); 
-        };
-        canvas.ontouchend = stop;
-    }
-
-    function start(coords) {
-        isDrawing = true;
-        startX = coords.x;
-        startY = coords.y;
-        // 记录快照，以便实现形状工具的预览效果[cite: 1]
-        snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.strokeStyle = currentTool === 'eraser' ? '#ffffff' : currentColor;
-        ctx.lineWidth = currentSize;
-    }
-
-    function move(coords) {
-        if (!isDrawing) return;
-        
-        // 矩形和圆形需要不断恢复快照再重绘，实现“拖拽感”[cite: 1]
-        if (currentTool === 'rectangle' || currentTool === 'circle') {
-            ctx.putImageData(snapshot, 0, 0);
+    function hatchAction(action) {
+        pet.hatchPoints.totalClicks += 1;
+        if (action === 'warm') {
+            pet.hatchPoints.warmth += 2;
+            messageEl.innerText = `吸收热量 (${pet.hatchPoints.totalClicks}/6)`;
+            avatarEl.innerText = "🔥🥚";
+        } else {
+            pet.hatchPoints.coolness += 2;
+            messageEl.innerText = `适应降温 (${pet.hatchPoints.totalClicks}/6)`;
+            avatarEl.innerText = "❄️🥚";
         }
 
-        if (currentTool === 'pencil' || currentTool === 'eraser') {
-            ctx.lineTo(coords.x, coords.y);
-            ctx.stroke();
-        } else if (currentTool === 'rectangle') {
-            ctx.strokeRect(startX, startY, coords.x - startX, coords.y - startY);
-        } else if (currentTool === 'circle') {
-            const r = Math.sqrt(Math.pow(startX - coords.x, 2) + Math.pow(startY - coords.y, 2));
-            ctx.beginPath();
-            ctx.arc(startX, startY, r, 0, 2 * Math.PI);
-            ctx.stroke();
+        if (pet.hatchPoints.totalClicks >= 6) {
+            determineSpecies();
         }
     }
 
-    function stop() {
-        if (isDrawing) saveState();
-        isDrawing = false;
+    function determineSpecies() {
+        let w = pet.hatchPoints.warmth;
+        let c = pet.hatchPoints.coolness;
+
+        if (Math.abs(w - c) <= 2 && Math.random() < 0.3) {
+            pet.type = 'god';
+        } else if (w > c + 4) {
+            pet.type = 'fire';
+        } else if (c > w + 4) {
+            pet.type = 'ice';
+        } else if (w > c) {
+            pet.type = 'electric';
+        } else {
+            pet.type = 'normal';
+        }
+
+        pet.state = 'alive';
+        pet.hunger = 100;
+        pet.happiness = 100;
+        pet.energy = 100;
+        pet.age = 0;
+        pet.weight = 15;
+
+        let info = speciesData[pet.type];
+        avatarEl.innerText = info.avatar;
+        messageEl.innerText = `孵化出【${info.name}】！`;
+        screenEl.style.background = info.color;
+
+        statsContainer.style.display = "block";
+        controlPanel.innerHTML = `
+            <button onclick="feed()">喂食 🍚</button>
+            <button onclick="play()">玩耍 ⚽</button>
+            <button onclick="sleepToggle()" id="sleepBtn">睡觉 💤</button>
+            <button onclick="tryLayEgg()" id="layEggBtn" style="display:none; background:#f39c12; grid-column: span 2;">生蛋 🥚</button>
+        `;
+        updateUI();
     }
 
-    function updateCursor(e) {
-        const cursor = document.getElementById('brush-cursor');
-        if (e.type === 'mousemove') {
-            cursor.style.width = currentSize + 'px';
-            cursor.style.height = currentSize + 'px';
-            cursor.style.left = (e.clientX - currentSize/2) + 'px';
-            cursor.style.top = (e.clientY - currentSize/2) + 'px';
+    function feed() {
+        if (pet.state !== 'alive' || pet.isSleeping) return;
+        pet.hunger = Math.min(100, pet.hunger + 25);
+        pet.weight += 2;
+        messageEl.innerText = "真美味！饱饱的~";
+        updateUI();
+    }
+
+    function play() {
+        if (pet.state !== 'alive' || pet.isSleeping) return;
+        if (pet.energy < 15) {
+            messageEl.innerText = "太累了，先让它睡会吧";
+            return;
+        }
+        pet.happiness = Math.min(100, pet.happiness + 30);
+        pet.energy = Math.max(0, pet.energy - 20);
+        messageEl.innerText = "开心地释放了技能！✨";
+        updateUI();
+    }
+
+    function sleepToggle() {
+        if (pet.state !== 'alive') return;
+        pet.isSleeping = !pet.isSleeping;
+        const sleepBtn = document.getElementById('sleepBtn');
+        if (pet.isSleeping) {
+            sleepBtn.innerText = "叫醒 ⏰";
+            messageEl.innerText = "Zzz... 深度睡眠中...";
+            screenEl.style.background = "#1e293b";
+            screenEl.style.color = "#94a3b8";
+        } else {
+            sleepBtn.innerText = "睡觉 💤";
+            messageEl.innerText = "精神饱满地醒来啦！";
+            screenEl.style.background = speciesData[pet.type].color;
+            screenEl.style.color = "#306230";
+        }
+        updateUI();
+    }
+
+    function tryLayEgg() {
+        if (pet.age < 3 || pet.hunger < 70) {
+            messageEl.innerText = "需成年(>=3天)且饱腹充足！";
+            return;
+        }
+
+        pet.state = 'egg';
+        pet.type = 'normal';
+        pet.hatchPoints = { warmth: 0, coolness: 0, totalClicks: 0 };
+        pet.age = 0;
+        
+        messageEl.innerText = "生出了一枚新精灵蛋！";
+        avatarEl.innerText = "🥚";
+        screenEl.style.background = "#e0f8cf";
+        screenEl.style.color = "#306230";
+        statsContainer.style.display = "none";
+        
+        controlPanel.innerHTML = `
+            <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
+            <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
+        `;
+    }
+
+    function updateUI() {
+        if (pet.state !== 'alive') return;
+
+        hungerBar.style.width = pet.hunger + '%';
+        happinessBar.style.width = pet.happiness + '%';
+        energyBar.style.width = pet.energy + '%';
+        
+        ageText.innerText = `${speciesData[pet.type].name.split(' ')[0]} ${pet.age}天`;
+        weightText.innerText = `重:${pet.weight}g`;
+
+        const layEggBtn = document.getElementById('layEggBtn');
+        if (pet.age >= 3 && layEggBtn) {
+            layEggBtn.style.display = "block";
         }
     }
 
-    function saveState() {
-        if (historyStack.length >= 20) historyStack.shift();
-        historyStack.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
-    }
+    setInterval(() => {
+        if (pet.state !== 'alive') return;
 
-    function undo() {
-        if (historyStack.length > 1) {
-            historyStack.pop();
-            ctx.putImageData(historyStack[historyStack.length - 1], 0, 0);
+        if (pet.isSleeping) {
+            pet.energy = Math.min(100, pet.energy + 15);
+            pet.hunger = Math.max(0, pet.hunger - 2);
+        } else {
+            pet.hunger = Math.max(0, pet.hunger - 3);
+            pet.happiness = Math.max(0, pet.happiness - 2);
+            pet.energy = Math.max(0, pet.energy - 2);
         }
-    }
+
+        if (pet.hunger === 0 && pet.happiness === 0) {
+            pet.state = 'dead';
+            avatarEl.innerText = "💀";
+            messageEl.innerText = "精灵离家出走了...";
+            controlPanel.innerHTML = `<button onclick="location.reload()" style="grid-column: span 2;">重新开始 🔄</button>`;
+            return;
+        }
+
+        updateUI();
+    }, 2000);
+
+    setInterval(() => {
+        if (pet.state === 'alive') {
+            pet.age += 1;
+            updateUI();
+        }
+    }, 15000);
 </script>
+
 </body>
 </html>
