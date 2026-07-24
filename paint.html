@@ -1,21 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 关键：禁止用户随意缩放页面，适配移动端视口 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         * {
             box-sizing: border-box;
-            /* 禁用移动端长按选中文字、高亮等默认行为，提升游戏体验 */
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
         body {
             margin: 0;
             padding: 10px;
-    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -25,7 +22,7 @@
         }
         .game-container {
             width: 100%;
-            max-width: 360px; /* 限制最大宽度，在PC端保持掌机精致感，手机端自动撑满 */
+            max-width: 360px;
             background: #16213e;
             border: 4px solid #0f3460;
             border-radius: 16px;
@@ -50,35 +47,57 @@
             padding: 10px;
             position: relative;
             overflow: hidden;
+            transition: background 0.5s;
         }
         .status-bar {
             display: flex;
             justify-content: space-between;
             font-size: 11px;
             font-weight: bold;
+            z-index: 2;
+        }
+        .screen-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 80px;
         }
         .pet-avatar {
-            font-size: 55px;
-            margin: 5px 0;
+            font-size: 50px;
             transition: transform 0.2s;
+            z-index: 2;
+        }
+        .poop-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 15px;
+            font-size: 24px;
+            animation: bounce 0.5s infinite alternate;
+            z-index: 3;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
         }
         .pet-message {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             min-height: 25px;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
         }
         .stats {
-            margin: 12px 0;
+            margin: 10px 0;
             text-align: left;
             font-size: 12px;
         }
         .stat-row {
             display: flex;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .stat-label {
             width: 45px;
@@ -87,7 +106,7 @@
         .stat-bar-container {
             flex: 1;
             background: #333;
-            height: 8px;
+            height: 7px;
             border-radius: 4px;
             overflow: hidden;
             margin-left: 8px;
@@ -100,26 +119,35 @@
         }
         .controls {
             display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .hatch-controls {
+            display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
         }
         button {
             background: #e94560;
             color: white;
             border: none;
-            padding: 12px 6px; /* 增大手机端点击热区，防止误触 */
-            border-radius: 8px;
+            padding: 11px 4px;
+            border-radius: 6px;
             font-family: inherit;
             font-weight: bold;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 11px;
             transition: 0.1s;
-            touch-action: manipulation; /* 消除移动端点击延迟 */
+            touch-action: manipulation;
         }
         button:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
             background: #c73650;
+        }
+        .full-width {
+            grid-column: span 3;
         }
     </style>
 </head>
@@ -134,7 +162,10 @@
             <span id="weightText">重: 10g</span>
         </div>
         
-        <div class="pet-avatar" id="petAvatar">🥚</div>
+        <div class="screen-content">
+            <div class="pet-avatar" id="petAvatar">🥚</div>
+            <div id="poopContainer"></div>
+        </div>
         
         <div class="pet-message" id="petMessage">神秘精灵蛋，请选择孵化环境~</div>
     </div>
@@ -154,7 +185,7 @@
         </div>
     </div>
 
-    <div class="controls" id="controlPanel">
+    <div class="hatch-controls" id="controlPanel">
         <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
         <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
     </div>
@@ -164,21 +195,25 @@
     let pet = {
         state: 'egg', 
         type: 'normal', 
+        isEvolved: false, // 是否已经进化
         hunger: 100,
         happiness: 100,
         energy: 100,
         age: 0,
         weight: 10,
         isSleeping: false,
+        hasPoop: false,      
+        hasFriend: false,    
         hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
     };
 
+    // 精灵形态及进化数据字典
     const speciesData = {
-        normal: { name: "普通小鸡", avatar: "🐥", color: "#e0f8cf" },
-        fire:   { name: "火炎鸡 🔥", avatar: "🐓", color: "#ffcccc" },
-        electric:{ name: "雷电鸡 ⚡", avatar: "🦅", color: "#fff0cc" },
-        ice:    { name: "冰霜鸡 ❄️", avatar: "🐧", color: "#ccf2ff" },
-        god:    { name: "黄金神鸡 👑", avatar: "🐉", color: "#ffe680" }
+        normal: { name: "普通小鸡", avatar: "🐥", evoAvatar: "🐔", evoName: "战斗大公鸡", color: "#e0f8cf" },
+        fire:   { name: "火炎鸡", avatar: "🐓", evoAvatar: "🌋", evoName: "熔岩烈焰鸡", color: "#ffcccc" },
+        electric:{ name: "雷电鸡", avatar: "🦅", evoAvatar: "⚡🦅", evoName: "雷霆神鹰鸡", color: "#fff0cc" },
+        ice:    { name: "冰霜鸡", avatar: "🐧", evoAvatar: "🧊", evoName: "极地冰皇鸡", color: "#ccf2ff" },
+        god:    { name: "黄金神鸡", avatar: "🐉", evoAvatar: "✨🐉", evoName: "创世神圣鸡", color: "#ffe680" }
     };
 
     const avatarEl = document.getElementById('petAvatar');
@@ -191,6 +226,7 @@
     const screenEl = document.getElementById('screen');
     const controlPanel = document.getElementById('controlPanel');
     const statsContainer = document.getElementById('statsContainer');
+    const poopContainer = document.getElementById('poopContainer');
 
     function hatchAction(action) {
         pet.hatchPoints.totalClicks += 1;
@@ -226,11 +262,13 @@
         }
 
         pet.state = 'alive';
+        pet.isEvolved = false;
         pet.hunger = 100;
         pet.happiness = 100;
         pet.energy = 100;
         pet.age = 0;
         pet.weight = 15;
+        pet.hasFriend = false;
 
         let info = speciesData[pet.type];
         avatarEl.innerText = info.avatar;
@@ -238,20 +276,48 @@
         screenEl.style.background = info.color;
 
         statsContainer.style.display = "block";
+        loadLiveControls();
+        updateUI();
+    }
+
+    function loadLiveControls() {
+        controlPanel.className = "controls";
         controlPanel.innerHTML = `
             <button onclick="feed()">喂食 🍚</button>
             <button onclick="play()">玩耍 ⚽</button>
             <button onclick="sleepToggle()" id="sleepBtn">睡觉 💤</button>
-            <button onclick="tryLayEgg()" id="layEggBtn" style="display:none; background:#f39c12; grid-column: span 2;">生蛋 🥚</button>
+            <button onclick="cleanPoop()" style="background:#8e44ad;">打扫 🧹</button>
+            <button onclick="makeFriend()" style="background:#27ae60;">交友 🤝</button>
+            <button onclick="tryEvolve()" id="evolveBtn" style="background:#e67e22; display:none;">进化 ✨</button>
+            <button onclick="mateAndBreed()" class="full-width" id="breedBtn" style="background:#f39c12; display:none;">交配生蛋 💖</button>
         `;
+    }
+
+    // 进化功能
+    function tryEvolve() {
+        if (pet.state !== 'alive' || pet.isEvolved) return;
+        if (pet.age < 2 || pet.happiness < 70) {
+            messageEl.innerText = "条件不足：需满2天且心情>=70才能进化！";
+            return;
+        }
+
+        pet.isEvolved = true;
+        pet.weight += 30; // 进化后体重暴增
+        let info = speciesData[pet.type];
+        avatarEl.innerText = info.evoAvatar;
+        messageEl.innerText = `✨ 进化成功！蜕变成【${info.evoName}】！`;
         updateUI();
     }
 
     function feed() {
         if (pet.state !== 'alive' || pet.isSleeping) return;
         pet.hunger = Math.min(100, pet.hunger + 25);
-        pet.weight += 2;
+        pet.weight += pet.isEvolved ? 4 : 2;
         messageEl.innerText = "真美味！饱饱的~";
+        
+        if (!pet.hasPoop && Math.random() < 0.5) {
+            pet.hasPoop = true;
+        }
         updateUI();
     }
 
@@ -263,7 +329,7 @@
         }
         pet.happiness = Math.min(100, pet.happiness + 30);
         pet.energy = Math.max(0, pet.energy - 20);
-        messageEl.innerText = "开心地释放了技能！✨";
+        messageEl.innerText = "开心地释放了终极技能！✨";
         updateUI();
     }
 
@@ -285,23 +351,61 @@
         updateUI();
     }
 
-    function tryLayEgg() {
-        if (pet.age < 3 || pet.hunger < 70) {
-            messageEl.innerText = "需成年(>=3天)且饱腹充足！";
+    function cleanPoop() {
+        if (pet.state !== 'alive') return;
+        if (pet.hasPoop) {
+            pet.hasPoop = false;
+            pet.happiness = Math.min(100, pet.happiness + 15);
+            messageEl.innerText = "打扫干净了！环境真卫生~ 🧹";
+        } else {
+            messageEl.innerText = "这里很干净，不需要打扫。";
+        }
+        updateUI();
+    }
+
+    function makeFriend() {
+        if (pet.state !== 'alive' || pet.isSleeping) return;
+        if (pet.hasFriend) {
+            messageEl.innerText = "它已经有伴侣或好朋友啦！";
+            return;
+        }
+        pet.hasFriend = true;
+        pet.happiness = Math.min(100, pet.happiness + 40);
+        messageEl.innerText = "结交了一只可爱的新朋友！🤝💕";
+        updateUI();
+    }
+
+    function mateAndBreed() {
+        if (pet.state !== 'alive') return;
+        if (pet.age < 3) {
+            messageEl.innerText = "年龄还未满 3 天，不能交配！";
+            return;
+        }
+        if (!pet.hasFriend) {
+            messageEl.innerText = "请先点击【交友 🤝】找到对象才能交配！";
+            return;
+        }
+        if (pet.hunger < 60 || pet.happiness < 60) {
+            messageEl.innerText = "状态不够好，无法繁育后代！";
             return;
         }
 
         pet.state = 'egg';
         pet.type = 'normal';
+        pet.isEvolved = false;
         pet.hatchPoints = { warmth: 0, coolness: 0, totalClicks: 0 };
         pet.age = 0;
+        pet.hasPoop = false;
+        pet.hasFriend = false;
         
-        messageEl.innerText = "生出了一枚新精灵蛋！";
+        messageEl.innerText = "交配成功！生出了一枚新精灵蛋！💖🥚";
         avatarEl.innerText = "🥚";
+        poopContainer.innerHTML = "";
         screenEl.style.background = "#e0f8cf";
         screenEl.style.color = "#306230";
         statsContainer.style.display = "none";
         
+        controlPanel.className = "hatch-controls";
         controlPanel.innerHTML = `
             <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
             <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
@@ -315,12 +419,33 @@
         happinessBar.style.width = pet.happiness + '%';
         energyBar.style.width = pet.energy + '%';
         
-        ageText.innerText = `${speciesData[pet.type].name.split(' ')[0]} ${pet.age}天`;
+        let info = speciesData[pet.type];
+        let currentTitle = pet.isEvolved ? info.evoName : info.name;
+        ageText.innerText = `${currentTitle} ${pet.age}天`;
         weightText.innerText = `重:${pet.weight}g`;
 
-        const layEggBtn = document.getElementById('layEggBtn');
-        if (pet.age >= 3 && layEggBtn) {
-            layEggBtn.style.display = "block";
+        // 动态展示/隐藏进化按钮和交配按钮
+        const evolveBtn = document.getElementById('evolveBtn');
+        const breedBtn = document.getElementById('breedBtn');
+
+        if (!pet.isEvolved && pet.age >= 2) {
+            evolveBtn.style.display = "block";
+        } else {
+            evolveBtn.style.display = "none";
+        }
+
+        if (pet.age >= 3) {
+            breedBtn.style.display = "block";
+            breedBtn.className = "full-width"; // 满了三岁后让生蛋按钮独占一行
+        } else {
+            breedBtn.style.display = "none";
+        }
+
+        if (pet.hasPoop) {
+            poopContainer.innerHTML = `<div class="poop-icon">💩</div>`;
+            pet.happiness = Math.max(0, pet.happiness - 1); 
+        } else {
+            poopContainer.innerHTML = "";
         }
     }
 
@@ -334,12 +459,18 @@
             pet.hunger = Math.max(0, pet.hunger - 3);
             pet.happiness = Math.max(0, pet.happiness - 2);
             pet.energy = Math.max(0, pet.energy - 2);
+            
+            if (!pet.hasPoop && Math.random() < 0.1) {
+                pet.hasPoop = true;
+            }
         }
 
         if (pet.hunger === 0 && pet.happiness === 0) {
             pet.state = 'dead';
             avatarEl.innerText = "💀";
+            poopContainer.innerHTML = "";
             messageEl.innerText = "精灵离家出走了...";
+            controlPanel.className = "hatch-controls";
             controlPanel.innerHTML = `<button onclick="location.reload()" style="grid-column: span 2;">重新开始 🔄</button>`;
             return;
         }
