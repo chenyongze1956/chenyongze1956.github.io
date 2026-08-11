@@ -1,490 +1,2034 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>😊 笑脸精灵养成记 · 联机版</title>
     <style>
+        :root {
+            --face-bg: #FFD93D;
+            --face-glow: #FFF176;
+            --bg-screen: #e0f8cf;
+            --text-screen: #306230;
+            --online-glow: #00e5ff;
+        }
+
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
+
         body {
             margin: 0;
-            padding: 10px;
+            padding: 6px;
             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: bgShift 15s ease-in-out infinite;
             color: #fff;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
+        @keyframes bgShift {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            25% {
+                background-position: 100% 0%;
+            }
+            50% {
+                background-position: 100% 100%;
+            }
+            75% {
+                background-position: 0% 100%;
+            }
+        }
+        .bg-sparkles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-sparkle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 217, 61, 0.3);
+            animation: floatSparkle 6s infinite ease-in-out;
+        }
+        @keyframes floatSparkle {
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.9;
+            }
+            80% {
+                opacity: 0.1;
+            }
+            100% {
+                transform: translateY(-80vh) scale(0.2);
+                opacity: 0;
+            }
+        }
+
         .game-container {
             width: 100%;
-            max-width: 360px;
-            background: #16213e;
-            border: 4px solid #0f3460;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-width: 430px;
+            background: rgba(22, 33, 62, 0.92);
+            border: 3px solid rgba(255, 217, 61, 0.4);
+            border-radius: 20px;
+            padding: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 60px rgba(255, 217, 61, 0.15);
             text-align: center;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.5s;
         }
+        .game-container.online-connected {
+            border-color: rgba(0, 229, 255, 0.7);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 70px rgba(0, 229, 255, 0.3);
+        }
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 21px;
+            background: linear-gradient(45deg, #FFD93D, #ff7e5f, #FFD93D, #5fbfff, #FFD93D);
+            background-size: 300% 300%;
+            animation: borderGlow 4s ease-in-out infinite;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        .game-container.online-connected::before {
+            background: linear-gradient(45deg, #00e5ff, #FFD93D, #00e5ff, #ff7e5f, #00e5ff);
+            background-size: 300% 300%;
+            opacity: 0.9;
+        }
+        @keyframes borderGlow {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
         h2 {
-            margin: 5px 0 12px 0;
-            font-size: 18px;
-            letter-spacing: 2px;
+            margin: 2px 0 6px 0;
+            font-size: 17px;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #FFD93D, #ff9a9e, #FFD93D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            animation: titleShimmer 2s ease-in-out infinite;
         }
-        .screen {
-            background: #e0f8cf;
-            color: #306230;
-            border: 4px solid #8bac0f;
+        @keyframes titleShimmer {
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.4);
+            }
+        }
+
+        .online-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            font-size: 10px;
+            min-height: 28px;
+        }
+        .online-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+            transition: background 0.3s;
+            box-shadow: 0 0 6px transparent;
+            flex-shrink: 0;
+        }
+        .online-indicator.connected {
+            background: #00e676;
+            box-shadow: 0 0 10px #00e676;
+            animation: pulseDot 1.5s ease-in-out infinite;
+        }
+        .online-indicator.searching {
+            background: #ffab00;
+            box-shadow: 0 0 10px #ffab00;
+            animation: pulseDot 0.6s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%,
+            100% {
+                box-shadow: 0 0 6px currentColor;
+            }
+            50% {
+                box-shadow: 0 0 18px currentColor, 0 0 28px currentColor;
+            }
+        }
+        .online-btn {
+            font-size: 9px;
+            padding: 5px 10px;
+            border-radius: 14px;
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ddd;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .online-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+        .online-btn:active {
+            transform: scale(0.94);
+        }
+        .online-btn.create-btn {
+            border-color: #00e5ff;
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.1);
+        }
+        .online-btn.join-btn {
+            border-color: #ffab00;
+            color: #ffab00;
+            background: rgba(255, 171, 0, 0.1);
+        }
+        .room-code-input {
+            width: 80px;
+            padding: 4px 6px;
             border-radius: 8px;
-            height: 170px;
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 10px;
+            text-align: center;
+            font-family: monospace;
+            letter-spacing: 1px;
+            transition: border-color 0.3s;
+        }
+        .room-code-input:focus {
+            outline: none;
+            border-color: #00e5ff;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.3);
+        }
+        .room-code-display {
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            color: #00e5ff;
+            letter-spacing: 2px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .room-code-display:hover {
+            background: rgba(0, 229, 255, 0.2);
+        }
+        .room-code-display:active {
+            transform: scale(0.95);
+        }
+
+        .screen {
+            background: var(--bg-screen);
+            color: var(--text-screen);
+            border: 4px solid #8bac0f;
+            border-radius: 14px;
+            height: 185px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 10px;
+            padding: 6px;
             position: relative;
             overflow: hidden;
-            transition: background 0.5s;
+            transition: background 0.6s, color 0.6s, border-color 0.5s;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1);
         }
+        .screen.online-screen {
+            border-color: #00bcd4;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.1), 0 0 15px rgba(0, 229, 255, 0.2);
+        }
+
         .status-bar {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
-            z-index: 2;
+            z-index: 3;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            flex-wrap: wrap;
+            gap: 2px;
         }
+        .partner-name-tag {
+            font-size: 8px;
+            background: rgba(0, 188, 212, 0.2);
+            padding: 1px 6px;
+            border-radius: 4px;
+            animation: fadeInOut 2s ease-in-out infinite;
+            color: #00838f;
+        }
+        @keyframes fadeInOut {
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
         .screen-content {
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            height: 80px;
-        }
-        .pet-avatar {
-            font-size: 50px;
-            transition: transform 0.2s;
+            height: 95px;
             z-index: 2;
+            gap: 8px;
+        }
+        .face-container {
+            position: relative;
+            width: 105px;
+            height: 105px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+        .face-container:hover {
+            transform: scale(1.06);
+        }
+        .face-container:active {
+            transform: scale(0.9);
+        }
+        .face-container.bouncing {
+            animation: faceBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes faceBounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            25% {
+                transform: translateY(-20px) scale(1.08);
+            }
+            50% {
+                transform: translateY(-3px) scale(0.95);
+            }
+            75% {
+                transform: translateY(-14px) scale(1.04);
+            }
+        }
+        .partner-face-mini {
+            width: 55px;
+            height: 55px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            opacity: 0.7;
+            filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+            animation: partnerFloat 3s ease-in-out infinite;
+        }
+        .partner-face-mini:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+        .partner-face-mini:active {
+            transform: scale(0.85);
+        }
+        @keyframes partnerFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+        .partner-face-mini svg {
+            width: 55px;
+            height: 55px;
+        }
+        .connection-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .heart-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            font-size: 16px;
+            animation: heartFly 1.2s ease-out forwards;
+        }
+        @keyframes heartFly {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(1.6);
+                opacity: 0;
+            }
+        }
+
+        .face-svg {
+            width: 105px;
+            height: 105px;
+            filter: drop-shadow(0 5px 14px rgba(0, 0, 0, 0.3));
+            transition: all 0.4s;
         }
         .poop-icon {
             position: absolute;
-            bottom: 5px;
-            right: 15px;
-            font-size: 24px;
-            animation: bounce 0.5s infinite alternate;
+            bottom: 0px;
+            right: 4px;
+            font-size: 18px;
+            animation: poopWiggle 0.6s infinite alternate;
             z-index: 3;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-5px); }
+        @keyframes poopWiggle {
+            from {
+                transform: translateY(0) rotate(-5deg);
+            }
+            to {
+                transform: translateY(-4px) rotate(5deg);
+            }
         }
+
         .pet-message {
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
-            min-height: 25px;
+            min-height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 2;
+            z-index: 3;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            padding: 0 4px;
         }
+        .pet-message.partner-msg {
+            color: #00838f;
+            font-style: italic;
+            animation: msgGlow 1.5s ease-in-out infinite;
+        }
+        @keyframes msgGlow {
+            0%,
+            100% {
+                opacity: 0.7;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
         .stats {
-            margin: 10px 0;
+            margin: 4px 0;
             text-align: left;
-            font-size: 12px;
+            font-size: 9px;
+        }
+        .stats-section-label {
+            font-size: 8px;
+            font-weight: bold;
+            color: #aaa;
+            letter-spacing: 2px;
+            margin: 3px 0 1px 0;
+            text-transform: uppercase;
         }
         .stat-row {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            gap: 4px;
         }
         .stat-label {
-            width: 45px;
+            width: 30px;
             font-weight: bold;
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: #ddd;
+            text-align: right;
+            flex-shrink: 0;
         }
         .stat-bar-container {
             flex: 1;
-            background: #333;
-            height: 7px;
-            border-radius: 4px;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-left: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
         }
         .stat-bar {
             height: 100%;
             width: 100%;
-            background: #e94560;
-            transition: width 0.3s;
+            border-radius: 3px;
+            transition: width 0.4s ease;
         }
+        .stat-bar.hunger-bar {
+            background: linear-gradient(90deg, #f39c12, #f7dc6f);
+            box-shadow: 0 0 5px rgba(243, 156, 18, 0.5);
+        }
+        .stat-bar.happy-bar {
+            background: linear-gradient(90deg, #e94560, #ff7979);
+            box-shadow: 0 0 5px rgba(233, 69, 96, 0.5);
+        }
+        .stat-bar.energy-bar {
+            background: linear-gradient(90deg, #3498db, #5dade2);
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+        }
+        .stat-bar.iq-bar {
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+            box-shadow: 0 0 5px rgba(108, 92, 231, 0.5);
+        }
+        .stat-bar.eq-bar {
+            background: linear-gradient(90deg, #e91e63, #f8a5c2);
+            box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
+        }
+        .stat-bar.fq-bar {
+            background: linear-gradient(90deg, #d4a017, #f9e076);
+            box-shadow: 0 0 5px rgba(212, 160, 23, 0.5);
+        }
+        .stat-bar.glowing {
+            animation: barGlow 1s ease-in-out infinite;
+        }
+        @keyframes barGlow {
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.6);
+            }
+        }
+
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 10px;
+            gap: 5px;
+            margin-top: 4px;
+        }
+        .online-actions-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-top: 3px;
         }
         .hatch-controls {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 10px;
+            gap: 10px;
+            margin-top: 6px;
         }
         button {
             background: #e94560;
             color: white;
             border: none;
-            padding: 11px 4px;
-            border-radius: 6px;
+            padding: 8px 3px;
+            border-radius: 8px;
             font-family: inherit;
             font-weight: bold;
             cursor: pointer;
-            font-size: 11px;
-            transition: 0.1s;
+            font-size: 9px;
+            transition: all 0.15s;
             touch-action: manipulation;
+            letter-spacing: 0.5px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        button:active::after {
+            opacity: 1;
         }
         button:active {
-            transform: scale(0.95);
-            background: #c73650;
+            transform: scale(0.93);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-        .full-width {
+        button.full-width {
             grid-column: span 3;
+        }
+        button.half-width {
+            grid-column: span 2;
+        }
+        button.special-btn {
+            background: linear-gradient(135deg, #8e44ad, #c39bd3);
+            animation: specialPulse 2s ease-in-out infinite;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        @keyframes specialPulse {
+            0%,
+            100% {
+                box-shadow: 0 3px 8px rgba(142, 68, 173, 0.4);
+            }
+            50% {
+                box-shadow: 0 3px 20px rgba(142, 68, 173, 0.8), 0 0 25px rgba(195, 155, 211, 0.5);
+            }
+        }
+        button.online-action-btn {
+            background: linear-gradient(135deg, #00838f, #00bcd4);
+            font-size: 9px;
+            animation: onlineBtnGlow 2.5s ease-in-out infinite;
+        }
+        @keyframes onlineBtnGlow {
+            0%,
+            100% {
+                box-shadow: 0 3px 8px rgba(0, 188, 212, 0.3);
+            }
+            50% {
+                box-shadow: 0 3px 18px rgba(0, 188, 212, 0.7), 0 0 22px rgba(0, 229, 255, 0.4);
+            }
+        }
+        button:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        @keyframes eggShake {
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+            15% {
+                transform: rotate(-8deg);
+            }
+            30% {
+                transform: rotate(8deg);
+            }
+            45% {
+                transform: rotate(-5deg);
+            }
+            60% {
+                transform: rotate(5deg);
+            }
+            75% {
+                transform: rotate(-3deg);
+            }
+            90% {
+                transform: rotate(3deg);
+            }
+        }
+        .egg-shaking {
+            animation: eggShake 0.7s ease-in-out;
+        }
+        @keyframes evolveFlash {
+            0% {
+                filter: brightness(1);
+            }
+            25% {
+                filter: brightness(3) saturate(0);
+            }
+            50% {
+                filter: brightness(2) saturate(2);
+            }
+            75% {
+                filter: brightness(3) saturate(0);
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        .evolve-flash {
+            animation: evolveFlash 0.8s ease-out;
+        }
+        @keyframes sparkleBurst {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .game-container {
+                padding: 7px;
+                border-radius: 14px;
+            }
+            .screen {
+                height: 158px;
+            }
+            .face-container {
+                width: 80px;
+                height: 80px;
+            }
+            .face-svg {
+                width: 80px;
+                height: 80px;
+            }
+            .partner-face-mini {
+                width: 42px;
+                height: 42px;
+            }
+            .partner-face-mini svg {
+                width: 42px;
+                height: 42px;
+            }
+            button {
+                padding: 6px 2px;
+                font-size: 8px;
+                border-radius: 6px;
+                letter-spacing: 0px;
+            }
+            h2 {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+            .stats {
+                font-size: 8px;
+            }
+            .stat-label {
+                width: 24px;
+                font-size: 7px;
+            }
+            .stat-bar-container {
+                height: 5px;
+            }
+            .pet-message {
+                font-size: 8px;
+                min-height: 14px;
+            }
+            .status-bar {
+                font-size: 7px;
+            }
+            .screen-content {
+                height: 70px;
+                gap: 4px;
+            }
+            .controls {
+                gap: 3px;
+            }
+            .online-bar {
+                font-size: 8px;
+                gap: 4px;
+            }
+            .online-btn {
+                font-size: 7px;
+                padding: 4px 7px;
+            }
+            .room-code-input {
+                width: 60px;
+                font-size: 8px;
+            }
+            .room-code-display {
+                font-size: 9px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="bg-sparkles" id="bgSparkles"></div>
+    <div class="game-container" id="gameContainer">
+        <h2>✨ 笑脸 · 联机进化 ✨</h2>
 
-<div class="game-container">
-    <h2>POKÉ-CHICK</h2>
-    
-    <div class="screen" id="screen">
-        <div class="status-bar">
-            <span id="ageText">形态: 未孵化</span>
-            <span id="weightText">重: 10g</span>
+        <!-- 联机状态栏 -->
+        <div class="online-bar" id="onlineBar">
+            <span class="online-indicator" id="onlineIndicator" title="联机状态"></span>
+            <span id="onlineStatusText" style="font-size:9px;color:#aaa;">离线</span>
+            <button class="online-btn create-btn" id="createRoomBtn" title="创建联机黑箱">🏠创建黑箱</button>
+            <button class="online-btn join-btn" id="joinRoomBtn" title="加入好友黑箱">🔗加入黑箱</button>
+            <input class="room-code-input" id="roomCodeInput" placeholder="黑箱码" maxlength="12" style="display:none;">
+            <button class="online-btn" id="confirmJoinBtn" style="display:none;background:#ffab00;color:#000;">确认加入</button>
+            <span class="room-code-display" id="roomCodeDisplay" style="display:none;" title="点击复制黑箱码"></span>
+            <button class="online-btn" id="disconnectBtn" style="display:none;background:#c0392b;">断开</button>
         </div>
-        
-        <div class="screen-content">
-            <div class="pet-avatar" id="petAvatar">🥚</div>
-            <div id="poopContainer"></div>
+
+        <div class="screen" id="screen">
+            <div class="status-bar">
+                <span id="ageText">形态: 笑脸蛋</span>
+                <span id="weightText">重: 10g</span>
+                <span class="partner-name-tag" id="partnerNameTag" style="display:none;"></span>
+            </div>
+            <div class="screen-content" id="screenContent">
+                <div class="face-container" id="faceContainer" title="戳戳我~">
+                    <svg class="face-svg" id="faceSvg" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+                        <circle id="faceCircle" cx="70" cy="70" r="62" fill="#FFD93D" stroke="#E8B800" stroke-width="2.5" />
+                        <ellipse cx="55" cy="50" rx="28" ry="20" fill="rgba(255,255,255,0.3)" />
+                        <g id="leftEyeGroup"><ellipse cx="48" cy="58" rx="13" ry="16" fill="white" stroke="#D4A017" stroke-width="1" /><ellipse id="leftPupil" cx="50" cy="58" rx="7" ry="10" fill="#2C3E50" /><circle cx="53" cy="52" r="4" fill="white" opacity="0.9" /></g>
+                        <g id="rightEyeGroup"><ellipse cx="92" cy="58" rx="13" ry="16" fill="white" stroke="#D4A017" stroke-width="1" /><ellipse id="rightPupil" cx="90" cy="58" rx="7" ry="10" fill="#2C3E50" /><circle cx="93" cy="52" r="4" fill="white" opacity="0.9" /></g>
+                        <ellipse id="leftCheek" cx="32" cy="80" rx="12" ry="9" fill="#FF9A9E" opacity="0.45" />
+                        <ellipse id="rightCheek" cx="108" cy="80" rx="12" ry="9" fill="#FF9A9E" opacity="0.45" />
+                        <path id="mouthPath" d="M 44 88 Q 70 118 96 88" fill="none" stroke="#2C3E50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                        <g id="accessoryGroup" opacity="0"></g>
+                        <g id="specialAccessoryGroup" opacity="0"></g>
+                    </svg>
+                </div>
+                <div class="partner-face-mini" id="partnerFaceMini" style="display:none;" title="联机伙伴的笑脸">
+                    <svg id="partnerSvg" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="70" cy="70" r="62" fill="#FFD93D" stroke="#E8B800" stroke-width="2.5" />
+                        <ellipse cx="55" cy="50" rx="28" ry="20" fill="rgba(255,255,255,0.3)" />
+                        <ellipse cx="48" cy="58" rx="13" ry="16" fill="white" stroke="#D4A017" stroke-width="1" /><ellipse cx="50" cy="58" rx="7" ry="10" fill="#2C3E50" /><circle cx="53" cy="52" r="4" fill="white" opacity="0.9" />
+                        <ellipse cx="92" cy="58" rx="13" ry="16" fill="white" stroke="#D4A017" stroke-width="1" /><ellipse cx="90" cy="58" rx="7" ry="10" fill="#2C3E50" /><circle cx="93" cy="52" r="4" fill="white" opacity="0.9" />
+                        <ellipse cx="32" cy="80" rx="12" ry="9" fill="#FF9A9E" opacity="0.45" />
+                        <ellipse cx="108" cy="80" rx="12" ry="9" fill="#FF9A9E" opacity="0.45" />
+                        <path d="M 44 88 Q 70 118 96 88" fill="none" stroke="#2C3E50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div id="poopContainer"></div>
+            </div>
+            <div class="pet-message" id="petMessage">一颗神秘的笑脸蛋，选择孵化方式吧~ 🥚</div>
         </div>
-        
-        <div class="pet-message" id="petMessage">神秘精灵蛋，请选择孵化环境~</div>
+
+        <div class="stats" id="statsContainer" style="display:none;">
+            <div class="stats-section-label">📊 基础属性</div>
+            <div class="stat-row"><span class="stat-label">🍚饱腹</span><div class="stat-bar-container"><div class="stat-bar hunger-bar" id="hungerBar" style="width:100%;"></div></div></div>
+            <div class="stat-row"><span class="stat-label">💖心情</span><div class="stat-bar-container"><div class="stat-bar happy-bar" id="happinessBar" style="width:100%;"></div></div></div>
+            <div class="stat-row"><span class="stat-label">⚡精力</span><div class="stat-bar-container"><div class="stat-bar energy-bar" id="energyBar" style="width:100%;"></div></div></div>
+            <div class="stats-section-label">🧠 进阶属性</div>
+            <div class="stat-row"><span class="stat-label">🧠智商</span><div class="stat-bar-container"><div class="stat-bar iq-bar" id="iqBar" style="width:50%;"></div></div></div>
+            <div class="stat-row"><span class="stat-label">💕情商</span><div class="stat-bar-container"><div class="stat-bar eq-bar" id="eqBar" style="width:50%;"></div></div></div>
+            <div class="stat-row"><span class="stat-label">💰财商</span><div class="stat-bar-container"><div class="stat-bar fq-bar" id="fqBar" style="width:50%;"></div></div></div>
+        </div>
+
+        <div class="hatch-controls" id="controlPanel">
+            <button onclick="hatchAction('warm')" style="background:#e74c3c;">🔥 热情加热</button>
+            <button onclick="hatchAction('cool')" style="background:#3498db;">❄️ 冷静降温</button>
+        </div>
+        <div class="online-actions-row" id="onlineActionsRow" style="display:none;"></div>
     </div>
 
-    <div class="stats" id="statsContainer" style="display:none;">
-        <div class="stat-row">
-            <span class="stat-label">饱腹</span>
-            <div class="stat-bar-container"><div class="stat-bar" id="hungerBar" style="width: 100%;"></div></div>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">情绪</span>
-            <div class="stat-bar-container"><div class="stat-bar" id="happinessBar" style="width: 100%;"></div></div>
-        </div>
-        <div class="stat-row">
-            <span class="stat-label">精力</span>
-            <div class="stat-bar-container"><div class="stat-bar" id="energyBar" style="width: 100%;"></div></div>
-        </div>
-    </div>
+    <!-- PeerJS 库 (用于WebRTC联机) -->
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js">
+    </script>
 
-    <div class="hatch-controls" id="controlPanel">
-        <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
-        <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
-    </div>
-</div>
+    <script>
+        // ============ 背景光点 ============
+        (function() {
+            const container = document.getElementById('bgSparkles');
+            for (let i = 0; i < 25; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.classList.add('bg-sparkle');
+                const size = 2 + Math.random() * 6;
+                sparkle.style.width = size + 'px';
+                sparkle.style.height = size + 'px';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 6 + 's';
+                sparkle.style.animationDuration = (4 + Math.random() * 8) + 's';
+                sparkle.style.background = ['rgba(255,217,61,0.4)', 'rgba(255,154,158,0.35)', 'rgba(95,191,255,0.35)',
+                    'rgba(159,235,143,0.3)', 'rgba(195,155,211,0.35)', 'rgba(108,92,231,0.3)'
+                ][Math.floor(Math.random() * 6)];
+                container.appendChild(sparkle);
+            }
+        })();
 
-<script>
-    let pet = {
-        state: 'egg', 
-        type: 'normal', 
-        isEvolved: false, // 是否已经进化
-        hunger: 100,
-        happiness: 100,
-        energy: 100,
-        age: 0,
-        weight: 10,
-        isSleeping: false,
-        hasPoop: false,      
-        hasFriend: false,    
-        hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
-    };
+        // ============ 宠物数据 ============
+        let pet = {
+            state: 'egg',
+            type: 'normal',
+            isEvolved: false,
+            specialEvolution: null,
+            hunger: 100,
+            happiness: 100,
+            energy: 100,
+            iq: 50,
+            eq: 50,
+            fq: 50,
+            age: 0,
+            weight: 10,
+            isSleeping: false,
+            hasPoop: false,
+            hasFriend: false,
+            hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
+        };
+        let tickCounter = 0;
 
-    // 精灵形态及进化数据字典
-    const speciesData = {
-        normal: { name: "普通小鸡", avatar: "🐥", evoAvatar: "🐔", evoName: "战斗大公鸡", color: "#e0f8cf" },
-        fire:   { name: "火炎鸡", avatar: "🐓", evoAvatar: "🌋", evoName: "熔岩烈焰鸡", color: "#ffcccc" },
-        electric:{ name: "雷电鸡", avatar: "🦅", evoAvatar: "⚡🦅", evoName: "雷霆神鹰鸡", color: "#fff0cc" },
-        ice:    { name: "冰霜鸡", avatar: "🐧", evoAvatar: "🧊", evoName: "极地冰皇鸡", color: "#ccf2ff" },
-        god:    { name: "黄金神鸡", avatar: "🐉", evoAvatar: "✨🐉", evoName: "创世神圣鸡", color: "#ffe680" }
-    };
+        const speciesConfig = {
+            normal: { name: '阳光笑脸', evoName: '灿烂大笑脸', faceColor: '#FFD93D', strokeColor: '#E8B800',
+                eyeType: 'normal', mouthD: 'M 44 88 Q 70 118 96 88', cheekColor: '#FF9A9E', screenBg: '#e0f8cf',
+                accessory: 'none', description: '温暖阳光的经典笑脸' },
+            fire: { name: '烈焰笑脸', evoName: '熔岩爆笑脸', faceColor: '#FF6B4A', strokeColor: '#C0392B', eyeType: 'fierce',
+                mouthD: 'M 40 85 Q 70 125 100 85', cheekColor: '#FF4444', screenBg: '#ffddcc', accessory: 'flame',
+                description: '热情似火的烈焰笑脸' },
+            ice: { name: '冰霜笑脸', evoName: '极光冰笑脸', faceColor: '#A8E6FF', strokeColor: '#5DADE2', eyeType: 'cool',
+                mouthD: 'M 48 90 Q 70 108 92 90', cheekColor: '#BBE8FF', screenBg: '#e8f4fd', accessory: 'snowflake',
+                description: '冷静优雅的冰霜笑脸' },
+            electric: { name: '雷电笑脸', evoName: '雷霆闪笑脸', faceColor: '#FFF176', strokeColor: '#F9A825', eyeType: 'star',
+                mouthD: 'M 38 86 Q 70 122 102 86', cheekColor: '#FFEB3B', screenBg: '#fffde7', accessory: 'bolt',
+                description: '活力四射的雷电笑脸' },
+            god: { name: '神圣笑脸', evoName: '创世光辉笑脸', faceColor: '#FFE082', strokeColor: '#FF8F00', eyeType: 'holy',
+                mouthD: 'M 42 90 Q 70 120 98 90', cheekColor: '#FFD54F', screenBg: '#fff8e1', accessory: 'crown',
+                description: '传说中的神圣笑脸！' }
+        };
+        const specialEvoConfig = {
+            scholar: { title: '智慧', faceTint: '#c8d6ff', strokeTint: '#5D6DC6', eyeMod: 'scholar', cheekTint: '#b8c8ff',
+                screenBgTint: '#eef2ff',
+                accessorySvg: `<g transform="translate(55,4)"><rect x="0" y="0" width="24" height="17" rx="3" fill="#5DADE2" stroke="#2E86C1" stroke-width="1.8"/><line x1="4" y1="5" x2="20" y2="5" stroke="white" stroke-width="1.5" opacity="0.8"/><line x1="4" y1="9" x2="18" y2="9" stroke="white" stroke-width="1" opacity="0.6"/><line x1="4" y1="13" x2="16" y2="13" stroke="white" stroke-width="1" opacity="0.6"/><circle cx="12" cy="3" r="2.5" fill="#FFD700"/></g>`,
+                desc: '学识渊博的智慧精灵' },
+            charmer: { title: '魅力', faceTint: '#ffe0e8', strokeTint: '#E91E63', eyeMod: 'charmer', cheekTint: '#ffb8c8',
+                screenBgTint: '#fff0f5',
+                accessorySvg: `<g transform="translate(56,2)"><path d="M14 4 C14 -2 4 -2 4 6 C4 14 14 22 14 22 C14 22 24 14 24 6 C24 -2 14 -2 14 4Z" fill="#FF6B8A" stroke="#E94560" stroke-width="1.8"><animate attributeName="opacity" dur="1.2s" repeatCount="indefinite" values="1;0.6;1"/></path></g>`,
+                desc: '魅力四射的社交精灵' },
+            tycoon: { title: '富豪', faceTint: '#fff8d6', strokeTint: '#D4A017', eyeMod: 'tycoon', cheekTint: '#ffe8a0',
+                screenBgTint: '#fffef5',
+                accessorySvg: `<g transform="translate(56,4)"><circle cx="12" cy="12" r="13" fill="#FFD700" stroke="#F9A825" stroke-width="2.2"/><text x="12" y="17" text-anchor="middle" font-size="16" font-weight="bold" fill="#B8860B">$</text><circle cx="20" cy="4" r="3" fill="#FFF9C4" opacity="0.9"><animate attributeName="opacity" dur="0.8s" repeatCount="indefinite" values="1;0.3;1"/></circle></g>`,
+                desc: '财源滚滚的富贵精灵' },
+            master: { title: '大师', faceTint: '#fffbe6', strokeTint: '#FF8F00', eyeMod: 'master', cheekTint: '#ffe8cc',
+                screenBgTint: '#fffff0',
+                accessorySvg: `<g transform="translate(38,0)"><polygon points="12,20 20,38 32,26 44,40 56,26 68,38 76,20" fill="#FFD700" stroke="#FF8F00" stroke-width="2"/><circle cx="44" cy="16" r="6" fill="#FF6B6B"/><circle cx="32" cy="18" r="3" fill="#87CEEB" opacity="0.8"/><circle cx="56" cy="18" r="3" fill="#87CEEB" opacity="0.8"/><circle cx="44" cy="8" r="3.5" fill="white" opacity="0.9"><animate attributeName="r" dur="1s" repeatCount="indefinite" values="3.5;5;3.5"/></circle></g>`,
+                desc: '全能至尊的大师精灵' }
+        };
 
-    const avatarEl = document.getElementById('petAvatar');
-    const messageEl = document.getElementById('petMessage');
-    const hungerBar = document.getElementById('hungerBar');
-    const happinessBar = document.getElementById('happinessBar');
-    const energyBar = document.getElementById('energyBar');
-    const ageText = document.getElementById('ageText');
-    const weightText = document.getElementById('weightText');
-    const screenEl = document.getElementById('screen');
-    const controlPanel = document.getElementById('controlPanel');
-    const statsContainer = document.getElementById('statsContainer');
-    const poopContainer = document.getElementById('poopContainer');
+        // DOM引用
+        const faceSvg = document.getElementById('faceSvg');
+        const faceContainer = document.getElementById('faceContainer');
+        const faceCircle = document.getElementById('faceCircle');
+        const leftPupil = document.getElementById('leftPupil');
+        const rightPupil = document.getElementById('rightPupil');
+        const leftCheek = document.getElementById('leftCheek');
+        const rightCheek = document.getElementById('rightCheek');
+        const mouthPath = document.getElementById('mouthPath');
+        const accessoryGroup = document.getElementById('accessoryGroup');
+        const specialAccessoryGroup = document.getElementById('specialAccessoryGroup');
+        const messageEl = document.getElementById('petMessage');
+        const hungerBar = document.getElementById('hungerBar');
+        const happinessBar = document.getElementById('happinessBar');
+        const energyBar = document.getElementById('energyBar');
+        const iqBar = document.getElementById('iqBar');
+        const eqBar = document.getElementById('eqBar');
+        const fqBar = document.getElementById('fqBar');
+        const ageText = document.getElementById('ageText');
+        const weightText = document.getElementById('weightText');
+        const screenEl = document.getElementById('screen');
+        const controlPanel = document.getElementById('controlPanel');
+        const statsContainer = document.getElementById('statsContainer');
+        const poopContainer = document.getElementById('poopContainer');
+        const partnerFaceMini = document.getElementById('partnerFaceMini');
+        const partnerSvg = document.getElementById('partnerSvg');
+        const partnerNameTag = document.getElementById('partnerNameTag');
+        const gameContainer = document.getElementById('gameContainer');
+        const onlineActionsRow = document.getElementById('onlineActionsRow');
+        const screenContent = document.getElementById('screenContent');
 
-    function hatchAction(action) {
-        pet.hatchPoints.totalClicks += 1;
-        if (action === 'warm') {
-            pet.hatchPoints.warmth += 2;
-            messageEl.innerText = `吸收热量 (${pet.hatchPoints.totalClicks}/6)`;
-            avatarEl.innerText = "🔥🥚";
-        } else {
-            pet.hatchPoints.coolness += 2;
-            messageEl.innerText = `适应降温 (${pet.hatchPoints.totalClicks}/6)`;
-            avatarEl.innerText = "❄️🥚";
+        // 联机DOM
+        const onlineIndicator = document.getElementById('onlineIndicator');
+        const onlineStatusText = document.getElementById('onlineStatusText');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const roomCodeInput = document.getElementById('roomCodeInput');
+        const confirmJoinBtn = document.getElementById('confirmJoinBtn');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+
+        function lightenColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, (num >> 16) + amt);
+            const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+            const B = Math.min(255, (num & 0x0000FF) + amt);
+            return `#${(1 << 24 | R << 16 | G << 8 | B).toString(16).slice(1)}`;
         }
 
-        if (pet.hatchPoints.totalClicks >= 6) {
-            determineSpecies();
-        }
-    }
-
-    function determineSpecies() {
-        let w = pet.hatchPoints.warmth;
-        let c = pet.hatchPoints.coolness;
-
-        if (Math.abs(w - c) <= 2 && Math.random() < 0.3) {
-            pet.type = 'god';
-        } else if (w > c + 4) {
-            pet.type = 'fire';
-        } else if (c > w + 4) {
-            pet.type = 'ice';
-        } else if (w > c) {
-            pet.type = 'electric';
-        } else {
-            pet.type = 'normal';
+        function blendColors(hex1, hex2, ratio) {
+            const r1 = parseInt(hex1.slice(1, 3), 16);
+            const g1 = parseInt(hex1.slice(3, 5), 16);
+            const b1 = parseInt(hex1.slice(5, 7), 16);
+            const r2 = parseInt(hex2.slice(1, 3), 16);
+            const g2 = parseInt(hex2.slice(3, 5), 16);
+            const b2 = parseInt(hex2.slice(5, 7), 16);
+            const r = Math.round(r1 + (r2 - r1) * ratio);
+            const g = Math.round(g1 + (g2 - g1) * ratio);
+            const b = Math.round(b1 + (b2 - b1) * ratio);
+            return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
         }
 
-        pet.state = 'alive';
-        pet.isEvolved = false;
-        pet.hunger = 100;
-        pet.happiness = 100;
-        pet.energy = 100;
-        pet.age = 0;
-        pet.weight = 15;
-        pet.hasFriend = false;
-
-        let info = speciesData[pet.type];
-        avatarEl.innerText = info.avatar;
-        messageEl.innerText = `孵化出【${info.name}】！`;
-        screenEl.style.background = info.color;
-
-        statsContainer.style.display = "block";
-        loadLiveControls();
-        updateUI();
-    }
-
-    function loadLiveControls() {
-        controlPanel.className = "controls";
-        controlPanel.innerHTML = `
-            <button onclick="feed()">喂食 🍚</button>
-            <button onclick="play()">玩耍 ⚽</button>
-            <button onclick="sleepToggle()" id="sleepBtn">睡觉 💤</button>
-            <button onclick="cleanPoop()" style="background:#8e44ad;">打扫 🧹</button>
-            <button onclick="makeFriend()" style="background:#27ae60;">交友 🤝</button>
-            <button onclick="tryEvolve()" id="evolveBtn" style="background:#e67e22; display:none;">进化 ✨</button>
-            <button onclick="mateAndBreed()" class="full-width" id="breedBtn" style="background:#f39c12; display:none;">交配生蛋 💖</button>
-        `;
-    }
-
-    // 进化功能
-    function tryEvolve() {
-        if (pet.state !== 'alive' || pet.isEvolved) return;
-        if (pet.age < 2 || pet.happiness < 70) {
-            messageEl.innerText = "条件不足：需满2天且心情>=70才能进化！";
-            return;
-        }
-
-        pet.isEvolved = true;
-        pet.weight += 30; // 进化后体重暴增
-        let info = speciesData[pet.type];
-        avatarEl.innerText = info.evoAvatar;
-        messageEl.innerText = `✨ 进化成功！蜕变成【${info.evoName}】！`;
-        updateUI();
-    }
-
-    function feed() {
-        if (pet.state !== 'alive' || pet.isSleeping) return;
-        pet.hunger = Math.min(100, pet.hunger + 25);
-        pet.weight += pet.isEvolved ? 4 : 2;
-        messageEl.innerText = "真美味！饱饱的~";
-        
-        if (!pet.hasPoop && Math.random() < 0.5) {
-            pet.hasPoop = true;
-        }
-        updateUI();
-    }
-
-    function play() {
-        if (pet.state !== 'alive' || pet.isSleeping) return;
-        if (pet.energy < 15) {
-            messageEl.innerText = "太累了，先让它睡会吧";
-            return;
-        }
-        pet.happiness = Math.min(100, pet.happiness + 30);
-        pet.energy = Math.max(0, pet.energy - 20);
-        messageEl.innerText = "开心地释放了终极技能！✨";
-        updateUI();
-    }
-
-    function sleepToggle() {
-        if (pet.state !== 'alive') return;
-        pet.isSleeping = !pet.isSleeping;
-        const sleepBtn = document.getElementById('sleepBtn');
-        if (pet.isSleeping) {
-            sleepBtn.innerText = "叫醒 ⏰";
-            messageEl.innerText = "Zzz... 深度睡眠中...";
-            screenEl.style.background = "#1e293b";
-            screenEl.style.color = "#94a3b8";
-        } else {
-            sleepBtn.innerText = "睡觉 💤";
-            messageEl.innerText = "精神饱满地醒来啦！";
-            screenEl.style.background = speciesData[pet.type].color;
-            screenEl.style.color = "#306230";
-        }
-        updateUI();
-    }
-
-    function cleanPoop() {
-        if (pet.state !== 'alive') return;
-        if (pet.hasPoop) {
-            pet.hasPoop = false;
-            pet.happiness = Math.min(100, pet.happiness + 15);
-            messageEl.innerText = "打扫干净了！环境真卫生~ 🧹";
-        } else {
-            messageEl.innerText = "这里很干净，不需要打扫。";
-        }
-        updateUI();
-    }
-
-    function makeFriend() {
-        if (pet.state !== 'alive' || pet.isSleeping) return;
-        if (pet.hasFriend) {
-            messageEl.innerText = "它已经有伴侣或好朋友啦！";
-            return;
-        }
-        pet.hasFriend = true;
-        pet.happiness = Math.min(100, pet.happiness + 40);
-        messageEl.innerText = "结交了一只可爱的新朋友！🤝💕";
-        updateUI();
-    }
-
-    function mateAndBreed() {
-        if (pet.state !== 'alive') return;
-        if (pet.age < 3) {
-            messageEl.innerText = "年龄还未满 3 天，不能交配！";
-            return;
-        }
-        if (!pet.hasFriend) {
-            messageEl.innerText = "请先点击【交友 🤝】找到对象才能交配！";
-            return;
-        }
-        if (pet.hunger < 60 || pet.happiness < 60) {
-            messageEl.innerText = "状态不够好，无法繁育后代！";
-            return;
-        }
-
-        pet.state = 'egg';
-        pet.type = 'normal';
-        pet.isEvolved = false;
-        pet.hatchPoints = { warmth: 0, coolness: 0, totalClicks: 0 };
-        pet.age = 0;
-        pet.hasPoop = false;
-        pet.hasFriend = false;
-        
-        messageEl.innerText = "交配成功！生出了一枚新精灵蛋！💖🥚";
-        avatarEl.innerText = "🥚";
-        poopContainer.innerHTML = "";
-        screenEl.style.background = "#e0f8cf";
-        screenEl.style.color = "#306230";
-        statsContainer.style.display = "none";
-        
-        controlPanel.className = "hatch-controls";
-        controlPanel.innerHTML = `
-            <button onclick="hatchAction('warm')">🔥 猛烈加热</button>
-            <button onclick="hatchAction('cool')">❄️ 吹风降温</button>
-        `;
-    }
-
-    function updateUI() {
-        if (pet.state !== 'alive') return;
-
-        hungerBar.style.width = pet.hunger + '%';
-        happinessBar.style.width = pet.happiness + '%';
-        energyBar.style.width = pet.energy + '%';
-        
-        let info = speciesData[pet.type];
-        let currentTitle = pet.isEvolved ? info.evoName : info.name;
-        ageText.innerText = `${currentTitle} ${pet.age}天`;
-        weightText.innerText = `重:${pet.weight}g`;
-
-        // 动态展示/隐藏进化按钮和交配按钮
-        const evolveBtn = document.getElementById('evolveBtn');
-        const breedBtn = document.getElementById('breedBtn');
-
-        if (!pet.isEvolved && pet.age >= 2) {
-            evolveBtn.style.display = "block";
-        } else {
-            evolveBtn.style.display = "none";
-        }
-
-        if (pet.age >= 3) {
-            breedBtn.style.display = "block";
-            breedBtn.className = "full-width"; // 满了三岁后让生蛋按钮独占一行
-        } else {
-            breedBtn.style.display = "none";
-        }
-
-        if (pet.hasPoop) {
-            poopContainer.innerHTML = `<div class="poop-icon">💩</div>`;
-            pet.happiness = Math.max(0, pet.happiness - 1); 
-        } else {
-            poopContainer.innerHTML = "";
-        }
-    }
-
-    setInterval(() => {
-        if (pet.state !== 'alive') return;
-
-        if (pet.isSleeping) {
-            pet.energy = Math.min(100, pet.energy + 15);
-            pet.hunger = Math.max(0, pet.hunger - 2);
-        } else {
-            pet.hunger = Math.max(0, pet.hunger - 3);
-            pet.happiness = Math.max(0, pet.happiness - 2);
-            pet.energy = Math.max(0, pet.energy - 2);
-            
-            if (!pet.hasPoop && Math.random() < 0.1) {
-                pet.hasPoop = true;
+        function updateFaceAppearance() {
+            if (pet.state === 'egg') {
+                faceCircle.setAttribute('fill', '#FFFDE7');
+                faceCircle.setAttribute('stroke', '#E8D5B0');
+                leftPupil.setAttribute('rx', '5');
+                leftPupil.setAttribute('ry', '7');
+                rightPupil.setAttribute('rx', '5');
+                rightPupil.setAttribute('ry', '7');
+                leftCheek.setAttribute('opacity', '0.2');
+                rightCheek.setAttribute('opacity', '0.2');
+                mouthPath.setAttribute('d', 'M 52 92 Q 70 100 88 92');
+                mouthPath.setAttribute('stroke-width', '2.5');
+                accessoryGroup.setAttribute('opacity', '0');
+                accessoryGroup.innerHTML = '';
+                specialAccessoryGroup.setAttribute('opacity', '0');
+                specialAccessoryGroup.innerHTML = '';
+                screenEl.style.setProperty('--bg-screen', '#fdf5e6');
+                screenEl.style.setProperty('--text-screen', '#8B7355');
+                screenEl.classList.remove('online-screen');
+                return;
+            }
+            if (pet.state === 'dead') {
+                faceCircle.setAttribute('fill', '#bbb');
+                faceCircle.setAttribute('stroke', '#888');
+                leftPupil.setAttribute('rx', '3');
+                leftPupil.setAttribute('ry', '3');
+                rightPupil.setAttribute('rx', '3');
+                rightPupil.setAttribute('ry', '3');
+                leftCheek.setAttribute('opacity', '0');
+                rightCheek.setAttribute('opacity', '0');
+                mouthPath.setAttribute('d', 'M 48 95 Q 70 85 92 95');
+                mouthPath.setAttribute('stroke-width', '3');
+                accessoryGroup.setAttribute('opacity', '0');
+                accessoryGroup.innerHTML = '';
+                specialAccessoryGroup.setAttribute('opacity', '0');
+                specialAccessoryGroup.innerHTML = '';
+                screenEl.style.setProperty('--bg-screen', '#ddd');
+                screenEl.style.setProperty('--text-screen', '#777');
+                screenEl.classList.remove('online-screen');
+                return;
+            }
+            const cfg = speciesConfig[pet.type];
+            const isEvo = pet.isEvolved;
+            const specEvo = pet.specialEvolution;
+            const specCfg = specEvo ? specialEvoConfig[specEvo] : null;
+            let faceColor = isEvo ? lightenColor(cfg.faceColor, 15) : cfg.faceColor;
+            let strokeColor = cfg.strokeColor;
+            let cheekColor = cfg.cheekColor;
+            let screenBg = cfg.screenBg;
+            if (specCfg) {
+                faceColor = blendColors(faceColor, specCfg.faceTint, 0.55);
+                strokeColor = specCfg.strokeTint;
+                cheekColor = blendColors(cheekColor, specCfg.cheekTint, 0.5);
+                screenBg = specCfg.screenBgTint;
+            }
+            faceCircle.setAttribute('fill', faceColor);
+            faceCircle.setAttribute('stroke', strokeColor);
+            let eyeType = cfg.eyeType;
+            if (specCfg && specCfg.eyeMod) eyeType = specCfg.eyeMod;
+            switch (eyeType) {
+                case 'normal':
+                    leftPupil.setAttribute('rx', isEvo ? '9' : '7');
+                    leftPupil.setAttribute('ry', isEvo ? '12' : '10');
+                    rightPupil.setAttribute('rx', isEvo ? '9' : '7');
+                    rightPupil.setAttribute('ry', isEvo ? '12' : '10');
+                    leftPupil.setAttribute('fill', '#2C3E50');
+                    rightPupil.setAttribute('fill', '#2C3E50');
+                    break;
+                case 'fierce':
+                    leftPupil.setAttribute('rx', '8');
+                    leftPupil.setAttribute('ry', '5');
+                    rightPupil.setAttribute('rx', '8');
+                    rightPupil.setAttribute('ry', '5');
+                    leftPupil.setAttribute('fill', '#1a1a1a');
+                    rightPupil.setAttribute('fill', '#1a1a1a');
+                    break;
+                case 'cool':
+                    leftPupil.setAttribute('rx', '3');
+                    leftPupil.setAttribute('ry', '11');
+                    rightPupil.setAttribute('rx', '3');
+                    rightPupil.setAttribute('ry', '11');
+                    leftPupil.setAttribute('fill', '#1B4F72');
+                    rightPupil.setAttribute('fill', '#1B4F72');
+                    break;
+                case 'star':
+                    leftPupil.setAttribute('rx', '6');
+                    leftPupil.setAttribute('ry', '6');
+                    rightPupil.setAttribute('rx', '6');
+                    rightPupil.setAttribute('ry', '6');
+                    leftPupil.setAttribute('fill', '#FF6F00');
+                    rightPupil.setAttribute('fill', '#FF6F00');
+                    break;
+                case 'holy':
+                    leftPupil.setAttribute('rx', '8');
+                    leftPupil.setAttribute('ry', '8');
+                    rightPupil.setAttribute('rx', '8');
+                    rightPupil.setAttribute('ry', '8');
+                    leftPupil.setAttribute('fill', '#FF8F00');
+                    rightPupil.setAttribute('fill', '#FF8F00');
+                    break;
+                case 'scholar':
+                    leftPupil.setAttribute('rx', '6');
+                    leftPupil.setAttribute('ry', '9');
+                    rightPupil.setAttribute('rx', '6');
+                    rightPupil.setAttribute('ry', '9');
+                    leftPupil.setAttribute('fill', '#1a237e');
+                    rightPupil.setAttribute('fill', '#1a237e');
+                    break;
+                case 'charmer':
+                    leftPupil.setAttribute('rx', '8');
+                    leftPupil.setAttribute('ry', '11');
+                    rightPupil.setAttribute('rx', '8');
+                    rightPupil.setAttribute('ry', '11');
+                    leftPupil.setAttribute('fill', '#880e4f');
+                    rightPupil.setAttribute('fill', '#880e4f');
+                    break;
+                case 'tycoon':
+                    leftPupil.setAttribute('rx', '5');
+                    leftPupil.setAttribute('ry', '5');
+                    rightPupil.setAttribute('rx', '5');
+                    rightPupil.setAttribute('ry', '5');
+                    leftPupil.setAttribute('fill', '#5d4037');
+                    rightPupil.setAttribute('fill', '#5d4037');
+                    break;
+                case 'master':
+                    leftPupil.setAttribute('rx', '9');
+                    leftPupil.setAttribute('ry', '9');
+                    rightPupil.setAttribute('rx', '9');
+                    rightPupil.setAttribute('ry', '9');
+                    leftPupil.setAttribute('fill', '#3e2723');
+                    rightPupil.setAttribute('fill', '#3e2723');
+                    break;
+                default:
+                    leftPupil.setAttribute('rx', '7');
+                    leftPupil.setAttribute('ry', '10');
+                    rightPupil.setAttribute('rx', '7');
+                    rightPupil.setAttribute('ry', '10');
+            }
+            mouthPath.setAttribute('d', cfg.mouthD);
+            mouthPath.setAttribute('stroke-width', (isEvo && !specEvo) ? '5' : (specEvo === 'master' ? '5.5' : '4'));
+            const cheekOp = (isEvo || specEvo) ? 0.6 : 0.45;
+            leftCheek.setAttribute('fill', cheekColor);
+            rightCheek.setAttribute('fill', cheekColor);
+            leftCheek.setAttribute('opacity', cheekOp);
+            rightCheek.setAttribute('opacity', cheekOp);
+            const cheekRx = (specEvo === 'master') ? '16' : (isEvo ? '14' : '12');
+            const cheekRy = (specEvo === 'master') ? '12' : (isEvo ? '10' : '9');
+            leftCheek.setAttribute('rx', cheekRx);
+            rightCheek.setAttribute('rx', cheekRx);
+            leftCheek.setAttribute('ry', cheekRy);
+            rightCheek.setAttribute('ry', cheekRy);
+            accessoryGroup.setAttribute('opacity', '1');
+            let speciesAccessorySvg = '';
+            switch (cfg.accessory) {
+                case 'crown':
+                    speciesAccessorySvg =
+                        `<polygon points="35,18 42,42 55,28 68,44 81,28 94,42 101,18" fill="#FFD700" stroke="#FF8F00" stroke-width="1.5"/><circle cx="68" cy="16" r="5" fill="#FF6B6B"/>`;
+                    break;
+                case 'flame':
+                    speciesAccessorySvg =
+                        `<path d="M62 8 Q68 -8 74 8 Q78 0 76 14 Q72 20 68 16 Q64 20 60 14 Q58 0 62 8Z" fill="#FF4500" opacity="0.9"><animate attributeName="d" dur="0.6s" repeatCount="indefinite" values="M62 8 Q68 -8 74 8 Q78 0 76 14 Q72 20 68 16 Q64 20 60 14 Q58 0 62 8Z;M62 6 Q68 -10 74 6 Q78 -2 76 16 Q72 22 68 14 Q64 22 60 16 Q58 -2 62 6Z;M62 8 Q68 -8 74 8 Q78 0 76 14 Q72 20 68 16 Q64 20 60 14 Q58 0 62 8Z"/></path>`;
+                    break;
+                case 'snowflake':
+                    speciesAccessorySvg =
+                        `<g transform="translate(68,14)" fill="#87CEEB" stroke="#5DADE2" stroke-width="0.8"><line x1="0" y1="-10" x2="0" y2="10"/><line x1="-8.7" y1="-5" x2="8.7" y2="5"/><line x1="8.7" y1="-5" x2="-8.7" y2="5"/><circle cx="0" cy="0" r="3" fill="white"/></g>`;
+                    break;
+                case 'bolt':
+                    speciesAccessorySvg =
+                        `<polygon points="64,4 74,22 66,22 70,38 58,18 66,18 60,4" fill="#FFD600" stroke="#F9A825" stroke-width="1"><animate attributeName="opacity" dur="0.5s" repeatCount="indefinite" values="1;0.6;1"/></polygon>`;
+                    break;
+                default:
+                    accessoryGroup.setAttribute('opacity', '0');
+                    speciesAccessorySvg = '';
+            }
+            if (isEvo && cfg.accessory !== 'none' && !specEvo) {
+                speciesAccessorySvg = speciesAccessorySvg.replace(/stroke-width="[^"]*"/g, 'stroke-width="2"');
+            }
+            accessoryGroup.innerHTML = speciesAccessorySvg;
+            if (specCfg && specCfg.accessorySvg) {
+                specialAccessoryGroup.setAttribute('opacity', '1');
+                specialAccessoryGroup.innerHTML = specCfg.accessorySvg;
+            } else {
+                specialAccessoryGroup.setAttribute('opacity', '0');
+                specialAccessoryGroup.innerHTML = '';
+            }
+            screenEl.style.setProperty('--bg-screen', screenBg);
+            screenEl.style.setProperty('--text-screen', (specEvo === 'master') ? '#3e2723' : (isEvo ? '#1a1a1a' :
+                '#306230'));
+            if (onlineManager && onlineManager.isConnected) {
+                screenEl.classList.add('online-screen');
             }
         }
 
-        if (pet.hunger === 0 && pet.happiness === 0) {
-            pet.state = 'dead';
-            avatarEl.innerText = "💀";
-            poopContainer.innerHTML = "";
-            messageEl.innerText = "精灵离家出走了...";
-            controlPanel.className = "hatch-controls";
-            controlPanel.innerHTML = `<button onclick="location.reload()" style="grid-column: span 2;">重新开始 🔄</button>`;
-            return;
+        // ============ 孵化系统 ============
+        function hatchAction(action) {
+            if (pet.state !== 'egg') return;
+            pet.hatchPoints.totalClicks += 1;
+            if (action === 'warm') { pet.hatchPoints.warmth += 2;
+                messageEl.innerText = `吸收热情中... (${pet.hatchPoints.totalClicks}/6) 🔥`;
+                faceCircle.setAttribute('fill', '#FFE0B2'); } else { pet.hatchPoints.coolness += 2;
+                messageEl.innerText = `感受清凉中... (${pet.hatchPoints.totalClicks}/6) ❄️`;
+                faceCircle.setAttribute('fill', '#E3F2FD'); }
+            faceContainer.classList.add('egg-shaking');
+            setTimeout(() => faceContainer.classList.remove('egg-shaking'), 700);
+            if (pet.hatchPoints.totalClicks >= 6) determineSpecies();
         }
 
-        updateUI();
-    }, 2000);
-
-    setInterval(() => {
-        if (pet.state === 'alive') {
-            pet.age += 1;
+        function determineSpecies() {
+            let w = pet.hatchPoints.warmth,
+                c = pet.hatchPoints.coolness;
+            if (Math.abs(w - c) <= 2 && Math.random() < 0.25) pet.type = 'god';
+            else if (w > c + 4) pet.type = 'fire';
+            else if (c > w + 4) pet.type = 'ice';
+            else if (w > c) pet.type = 'electric';
+            else pet.type = 'normal';
+            pet.state = 'alive';
+            pet.isEvolved = false;
+            pet.specialEvolution = null;
+            pet.hunger = 100;
+            pet.happiness = 100;
+            pet.energy = 100;
+            pet.iq = 50;
+            pet.eq = 50;
+            pet.fq = 50;
+            pet.age = 0;
+            pet.weight = 15;
+            pet.hasFriend = false;
+            pet.hasPoop = false;
+            const cfg = speciesConfig[pet.type];
+            messageEl.innerText = `🎉 孵化成功！【${cfg.name}】诞生了！`;
+            updateFaceAppearance();
+            statsContainer.style.display = 'block';
+            loadLiveControls();
             updateUI();
+            faceContainer.classList.add('bouncing');
+            setTimeout(() => faceContainer.classList.remove('bouncing'), 600);
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
         }
-    }, 15000);
-</script>
 
+        function loadLiveControls() {
+            controlPanel.className = 'controls';
+            controlPanel.innerHTML = `
+            <button onclick="feed()" style="background:#f39c12;">🍚喂食</button>
+            <button onclick="play()" style="background:#e94560;">⚽玩耍</button>
+            <button onclick="sleepToggle()" id="sleepBtn" style="background:#8e44ad;">💤睡觉</button>
+            <button onclick="study()" style="background:#5D6DC6;">📚阅读</button>
+            <button onclick="invest()" style="background:#d4a017;">💼理财</button>
+            <button onclick="socialize()" style="background:#e91e63;">🗣️社交</button>
+            <button onclick="makeFriend()" style="background:#2980b9;">🤝交友</button>
+            <button onclick="cleanPoop()" style="background:#27ae60;">🧹打扫</button>
+            <button onclick="tryEvolve()" id="evolveBtn" style="background:#e67e22; display:none;">✨进化</button>
+            <button onclick="trySpecialEvolve()" id="specialEvolveBtn" class="special-btn full-width" style="display:none;">🔮特殊进化</button>
+            <button onclick="mateAndBreed()" id="breedBtn" style="background:#c0392b; display:none;">💖交配</button>
+          `;
+            updateOnlineActionsRow();
+        }
+
+        function updateOnlineActionsRow() {
+            if (onlineManager && onlineManager.isConnected && pet.state === 'alive') {
+                onlineActionsRow.style.display = 'grid';
+                onlineActionsRow.innerHTML = `
+              <button onclick="onlineGift()" class="online-action-btn">🎁送礼给伙伴</button>
+              <button onclick="onlinePlayTogether()" class="online-action-btn">🤝一起玩耍</button>
+            `;
+            } else {
+                onlineActionsRow.style.display = 'none';
+                onlineActionsRow.innerHTML = '';
+            }
+        }
+
+        function feed() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            pet.hunger = Math.min(100, pet.hunger + 25);
+            pet.weight += pet.isEvolved ? 4 : 2;
+            pet.fq = Math.min(100, pet.fq + 3);
+            pet.iq = Math.min(100, pet.iq + 1);
+            messageEl.innerText = pet.isEvolved ? '大口吞食！美味极了~ 🍖 财商+3' : '好吃好吃！吧唧吧唧~ 🍚 财商+3';
+            if (!pet.hasPoop && Math.random() < 0.45) pet.hasPoop = true;
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function play() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            if (pet.energy < 12) { messageEl.innerText = '累坏了...让它休息吧 😴'; return; }
+            pet.happiness = Math.min(100, pet.happiness + 30);
+            pet.energy = Math.max(0, pet.energy - 20);
+            pet.eq = Math.min(100, pet.eq + 5);
+            pet.iq = Math.min(100, pet.iq + 2);
+            messageEl.innerText = '哈哈哈~玩得好开心！情商+5 ✨';
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function sleepToggle() {
+            if (pet.state !== 'alive') return;
+            pet.isSleeping = !pet.isSleeping;
+            const sleepBtn = document.getElementById('sleepBtn');
+            if (pet.isSleeping) {
+                if (sleepBtn) { sleepBtn.innerText = '⏰叫醒';
+                    sleepBtn.style.background = '#6c5ce7'; }
+                messageEl.innerText = 'Zzz... 深度睡眠中... 💤';
+                leftPupil.setAttribute('ry', '1');
+                rightPupil.setAttribute('ry', '1');
+                leftPupil.setAttribute('rx', '8');
+                rightPupil.setAttribute('rx', '8');
+                screenEl.style.setProperty('--bg-screen', '#1e293b');
+                screenEl.style.setProperty('--text-screen', '#94a3b8');
+            } else {
+                if (sleepBtn) { sleepBtn.innerText = '💤睡觉';
+                    sleepBtn.style.background = '#8e44ad'; }
+                pet.iq = Math.min(100, pet.iq + 3);
+                messageEl.innerText = '精神饱满地醒来！智商+3 😊';
+                updateFaceAppearance();
+            }
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function cleanPoop() {
+            if (pet.state !== 'alive') return;
+            if (pet.hasPoop) { pet.hasPoop = false;
+                pet.happiness = Math.min(100, pet.happiness + 15);
+                pet.fq = Math.min(100, pet.fq + 3);
+                messageEl.innerText = '打扫干净啦~心情变好了！财商+3 🧹✨'; } else { messageEl.innerText =
+                '这里很干净哦~不需要打扫 😊'; }
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function makeFriend() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            if (pet.hasFriend) { messageEl.innerText = '已经有好朋友啦！💕'; return; }
+            pet.hasFriend = true;
+            pet.happiness = Math.min(100, pet.happiness + 40);
+            pet.eq = Math.min(100, pet.eq + 15);
+            messageEl.innerText = '结识了新朋友！情商+15 🤝😊';
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function study() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            if (pet.energy < 12) { messageEl.innerText = '精力不足，无法集中阅读😴'; return; }
+            pet.iq = Math.min(100, pet.iq + 8);
+            pet.energy = Math.max(0, pet.energy - 15);
+            pet.eq = Math.min(100, pet.eq + 1);
+            pet.happiness = Math.min(100, pet.happiness + 5);
+            messageEl.innerText = '认真阅读中...智商+8！📚✨';
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function invest() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            if (pet.energy < 12) { messageEl.innerText = '精力不足，无法研究理财 😴'; return; }
+            pet.fq = Math.min(100, pet.fq + 8);
+            pet.energy = Math.max(0, pet.energy - 15);
+            pet.iq = Math.min(100, pet.iq + 2);
+            pet.happiness = Math.min(100, pet.happiness + 5);
+            messageEl.innerText = '研究理财投资...财商+8！💼💰';
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function socialize() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            if (pet.energy < 8) { messageEl.innerText = '精力不足，社交好累 😴'; return; }
+            pet.eq = Math.min(100, pet.eq + 8);
+            pet.energy = Math.max(0, pet.energy - 10);
+            pet.fq = Math.min(100, pet.fq + 2);
+            pet.happiness = Math.min(100, pet.happiness + 10);
+            messageEl.innerText = '参加社交活动...情商+8！🗣️💕';
+            bounceFace();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function tryEvolve() {
+            if (pet.state !== 'alive' || pet.isEvolved) return;
+            if (pet.age < 2 || pet.happiness < 70) { messageEl.innerText = '进化条件：年龄≥2天 & 心情≥70% 💡'; return; }
+            pet.isEvolved = true;
+            pet.weight += 30;
+            const cfg = speciesConfig[pet.type];
+            messageEl.innerText = `🌟 进化成功！【${cfg.evoName}】闪亮登场！`;
+            updateFaceAppearance();
+            faceContainer.classList.add('evolve-flash');
+            faceContainer.classList.add('bouncing');
+            setTimeout(() => { faceContainer.classList.remove('evolve-flash');
+                faceContainer.classList.remove('bouncing'); }, 800);
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function trySpecialEvolve() {
+            if (pet.state !== 'alive') return;
+            if (!pet.isEvolved) { messageEl.innerText = '需要先完成基础进化哦~ ✨'; return; }
+            if (pet.specialEvolution === 'master') { messageEl.innerText = '已经是最高形态——大师精灵！👑'; return; }
+            if (pet.age < 4) { messageEl.innerText = '特殊进化需要年龄≥4天 📅'; return; }
+            if (pet.iq >= 75 && pet.eq >= 75 && pet.fq >= 75 && pet.specialEvolution !== 'master') {
+                pet.specialEvolution = 'master';
+                messageEl.innerText = `👑 至高进化！【大师精灵】降临！全能至尊！`;
+                triggerSpecialEvoEffects();
+                return;
+            }
+            if (['scholar', 'charmer', 'tycoon'].includes(pet.specialEvolution)) {
+                if (pet.iq >= 80 && pet.eq >= 80 && pet.fq >= 80) { pet.specialEvolution = 'master';
+                    messageEl.innerText = `👑 进化升级！【大师精灵】降临！全能至尊！`;
+                    triggerSpecialEvoEffects(); return; }
+                messageEl.innerText = '已达到该路线顶级，继续提升三维到80+可晋升大师！💡';
+                return;
+            }
+            if (pet.specialEvolution !== null) { messageEl.innerText = '已经完成特殊进化啦~'; return; }
+            const candidates = [];
+            if (pet.iq >= 80) candidates.push({ type: 'scholar', val: pet.iq, cfg: specialEvoConfig['scholar'] });
+            if (pet.eq >= 80) candidates.push({ type: 'charmer', val: pet.eq, cfg: specialEvoConfig['charmer'] });
+            if (pet.fq >= 80) candidates.push({ type: 'tycoon', val: pet.fq, cfg: specialEvoConfig['tycoon'] });
+            if (candidates.length === 0) { messageEl.innerText = '特殊进化需要IQ/EQ/FQ中至少一项≥80 💡'; return; }
+            candidates.sort((a, b) => b.val - a.val);
+            const chosen = candidates[0];
+            pet.specialEvolution = chosen.type;
+            messageEl.innerText = `🔮 特殊进化！【${chosen.cfg.title}精灵】诞生！${chosen.cfg.desc}！`;
+            triggerSpecialEvoEffects();
+        }
+
+        function triggerSpecialEvoEffects() {
+            updateFaceAppearance();
+            faceContainer.classList.add('evolve-flash');
+            faceContainer.classList.add('bouncing');
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const spark = document.createElement('div');
+                    spark.style.cssText = `position:absolute;top:50%;left:50%;width:8px;height:8px;background:#FFD700;border-radius:50%;pointer-events:none;z-index:10;animation:sparkleBurst 0.7s ease-out forwards;transform:translate(-50%,-50%) rotate(${i*45}deg) translateX(40px);`;
+                    faceContainer.appendChild(spark);
+                    setTimeout(() => spark.remove(), 700);
+                }, i * 60);
+            }
+            setTimeout(() => { faceContainer.classList.remove('evolve-flash');
+                faceContainer.classList.remove('bouncing'); }, 800);
+            updateUI();
+            loadLiveControls();
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        function mateAndBreed() {
+            if (pet.state !== 'alive') return;
+            if (pet.age < 3) { messageEl.innerText = '年龄需满3天才能交配哦~ 📅'; return; }
+            if (!pet.hasFriend && !(onlineManager && onlineManager.isConnected)) { messageEl.innerText =
+                    '先点击【🤝交友】或联机找个对象吧！'; return; }
+            if (pet.hunger < 60 || pet.happiness < 60) { messageEl.innerText = '状态不够好，无法繁育 😢'; return; }
+            pet.state = 'egg';
+            pet.type = 'normal';
+            pet.isEvolved = false;
+            pet.specialEvolution = null;
+            pet.hatchPoints = { warmth: 0, coolness: 0, totalClicks: 0 };
+            pet.age = 0;
+            pet.weight = 10;
+            pet.hasPoop = false;
+            pet.hasFriend = false;
+            pet.hunger = 100;
+            pet.happiness = 100;
+            pet.energy = 100;
+            pet.iq = 50;
+            pet.eq = 50;
+            pet.fq = 50;
+            pet.isSleeping = false;
+            messageEl.innerText = '💖 交配成功！生出了一枚新的笑脸蛋！🥚';
+            faceCircle.setAttribute('fill', '#FFFDE7');
+            faceCircle.setAttribute('stroke', '#E8D5B0');
+            updateFaceAppearance();
+            poopContainer.innerHTML = '';
+            statsContainer.style.display = 'none';
+            controlPanel.className = 'hatch-controls';
+            controlPanel.innerHTML =
+                '<button onclick="hatchAction(\'warm\')" style="background:#e74c3c;">🔥 热情加热</button><button onclick="hatchAction(\'cool\')" style="background:#3498db;">❄️ 冷静降温</button>';
+            onlineActionsRow.style.display = 'none';
+            onlineActionsRow.innerHTML = '';
+            screenEl.style.setProperty('--bg-screen', '#fdf5e6');
+            screenEl.style.setProperty('--text-screen', '#8B7355');
+            screenEl.classList.remove('online-screen');
+            ageText.innerText = '形态: 笑脸蛋';
+            weightText.innerText = '重: 10g';
+            hidePartnerDisplay();
+            faceContainer.classList.add('bouncing');
+            setTimeout(() => faceContainer.classList.remove('bouncing'), 600);
+            if (onlineManager && onlineManager.isConnected) onlineManager.send({ type: 'reset_to_egg',
+                message: '伙伴重生了！' });
+        }
+
+        function bounceFace() {
+            faceContainer.classList.add('bouncing');
+            setTimeout(() => faceContainer.classList.remove('bouncing'), 600);
+        }
+
+        function updateUI() {
+            if (pet.state !== 'alive') return;
+            hungerBar.style.width = pet.hunger + '%';
+            happinessBar.style.width = pet.happiness + '%';
+            energyBar.style.width = pet.energy + '%';
+            iqBar.style.width = pet.iq + '%';
+            eqBar.style.width = pet.eq + '%';
+            fqBar.style.width = pet.fq + '%';
+            [iqBar, eqBar, fqBar].forEach(bar => bar.classList.remove('glowing'));
+            if (pet.iq >= 80) iqBar.classList.add('glowing');
+            if (pet.eq >= 80) eqBar.classList.add('glowing');
+            if (pet.fq >= 80) fqBar.classList.add('glowing');
+            const cfg = speciesConfig[pet.type];
+            let currentTitle = pet.isEvolved ? cfg.evoName : cfg.name;
+            if (pet.specialEvolution && specialEvoConfig[pet.specialEvolution]) currentTitle = specialEvoConfig[pet
+                .specialEvolution].title + '·' + currentTitle;
+            ageText.innerText = `${currentTitle} · ${pet.age}天`;
+            weightText.innerText = `重:${pet.weight}g`;
+            const evolveBtn = document.getElementById('evolveBtn');
+            const specialEvolveBtn = document.getElementById('specialEvolveBtn');
+            const breedBtn = document.getElementById('breedBtn');
+            if (evolveBtn) evolveBtn.style.display = (!pet.isEvolved && pet.age >= 2) ? 'block' : 'none';
+            if (specialEvolveBtn) {
+                const canSpecial = pet.isEvolved && pet.age >= 4 && (pet.iq >= 80 || pet.eq >= 80 || pet.fq >= 80 || ([
+                        'scholar', 'charmer', 'tycoon'
+                    ].includes(pet.specialEvolution) && pet.iq >= 80 && pet.eq >= 80 && pet.fq >= 80));
+                const isMaxed = pet.specialEvolution === 'master';
+                specialEvolveBtn.style.display = (canSpecial && !isMaxed) ? 'block' : 'none';
+                if (specialEvolveBtn.style.display === 'block') specialEvolveBtn.className = 'special-btn full-width';
+            }
+            if (breedBtn) { breedBtn.style.display = (pet.age >= 3) ? 'block' : 'none'; if (breedBtn.style.display ===
+                    'block') breedBtn.className = 'full-width'; }
+            if (pet.hasPoop) { poopContainer.innerHTML = '<div class="poop-icon">💩</div>';
+                pet.happiness = Math.max(0, pet.happiness - 1); } else { poopContainer.innerHTML = ''; }
+            if (!pet.isSleeping) updateFaceAppearance();
+            updateOnlineActionsRow();
+            if (onlineManager && onlineManager.isConnected && pet.state === 'alive') {
+                screenEl.classList.add('online-screen');
+            } else if (!(onlineManager && onlineManager.isConnected)) {
+                screenEl.classList.remove('online-screen');
+            }
+        }
+
+        function triggerRandomEvent() {
+            if (pet.state !== 'alive' || pet.isSleeping) return;
+            const roll = Math.random();
+            if (roll < 0.12) { pet.iq = Math.min(100, pet.iq + 6);
+                messageEl.innerText = '💡 灵感闪现！智商+6！'; } else if (roll < 0.24) { pet.eq = Math.min(100, pet.eq + 6);
+                messageEl.innerText = '💕 情感共鸣！情商+6！'; } else if (roll < 0.36) { pet.fq = Math.min(100, pet.fq + 6);
+                messageEl.innerText = '💰 发现商机！财商+6！'; } else if (roll < 0.44) { pet.happiness = Math.min(100, pet.happiness +
+                    12);
+                messageEl.innerText = '🎁 小惊喜！心情+12！'; }
+            updateUI();
+            if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+        }
+
+        // ============ 联机系统 ============
+        class OnlineManager {
+            constructor() {
+                this.peer = null;
+                this.conn = null;
+                this.isConnected = false;
+                this.myPeerId = null;
+                this.partnerPeerId = null;
+                this.partnerData = null;
+                this.broadcastChannel = null;
+                this.connectionMode = null; // 'peerjs' | 'broadcast' | null
+                this.reconnectTimer = null;
+                this.heartbeatTimer = null;
+                this.initBroadcastChannel();
+            }
+
+            initBroadcastChannel() {
+                try {
+                    this.broadcastChannel = new BroadcastChannel('smiley_pet_online');
+                    this.broadcastChannel.onmessage = (e) => {
+                        if (e.data.type === 'peer_id_announce' && e.data.peerId && e.data.peerId !== this
+                            .myPeerId && !this.isConnected) {
+                            this.partnerPeerId = e.data.peerId;
+                            this.connectToPartner(e.data.peerId);
+                        }
+                    };
+                } catch (e) {
+                    console.log('BroadcastChannel不可用，仅使用PeerJS');
+                }
+            }
+
+            createRoom() {
+                if (this.isConnected) { this.disconnect(); }
+                this.updateStatus('searching', '正在创建黑箱...');
+                if (this.peer) this.peer.destroy();
+                const peerId = 'smiley-' + Math.random().toString(36).substring(2, 10);
+                this.myPeerId = peerId;
+                this.peer = new Peer(peerId, {
+                    debug: 0
+                });
+                this.peer.on('open', (id) => {
+                    this.myPeerId = id;
+                    this.updateStatus('searching', `黑箱码: ${id.substring(0,8)}...`);
+                    roomCodeDisplay.style.display = 'inline-block';
+                    roomCodeDisplay.textContent = id;
+                    roomCodeDisplay.title = '点击复制黑箱码';
+                    createRoomBtn.style.display = 'none';
+                    joinRoomBtn.style.display = 'none';
+                    roomCodeInput.style.display = 'none';
+                    confirmJoinBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'inline-block';
+                    if (this.broadcastChannel) {
+                        this.broadcastChannel.postMessage({ type: 'peer_id_announce', peerId: id });
+                    }
+                });
+                this.peer.on('connection', (conn) => {
+                    if (this.isConnected) { conn.close(); return; }
+                    this.setupConnection(conn);
+                    this.connectionMode = 'peerjs';
+                    this.partnerPeerId = conn.peer;
+                });
+                this.peer.on('error', (err) => {
+                    console.warn('PeerJS错误:', err);
+                    if (!this.isConnected) this.updateStatus('offline', '创建失败，请重试');
+                });
+                this.peer.on('disconnected', () => {
+                    if (this.peer && !this.peer.destroyed) this.peer.reconnect();
+                });
+            }
+
+            joinRoom(roomCode) {
+                if (!roomCode || roomCode.trim().length < 4) { this.updateStatus('offline', '请输入有效房间码');
+                    return; }
+                if (this.isConnected) { this.disconnect(); }
+                this.updateStatus('searching', '正在加入房间...');
+                if (this.peer) this.peer.destroy();
+                const myId = 'smiley-joiner-' + Math.random().toString(36).substring(2, 8);
+                this.myPeerId = myId;
+                this.partnerPeerId = roomCode.trim();
+                this.peer = new Peer(myId, { debug: 0 });
+                this.peer.on('open', () => {
+                    this.updateStatus('searching', '正在连接伙伴...');
+                    const conn = this.peer.connect(roomCode.trim(), { reliable: true });
+                    this.setupConnection(conn);
+                    this.connectionMode = 'peerjs';
+                });
+                this.peer.on('error', (err) => {
+                    console.warn('PeerJS连接错误:', err);
+                    this.updateStatus('offline', '连接失败，请检查房间码');
+                    this.resetOnlineUI();
+                });
+                this.peer.on('disconnected', () => {
+                    if (this.peer && !this.peer.destroyed) this.peer.reconnect();
+                });
+            }
+
+            connectToPartner(partnerId) {
+                if (this.isConnected) return;
+                if (!this.peer || this.peer.destroyed) {
+                    if (this.peer) this.peer.destroy();
+                    const myId = 'smiley-bc-' + Math.random().toString(36).substring(2, 8);
+                    this.myPeerId = myId;
+                    this.partnerPeerId = partnerId;
+                    this.peer = new Peer(myId, { debug: 0 });
+                    this.peer.on('open', () => {
+                        const conn = this.peer.connect(partnerId, { reliable: true });
+                        this.setupConnection(conn);
+                        this.connectionMode = 'peerjs';
+                    });
+                    this.peer.on('error', () => {});
+                } else {
+                    const conn = this.peer.connect(partnerId, { reliable: true });
+                    this.setupConnection(conn);
+                    this.connectionMode = 'peerjs';
+                }
+            }
+
+            setupConnection(conn) {
+                conn.on('open', () => {
+                    this.conn = conn;
+                    this.isConnected = true;
+                    this.updateStatus('connected', '已联机！🎉');
+                    gameContainer.classList.add('online-connected');
+                    roomCodeDisplay.style.display = 'none';
+                    roomCodeInput.style.display = 'none';
+                    confirmJoinBtn.style.display = 'none';
+                    createRoomBtn.style.display = 'none';
+                    joinRoomBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'inline-block';
+                    if (pet.state === 'alive') pet.hasFriend = true;
+                    this.sendPetUpdate();
+                    this.startHeartbeat();
+                    updateUI();
+                    updateOnlineActionsRow();
+                    messageEl.innerText = '联机成功！和伙伴一起玩耍吧~ 🤝✨';
+                    if (pet.state === 'alive') screenEl.classList.add('online-screen');
+                });
+                conn.on('data', (data) => {
+                    this.handleIncomingData(data);
+                });
+                conn.on('close', () => {
+                    this.handleDisconnect();
+                });
+                conn.on('error', () => {
+                    this.handleDisconnect();
+                });
+            }
+
+            handleIncomingData(data) {
+                if (!data || !data.type) return;
+                switch (data.type) {
+                    case 'pet_update':
+                        if (data.petData) {
+                            this.partnerData = data.petData;
+                            this.updatePartnerDisplay();
+                            if (data.petData.state === 'alive' && pet.state === 'alive') {
+                                pet.hasFriend = true;
+                            }
+                            if (data.petData.state === 'egg' && pet.state === 'alive') {
+                                messageEl.innerText = '伙伴的笑脸蛋正在孵化中... 🥚';
+                            }
+                        }
+                        break;
+                    case 'gift':
+                        if (pet.state === 'alive') {
+                            pet.happiness = Math.min(100, pet.happiness + 25);
+                            pet.eq = Math.min(100, pet.eq + 5);
+                            messageEl.innerText = '🎁 收到伙伴的礼物！心情+25，情商+5！';
+                            bounceFace();
+                            spawnHeartParticles();
+                            updateUI();
+                        }
+                        break;
+                    case 'play_together':
+                        if (pet.state === 'alive') {
+                            pet.happiness = Math.min(100, pet.happiness + 20);
+                            pet.eq = Math.min(100, pet.eq + 8);
+                            pet.energy = Math.max(0, pet.energy - 10);
+                            messageEl.innerText = '🤝 和伙伴一起玩耍！心情+20，情商+8！';
+                            bounceFace();
+                            spawnHeartParticles();
+                            updateUI();
+                        }
+                        break;
+                    case 'greeting':
+                        messageEl.innerText = data.message || '伙伴向你打招呼了！👋';
+                        spawnHeartParticles();
+                        break;
+                    case 'reset_to_egg':
+                        messageEl.innerText = '伙伴的笑脸重生了，变成了一颗蛋 🥚';
+                        this.partnerData = null;
+                        hidePartnerDisplay();
+                        break;
+                    case 'partner_disconnected':
+                        this.handleDisconnect();
+                        break;
+                }
+            }
+
+            send(data) {
+                if (this.conn && this.isConnected && this.conn.open) {
+                    try { this.conn.send(data); } catch (e) { this.handleDisconnect(); }
+                }
+            }
+
+            sendPetUpdate() {
+                if (!this.isConnected || !this.conn || !this.conn.open) return;
+                const petData = {
+                    type: pet.type,
+                    isEvolved: pet.isEvolved,
+                    specialEvolution: pet.specialEvolution,
+                    hunger: pet.hunger,
+                    happiness: pet.happiness,
+                    energy: pet.energy,
+                    iq: pet.iq,
+                    eq: pet.eq,
+                    fq: pet.fq,
+                    age: pet.age,
+                    weight: pet.weight,
+                    isSleeping: pet.isSleeping,
+                    state: pet.state,
+                    hasPoop: pet.hasPoop,
+                };
+                this.send({ type: 'pet_update', petData });
+            }
+
+            updatePartnerDisplay() {
+                if (!this.partnerData || this.partnerData.state !== 'alive') {
+                    hidePartnerDisplay();
+                    return;
+                }
+                partnerFaceMini.style.display = 'block';
+                partnerNameTag.style.display = 'inline-block';
+                const pCfg = speciesConfig[this.partnerData.type] || speciesConfig['normal'];
+                const pSpecEvo = this.partnerData.specialEvolution;
+                const pSpecCfg = pSpecEvo ? specialEvoConfig[pSpecEvo] : null;
+                let pFaceColor = this.partnerData.isEvolved ? lightenColor(pCfg.faceColor, 15) : pCfg.faceColor;
+                if (pSpecCfg) pFaceColor = blendColors(pFaceColor, pSpecCfg.faceTint, 0.55);
+                const pStrokeColor = pSpecCfg ? pSpecCfg.strokeTint : pCfg.strokeColor;
+                const partnerCircle = partnerSvg.querySelector('circle');
+                if (partnerCircle) {
+                    partnerCircle.setAttribute('fill', pFaceColor);
+                    partnerCircle.setAttribute('stroke', pStrokeColor);
+                }
+                let pTitle = this.partnerData.isEvolved ? pCfg.evoName : pCfg.name;
+                if (pSpecCfg) pTitle = pSpecCfg.title + '·' + pTitle;
+                partnerNameTag.textContent = '伙伴: ' + pTitle;
+                partnerNameTag.title = `IQ:${this.partnerData.iq} EQ:${this.partnerData.eq} FQ:${this.partnerData.fq}`;
+                if (this.partnerData.isSleeping) partnerNameTag.textContent += ' 💤';
+            }
+
+            handleDisconnect() {
+                this.isConnected = false;
+                this.conn = null;
+                this.partnerData = null;
+                this.connectionMode = null;
+                this.stopHeartbeat();
+                gameContainer.classList.remove('online-connected');
+                screenEl.classList.remove('online-screen');
+                hidePartnerDisplay();
+                this.updateStatus('offline', '已断开连接');
+                this.resetOnlineUI();
+                updateUI();
+                updateOnlineActionsRow();
+                messageEl.innerText = '联机已断开 😢 可以和新的伙伴连接~';
+            }
+
+            disconnect() {
+                if (this.conn) {
+                    try { this.conn.send({ type: 'partner_disconnected' }); } catch (e) {}
+                    try { this.conn.close(); } catch (e) {}
+                }
+                this.isConnected = false;
+                this.conn = null;
+                this.partnerData = null;
+                this.connectionMode = null;
+                this.stopHeartbeat();
+                if (this.peer && !this.peer.destroyed) {
+                    try { this.peer.destroy(); } catch (e) {}
+                }
+                this.peer = null;
+                this.myPeerId = null;
+                this.partnerPeerId = null;
+                gameContainer.classList.remove('online-connected');
+                screenEl.classList.remove('online-screen');
+                hidePartnerDisplay();
+                this.updateStatus('offline', '离线');
+                this.resetOnlineUI();
+                updateUI();
+                updateOnlineActionsRow();
+            }
+
+            resetOnlineUI() {
+                createRoomBtn.style.display = 'inline-block';
+                joinRoomBtn.style.display = 'inline-block';
+                roomCodeDisplay.style.display = 'none';
+                roomCodeDisplay.textContent = '';
+                roomCodeInput.style.display = 'none';
+                roomCodeInput.value = '';
+                confirmJoinBtn.style.display = 'none';
+                disconnectBtn.style.display = 'none';
+            }
+
+            updateStatus(status, text) {
+                onlineIndicator.className = 'online-indicator ' + status;
+                onlineStatusText.textContent = text || status;
+            }
+
+            startHeartbeat() {
+                this.stopHeartbeat();
+                this.heartbeatTimer = setInterval(() => {
+                    if (this.isConnected && this.conn && this.conn.open && pet.state === 'alive') {
+                        this.sendPetUpdate();
+                    }
+                }, 3000);
+            }
+
+            stopHeartbeat() {
+                if (this.heartbeatTimer) { clearInterval(this.heartbeatTimer);
+                    this.heartbeatTimer = null; }
+            }
+        }
+
+        function hidePartnerDisplay() {
+            partnerFaceMini.style.display = 'none';
+            partnerNameTag.style.display = 'none';
+            partnerNameTag.textContent = '';
+        }
+
+        function spawnHeartParticles() {
+            const container = screenContent;
+            const rect = container.getBoundingClientRect();
+            const cx = rect.width / 2;
+            const cy = rect.height / 2;
+            const emojis = ['💕', '❤️', '✨', '💖', '🌟', '💝'];
+            for (let i = 0; i < 6; i++) {
+                const particle = document.createElement('span');
+                particle.className = 'heart-particle';
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                particle.style.left = cx + 'px';
+                particle.style.top = cy + 'px';
+                particle.style.setProperty('--dx', (Math.random() - 0.5) * 120 + 'px');
+                particle.style.setProperty('--dy', (Math.random() * -80 - 20) + 'px');
+                particle.style.animationDuration = (0.8 + Math.random() * 1.2) + 's';
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 1500);
+            }
+        }
+
+        // 联机互动函数
+        function onlineGift() {
+            if (!onlineManager || !onlineManager.isConnected || pet.state !== 'alive') return;
+            if (pet.energy < 8) { messageEl.innerText = '精力不足，无法准备礼物 😴'; return; }
+            pet.energy = Math.max(0, pet.energy - 10);
+            pet.eq = Math.min(100, pet.eq + 5);
+            pet.happiness = Math.min(100, pet.happiness + 10);
+            onlineManager.send({ type: 'gift', message: '送你一份礼物！🎁' });
+            messageEl.innerText = '🎁 送出礼物给伙伴！情商+5，心情+10！';
+            bounceFace();
+            spawnHeartParticles();
+            updateUI();
+            onlineManager.sendPetUpdate();
+        }
+
+        function onlinePlayTogether() {
+            if (!onlineManager || !onlineManager.isConnected || pet.state !== 'alive') return;
+            if (pet.energy < 15) { messageEl.innerText = '精力不足，没法一起玩耍 😴'; return; }
+            pet.energy = Math.max(0, pet.energy - 18);
+            pet.happiness = Math.min(100, pet.happiness + 20);
+            pet.eq = Math.min(100, pet.eq + 8);
+            onlineManager.send({ type: 'play_together', message: '一起玩耍吧！🤝' });
+            messageEl.innerText = '🤝 邀请伙伴一起玩耍！心情+20，情商+8！';
+            bounceFace();
+            spawnHeartParticles();
+            updateUI();
+            onlineManager.sendPetUpdate();
+        }
+
+        // 初始化联机管理器
+        const onlineManager = new OnlineManager();
+
+        // 联机UI事件
+        createRoomBtn.addEventListener('click', () => onlineManager.createRoom());
+        joinRoomBtn.addEventListener('click', () => {
+            roomCodeInput.style.display = 'inline-block';
+            confirmJoinBtn.style.display = 'inline-block';
+            roomCodeInput.focus();
+        });
+        confirmJoinBtn.addEventListener('click', () => {
+            const code = roomCodeInput.value.trim();
+            if (code) onlineManager.joinRoom(code);
+        });
+        roomCodeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const code = roomCodeInput.value.trim();
+                if (code) onlineManager.joinRoom(code);
+            }
+        });
+        disconnectBtn.addEventListener('click', () => onlineManager.disconnect());
+        roomCodeDisplay.addEventListener('click', () => {
+            if (roomCodeDisplay.textContent) {
+                navigator.clipboard.writeText(roomCodeDisplay.textContent).then(() => {
+                    const orig = roomCodeDisplay.textContent;
+                    roomCodeDisplay.textContent = '✅已复制!';
+                    setTimeout(() => { roomCodeDisplay.textContent = orig; }, 1500);
+                }).catch(() => {
+                    alert('房间码: ' + roomCodeDisplay.textContent);
+                });
+            }
+        });
+
+        // ============ 定时器 ============
+        setInterval(() => {
+            if (pet.state !== 'alive') return;
+            tickCounter++;
+            if (pet.isSleeping) {
+                pet.energy = Math.min(100, pet.energy + 15);
+                pet.hunger = Math.max(0, pet.hunger - 2);
+                if (tickCounter % 2 === 0) { pet.eq = Math.max(0, pet.eq - 1);
+                    pet.fq = Math.max(0, pet.fq - 1); }
+            } else {
+                pet.hunger = Math.max(0, pet.hunger - 3);
+                pet.happiness = Math.max(0, pet.happiness - 2);
+                pet.energy = Math.max(0, pet.energy - 2);
+                if (!pet.hasPoop && Math.random() < 0.07) pet.hasPoop = true;
+                const iqDecay = (pet.specialEvolution === 'scholar' || pet.specialEvolution === 'master') ? (tickCounter %
+                    2 === 0 ? 1 : 0) : 1;
+                const eqDecay = (pet.specialEvolution === 'charmer' || pet.specialEvolution === 'master') ? (tickCounter %
+                    2 === 0 ? 1 : 0) : 1;
+                const fqDecay = (pet.specialEvolution === 'tycoon' || pet.specialEvolution === 'master') ? (tickCounter %
+                    2 === 0 ? 1 : 0) : 1;
+                pet.iq = Math.max(0, pet.iq - iqDecay);
+                pet.eq = Math.max(0, pet.eq - eqDecay);
+                pet.fq = Math.max(0, pet.fq - fqDecay);
+            }
+            if (pet.hunger <= 0 && pet.happiness <= 0) {
+                pet.state = 'dead';
+                updateFaceAppearance();
+                messageEl.innerText = '😢 笑脸精灵消失了...';
+                poopContainer.innerHTML = '';
+                controlPanel.className = 'hatch-controls';
+                controlPanel.innerHTML =
+                    '<button onclick="location.reload()" style="grid-column: span 2; background:#555;">🔄 重新开始</button>';
+                statsContainer.style.display = 'none';
+                onlineActionsRow.style.display = 'none';
+                onlineActionsRow.innerHTML = '';
+                ageText.innerText = '形态: 已消失';
+                weightText.innerText = '';
+                hidePartnerDisplay();
+                screenEl.classList.remove('online-screen');
+                if (onlineManager && onlineManager.isConnected) onlineManager.send({ type: 'partner_disconnected' });
+                return;
+            }
+            updateUI();
+        }, 2000);
+
+        setInterval(() => { triggerRandomEvent(); }, 25000);
+        setInterval(() => {
+            if (pet.state === 'alive') { pet.age += 1;
+                updateUI(); if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate(); }
+        }, 15000);
+
+        // ============ 点击笑脸互动 ============
+        faceContainer.addEventListener('click', () => {
+            if (pet.state === 'alive' && !pet.isSleeping) {
+                pet.happiness = Math.min(100, pet.happiness + 8);
+                pet.eq = Math.min(100, pet.eq + 3);
+                messageEl.innerText = ['嘿嘿~', '好痒哦~', '再戳一下！', '开心~😊', '嘻嘻嘻！', '情商+3~'][Math.floor(Math.random() *
+                    6)];
+                bounceFace();
+                updateUI();
+                if (onlineManager && onlineManager.isConnected) onlineManager.sendPetUpdate();
+            } else if (pet.state === 'egg') {
+                messageEl.innerText = '蛋在微微颤动...快选择孵化方式吧！🥚';
+                faceContainer.classList.add('egg-shaking');
+                setTimeout(() => faceContainer.classList.remove('egg-shaking'), 700);
+            }
+        });
+
+        partnerFaceMini.addEventListener('click', () => {
+            if (onlineManager && onlineManager.isConnected && onlineManager.partnerData && onlineManager.partnerData
+                .state === 'alive') {
+                messageEl.innerText = '向伙伴打招呼！👋 发送问候中...';
+                onlineManager.send({ type: 'greeting', message: '伙伴向你打招呼了！👋' });
+                spawnHeartParticles();
+            }
+        });
+
+        // ============ 初始化 ============
+        updateFaceAppearance();
+        ageText.innerText = '形态: 笑脸蛋';
+        weightText.innerText = '重: 10g';
+        hidePartnerDisplay();
+        onlineActionsRow.style.display = 'none';
+    </script>
 </body>
 </html>
