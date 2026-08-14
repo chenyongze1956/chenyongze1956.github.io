@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -6,6 +8,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>😊 笑脸精灵养成记 · 联机版</title>
     <style>
+
+/* 合体进化特效 */
+.fusion-active {
+    background: linear-gradient(135deg, #FFD93D, #FF9A9E, #A29BFE, #FFD93D) !important;
+    border-color: #FF6B6B !important;
+    box-shadow: inset 0 0 50px rgba(255,107,107,0.7), 0 0 30px #FF6B6B !important;
+    animation: fusionPulse 1.2s ease-in-out infinite;
+}
+.fusion-glow {
+    filter: drop-shadow(0 0 20px #FF6B6B) brightness(1.2);
+    animation: fusionBounce 0.8s ease-in-out infinite alternate;
+}
+@keyframes fusionPulse {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+@keyframes fusionBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+}
+
+        
         :root {
             --face-bg: #FFD93D;
             --face-glow: #FFF176;
@@ -761,12 +785,41 @@
                 font-size: 9px;
             }
         }
+
+/* 弹幕容器 */
+.bullet-layer {
+    position: absolute;
+    top: 30px; /* 在状态栏下方 */
+    left: 0;
+    width: 100%;
+    height: 30px;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+}
+.bullet-item {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 12px;
+    border-radius: 15px;
+    animation: bulletMove 6s linear forwards;
+}
+@keyframes bulletMove {
+    0% { left: 100%; opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: -200px; opacity: 0; }
+}
+        
     </style>
 </head>
 <body>
     <div class="bg-sparkles" id="bgSparkles"></div>
     <div class="game-container" id="gameContainer">
-        <h2>✨ 笑脸 · 联机进化 ✨</h2>
+        <h2>✨ 笑脸 · 联机 ✨</h2>
 
         <!-- 联机状态栏 -->
         <div class="online-bar" id="onlineBar">
@@ -778,6 +831,9 @@
             <button class="online-btn" id="confirmJoinBtn" style="display:none;background:#ffab00;color:#000;">确认加入</button>
             <span class="room-code-display" id="roomCodeDisplay" style="display:none;" title="点击复制黑箱码"></span>
             <button class="online-btn" id="disconnectBtn" style="display:none;background:#c0392b;">断开</button>
+
+            <input class="bullet-input" id="bulletInput" placeholder="发弹幕..." maxlength="20" style="display:none;">
+<button class="online-btn" id="sendBulletBtn" style="display:none;background:#FFD93D;color:#000;">发送</button>
         </div>
 
         <div class="screen" id="screen">
@@ -860,24 +916,35 @@
         })();
 
         // ============ 宠物数据 ============
-        let pet = {
-            state: 'egg',
-            type: 'normal',
-            isEvolved: false,
-            specialEvolution: null,
-            hunger: 100,
-            happiness: 100,
-            energy: 100,
-            iq: 50,
-            eq: 50,
-            fq: 50,
-            age: 0,
-            weight: 10,
-            isSleeping: false,
-            hasPoop: false,
-            hasFriend: false,
-            hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
-        };
+       // ============ 宠物数据 ============
+let pet = {
+    state: 'egg',
+    type: 'normal',
+    isEvolved: false,
+    specialEvolution: null,
+    hunger: 100,
+    happiness: 100,
+    energy: 100,
+    iq: 50,
+    eq: 50,
+    fq: 50,
+    age: 0,
+    weight: 10,
+    isSleeping: false,
+    hasPoop: false,
+    hasFriend: false,
+    hatchPoints: { warmth: 0, coolness: 0, totalClicks: 0 }
+};
+
+// 合体进化状态管理
+const fusionState = {
+    active: false,
+    requestSent: false,
+    partnerRequested: false,
+    timer: null,
+    duration: 30000,
+    bonusApplied: false
+};
         let tickCounter = 0;
 
         const speciesConfig = {
@@ -896,6 +963,9 @@
             god: { name: '神圣笑脸', evoName: '创世光辉笑脸', faceColor: '#FFE082', strokeColor: '#FF8F00', eyeType: 'holy',
                 mouthD: 'M 42 90 Q 70 120 98 90', cheekColor: '#FFD54F', screenBg: '#fff8e1', accessory: 'crown',
                 description: '传说中的神圣笑脸！' }
+
+
+            
         };
         const specialEvoConfig = {
             scholar: { title: '智慧', faceTint: '#c8d6ff', strokeTint: '#5D6DC6', eyeMod: 'scholar', cheekTint: '#b8c8ff',
@@ -1172,6 +1242,30 @@
             }
         }
 
+
+// 合体状态下的UI特效处理
+function updateFusionUI(active) {
+    if (active) {
+        screenEl.classList.add('fusion-active');
+        faceContainer.classList.add('fusion-glow');
+        // 可以添加一个动态合体标识
+        if (!document.getElementById('fusionBadge')) {
+            const badge = document.createElement('div');
+            badge.id = 'fusionBadge';
+            badge.textContent = '🔗合体中';
+            badge.style.cssText = 'position:absolute;top:5px;right:10px;font-size:10px;font-weight:bold;color:#fff;background:#ff6b6b;padding:2px 8px;border-radius:10px;z-index:20;box-shadow:0 0 10px #ff6b6b;';
+            screenEl.appendChild(badge);
+        }
+    } else {
+        screenEl.classList.remove('fusion-active');
+        faceContainer.classList.remove('fusion-glow');
+        const badge = document.getElementById('fusionBadge');
+        if (badge) badge.remove();
+    }
+}
+
+
+        
         // ============ 孵化系统 ============
         function hatchAction(action) {
             if (pet.state !== 'egg') return;
@@ -1236,19 +1330,38 @@
             updateOnlineActionsRow();
         }
 
-        function updateOnlineActionsRow() {
-            if (onlineManager && onlineManager.isConnected && pet.state === 'alive') {
-                onlineActionsRow.style.display = 'grid';
-                onlineActionsRow.innerHTML = `
-              <button onclick="onlineGift()" class="online-action-btn">🎁送礼给伙伴</button>
-              <button onclick="onlinePlayTogether()" class="online-action-btn">🤝一起玩耍</button>
-            `;
-            } else {
-                onlineActionsRow.style.display = 'none';
-                onlineActionsRow.innerHTML = '';
-            }
-        }
 
+function ensureBulletLayer() {
+    let layer = document.getElementById('bulletLayer');
+    if (!layer) {
+        layer = document.createElement('div');
+        layer.id = 'bulletLayer';
+        layer.className = 'bullet-layer';
+        screenEl.insertBefore(layer, screenEl.querySelector('.screen-content'));
+    }
+}
+// 在联机成功时调用 
+        
+
+      function updateOnlineActionsRow() {
+    if (onlineManager && onlineManager.isConnected && pet.state === 'alive') {
+        onlineActionsRow.style.display = 'grid';
+        const partnerData = onlineManager.partnerData;
+        const canFusion = pet.isEvolved && partnerData && partnerData.state === 'alive' && partnerData.isEvolved && !fusionState.active;
+        const fusionButtonHTML = canFusion ? `<button onclick="tryFusion()" class="online-action-btn">🔗合体进化</button>` : '';
+        onlineActionsRow.innerHTML = `
+            <button onclick="onlineGift()" class="online-action-btn">🎁送礼给伙伴</button>
+            <button onclick="onlinePlayTogether()" class="online-action-btn">🤝一起玩耍</button>
+            ${fusionButtonHTML}
+        `;
+    } else {
+        onlineActionsRow.style.display = 'none';
+        onlineActionsRow.innerHTML = '';
+    }
+}
+
+
+        
         function feed() {
             if (pet.state !== 'alive' || pet.isSleeping) return;
             pet.hunger = Math.min(100, pet.hunger + 25);
@@ -1654,6 +1767,11 @@
 
             setupConnection(conn) {
                 conn.on('open', () => {
+
+document.getElementById('bulletInput').style.display = 'inline-block';
+document.getElementById('sendBulletBtn').style.display = 'inline-block';
+ensureBulletLayer();
+                    
                     this.conn = conn;
                     this.isConnected = true;
                     this.updateStatus('connected', '已联机！🎉');
@@ -1671,6 +1789,10 @@
                     updateOnlineActionsRow();
                     messageEl.innerText = '联机成功！和伙伴一起玩耍吧~ 🤝✨';
                     if (pet.state === 'alive') screenEl.classList.add('online-screen');
+
+
+
+                                                                                                  
                 });
                 conn.on('data', (data) => {
                     this.handleIncomingData(data);
@@ -1728,6 +1850,34 @@
                         this.partnerData = null;
                         hidePartnerDisplay();
                         break;
+
+                case 'fusion_reject':
+    fusionState.requestSent = false;
+    messageEl.innerText = '对方拒绝了合体请求，可重新发起';
+    break;
+
+                   case 'bullet_chat':
+                  if (data.text) this.displayBullet(data.text, false);
+                  break;
+
+
+case 'fusion_request':
+    this.handleFusionRequest();
+    break;
+
+case 'fusion_accept':
+    this.startFusion();
+    break;
+
+case 'fusion_start':
+    this.startFusion();
+    break;
+
+case 'fusion_end':
+    this.endFusion();
+    break;
+                        
+                    
                     case 'partner_disconnected':
                         this.handleDisconnect();
                         break;
@@ -1740,26 +1890,129 @@
                 }
             }
 
-            sendPetUpdate() {
-                if (!this.isConnected || !this.conn || !this.conn.open) return;
-                const petData = {
-                    type: pet.type,
-                    isEvolved: pet.isEvolved,
-                    specialEvolution: pet.specialEvolution,
-                    hunger: pet.hunger,
-                    happiness: pet.happiness,
-                    energy: pet.energy,
-                    iq: pet.iq,
-                    eq: pet.eq,
-                    fq: pet.fq,
-                    age: pet.age,
-                    weight: pet.weight,
-                    isSleeping: pet.isSleeping,
-                    state: pet.state,
-                    hasPoop: pet.hasPoop,
-                };
-                this.send({ type: 'pet_update', petData });
-            }
+         sendPetUpdate() {
+    if (!this.isConnected || !this.conn || !this.conn.open) return;
+    const petData = {
+        type: pet.type,
+        isEvolved: pet.isEvolved,
+        specialEvolution: pet.specialEvolution,
+        hunger: pet.hunger,
+        happiness: pet.happiness,
+        energy: pet.energy,
+        iq: pet.iq,
+        eq: pet.eq,
+        fq: pet.fq,
+        age: pet.age,
+        weight: pet.weight,
+        isSleeping: pet.isSleeping,
+        state: pet.state,
+        hasPoop: pet.hasPoop,
+        fusionActive: fusionState.active,   // 添加这一行
+    };
+    this.send({ type: 'pet_update', petData });
+}
+
+
+        // 处理收到的合体请求
+handleFusionRequest() {
+    if (!this.isConnected || pet.state !== 'alive' || !pet.isEvolved) return;
+    if (fusionState.active) return;
+
+    const confirmFusion = confirm('💕 你的伙伴请求进行合体进化！是否同意？');
+    if (confirmFusion) {
+        this.send({ type: 'fusion_accept' });
+        this.startFusion();
+    } else {
+        // 可发送拒绝消息（可选），此处不额外处理
+    }
+}
+
+
+        handleFusionRequest(partnerId) {
+    // 弹出确认框
+    if (confirm('对方请求与你合体进化，是否同意？')) {
+        // 同意：发送 fusion_accept
+        this.send({ type: 'fusion_accept', partnerId: partnerId });
+        // 同时本方也开始合体
+        this.startFusion(partnerId);
+    } else {
+        // 拒绝：发送 fusion_reject
+        this.send({ type: 'fusion_reject', partnerId: partnerId });
+    }
+}
+
+// 启动合体进化
+startFusion() {
+    if (fusionState.active) return;
+    fusionState.active = true;
+    fusionState.requestSent = false;
+    fusionState.partnerRequested = false;
+    fusionState.bonusApplied = false;
+    fusionState.timer = setTimeout(() => {
+        this.endFusion();
+    }, fusionState.duration);
+
+    // 更新本地UI
+    updateFusionUI(true);
+    messageEl.innerText = '🔮 合体进化！力量融合，属性全满！👥';
+
+    // 通知伙伴开始合体（双方都会调用，但伙伴可能已经自己启动，所以发送 fusion_start 保证同步）
+    this.send({ type: 'fusion_start' });
+
+    // 立即同步宠物数据（带上合体状态）
+    this.sendPetUpdate();
+}
+
+
+
+        
+// 结束合体进化
+endFusion() {
+    if (!fusionState.active) return;
+    fusionState.active = false;
+    clearTimeout(fusionState.timer);
+
+    // 合体结束的永久属性加成（双方各获五维+5）
+    if (!fusionState.bonusApplied) {
+        pet.iq = Math.min(100, pet.iq + 5);
+        pet.eq = Math.min(100, pet.eq + 5);
+        pet.fq = Math.min(100, pet.fq + 5);
+        pet.hunger = 100;
+        pet.happiness = 100;
+        pet.energy = 100;
+        fusionState.bonusApplied = true;
+    }
+
+    // 更新本地UI
+    updateFusionUI(false);
+    messageEl.innerText = '✨ 合体结束！双方获得永久属性提升（智商/情商/财商各+5）！';
+    updateUI();
+
+    // 通知伙伴结束合体
+    this.send({ type: 'fusion_end' });
+    this.sendPetUpdate();
+}
+
+sendBullet(text) {
+    if (!this.isConnected || !this.conn || !this.conn.open) return;
+    this.send({ type: 'bullet_chat', text, sender: this.myPeerId });
+    this.displayBullet(text, true); // 本地也显示
+}
+
+displayBullet(text, isSelf) {
+    const layer = document.getElementById('bulletLayer');
+    if (!layer) return;
+    const bullet = document.createElement('div');
+    bullet.className = 'bullet-item';
+    bullet.textContent = text;
+    if (isSelf) {
+        bullet.style.background = 'rgba(255,217,61,0.85)';
+        bullet.style.color = '#333';
+    }
+    layer.appendChild(bullet);
+    setTimeout(() => bullet.remove(), 6000);
+}
+        
 
             updatePartnerDisplay() {
                 if (!this.partnerData || this.partnerData.state !== 'alive') {
@@ -1784,6 +2037,13 @@
                 partnerNameTag.textContent = '伙伴: ' + pTitle;
                 partnerNameTag.title = `IQ:${this.partnerData.iq} EQ:${this.partnerData.eq} FQ:${this.partnerData.fq}`;
                 if (this.partnerData.isSleeping) partnerNameTag.textContent += ' 💤';
+
+
+                if (this.partnerData && this.partnerData.fusionActive) {
+    partnerFaceMini.classList.add('fusion-glow');
+} else {
+    partnerFaceMini.classList.remove('fusion-glow');
+}
             }
 
             handleDisconnect() {
@@ -1800,6 +2060,9 @@
                 updateUI();
                 updateOnlineActionsRow();
                 messageEl.innerText = '联机已断开 😢 可以和新的伙伴连接~';
+                document.getElementById('bulletInput').style.display = 'none';
+document.getElementById('sendBulletBtn').style.display = 'none';
+document.getElementById('bulletInput').value = '';
             }
 
             disconnect() {
@@ -1825,6 +2088,9 @@
                 this.resetOnlineUI();
                 updateUI();
                 updateOnlineActionsRow();
+                document.getElementById('bulletInput').style.display = 'none';
+document.getElementById('sendBulletBtn').style.display = 'none';
+document.getElementById('bulletInput').value = '';
             }
 
             resetOnlineUI() {
@@ -1899,6 +2165,28 @@
             onlineManager.sendPetUpdate();
         }
 
+
+// 玩家主动发起合体请求
+function tryFusion() {
+    if (!onlineManager || !onlineManager.isConnected || pet.state !== 'alive' || !pet.isEvolved) {
+        messageEl.innerText = '条件不满足：需要双方宠物都已完成进化且在线联机。';
+        return;
+    }
+    if (fusionState.active) {
+        messageEl.innerText = '合体进化已经激活中！';
+        return;
+    }
+    if (fusionState.requestSent) {
+        messageEl.innerText = '已发送请求，等待伙伴确认...';
+        return;
+    }
+
+    fusionState.requestSent = true;
+    onlineManager.send({ type: 'fusion_request' });
+    messageEl.innerText = '📨 合体请求已发送，等待伙伴确认...';
+    updateOnlineActionsRow(); // 更新按钮状态（防止重复点击）
+}
+        
         function onlinePlayTogether() {
             if (!onlineManager || !onlineManager.isConnected || pet.state !== 'alive') return;
             if (pet.energy < 15) { messageEl.innerText = '精力不足，没法一起玩耍 😴'; return; }
@@ -1946,6 +2234,21 @@
             }
         });
 
+
+
+
+        
+document.getElementById('sendBulletBtn').addEventListener('click', () => {
+    const input = document.getElementById('bulletInput');
+    const text = input.value.trim();
+    if (text && onlineManager.isConnected) {
+        onlineManager.sendBullet(text);
+        input.value = '';
+    }
+});
+document.getElementById('bulletInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('sendBulletBtn').click();
+});
         // ============ 定时器 ============
         setInterval(() => {
             if (pet.state !== 'alive') return;
