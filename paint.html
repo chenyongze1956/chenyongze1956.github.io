@@ -29,6 +29,16 @@
     to { transform: translateY(-8px); }
 }
 
+
+.theme-btn {
+    /* 原有样式保持不变 */
+    transition: transform 0.1s ease; /* 添加过渡，让缩小更平滑 */
+}
+
+.theme-btn:active {
+    transform: scale(0.85); /* 按下时缩小到 85% */
+}
+        
         
         :root {
             --face-bg: #FFD93D;
@@ -813,6 +823,80 @@
     90% { opacity: 1; }
     100% { left: -200px; opacity: 0; }
 }
+
+
+        
+
+
+.theme-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;    /* 移动到左上角 */
+    z-index: 999;
+    background: var(--bg-button);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+        
+    /* ========== 主题切换支持 ========== */
+:root {
+  --bg-button: rgba(255,255,255,0.2);
+  --shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* 浅色主题（默认，可以不用写） */
+[data-theme="light"] body {
+  background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+}
+
+/* 深色主题 */
+[data-theme="dark"] body {
+  background: #000;
+  background-size: 400% 400%;
+  animation: bgShift 15s ease-in-out infinite;
+}
+
+[data-theme="dark"] .game-container {
+  background: rgba(15, 15, 30, 0.95);
+  border-color: rgba(0, 229, 255, 0.5);
+}
+
+/* 关键：用 !important 覆盖 JS 设置的内联变量 */
+[data-theme="dark"] .screen {
+  --bg-screen: #2d3436 !important;
+  --text-screen: #dfe6e9 !important;
+  border-color: #576574;
+}
+
+[data-theme="dark"] .stat-bar-container {
+  background: #1e272e;
+}
+
+[data-theme="dark"] .stat-label {
+  color: #bbb;
+}
+
+[data-theme="dark"] .stats-section-label {
+  color: #aaa;
+}
+
+[data-theme="dark"] button {
+  color: #fff;
+}
+
+[data-theme="dark"] .room-code-input {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}    
         
     </style>
 </head>
@@ -831,7 +915,7 @@
             <button class="online-btn" id="confirmJoinBtn" style="display:none;background:#ffab00;color:#000;">确认加入</button>
             <span class="room-code-display" id="roomCodeDisplay" style="display:none;" title="点击复制黑箱码"></span>
             <button class="online-btn" id="disconnectBtn" style="display:none;background:#c0392b;">断开</button>
-
+            <button id="theme-toggle" class="theme-btn" title="切换主题"></button>
             <input class="bullet-input" id="bulletInput" placeholder="发弹幕..." maxlength="20" style="display:none;">
 <button class="online-btn" id="sendBulletBtn" style="display:none;background:#FFD93D;color:#000;">发送</button>
         </div>
@@ -2332,6 +2416,33 @@ document.getElementById('bulletInput').addEventListener('keydown', (e) => {
         weightText.innerText = '重: 10g';
         hidePartnerDisplay();
         onlineActionsRow.style.display = 'none';
+
+
+
+// 获取按钮
+const themeToggleBtn = document.getElementById('theme-toggle');
+const THEME_STORAGE_KEY = 'smileyPetTheme';
+
+// 初始化主题（从 localStorage 读取，若没有则默认为浅色）
+let currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+document.documentElement.setAttribute('data-theme', currentTheme);
+updateThemeButtonIcon();
+
+// 点击切换
+themeToggleBtn.addEventListener('click', () => {
+    currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    updateThemeButtonIcon();
+});
+
+// 更新按钮图标
+function updateThemeButtonIcon() {
+    themeToggleBtn.textContent = currentTheme === 'light' ? '🙂' : '🙃';
+}
+        
     </script>
 </body>
 </html>
+
+
