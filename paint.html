@@ -3,14 +3,24 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
 
+#screenshotBtn {
+    background: linear-gradient(135deg, #9b59b6, #c39bd3) !important;
+    color: #fff !important;
+    border-color: #8e44ad !important;
+    animation: specialPulse 2s ease-in-out infinite;
+}
 
+        
 .weather-toggle-btn {
   /* ...其他样式同上... */
   opacity: 0;   /* 完全透明，看不见但可以点击 */
@@ -1019,6 +1029,7 @@
             <button class="online-btn" id="disconnectBtn" style="display:none;background:#c0392b;">断开</button>
             <button id="theme-toggle" class="theme-btn" title="切换主题"></button>
             <input class="bullet-input" id="bulletInput" placeholder="发弹幕..." maxlength="20" style="display:none;">
+            <button class="online-btn" id="screenshotBtn" style="background:#9b59b6;color:#fff;">📸截屏分享</button>
 <button class="online-btn" id="sendBulletBtn" style="display:none;background:#FFD93D;color:#000;">发送</button>
         </div>
 
@@ -2336,6 +2347,57 @@ document.getElementById('bulletInput').value = '';
             }
         }
 
+
+// ============ 截屏分享功能 ============
+async function screenshotAndShare() {
+    const target = document.getElementById('gameContainer');
+    if (!target) return;
+
+    try {
+        // 显示加载提示
+        const oldMsg = messageEl.innerText;
+        messageEl.innerText = '📸 正在生成截图...';
+
+        // 使用 html2canvas 渲染
+        const canvas = await html2canvas(target, {
+            scale: 2,               // 高清截图
+            useCORS: true,          // 允许跨域图片（防止未来添加外部图片）
+            backgroundColor: null,  // 保持透明背景
+            logging: false,
+        });
+
+        // 将 canvas 转换为 blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'smiley-pet.png', { type: 'image/png' });
+
+        // 优先使用 Web Share API（移动端分享）
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: '我的笑脸宠物',
+                text: '快来看看我养的笑脸！',
+                files: [file],
+            });
+            messageEl.innerText = '✅ 分享成功！';
+        } else {
+            // 回退方案：自动下载图片
+            const link = document.createElement('a');
+            link.download = 'smiley-pet.png';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+            messageEl.innerText = '💾 截图已下载，可手动分享！';
+        }
+    } catch (err) {
+        console.error('截图失败:', err);
+        messageEl.innerText = '⚠️ 截图失败，请重试或检查浏览器权限。';
+    }
+}
+
+// 绑定按钮事件
+document.getElementById('screenshotBtn').addEventListener('click', screenshotAndShare);
+
+
+        
         // 联机互动函数
         function onlineGift() {
             if (!onlineManager || !onlineManager.isConnected || pet.state !== 'alive') return;
