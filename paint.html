@@ -6,6 +6,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -14,6 +15,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
 
+
+    /* 你原有的样式... */
+
+  .browser-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;              /* 原来 85%，现在缩小 */
+    height: 60vh;            /* 原来 80vh，现在缩小 */
+    max-width: 800px;        /* 可选，限制最大宽度 */
+    min-width: 300px;        /* 可选，限制最小宽度 */
+    max-height: 600px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+
+        .browser-header {
+    display: flex;
+    gap: 5px;
+    padding: 8px;
+    background: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+}
+
+.browser-header input {
+    flex: 1;
+    padding: 5px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.mini-btn {
+    background: #eee;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+.mini-btn:hover {
+    background: #ddd;
+}
+
+.browser-frame {
+    width: 100%;
+    flex: 1;
+    border: none;
+    background: white;
+}
+
+    /* 手机端适应 */
+    @media (max-width: 600px) {
+        .browser-panel {
+            width: 95%;
+            height: 90vh;
+            border-radius: 10px;
+        }
+    }
+
+
+
+        
 #screenshotBtn {
     background: linear-gradient(135deg, #9b59b6, #c39bd3) !important;
     color: #fff !important;
@@ -1014,6 +1087,9 @@
     </style>
 </head>
 <body>
+
+
+
     <div class="bg-sparkles" id="bgSparkles"></div>
     <div class="game-container" id="gameContainer">
         <h2>✨ 笑脸 · 联机 ✨</h2>
@@ -1022,6 +1098,7 @@
         <div class="online-bar" id="onlineBar">
             <span class="online-indicator" id="onlineIndicator" title="联机状态"></span>
             <span id="onlineStatusText" style="font-size:9px;color:#aaa;">离线</span>
+            <button class="action-btn" id="openBrowserBtn" title="浏览网页">🌐</button>
             <button class="online-btn create-btn" id="createRoomBtn" title="创建联机黑箱">🏠创建黑箱</button>
             <button class="online-btn join-btn" id="joinRoomBtn" title="加入好友黑箱">🔗加入黑箱</button>
             <input class="room-code-input" id="roomCodeInput" placeholder="黑箱码" maxlength="15" style="display:none;">
@@ -2711,8 +2788,86 @@ const WeatherSystem = {
 // 启动天气系统（不想启用可注释掉下行）
 WeatherSystem.init();
 
+
+
+        // ---------- 内置浏览器功能 ----------
+function toggleBrowser(show) {
+    const panel = document.getElementById('browserPanel');
+    if (show === undefined) {
+        panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+    } else {
+        panel.style.display = show ? 'flex' : 'none';
+    }
+}
+
+function loadBrowserUrl(url) {
+    const frame = document.getElementById('browserFrame');
+    let targetUrl = url.trim();
+    if (!targetUrl) return;
+    if (!/^https?:\/\//i.test(targetUrl)) {
+        targetUrl = 'https://' + targetUrl;
+    }
+    frame.src = targetUrl;
+    document.getElementById('browserUrlInput').value = targetUrl;
+}
+
+function initBrowser() {
+    const panel = document.getElementById('browserPanel');
+    const openBtn = document.getElementById('openBrowserBtn');
+    const closeBtn = document.getElementById('browserCloseBtn');
+    const goBtn = document.getElementById('browserGoBtn');
+    const urlInput = document.getElementById('browserUrlInput');
+    const openNewBtn = document.getElementById('browserOpenNewBtn');
+    const frame = document.getElementById('browserFrame');
+
+    if (!openBtn || !panel) return;
+
+    openBtn.addEventListener('click', () => toggleBrowser(true));
+    closeBtn.addEventListener('click', () => toggleBrowser(false));
+    goBtn.addEventListener('click', () => loadBrowserUrl(urlInput.value));
+
+    urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            loadBrowserUrl(urlInput.value);
+        }
+    });
+
+    openNewBtn.addEventListener('click', () => {
+        const url = frame.src;
+        if (url && url !== 'about:blank') {
+            window.open(url, '_blank');
+        } else {
+            loadBrowserUrl(urlInput.value);
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panel.style.display !== 'none') {
+            toggleBrowser(false);
+        }
+    });
+}
+
+// 在页面加载完成后调用初始化
+window.addEventListener('load', () => {
+    // 原有的初始化代码...
+    initBrowser();   // 添加这一行
+});
         
     </script>
+
+
+<div id="browserPanel" class="browser-panel" style="display:none;">
+    <div class="browser-header">
+        <input type="text" id="browserUrlInput" placeholder="输入网址，回车访问" />
+        <button id="browserGoBtn" class="mini-btn">前往</button>
+        <button id="browserOpenNewBtn" class="mini-btn" title="在新窗口打开">↗</button>
+        <button id="browserCloseBtn" class="mini-btn" title="关闭">✕</button>
+    </div>
+    <iframe id="browserFrame" class="browser-frame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+</div>
+    
+    
 </body>
 </html>
 
