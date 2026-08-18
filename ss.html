@@ -8,6 +8,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
     <title>功德木鱼 · 修行图鉴</title>  
     <style> 
+/* 横屏适配：手机/平板横放时 */
+@media (max-width: 900px) and (orientation: landscape) {
+  body {
+    height: 100dvh;              /* 使用动态视口高度，避免地址栏遮挡 */
+    overflow: hidden;            /* 保持游戏一屏特性 */
+  }
+
+  .buddha-halo {
+    width: 300px;
+    height: 300px;
+  }
+
+  .header {
+    top: 2%;
+  }
+
+  #score {
+    font-size: 2rem;
+  }
+
+  .stage {
+    width: 180px;
+    height: 180px;
+  }
+
+  .muyu-body {
+    width: 130px;
+  }
+
+  .mallet {
+    width: 60px;
+    top: 5px;
+  }
+
+  .controls {
+    bottom: 2%;
+    gap: 8px;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* 抽屉面板适配，避免横屏时占用过多高度 */
+  #shop,
+  #collection {
+    width: 200px;
+    max-height: 70vh;
+    padding: 12px;
+  }
+
+  #shop {
+    left: -214px;
+  }
+  #collection {
+    right: -214px;
+  }
+
+  #shop-toggle,
+  #collection-toggle {
+    height: 70px;
+    line-height: 25px;
+    font-size: 12px;
+  }
+}
+
+/* 超小高度横屏（例如 iPhone SE 横屏）进一步压缩 */
+@media (max-width: 700px) and (orientation: landscape) and (max-height: 400px) {
+  .header { top: 1%; }
+  #score { font-size: 1.5rem; }
+  .stage { width: 140px; height: 140px; }
+  .muyu-body { width: 100px; }
+  .mallet { width: 50px; top: 0; }
+  .controls { bottom: 1%; }
+  button { padding: 4px 8px; font-size: 10px; }
+  .merit-text { font-size: 0.8rem; }
+}
+
+
+        
 /* 移动端 / 平板适配 */
 @media (max-width: 768px) {
   .header { top: 6%; }
