@@ -1,6 +1,8 @@
 
 
 
+
+
 <!DOCTYPE html>  
 <html lang="zh-CN">  
 <head>  
@@ -183,27 +185,52 @@
     min-height: 0;
     overflow-y: auto;
     padding-right: 5px;
+}:root {
+    --muyu-red: #5d2a1d;
+    --gold: #d4af37;
+    --cyber: #00f2ff;
 }
-        :root {  
-            --muyu-red: #5d2a1d;  
-            --gold: #d4af37;  
-            --cyber: #00f2ff;  
-        }  
-        body {  
-            margin: 0; padding: 0;  
-            background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);  
-            background-attachment: fixed;  
-            color: #333; height: 100vh; overflow: hidden;  
-            display: flex; flex-direction: column; align-items: center; justify-content: center;  
-            font-family: "STKaiti", "Kaiti", serif;  
-            user-select: none; -webkit-tap-highlight-color: transparent;  
-        }  
-        .buddha-halo {  
-            position: absolute; width: 500px; height: 500px;  
-            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);  
-            border-radius: 50%; z-index: 0;  
-            animation: haloPulse 5s infinite ease-in-out;  
-        }  
+
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+    background-attachment: fixed;
+    color: #333;
+    height: 100vh;
+    height: 100dvh; /* 现代浏览器 */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "STKaiti", "Kaiti", serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+}
+     .buddha-halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 90vmin;
+    height: 90vmin;
+    max-width: 500px;
+    max-height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    z-index: 0;
+    transform: translate(-50%, -50%) scale(1);
+    animation: haloPulse 5s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes haloPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+    50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.6; }
+}
+
+        
         @keyframes haloPulse {  
             0%, 100% { transform: scale(1); opacity: 0.3; }  
             50% { transform: scale(1.3); opacity: 0.6; }  
@@ -311,17 +338,14 @@ flex-direction: column;
             backdrop-filter: blur(5px); font-family: inherit; transition: 0.3s;  
         }  
         button:hover { background: #8b4513; color: #fff; }  
+
+
+
+        
     </style>  
 </head>  
 <body>  
-    <div class="buddha-halo"></div>  
-
-    <!-- 左侧商店 -->  
-    <div id="shop">  
-        <div id="shop-toggle">🎋 修行商店</div>  
-        <div style="color: #8b4513; font-weight: bold; border-bottom: 2px solid #d4af37; margin-bottom: 12px;">法器阁</div>  
-        <div id="shop-list"></div>  
-    </div>  
+   
 
     <div class="header">  
         <span id="score">0</span>  
@@ -358,12 +382,7 @@ flex-direction: column;
     <!-- 右侧功德图鉴 · 修行成就（原排行榜位置） -->  
    <!-- 右侧功德图鉴面板 -->
 <!-- 右侧功德图鉴面板 -->
-<div id="collection">
-    <!-- 开关按钮放在面板内部，作为第一个子元素 -->
-    <div id="collection-toggle">📿 功德图鉴</div>
-    <div class="chart-title">修行图鉴 · 成就</div>
-    <div id="collection-content"></div>
-</div>
+
 
  <div class="controls">
     <button id="auto-btn">自动敲击</button>
@@ -529,85 +548,96 @@ muyu.classList.remove('gold-skin', 'cyber-skin', 'mini-skin');
         });
     }
 
-    // ================= 敲击逻辑 =================
-    function tapMuyu() {
-        const power = SKINS[currentSkin].power;
-        count += power;
-        totalTaps += 1;
-        updateScore();
-        save();
-        renderCollection();
+ // ================= 初始化 =================
+function init() {
+    applySkin(currentSkin);
+    updateScore();
+    // renderShop();       // ← 已删除
+    // renderCollection(); // ← 已删除
+    bindEvents();
+}
 
-        // 动画
-        const muyu = document.getElementById('muyu');
-        const mallet = document.getElementById('mallet');
-        muyu.classList.add('tap-anim');
-        mallet.classList.add('mallet-anim');
-        setTimeout(() => {
-            muyu.classList.remove('tap-anim');
-            mallet.classList.remove('mallet-anim');
-        }, 80);
+// ... 其他函数 ...
 
-        // 音效
-        const sound = document.getElementById('sound');
-        if (sound) {
-            sound.currentTime = 0;
-            sound.play().catch(() => {});
+function tapMuyu() {
+    const power = SKINS[currentSkin].power;
+    count += power;
+    totalTaps += 1;
+    updateScore();
+    save();
+    // renderCollection(); // ← 已删除
+
+    // 动画、音效、浮动文字等保留
+    const muyu = document.getElementById('muyu');
+    const mallet = document.getElementById('mallet');
+    muyu.classList.add('tap-anim');
+    mallet.classList.add('mallet-anim');
+    setTimeout(() => {
+        muyu.classList.remove('tap-anim');
+        mallet.classList.remove('mallet-anim');
+    }, 80);
+
+    const sound = document.getElementById('sound');
+    if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+    }
+
+    showFloatingText(power, '功德');
+}
+
+function bindEvents() {
+    document.getElementById('muyu').addEventListener('click', tapMuyu);
+
+    // 以下商店、图鉴开关事件已删除
+    // document.getElementById('shop-toggle').addEventListener('click', ...);
+    // document.getElementById('collection-toggle').addEventListener('click', ...);
+
+    // 自动敲击
+    let autoInterval = null;
+    const autoBtn = document.getElementById('auto-btn');
+    autoBtn.addEventListener('click', () => {
+        if (autoInterval) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+            autoBtn.textContent = '自动敲击';
+        } else {
+            autoInterval = setInterval(tapMuyu, 500);
+            autoBtn.textContent = '停止自动';
         }
+    });
 
-        // 浮动功德文字
-        showFloatingText(power, '功德');
+    // 重置数据
+   document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('确定要清空所有修行数据吗？')) {
+        // 1. 清除 localStorage 中的木鱼数据（也可以直接清空全部）
+        localStorage.removeItem('muyu_count');
+        localStorage.removeItem('muyu_total_taps');
+        localStorage.removeItem('muyu_owned_skins');
+        localStorage.removeItem('muyu_current_skin');
+        localStorage.removeItem('muyu_user_name');
+        // 或者直接 localStorage.clear(); 但会清除该域名下所有数据，请慎用
+
+        // 2. 重置内存中的变量
+        count = 0;
+        totalTaps = 0;
+        ownedSkins = ['default'];
+        currentSkin = 'default';
+        userName = `修行者${Math.floor(Math.random() * 8999 + 1000)}`;
+
+        // 3. 更新界面
+        applySkin(currentSkin);        // 复原木鱼皮肤
+        updateScore();                // 重置分数和标题
+        // 如果还保留了图鉴等元素，也需要重新渲染，但已移除面板，所以无需调用
+        // renderShop(); renderCollection();
+
+        // 4. 不再使用 location.reload()，避免刷新带来的不确定问题
     }
-
-    function showFloatingText(value, label) {
-        const stage = document.querySelector('.stage');
-        const el = document.createElement('div');
-        el.className = 'merit-text';
-        el.textContent = `${label} +${value}`;
-        // 随机位置偏移
-        el.style.left = `${50 + (Math.random() - 0.5) * 80}%`;
-        el.style.top = `${50 + (Math.random() - 0.5) * 80}%`;
-        stage.appendChild(el);
-        setTimeout(() => el.remove(), 800);
-    }
-
-    // ================= 事件绑定 =================
-    function bindEvents() {
-        document.getElementById('muyu').addEventListener('click', tapMuyu);
-
-        // 商店开关
-        document.getElementById('shop-toggle').addEventListener('click', () => {
-            document.getElementById('shop').classList.toggle('active');
-        });
-        // 图鉴开关
-        document.getElementById('collection-toggle').addEventListener('click', () => {
-            document.getElementById('collection').classList.toggle('active');
-        });
-
-        // 自动敲击
-        let autoInterval = null;
-        const autoBtn = document.getElementById('auto-btn');
-        autoBtn.addEventListener('click', () => {
-            if (autoInterval) {
-                clearInterval(autoInterval);
-                autoInterval = null;
-                autoBtn.textContent = '自动敲击';
-            } else {
-                autoInterval = setInterval(tapMuyu, 500); // 每0.5秒一次
-                autoBtn.textContent = '停止自动';
-            }
-        });
-
-        // 重置数据
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            if (confirm('确定要清空所有修行数据吗？')) {
-                localStorage.clear();
-                location.reload();
-            }
-        });
-    }
+});
+}
 
     // 启动
     init();
 </script>
+
 
