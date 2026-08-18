@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>  
 <html lang="zh-CN">  
 <head>  
@@ -6,7 +8,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
     <title>功德木鱼 · 修行图鉴</title>  
     <style> 
+/* 移动端 / 平板适配 */
+@media (max-width: 768px) {
+  .header { top: 6%; }
+  .buddha-halo { width: 420px; height: 420px; }
+  .stage { width: 240px; height: 240px; }
+  .muyu-body { width: 170px; }
+  .mallet { width: 85px; top: 10px; }
+  #score { font-size: 2.4rem; }
 
+  #shop, #collection {
+    width: 210px;
+    padding: 14px;
+  }
+  #shop { left: -224px; }
+  #collection { right: -224px; }
+
+  .controls { bottom: 6%; }
+}
+
+/* 小屏手机适配 */
+@media (max-width: 480px) {
+  .buddha-halo { width: 320px; height: 320px; }
+  .stage { width: 200px; height: 200px; }
+  .muyu-body { width: 140px; }
+  .mallet { width: 70px; top: 5px; }
+  #score { font-size: 2rem; }
+
+  #shop, #collection {
+    width: 180px;
+    padding: 12px;
+  }
+  #shop { left: -180px; }
+#collection { right: -180px; }
+
+  #shop-toggle, #collection-toggle {
+    height: 80px;
+    line-height: 30px;
+    font-size: 12px;
+  }
+
+  .controls {
+    gap: 8px;
+    bottom: 5%;
+  }
+  button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .merit-text {
+    font-size: 1.1rem;
+  }
+}
 
 /* 右侧图鉴面板 */
 #collection {
