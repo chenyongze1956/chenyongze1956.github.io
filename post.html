@@ -35,6 +35,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -264,7 +266,7 @@
                                             <span class="tweet-username">@luigi</span>
                                             <span class="tweet-time">· 2h</span>
                             </div>
-                            <p>世界杯声频直播</p>
+                            <p>世界杯声频直播，我擦，这个网页面都是免费小游戏</p>
                             <iframe src="https://www.opendrive.com/player/NDBfMTM5NzM5ODY3X2xqRjdI" height="25" width="297" style="border:0" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
                                                         <div class="post-media">
 
@@ -334,9 +336,63 @@
                                     <div class="replied-to">
                                         Replying to <a href="/peach">@peach</a>
                                     </div>
-  <img src="https://i.ibb.co/nq7NRmM0/Screenshot-1.png"
 
-                                    alt="Post image" class="post-image">                                    <div class="tweet-actions-list">
+    <!-- ===== 推文卡片 ===== -->
+    <div class="tweet-card">
+
+        <!-- 原始推文（回复） -->
+        <article class="tweet reply">
+            <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Luigi">
+            <div class="tweet-content">
+                <div class="tweet-header">
+                    <div class="tweet-author-info">
+                        <span class="tweet-name">CC</span>
+                        <i class="fas fa-check-circle verified-badge-blue"></i>
+                        <span class="tweet-username">@luigi</span>
+                        <span class="tweet-time">· 2h</span>
+                    </div>
+                </div>
+                <div class="replied-to">
+                    Replying to <a href="/peach">@peach</a>
+                </div>
+
+                <!-- 推文文字 -->
+                <div class="tweet-text">
+                    来玩一局 <strong>古代华容道</strong> 吧！👇 把 1~8 按顺序排好～
+                </div>
+
+                <!-- ===== ★ 华容道游戏嵌入 ===== -->
+                <div class="game-embed">
+                    <div class="game-title">🧩 古代华容道 · 3x3</div>
+                    <div class="game-grid" id="gameGrid"></div>
+                    <div class="game-controls">
+                        <button class="game-btn" id="shuffleBtn">🔄 洗牌</button>
+                        <span class="game-status" id="gameStatus">点击数字移动</span>
+                    </div>
+                </div>
+
+                <!-- 推文互动按钮 -->
+                <div class="tweet-actions-list">
+                    <button class="tweet-action-button" onclick="handleReply(this)">
+                        <i class="far fa-comment"></i>
+                        <span>2</span>
+                    </button>
+                    <button class="tweet-action-button">
+                        <i class="fas fa-retweet"></i>
+                        <span>1</span>
+                    </button>
+                    <button class="tweet-action-button" id="likeBtn">
+                        <i class="far fa-heart"></i>
+                        <span>100</span>
+                    </button>
+                    <button class="tweet-action-button">
+                        <i class="fas fa-rocket"></i>
+                    </button>
+                </div>
+            </div>
+        </article>
+    </div>
+                                                                       <div class="tweet-actions-list">
                                         <button class="tweet-action-button" onclick="handleReply(this)">
                                             <i class="far fa-comment"></i>
                                             <span>2</span>
@@ -704,7 +760,253 @@
 </style>
 
 
+ <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+          
+        }
+
+        /* 推文卡片容器 */
+        .tweet-card {
+            max-width: 520px;
+            width: 100%;
+            background: #1e1e32;
+            border-radius: 24px;
+            padding: 16px 18px 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+            border: 1px solid #333355;
+        }
+
+        /* ===== 原始推文样式 ===== */
+        .tweet {
+            display: flex;
+            gap: 12px;
+            padding: 4px 0 10px;
+            border-bottom: 1px solid #2f2f4a;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background: #2d2d55;
+        }
+
+        .tweet-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tweet-author-info {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tweet-name {
+            color: #f0edf5;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .verified-badge-blue {
+            color: #1d9bf0;
+            font-size: 16px;
+        }
+
+        .tweet-username {
+            color: #71718f;
+            font-size: 14px;
+        }
+
+        .tweet-time {
+            color: #71718f;
+            font-size: 14px;
+        }
+
+        .replied-to {
+            color: #71718f;
+            font-size: 14px;
+            margin: 2px 0 6px;
+        }
+
+        .replied-to a {
+            color: #1d9bf0;
+            text-decoration: none;
+        }
+
+        .replied-to a:hover {
+            text-decoration: underline;
+        }
+
+        /* 推文文本 */
+        .tweet-text {
+            color: #e8e6f0;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 6px 0 10px;
+        }
+
+        /* ===== 华容道游戏容器（嵌入推文中） ===== */
+        .game-embed {
+            background: #14142a;
+            border-radius: 16px;
+            padding: 16px 14px 18px;
+            margin: 8px 0 12px;
+            border: 1px solid #2e2e55;
+        }
+
+        .game-embed .game-title {
+            color: #b0b0d0;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            max-width: 240px;
+            margin: 0 auto 12px;
+        }
+
+        .game-tile {
+            aspect-ratio: 1 / 1;
+            background: #3a3a6a;
+            color: #f0edf5;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.1s ease;
+            box-shadow: 0 3px 0 #222244;
+        }
+
+        .game-tile.empty {
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .game-tile:not(.empty):hover {
+            background: #50508a;
+            transform: scale(0.95);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .game-btn {
+            background: #3b6eff;
+            border: none;
+            color: white;
+            font-size: 13px;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #1f3f99;
+            transition: 0.06s linear;
+        }
+
+        .game-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px 0 #1f3f99;
+        }
+
+        .game-status {
+            color: #8888b0;
+            font-size: 12px;
+        }
+
+        /* ===== 推文底部操作按钮 ===== */
+        .tweet-actions-list {
+            display: flex;
+            justify-content: space-between;
+            max-width: 380px;
+            margin-top: 6px;
+        }
+
+        .tweet-action-button {
+            background: none;
+            border: none;
+            color: #71718f;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .tweet-action-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #b0b0d0;
+        }
+
+        .tweet-action-button.liked {
+            color: #f91880;
+        }
+
+        .tweet-action-button i {
+            font-size: 16px;
+        }
+
+        .tweet-action-button span {
+            font-size: 13px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .game-grid {
+                max-width: 180px;
+            }
+            .game-tile {
+                font-size: 18px;
+            }
+        }
+
+
+
+
+/* ===== 华容道居中修复 ===== */
+.game-embed {
+    max-width: 320px;
+    margin: 0 auto;  /* 关键：水平居中 */
+    display: block;
+}
+
+/* 确保父容器允许居中 */
+
+     
+    </style>
 
 
     
@@ -4090,6 +4392,127 @@ document.querySelectorAll('.rps-container label').forEach(label => {
 
 
 
+  <script>
+        // ============================================================
+        //  华容道游戏逻辑 (完全独立，仅操作 #gameGrid 内的元素)
+        // ============================================================
+        (function() {
+            const grid = document.getElementById('gameGrid');
+            const statusEl = document.getElementById('gameStatus');
+
+            let tiles = [];
+            let emptyIndex = 8;
+
+            // 获取相邻索引
+            function getNeighbors(idx) {
+                const row = Math.floor(idx / 3);
+                const col = idx % 3;
+                const neighbors = [];
+                if (row > 0) neighbors.push(idx - 3);
+                if (row < 2) neighbors.push(idx + 3);
+                if (col > 0) neighbors.push(idx - 1);
+                if (col < 2) neighbors.push(idx + 1);
+                return neighbors;
+            }
+
+            // 检查是否胜利
+            function checkWin(arr) {
+                for (let i = 0; i < 8; i++) {
+                    if (arr[i] !== i + 1) return false;
+                }
+                return arr[8] === 0;
+            }
+
+            // 渲染网格
+            function render(arr) {
+                grid.innerHTML = '';
+                arr.forEach((val, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'game-tile';
+                    if (val === 0) {
+                        div.classList.add('empty');
+                        div.textContent = '';
+                    } else {
+                        div.textContent = val;
+                    }
+                    div.dataset.index = idx;
+                    div.addEventListener('click', tileClick);
+                    grid.appendChild(div);
+                });
+
+                if (checkWin(arr)) {
+                    statusEl.textContent = '🎉 你赢了！';
+                } else {
+                    statusEl.textContent = '点击数字移动';
+                }
+            }
+
+            // 点击瓷砖
+            function tileClick(e) {
+                const idx = parseInt(e.currentTarget.dataset.index);
+                const arr = tiles.slice();
+                const emptyIdx = arr.indexOf(0);
+                if (idx === emptyIdx) return;
+                const neighbors = getNeighbors(emptyIdx);
+                if (!neighbors.includes(idx)) return;
+
+                // 交换
+                [arr[emptyIdx], arr[idx]] = [arr[idx], arr[emptyIdx]];
+                tiles = arr;
+                render(arr);
+            }
+
+            // 洗牌（随机移动保证可解）
+            function shuffle() {
+                let arr = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+                let emptyIdx = 8;
+                const moves = 100 + Math.floor(Math.random() * 100);
+                for (let i = 0; i < moves; i++) {
+                    const neighbors = getNeighbors(emptyIdx);
+                    const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    [arr[emptyIdx], arr[randomNeighbor]] = [arr[randomNeighbor], arr[emptyIdx]];
+                    emptyIdx = randomNeighbor;
+                }
+                // 避免初始即胜利
+                if (checkWin(arr)) {
+                    [arr[0], arr[1]] = [arr[1], arr[0]];
+                }
+                tiles = arr;
+                render(arr);
+            }
+
+            // 绑定洗牌按钮
+            document.getElementById('shuffleBtn').addEventListener('click', shuffle);
+
+            // 初始化
+            shuffle();
+        })();
+
+        // ============================================================
+        //  推文互动按钮 (保留原有功能)
+        // ============================================================
+        function handleReply(btn) {
+            const countSpan = btn.querySelector('span');
+            if (countSpan) {
+                const current = parseInt(countSpan.textContent) || 0;
+                countSpan.textContent = current + 1;
+            }
+            // 简单反馈
+            btn.style.color = '#1d9bf0';
+            setTimeout(() => btn.style.color = '', 300);
+        }
+
+        // 点赞按钮 (独立绑定，避免内联 onclick 冲突)
+        document.getElementById('likeBtn').addEventListener('click', function() {
+            this.classList.toggle('liked');
+            const icon = this.querySelector('i');
+            icon.classList.toggle('far');
+            icon.classList.toggle('fas');
+            const span = this.querySelector('span');
+            const current = parseInt(span.textContent) || 0;
+            span.textContent = this.classList.contains('liked') ? current + 1 : current - 1;
+        });
+    </script>
 
 
 
