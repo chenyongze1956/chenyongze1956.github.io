@@ -37,6 +37,8 @@
 
 
 
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -467,9 +469,36 @@
                                    <div class="replied-to">
                                         Replying to <a href="/toda">@toda</a>
                                     </div>
-                                               <img src="https://i.ibb.co/xqPP1jhX/Screenshot-2.png"   
-
-                                    alt="Post image"  class="post-image">                                    <div class="tweet-actions-list">
+                                              <div class="ap">
+    <video id="v" playsinline preload="metadata"></video>
+    
+    <div class="ap-c">
+        <button class="p" id="play">▶</button>
+        <button id="mute">🔊</button>
+        <span class="ap-t" id="time">00:00 / 00:00</span>
+        <div class="ap-p"><input type="range" id="prog" value="0" min="0" max="100" step="0.1"></div>
+        <button id="fs">⛶</button>
+    </div>
+    
+    <div class="ap-s">
+        <input id="url" placeholder="粘贴视频链接 (MP4/WebM)" value="https://www.w3schools.com/html/mov_bbb.mp4">
+        <button class="p" id="load">加载</button>
+    </div>
+    
+    <div style="display:flex; gap:4px; flex-wrap:wrap; padding-top:4px;" id="tags">
+        <span class="ap-tag a" data-u="https://www.w3schools.com/html/mov_bbb.mp4">▶ 测试1</span>
+        <span class="ap-tag" data-u="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4">▶ 测试2</span>
+        <span class="ap-tag" data-u="https://www.w3schools.com/html/movie.mp4">▶ 测试3</span>
+    </div>
+    
+    <div class="ap-local">
+        📁 或 <label for="localFile">选择本地视频文件</label>
+        <input type="file" id="localFile" accept="video/*" style="display:none">
+    </div>
+    
+    <div class="ap-st" id="status">⚡ 就绪</div>
+</div>
+                                  <div class="tweet-actions-list">
                                     <div class="tweet-actions-list">
                                         <button class="tweet-action-button" onclick="handleReply(this)">
                                             <i class="far fa-comment"></i>
@@ -641,7 +670,7 @@
     
     <div id="game-wrapper" style="margin-top:15px; border-radius:12px; overflow:hidden; background:#000;">
         <canvas id="snakeGame" width="300" height="300" style="width:100%; display:block;"></canvas>
-        <div style="color:white; font-size:12px; padding:5px; text-align:center;">无挂碍故，无有恐怖，远离颠倒梦想，究竟涅槃，乘一叶小舟，驶向花开的彼岸。</div>
+        <div style="color:white; font-size:12px; padding:5px; text-align:center;">法歸者，蓋是萬善之淵府，總持之林苑。其為典也，淵博弘富，韞而彌廣。</div>
     </div>
 </div>
 
@@ -746,12 +775,138 @@
 
 
 <style>
+/* ===== 极简样式 ===== */
+.ap {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 8px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+.ap video {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 8px;
+    display: block;
+}
+.ap-c {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 2px 2px;
+    flex-wrap: wrap;
+}
+.ap-c button {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 2px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 12px;
+    min-height: 26px;
+}
+.ap-c button:hover { background: #334155; color: #fff; }
+.ap-c .p { background: #dc2626; border-color: #ef4444; color: #fff; }
+.ap-c .p:hover { background: #ef4444; }
+.ap-t {
+    font-size: 11px;
+    font-family: monospace;
+    color: #94a3b8;
+    min-width: 70px;
+    text-align: center;
+}
+.ap-p {
+    flex: 1;
+    min-width: 60px;
+}
+.ap-p input {
+    width: 100%;
+    height: 3px;
+    -webkit-appearance: none;
+    background: #1e293b;
+    border-radius: 2px;
+    outline: none;
+}
+.ap-p input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #dc2626;
+    cursor: pointer;
+    border: 2px solid #f1f5f9;
+}
+.ap-s {
+    display: flex;
+    gap: 4px;
+    padding-top: 4px;
+    flex-wrap: wrap;
+}
+.ap-s input {
+    flex: 1;
+    min-width: 80px;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    color: #e2e8f0;
+    padding: 2px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+}
+.ap-s input::placeholder { color: #64748b; }
+.ap-tag {
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 1px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    color: #94a3b8;
+    cursor: pointer;
+}
+.ap-tag:hover { background: #334155; color: #fff; }
+.ap-tag.a { background: #dc2626; border-color: #ef4444; color: #fff; }
+.ap-st {
+    font-size: 10px;
+    color: #64748b;
+    text-align: center;
+    padding-top: 2px;
+}
+.ap-local {
+    font-size: 10px;
+    color: #94a3b8;
+    padding: 4px 0 0;
+    text-align: center;
+    border-top: 1px solid #1e293b;
+    margin-top: 4px;
+}
+.ap-local label {
+    cursor: pointer;
+    color: #60a5fa;
+}
+.ap-local label:hover { color: #93bbfc; }
+</style>
+
+
+    
+
+<style>
     .jump { animation: jump-anim 0.6s linear; }
     @keyframes jump-anim { 0% { bottom: 0; } 50% { bottom: 80px; } 100% { bottom: 0; } }
     @keyframes move { from { right: -50px; } to { right: 100%; } }
     .mutated { filter: hue-rotate(180deg) saturate(3) brightness(1.2); transform: scale(1.2); transition: all 0.3s; }
     .fire-effect { animation: flame-flicker 0.2s infinite alternate; }
     @keyframes flame-flicker { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+
+
+
+
+
+
+
+    
 </style>
 
 
@@ -4509,5 +4664,180 @@ document.querySelectorAll('.rps-container label').forEach(label => {
         });
     </script>
 
+
+
+
+<script>
+// ===== 修复版播放器 =====
+(function() {
+    const v = document.getElementById('v');
+    const play = document.getElementById('play');
+    const mute = document.getElementById('mute');
+    const fs = document.getElementById('fs');
+    const prog = document.getElementById('prog');
+    const time = document.getElementById('time');
+    const url = document.getElementById('url');
+    const load = document.getElementById('load');
+    const status = document.getElementById('status');
+    const tags = document.getElementById('tags');
+    const localFile = document.getElementById('localFile');
+
+    let dragging = false;
+
+    // ===== 工具 =====
+    function fmt(t) {
+        if (!t || isNaN(t)) return '00:00';
+        const m = Math.floor(t / 60);
+        const s = Math.floor(t % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function st(msg, err = false) {
+        status.textContent = msg;
+        status.style.color = err ? '#ef4444' : '#64748b';
+    }
+
+    // ===== 更新进度 =====
+    function update() {
+        if (!v.duration || dragging) return;
+        const p = (v.currentTime / v.duration) * 100;
+        prog.value = Math.min(100, Math.max(0, p));
+        time.textContent = fmt(v.currentTime) + ' / ' + fmt(v.duration);
+    }
+
+    v.addEventListener('timeupdate', update);
+    v.addEventListener('loadedmetadata', () => {
+        time.textContent = '00:00 / ' + fmt(v.duration);
+        st('✅ 已加载');
+    });
+
+    // ===== 进度条 =====
+    prog.addEventListener('input', () => { dragging = true; });
+    prog.addEventListener('change', () => {
+        if (v.duration) {
+            v.currentTime = (prog.value / 100) * v.duration;
+            update();
+        }
+        dragging = false;
+    });
+
+    // ===== 播放 =====
+    play.addEventListener('click', () => {
+        if (!v.src) { st('❌ 请先加载视频', true); return; }
+        v.paused ? v.play().catch(() => st('⚠️ 点击播放按钮手动播放', true)) : v.pause();
+    });
+    v.addEventListener('play', () => play.textContent = '⏸');
+    v.addEventListener('pause', () => play.textContent = '▶');
+
+    // ===== 静音 =====
+    mute.addEventListener('click', () => {
+        v.muted = !v.muted;
+        mute.textContent = v.muted ? '🔇' : '🔊';
+    });
+
+    // ===== 全屏 =====
+    fs.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
+        }
+    });
+
+    // ===== 键盘 =====
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            if (v.paused) v.play().catch(() => {});
+            else v.pause();
+        }
+    });
+
+    // ===== 双击全屏 =====
+    v.addEventListener('dblclick', () => {
+        document.documentElement.requestFullscreen?.();
+    });
+
+    // ===== 加载 =====
+    function loadSrc(u) {
+        u = u.trim();
+        if (!u) { st('❌ 输入链接', true); return; }
+        st('⏳ 加载中...');
+        v.src = u;
+        v.load();
+        v.play().then(() => st('▶️ 播放中')).catch(() => st('⏸ 点击播放'));
+        
+        // 高亮标签
+        document.querySelectorAll('.ap-tag').forEach(t => {
+            t.classList.toggle('a', t.dataset.u === u);
+        });
+        url.value = u;
+    }
+
+    load.addEventListener('click', () => loadSrc(url.value));
+    url.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadSrc(url.value); });
+
+    // ===== 标签点击 =====
+    tags.addEventListener('click', (e) => {
+        const t = e.target.closest('.ap-tag');
+        if (t) {
+            const u = t.dataset.u;
+            if (u) { url.value = u; loadSrc(u); }
+        }
+    });
+
+    // ===== 本地文件 =====
+    localFile.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (!file) return;
+        
+        // 检查是否是视频
+        if (!file.type.startsWith('video/')) {
+            st('❌ 请选择视频文件', true);
+            return;
+        }
+        
+        const u = URL.createObjectURL(file);
+        v.src = u;
+        v.load();
+        v.play().then(() => {
+            st('📁 播放本地: ' + file.name);
+        }).catch(() => st('⏸ 点击播放'));
+        
+        url.value = file.name;
+        // 取消标签高亮
+        document.querySelectorAll('.ap-tag').forEach(t => t.classList.remove('a'));
+    });
+
+    // ===== 错误 =====
+    v.addEventListener('error', () => {
+        let msg = '加载失败';
+        if (v.error) {
+            if (v.error.code === 4) msg = '媒体格式不支持';
+            else if (v.error.code === 3) msg = '解码失败';
+            else if (v.error.code === 2) msg = '网络错误，检查链接';
+            else msg = v.error.message || '未知错误';
+        }
+        st('❌ ' + msg, true);
+    });
+
+    // ===== 自动重试 =====
+    v.addEventListener('stalled', () => {
+        st('⏳ 缓冲中...');
+    });
+
+    // ===== 初始化 =====
+    window.addEventListener('load', () => {
+        const def = url.value.trim();
+        if (def) {
+            // 延迟加载，确保DOM就绪
+            setTimeout(() => loadSrc(def), 100);
+        }
+    });
+
+    console.log('🎬 迷你播放器已启动 (修复版)');
+})();
+</script>
 
 
