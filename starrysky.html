@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>古巴比伦星空</title>
   <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
     body {
-      background: #000000;   /* 纯黑背景 */
+      background: #080b24;
       color: #f7d98b;
       font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
     }
@@ -46,9 +47,9 @@
 <body>
   <canvas id="sky" aria-label="古巴比伦动态星空"></canvas>
   <div class="info">
-    <!-- 此处保留空位，可按需添加标题 -->
+    <h2>古巴比伦星空</h2>
   </div>
-  <div class="hint"></div>
+  <div class="hint">移动鼠标，探索星光</div>
   <script>
     const canvas = document.getElementById('sky');
     const ctx = canvas.getContext('2d');
@@ -105,21 +106,16 @@
       });
     }
     function draw() {
-      // 纯黑背景 —— 覆盖整个画布
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, width, height);
-
-      // 绘制星座连线与星点
+      const gradient = ctx.createRadialGradient(width * .55, height * .35, 0, width * .5, height * .5, Math.max(width, height));
+      gradient.addColorStop(0, '#293b78'); gradient.addColorStop(.45, '#111b4b'); gradient.addColorStop(1, '#080b24');
+      ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height);
       drawConstellations();
-
-      // 绘制群星
       stars.forEach(s => {
         s.a += s.speed;
         const pulse = (Math.sin(s.a) + 1) / 2;
         const alpha = .24 + pulse * (.68 * s.twinkle);
         const radius = s.r * (.88 + pulse * .5);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = s.color;
+        ctx.globalAlpha = alpha; ctx.fillStyle = s.color;
         if (pulse > .78 && s.r > 1) {
           ctx.shadowColor = s.color;
           ctx.shadowBlur = 8 + pulse * 12;
@@ -129,34 +125,18 @@
         ctx.fill();
         ctx.shadowBlur = 0;
       });
-
-      // 绘制流星
       shooting.forEach((s, i) => {
         const tail = 90;
         const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
-        grad.addColorStop(0, 'rgba(255,244,194,' + s.life + ')');
-        grad.addColorStop(1, 'rgba(220,168,92,0)');
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
-        ctx.stroke();
-        s.x += s.vx;
-        s.y += s.vy;
-        s.life -= .018;
-        if (s.life <= 0) shooting.splice(i, 1);
+        grad.addColorStop(0, 'rgba(255,244,194,' + s.life + ')'); grad.addColorStop(1, 'rgba(220,168,92,0)');
+        ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - s.vx * tail / 10, s.y - s.vy * tail / 10); ctx.stroke();
+        s.x += s.vx; s.y += s.vy; s.life -= .018; if (s.life <= 0) shooting.splice(i, 1);
       });
-
-      ctx.globalAlpha = 1;
-      addShootingStar();
-      requestAnimationFrame(draw);
+      ctx.globalAlpha = 1; addShootingStar(); requestAnimationFrame(draw);
     }
-
     addEventListener('resize', resize);
     addEventListener('mousemove', e => { pointer.x = e.clientX; pointer.y = e.clientY; });
-    resize();
-    draw();
+    resize(); draw();
   </script>
 </body>
 </html>
