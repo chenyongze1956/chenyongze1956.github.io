@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html><html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -294,7 +293,7 @@ body {
     </div>
 
     <script>
-     // 16個核心字 + 5個裝飾字填充
+   
 const xuanjiData = [
     "思","感","自","寧","孜","孜","傷",
     "情","時","在","君","側","夢","想",
@@ -420,44 +419,64 @@ function showPoem() {
 
 init();
 
-// ========== 新增：连接服务器的保存和读取 ==========
+// ========== 连接服务器的保存和读取（已改为相对路径） ==========
 
 // 保存到服务器
 async function saveWriting() {
     const text = document.getElementById('myWriting').value;
+    
+    // 显示保存中
+    const btn = document.getElementById('saveBtn');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 保存中…';
+    btn.className = 'btn-save btn-speaking';
+    
     try {
-        const response = await fetch('http://127.0.0.1:3000/api/save', {
+        // ✅ 改成了相对路径
+        const response = await fetch('/api/save', {
             method: 'POST',
             body: JSON.stringify({ content: text }),
             headers: { 'Content-Type': 'application/json' }
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const result = await response.json();
         if (result.success) {
-            const btn = document.getElementById('saveBtn');
-            const originalHTML = btn.innerHTML;
             btn.innerHTML = '<i class="fa fa-check"></i> 已入冊 ✓';
             btn.className = 'btn-save btn-saved';
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
                 btn.className = 'btn-save';
             }, 2000);
+        } else {
+            throw new Error('保存失败: ' + result.message);
         }
     } catch (e) {
-        alert('⚠️ 保存失败，请检查服务器是否运行。');
-        console.error(e);
+        alert('⚠️ 保存失败，请检查服务器是否运行。\n\n错误信息: ' + e.message);
+        console.error('保存错误:', e);
+        btn.innerHTML = originalHTML;
+        btn.className = 'btn-save';
     }
 }
 
 // 从服务器读取
 async function loadWriting() {
     try {
-        const response = await fetch('http://127.0.0.1:3000/api/load');
+        // ✅ 改成了相对路径
+        const response = await fetch('/api/load');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         if (data.content) {
             document.getElementById('myWriting').value = data.content;
+            console.log('✅ 从服务器加载成功');
         }
     } catch (e) {
-        console.log('读取失败，使用本地缓存');
+        console.log('⚠️ 从服务器读取失败，使用本地缓存');
         // 如果服务器没启动，使用 localStorage 作为备用
         const saved = localStorage.getItem('xuanji_user_writing');
         if (saved) {
