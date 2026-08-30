@@ -1,0 +1,542 @@
+<!DOCTYPE html><html lang="zh-TW"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+
+/* 针对移动端的特殊优化 */
+@media screen and (max-width: 600px) {
+    #myWriting {
+        height: 300px;
+        font-size: 16px;
+    }
+    body:has(#myWriting:focus) {
+        padding-bottom: 300px;
+    }
+}
+
+/* 响应式布局 */
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+@media (min-width: 900px) {
+    .main-layout {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+    }
+}
+
+.writing-desk {
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border: 2px solid #b89150;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.desk-title {
+    color: #8c2727;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #b89150;
+    padding-bottom: 10px;
+}
+
+#myWriting {
+    width: 100%;
+    height: 250px;
+    background: transparent;
+    border: 1px dashed #b89150;
+    padding: 10px;
+    font-family: "STKaiti", "KaiTi", serif;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #fff;
+    resize: none;
+    outline: none;
+    background-image: url('https://od.lk/s/NDBfMTQ4MTcwOTEzX2hXdTl0/1786880897261%281%29.gif');
+    background-size: cover;
+}
+
+/* 全屏流動漸變背景 */
+body {
+    margin: 0; padding: 0;
+    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: "STKaiti", "KaiTi", "Microsoft JhengHei", serif;
+    overflow-y: auto;
+    height: auto;
+    padding-bottom: 50px;
+    background-attachment: fixed;
+    background-size: cover;
+}
+@keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+:root {
+    --cell-size: 50px;
+    --font-size: 1.6rem;
+}
+@media screen and (max-width: 500px) {
+    :root {
+        --cell-size: 42px;
+        --font-size: 1.4rem;
+    }
+    .title-h1 { font-size: 2.2rem !important; }
+}
+
+.brocade-frame {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border: 8px double #b89150;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 4px;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(7, var(--cell-size));
+    gap: 4px;
+    background-color: rgba(184, 145, 80, 0.3);
+}
+.cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    font-size: var(--font-size);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    color: #2c3e50;
+}
+.cell:hover {
+    background: #8c2727;
+    color: white !important;
+    transform: scale(1.1);
+    z-index: 10;
+}
+.highlight-active {
+    background: #fff9c4 !important;
+    color: #8c2727 !important;
+    border: 1px solid #b89150;
+}
+
+.info-panel {
+    margin-top: 2rem;
+    width: 90%;
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.poem-text {
+    color: #ffed86;
+    line-height: 1.6;
+}
+
+@media screen and (max-width: 600px) {
+    .main-layout { gap: 15px; padding: 0 10px; }
+    .writing-desk { width: 100%; padding: 15px; }
+    .brocade-frame { padding: 10px; }
+}
+
+/* 按钮组 - 桌面端与移动端自适应 */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+.btn-group button {
+    font-size: 0.85rem;
+    padding: 7px 18px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: "STKaiti", "KaiTi", serif;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-group button:active {
+    transform: scale(0.95);
+}
+.btn-speak {
+    background: #8c2727;
+    color: white;
+}
+.btn-speak:hover {
+    background: #a83535;
+    box-shadow: 0 4px 12px rgba(140, 39, 39, 0.35);
+}
+.btn-speak:active {
+    background: #6e1e1e;
+}
+.btn-save {
+    background: #6b5a4a;
+    color: white;
+}
+.btn-save:hover {
+    background: #7d6b58;
+    box-shadow: 0 4px 12px rgba(107, 90, 74, 0.3);
+}
+.btn-save:active {
+    background: #554737;
+}
+.btn-speaking {
+    background: #2d7d46 !important;
+    color: white !important;
+    animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+.btn-saved {
+    background: #2d7d46 !important;
+    color: white !important;
+}
+
+/* 桌面端鼠标悬停更精致 */
+@media (hover: hover) {
+    .btn-group button {
+        transition: all 0.3s ease;
+    }
+    .btn-speak:hover {
+        transform: translateY(-1px);
+    }
+    .btn-save:hover {
+        transform: translateY(-1px);
+    }
+}
+
+/* 移动端按钮更大一些，更容易点击 */
+@media (max-width: 600px) {
+    .btn-group button {
+        font-size: 0.95rem;
+        padding: 10px 22px;
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+    }
+    .btn-group {
+        gap: 8px;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="title-area text-center mb-6">
+        <h1 class="title-h1 text-white text-4xl font-bold tracking-widest drop-shadow-lg">璇璣織錦</h1>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="flex flex-col items-center">
+            <div class="brocade-frame">
+                <div id="matrix" class="grid"></div>
+            </div>
+
+            <div class="info-panel">
+                <div class="flex items-center justify-center mb-2">
+                    <i class="fa fa-refresh text-white/40 text-xs mr-2"></i>
+                    <span id="voice-status" class="text-[10px] text-white/40 uppercase tracking-widest">點擊矩陣切換迴環詩文</span>
+                </div>
+                <div id="output" class="text-2xl font-bold min-h-[1.5em] poem-text">
+                    正在載入詩文...
+                </div>
+            </div>
+        </div>
+
+        <div class="writing-desk">
+            <h2 class="desk-title">錦書藏卷</h2>
+            <textarea id="myWriting" placeholder="在此铺纸，落笔成文..."></textarea>
+            <div class="btn-group">
+                <button onclick="speakWriting()" class="btn-speak" id="speakBtn">
+                    <i class="fa fa-volume-up"></i> 女聲朗讀
+                </button>
+                <button onclick="saveWriting()" class="btn-save" id="saveBtn">
+                    <i class="fa fa-save"></i> 保存寄語
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+   
+const xuanjiData = [
+    "思","感","自","寧","孜","孜","傷",
+    "情","時","在","君","側","夢","想",
+    "勞","形","","迴","環","詩",""
+];
+
+const poems = [
+    "思感自寧，孜孜傷情，時在君側，夢想勞形。",
+    "寧自感思，孜孜傷情；側君在時，夢想勞形。",
+    "寧自感思，夢想勞形；側君在時，孜孜傷情。",
+    "孜孜傷情，側君在時；夢想勞形，寧自感思。",
+    "孜孜傷情，寧自感思，夢想勞形，側君在時。"
+];
+
+const matrix = document.getElementById('matrix');
+const output = document.getElementById('output');
+const synth = window.speechSynthesis;
+let currentIdx = 0;
+let femaleVoice = null;
+let isSpeaking = false;
+
+// 获取女声
+function getFemaleVoice() {
+    if (femaleVoice) return femaleVoice;
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) return null;
+    
+    femaleVoice = voices.find(v => 
+        v.lang.startsWith('zh') && 
+        (v.name.includes('Female') || v.name.includes('女') || 
+         v.name.includes('Mei') || v.name.includes('Yating') ||
+         v.name.includes('Ting-Ting') || v.name.includes('Google') && v.name.includes('F'))
+    );
+    
+    if (!femaleVoice) {
+        femaleVoice = voices.find(v => v.lang.startsWith('zh'));
+    }
+    if (!femaleVoice && voices.length > 0) {
+        femaleVoice = voices[0];
+    }
+    return femaleVoice;
+}
+
+function speakText(text, useFemale = true) {
+    if (!synth) return;
+    synth.cancel();
+    
+    if (synth.getVoices().length === 0) {
+        synth.onvoiceschanged = () => {
+            doSpeak(text, useFemale);
+        };
+        return;
+    }
+    doSpeak(text, useFemale);
+}
+
+function doSpeak(text, useFemale) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.85;
+    utterance.pitch = 1.0;
+    utterance.volume = 1;
+    
+    if (useFemale) {
+        const voice = getFemaleVoice();
+        if (voice) {
+            utterance.voice = voice;
+            utterance.pitch = 1.1;
+        }
+    }
+    
+    utterance.onstart = () => { isSpeaking = true; };
+    utterance.onend = () => { isSpeaking = false; };
+    utterance.onerror = () => { isSpeaking = false; };
+    
+    synth.speak(utterance);
+}
+
+function init() {
+    xuanjiData.forEach((char, i) => {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.id = 'cell-' + i;
+        div.innerText = char;
+        
+        const triggerAction = () => { showPoem(); };
+        div.onclick = triggerAction;
+        div.onmouseenter = triggerAction;
+        div.ontouchstart = (e) => {
+            e.preventDefault();
+            triggerAction();
+        };
+        matrix.appendChild(div);
+    });
+
+    if (synth) {
+        synth.getVoices();
+        synth.onvoiceschanged = () => { synth.getVoices(); };
+    }
+
+    setTimeout(showPoem, 300);
+}
+
+function showPoem() {
+    const poemText = poems[currentIdx];
+    output.innerHTML = `「${poemText}」`;
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight-active'));
+    speakText(poemText, true);
+
+    const pureChars = poemText.replace(/[，；。！、]/g, '');
+    [...pureChars].forEach((char, i) => {
+        const gridIdx = xuanjiData.indexOf(char);
+        if(gridIdx !== -1) {
+            setTimeout(() => {
+                const cell = document.getElementById('cell-' + gridIdx);
+                if(cell) cell.classList.add('highlight-active');
+            }, i * 50);
+        }
+    });
+
+    currentIdx = (currentIdx + 1) % poems.length;
+}
+
+init();
+
+// ========== 连接服务器的保存和读取（已改为相对路径） ==========
+
+// 保存到服务器
+async function saveWriting() {
+    const text = document.getElementById('myWriting').value;
+    
+    // 显示保存中
+    const btn = document.getElementById('saveBtn');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 保存中…';
+    btn.className = 'btn-save btn-speaking';
+    
+    try {
+        // ✅ 改成了相对路径
+        const response = await fetch('/api/save', {
+            method: 'POST',
+            body: JSON.stringify({ content: text }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            btn.innerHTML = '<i class="fa fa-check"></i> 已入冊 ✓';
+            btn.className = 'btn-save btn-saved';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.className = 'btn-save';
+            }, 2000);
+        } else {
+            throw new Error('保存失败: ' + result.message);
+        }
+    } catch (e) {
+        alert('⚠️ 保存失败，请检查服务器是否运行。\n\n错误信息: ' + e.message);
+        console.error('保存错误:', e);
+        btn.innerHTML = originalHTML;
+        btn.className = 'btn-save';
+    }
+}
+
+// 从服务器读取
+async function loadWriting() {
+    try {
+        // ✅ 改成了相对路径
+        const response = await fetch('/api/load');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data.content) {
+            document.getElementById('myWriting').value = data.content;
+            console.log('✅ 从服务器加载成功');
+        }
+    } catch (e) {
+        console.log('⚠️ 从服务器读取失败，使用本地缓存');
+        // 如果服务器没启动，使用 localStorage 作为备用
+        const saved = localStorage.getItem('xuanji_user_writing');
+        if (saved) {
+            document.getElementById('myWriting').value = saved;
+        }
+    }
+}
+
+// 女声朗读「锦书藏卷」内容
+function speakWriting() {
+    const text = document.getElementById('myWriting').value;
+    if (!text.trim()) {
+        alert('請先在錦書藏卷中寫下文字。');
+        return;
+    }
+    
+    if (isSpeaking) {
+        synth.cancel();
+        isSpeaking = false;
+        const btn = document.getElementById('speakBtn');
+        btn.innerHTML = '<i class="fa fa-volume-up"></i> 女聲朗讀';
+        btn.className = 'btn-speak';
+        return;
+    }
+    
+    speakText(text, true);
+    const btn = document.getElementById('speakBtn');
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 朗讀中…';
+    btn.className = 'btn-speak btn-speaking';
+    
+    const checkEnd = setInterval(() => {
+        if (!isSpeaking) {
+            btn.innerHTML = '<i class="fa fa-volume-up"></i> 女聲朗讀';
+            btn.className = 'btn-speak';
+            clearInterval(checkEnd);
+        }
+    }, 300);
+    
+    setTimeout(() => {
+        if (isSpeaking) {
+            isSpeaking = false;
+            btn.innerHTML = '<i class="fa fa-volume-up"></i> 女聲朗讀';
+            btn.className = 'btn-speak';
+            clearInterval(checkEnd);
+        }
+    }, 30000);
+}
+
+// 页面加载
+document.addEventListener('DOMContentLoaded', () => {
+    // 从服务器读取数据
+    loadWriting();
+    
+    // 自动保存到 localStorage（备用）
+    const textarea = document.getElementById('myWriting');
+    textarea.addEventListener('input', () => {
+        try {
+            localStorage.setItem('xuanji_user_writing', textarea.value);
+        } catch (e) {}
+    });
+});
+    </script>
+</body>
+</html>
