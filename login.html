@@ -1,670 +1,670 @@
 
-
-
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tailwind CSS v3 -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>灵枢 · 星门登录</title>
     <!-- Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'xp-blue': '#005EBB',
-                        'xp-dark-blue': '#003399',
-                        'xp-light-blue': '#1084D0',
-                        'xp-gray': '#E0E0E0',
-                        'xp-dark-gray': '#A0A0A0',
-                        'xp-text': '#333333',
-                        'xp-button-blue': '#1E90FF',
-                        'xp-button-blue-hover': '#4169E1',
-                    },
-                    fontFamily: {
-                        sans: ['Tahoma', 'Arial', 'sans-serif'],
-                    },
-                    boxShadow: {
-                        'xp': '0 0 0 1px #FFFFFF inset, 0 0 0 2px #808080 inset, 0 2px 3px rgba(0, 0, 0, 0.2)',
-                        'xp-button': '0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2)',
-                        'xp-button-pressed': '0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset',
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .xp-gradient {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            }
-            .xp-button-gradient {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            }
-            .xp-button-gradient-hover {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            }
-            .xp-panel {
-                box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 2px #808080 inset, 0 2px 3px rgba(0, 0, 0, 0.2);
-            }
-            .xp-button {
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            }
-            .xp-button-pressed {
-                box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset;
-            }
-            .user-card {
-                transition: all 0.2s ease;
-            }
-            .user-card:hover {
-                transform: scale(1.05);
-            }
-            .user-card.active {
-                border: 2px solid #1E90FF;
-                box-shadow: 0 0 10px rgba(30, 144, 255, 0.8);
-            }
-        }
-
-
-/* 悬停图片弹出层样式 */
-.tooltip-container {
-    position: relative;
-    display: inline-block;
-}
-
-.tooltip-image {
-    visibility: hidden;
-    width: 200px; /* 图片宽度 */
-    position: absolute;
-    z-index: 1000;
-    bottom: 120%; /* 弹出在头像上方 */
-    left: 50%;
-    margin-left: -100px; /* 居中 */
-    border: 3px solid white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-/* 鼠标悬停时显示 */
-.user-card:hover .tooltip-image {
-    visibility: visible;
-    opacity: 1;
-}
-        
-    </style>
     <style>
-        body {
+        /* 全局重置与神秘基调 */
+        * {
             margin: 0;
             padding: 0;
-            font-family: 'Tahoma', Arial, sans-serif;
-            background-color: #000;
-            overflow: hidden;
+            box-sizing: border-box;
         }
-        
-        .xp-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, #005EBB, #1084D0);
-            z-index: -1;
-        }
-        
-        .blur-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: -1;
-        }
-        
-        .login-container {
+
+        body {
+            font-family: 'Georgia', 'KaiTi', serif;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            padding: 20px;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            background: #0c0b14;
+            overflow: hidden;
+        }
 
+        /* 彩虹动态渐变背景 */
+        .cosmic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: rainbowFlow 12s ease infinite;
+            z-index: 0;
         }
+
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 柔光粒子层 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+                
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite alternate;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+
+            
+        }
+
+        @keyframes float {
+            0% {
+                opacity: 0.2;
+                transform: translateY(0) scale(0.8);
+            }
+            100% {
+                opacity: 0.9;
+                transform: translateY(-40px) scale(1.2);
+            }
+        }
+
+        /* 主容器 — 灵枢星门（半透磨砂） */
+        .portal-container {
+            position: relative;
+            z-index: 10;
+            width: 96%;
+            max-width: 720px;
+            padding: 28px 22px 34px;
+            
+           
         
-        .welcome-text {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 40px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 符文装饰 */
+        .rune-line {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            letter-spacing: 8px;
+            opacity: 0.8;
+            font-family: 'Georgia', serif;
+            text-shadow: 0 0 12px rgba(255, 200, 100, 0.3);
+        }
+
+        /* 标题 — 灵枢 */
+        .title-occult {
             text-align: center;
+            font-size: 2.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(255, 200, 100, 0.4), 0 0 60px rgba(255, 150, 50, 0.2);
+            letter-spacing: 12px;
+            margin-bottom: 6px;
+            font-family: 'Georgia', 'KaiTi', serif;
         }
-        
-        .users-container {
+
+        .title-occult small {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 6px;
+            opacity: 0.7;
+            font-weight: 300;
+            margin-top: -4px;
+            color: #fff8e7;
+            text-shadow: 0 0 20px rgba(255, 200, 100, 0.2);
+        }
+
+        /* 星门守护者卡片 */
+        .guardians {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 30px;
-            margin-bottom: 50px;
-            max-width: 800px;
+            gap: 28px;
+            margin: 28px 0 32px;
         }
-        
-        .user-card {
+
+        .guardian-card {
             display: flex;
             flex-direction: column;
             align-items: center;
             cursor: pointer;
-            padding: 15px;
-            border-radius: 5px;
-            transition: all 0.2s ease;
+            padding: 14px 12px 12px;
+            border-radius: 40px 12px 40px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            min-width: 110px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
-        
-        .user-avatar {
-            width: 100px;
-            height: 100px;
+
+        .guardian-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 32px rgba(255, 200, 100, 0.2);
+        }
+
+        .guardian-card.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 40px rgba(255, 200, 100, 0.25), 0 0 80px rgba(255, 200, 100, 0.08);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .avatar-occult {
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
-            background-color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
+            margin-bottom: 8px;
+            box-shadow: 0 0 30px rgba(255, 200, 100, 0.15);
+            transition: all 0.4s;
+            position: relative;
         }
-        
-        .user-avatar img {
+
+        .avatar-occult img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
-        
-        .user-name {
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+
+        .guardian-card.active .avatar-occult {
+            border-color: #ffffff;
+            box-shadow: 0 0 40px rgba(255, 200, 100, 0.3);
         }
-        
-        .buttons-bar {
+
+        .guardian-name {
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 2px;
+            font-family: 'Georgia', serif;
+            text-shadow: 0 0 20px rgba(255, 200, 100, 0.2);
+        }
+
+        .guardian-title {
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 4px;
+            margin-top: 2px;
+        }
+
+        /* 悬停全息投影 */
+        .hologram {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            padding: 8px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .hologram img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .guardian-card:hover .hologram {
+            display: block;
+        }
+
+        /* 登录仪式按钮 */
+        .ritual-bar {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            padding: 15px;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-            border-top: 1px solid #FFFFFF;
-            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        .xp-button {
-            padding: 8px 20px;
-            border-radius: 3px;
-            font-weight: bold;
+
+        .btn-occult {
+            padding: 12px 32px;
+            border-radius: 60px 12px 60px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 3px;
             cursor: pointer;
-            transition: all 0.1s ease;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 12px;
+            font-family: 'Georgia', serif;
+            text-shadow: 0 0 20px rgba(255, 200, 100, 0.1);
         }
-        
-        .xp-button:hover {
-            background: linear-gradient(to bottom, #4169E1, #1E90FF);
-            color: white;
+
+        .btn-occult:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 40px rgba(255, 200, 100, 0.15);
+            transform: scale(1.02);
         }
-        
-        .xp-button:active {
-            box-shadow: 0 0 0 1px #FFFFFF inset, 0 0 0 1px #808080 inset, 0 1px 2px rgba(0, 0, 0, 0.2) inset;
-            background: linear-gradient(to bottom, #1E90FF, #4169E1);
+
+        .btn-occult:active {
+            transform: scale(0.95);
         }
-        
-        .password-prompt {
+
+        /* 秘语弹窗 */
+        .oracle-overlay {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #F0F0F0;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            display: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
             z-index: 100;
-            width: 350px;
-            max-width: 90%;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        
-        .password-prompt h3 {
-            margin-top: 0;
-            color: #333333;
-            font-size: 18px;
+
+        .oracle-dialog {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 48px 16px 48px 16px;
+            padding: 32px 30px;
+            max-width: 400px;
+            width: 92%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
             text-align: center;
         }
-        
-        .password-input-container {
-            margin: 20px 0;
+
+        .oracle-dialog h3 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 6px;
+            margin-bottom: 16px;
+            text-shadow: 0 0 30px rgba(255, 200, 100, 0.2);
         }
-        
-        .password-input {
+
+        .oracle-dialog .fa {
+            color: #ffed86;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-shadow: 0 0 30px rgba(255, 200, 100, 0.3);
+        }
+
+        .oracle-dialog p {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .oracle-dialog input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #CCCCCC;
-            border-radius: 3px;
-            font-size: 16px;
+            padding: 12px 16px;
+            border-radius: 40px 8px 40px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+            font-size: 1rem;
+            margin: 16px 0 20px;
+            outline: none;
+            font-family: 'Georgia', serif;
+            letter-spacing: 2px;
         }
-        
-        .password-buttons {
+
+        .oracle-dialog input:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 30px rgba(255, 200, 100, 0.1);
+        }
+
+        .oracle-actions {
             display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+            gap: 14px;
+            justify-content: center;
         }
-        
-        .overlay {
+
+        .oracle-actions .btn-occult {
+            padding: 10px 24px;
+            font-size: 0.9rem;
+        }
+
+        /* 星门跃迁加载 */
+        .jumpgate {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 99;
-        }
-        
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-                 background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 200;
         }
-        
-        .loading-logo {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 30px;
+
+        .jumpgate .spiral {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ffed86;
+            animation: spin 1.2s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+            box-shadow: 0 0 60px rgba(255, 200, 100, 0.1);
         }
-        
-        .loading-progress {
-            width: 300px;
-            height: 20px;
-            background-color: #E0E0E0;
-            border-radius: 10px;
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .jumpgate .gate-text {
+            margin-top: 28px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            letter-spacing: 6px;
+            font-family: 'Georgia', serif;
+            animation: pulseText 1.8s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(255, 200, 100, 0.2);
+        }
+
+        @keyframes pulseText {
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .jumpgate .gate-progress {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            margin-top: 16px;
             overflow: hidden;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
-        
-        .progress-bar {
+
+        .jumpgate .gate-progress .bar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(to right, #1E90FF, #4169E1);
-            border-radius: 10px;
-            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #ff7e5f, #ffed86, #5fbfff, #9b8eff);
+            border-radius: 4px;
+            transition: width 0.25s;
         }
-        
-        .loading-text {
-            color: white;
-            margin-top: 20px;
-            font-size: 18px;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-        }
-        
-        /* 经典模式样式 */
-        .classic-login {
-            display: none;
-            background-color: #F0F0F0;
-            padding: 30px;
-            border-radius: 5px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            width: 400px;
-            max-width: 90%;
-        }
-        
-        .classic-login h2 {
-            margin-top: 0;
-            color: #333333;
-            font-size: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .login-field {
-            margin-bottom: 15px;
-        }
-        
-        .login-field label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333333;
-            font-weight: bold;
-        }
-        
-        .login-field input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #CCCCCC;
-            border-radius: 3px;
-            font-size: 16px;
-        }
-        
-        .classic-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        /* 响应式调整 */
-        @media (max-width: 768px) {
-            .welcome-text {
-                font-size: 20px;
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .portal-container {
+                padding: 20px 16px 26px;
+                border-radius: 40px 12px 40px 12px;
             }
-            
-            .user-avatar {
-                width: 80px;
-                height: 80px;
+            .title-occult {
+                font-size: 2rem;
+                letter-spacing: 8px;
             }
-            
-            .users-container {
-                gap: 20px;
+            .guardians {
+                gap: 16px;
             }
-            
-            .buttons-bar {
-                flex-wrap: wrap;
+            .guardian-card {
+                min-width: 80px;
+                padding: 10px 8px;
+            }
+            .avatar-occult {
+                width: 68px;
+                height: 68px;
+            }
+            .btn-occult {
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+            .oracle-dialog {
+                padding: 24px 18px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .guardian-card {
+                min-width: 70px;
+            }
+            .avatar-occult {
+                width: 56px;
+                height: 56px;
+            }
+            .guardian-name {
+                font-size: 0.8rem;
+            }
+            .title-occult {
+                font-size: 1.6rem;
+            }
+            .ritual-bar {
+                gap: 10px;
+            }
+            .btn-occult {
+                font-size: 0.75rem;
+                padding: 8px 16px;
             }
         }
 
 
- body{
-
-
-        background: linear-gradient(45deg,#ff7e5f,#feb47b,#ffed86,#9feb8f,#5fbfff,#9b8eff);
-
-     
- }
         
     </style>
 </head>
 <body>
-    <div class="xp-background"></div>
-    <div class="blur-overlay"></div>
-    
-    <div class="login-container">
-        
-        
-        <div class="users-container">
-      <div class="user-card active" data-username="Administrator">
-    <div class="tooltip-container">
-        <div class="user-avatar">
-            <img src="https://i.ibb.co/R4vzqcYb/image.jpg" alt="Administrator">
-        </div>
-        <img class="tooltip-image" src="https://od.lk/s/NDBfMTM5Mjk2ODMyXw/Hello%20Kitty%20Pink%20GIF.gif" alt="Tooltip">
-    </div>
-    <div class="user-name">Administrator</div>
-</div>
+
+    <!-- 彩虹动态背景 -->
+    <div class="cosmic-bg"></div>
+
+    <!-- 粒子层 (JS生成) -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ===== 星门主界面 ===== -->
+    <div class="portal-container" id="portal">
+        <div class="rune-line"></div>
+        <div class="title-occult">
             
-            <div class="user-card" data-username="User">
-            
+            <small></small>
         </div>
-        
-        <div class="buttons-bar">
-           
-            <div class="xp-button" id="logon">
-                <i class="fa fa-sign-in"></i> 登录
+
+        <!-- 守护者 -->
+        <div class="guardians" id="guardians">
+            <div class="guardian-card active" data-username="Administrator" data-pass="">
+                <div class="avatar-occult">
+                    <img src="https://i.ibb.co/R4vzqcYb/image.jpg" alt="Administrator">
+                </div>
+                <div class="guardian-name"></div>
+                <div class="guardian-title">Administrator</div>
+                <!-- 全息投影 -->
+                <div class="hologram">
+                    <img src="https://od.lk/s/NDBfMTM5Mjk2ODMyXw/Hello%20Kitty%20Pink%20GIF.gif" alt="hologram">
+                </div>
+            </div>
+
+            <div class="guardian-card" data-username="User" data-pass="">
+                <div class="avatar-occult">
+                    <img src="https://od.lk/s/NDBfMTMyMDgzNDAzX3pKdU9j/2YSBqg8jt6ggv6z.thumb.300_0.jpeg" alt="User">
+                </div>
+                <div class="guardian-name">✦  ✦</div>
+                <div class="guardian-title">User</div>
+                <div class="hologram">
+                    <img src="https://od.lk/s/NDBfMTM5Mjk2ODMyXw/Hello%20Kitty%20Pink%20GIF.gif" alt="hologram">
+                </div>
+            </div>
+        </div>
+
+        <!-- 仪式按钮 -->
+        <div class="ritual-bar">
+            <div class="btn-occult" id="btnUnlock">
+                <i class="fa fa-key"></i> 开启尘封之门
             </div>
         </div>
     </div>
-    
-    <!-- 经典登录模式 -->
-    <div class="classic-login" id="classic-login">
-        <h2>Windows XP 登录</h2>
-        <div class="login-field">
-            <label for="classic-username">用户名</label>
-            <input type="text" id="classic-username" value="Administrator">
-        </div>
-        <div class="login-field">
-            <label for="classic-password">密码</label>
-            <input type="password" id="classic-password">
-        </div>
-        <div class="classic-buttons">
-            <div class="xp-button" id="back-to-welcome">
-                <i class="fa fa-arrow-left"></i> 返回
-            </div>
-            <div class="xp-button" id="classic-logon">
-                <i class="fa fa-sign-in"></i> 确定
+
+    <!-- ===== 秘语弹窗 ===== -->
+    <div class="oracle-overlay" id="oracleOverlay">
+        <div class="oracle-dialog">
+            <i class="fa fa-moon-o"></i>
+            <h3>✦ 秘语验证 ✦</h3>
+            <p style="color:rgba(255,255,255,0.7); font-size:0.85rem; letter-spacing:2px; margin-bottom:4px;">请输入第七密语</p>
+            <input type="password" id="oraclePass" placeholder="· · · · · · · ·">
+            <div class="oracle-actions">
+                <div class="btn-occult" id="btnCancelOracle" style="padding:8px 18px;">
+                    <i class="fa fa-times"></i> 消散
+                </div>
+                <div class="btn-occult" id="btnConfirmOracle" style="padding:8px 18px;">
+                    <i class="fa fa-check"></i> 启封
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- 密码提示框 -->
-    <div class="overlay" id="overlay"></div>
-    <div class="password-prompt" id="password-prompt">
-        <h3>输入密码</h3>
-        <div class="password-input-container">
-            <input type="password" class="password-input" id="password-input" placeholder="请输入密码">
+
+    <!-- ===== 星门跃迁加载 ===== -->
+    <div class="jumpgate" id="jumpgate">
+        <div class="spiral"></div>
+        <div class="gate-text" id="gateText">✦ 正在穿越尘封之门 ✦</div>
+        <div class="gate-progress">
+            <div class="bar" id="gateBar"></div>
         </div>
-        <div class="password-buttons">
-            <div class="xp-button" id="cancel-password">取消</div>
-            <div class="xp-button" id="confirm-password">确定</div>
-        </div>
-    </div>
-    
-    <!-- 加载屏幕 -->
-    <div class="loading-screen" id="loading-screen">
-      
-        <div class="loading-progress">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        <div class="loading-text" id="loading-text">正在加载个人设置...</div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 获取DOM元素
-            const userCards = document.querySelectorAll('.user-card');
-            const logonButton = document.getElementById('logon');
-            const switchModeButton = document.getElementById('switch-mode');
-            const shutdownButton = document.getElementById('shutdown');
-            const restartButton = document.getElementById('restart');
-            const passwordPrompt = document.getElementById('password-prompt');
-            const overlay = document.getElementById('overlay');
-            const passwordInput = document.getElementById('password-input');
-            const confirmPasswordButton = document.getElementById('confirm-password');
-            const cancelPasswordButton = document.getElementById('cancel-password');
-            const loadingScreen = document.getElementById('loading-screen');
-            const progressBar = document.getElementById('progress-bar');
-            const loadingText = document.getElementById('loading-text');
-            const classicLogin = document.getElementById('classic-login');
-            const backToWelcomeButton = document.getElementById('back-to-welcome');
-            const classicLogonButton = document.getElementById('classic-logon');
-            const classicUsername = document.getElementById('classic-username');
-            const classicPassword = document.getElementById('classic-password');
-            
+            // ---- 粒子生成 ----
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.width = (2 + Math.random() * 4) + 'px';
+                p.style.height = p.style.width;
+                p.style.animationDelay = (Math.random() * 6) + 's';
+                p.style.animationDuration = (4 + Math.random() * 5) + 's';
+                p.style.opacity = 0.3 + Math.random() * 0.5;
+                particlesContainer.appendChild(p);
+            }
+
+            // ---- DOM 引用 ----
+            const guardianCards = document.querySelectorAll('.guardian-card');
+            const btnUnlock = document.getElementById('btnUnlock');
+            const oracleOverlay = document.getElementById('oracleOverlay');
+            const btnCancelOracle = document.getElementById('btnCancelOracle');
+            const btnConfirmOracle = document.getElementById('btnConfirmOracle');
+            const oraclePass = document.getElementById('oraclePass');
+            const jumpgate = document.getElementById('jumpgate');
+            const gateBar = document.getElementById('gateBar');
+            const gateText = document.getElementById('gateText');
+
             let selectedUser = 'Administrator';
-            
-            // 用户卡片点击事件
-            userCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    // 移除所有卡片的active类
-                    userCards.forEach(c => c.classList.remove('active'));
-                    // 为当前点击的卡片添加active类
+            let selectedPass = '';
+
+            // ---- 守护者选择 ----
+            guardianCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    guardianCards.forEach(c => c.classList.remove('active'));
                     this.classList.add('active');
-                    // 更新选中的用户
                     selectedUser = this.dataset.username;
+                    selectedPass = this.dataset.pass || '';
                 });
             });
-            
-            // 登录按钮点击事件
-            logonButton.addEventListener('click', function() {
-                // 显示密码提示框
-                passwordPrompt.style.display = 'block';
-                overlay.style.display = 'block';
-                passwordInput.focus();
+
+            // ---- 开启星门（显示秘语弹窗） ----
+            btnUnlock.addEventListener('click', function() {
+                oracleOverlay.style.display = 'flex';
+                oraclePass.value = '';
+                oraclePass.focus();
             });
-            
-            // 确认密码按钮点击事件
-            confirmPasswordButton.addEventListener('click', function() {
-                // 获取输入的密码
-                const password = passwordInput.value;
-                
-                // 隐藏密码提示框
-                passwordPrompt.style.display = 'none';
-                overlay.style.display = 'none';
-                
-                // 显示加载屏幕
-                loadingScreen.style.display = 'flex';
-                
-                // 模拟加载进度
-                let progress = 0;
-                const loadingMessages = [
-                    '正在加载个人设置...',
-                    '正在更新系统配置...',
-                    '正在准备桌面...',
-                    '欢迎使用 Boogle XP'
+
+            // ---- 取消 ----
+            btnCancelOracle.addEventListener('click', function() {
+                oracleOverlay.style.display = 'none';
+            });
+
+            // 点击背景关闭
+            oracleOverlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+
+            // ---- 确认秘语 ----
+            btnConfirmOracle.addEventListener('click', function() {
+                const inputPass = oraclePass.value.trim();
+                oracleOverlay.style.display = 'none';
+
+                // 启动跃迁
+                jumpgate.style.display = 'flex';
+                gateBar.style.width = '0%';
+                const messages = [
+                    '✦ 解析灵识签名 ✦',
+                    '✦ 校准尘封之门坐标 ✦',
+                    '✦ 构筑量子通道 ✦',
+                    '✦ 尘封之门已开启 ✦'
                 ];
-                
+
+                let progress = 0;
+                let msgIndex = 0;
                 const interval = setInterval(() => {
-                    progress += 5;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    // 更新加载文本
-                    const messageIndex = Math.floor(progress / 25);
-                    if (messageIndex < loadingMessages.length) {
-                        loadingText.textContent = loadingMessages[messageIndex];
+                    progress += 2 + Math.random() * 4;
+                    if (progress > 100) progress = 100;
+                    gateBar.style.width = progress + '%';
+
+                    const idx = Math.min(Math.floor(progress / 25), messages.length - 1);
+                    if (idx !== msgIndex) {
+                        msgIndex = idx;
+                        gateText.textContent = messages[msgIndex];
                     }
-                    
+
                     if (progress >= 100) {
                         clearInterval(interval);
-                        // 模拟加载完成后跳转到指定网站
                         setTimeout(() => {
-                            // 检查是否是Administrator用户
-                            if (selectedUser === 'Administrator') {
-                                // 跳转到指定网站
-                              if (password === '') {
-
-                                
-                                window.location.href = 'https://chenyongze1956.github.io/Boogle.html';
-
-                               }   
-                            } else {
-                                alert(`欢迎回来，${selectedUser}！\n\nWindows XP 登录界面模拟完成。`);
-                                loadingScreen.style.display = 'none';
-                            }
-                        }, 1000);
-                    }
-                }, 100);
-            });
-            
-            // 取消密码按钮点击事件
-            cancelPasswordButton.addEventListener('click', function() {
-                passwordPrompt.style.display = 'none';
-                overlay.style.display = 'none';
-            });
-            
-            // 切换到经典模式按钮点击事件
-            switchModeButton.addEventListener('click', function() {
-                document.querySelector('.welcome-text').style.display = 'none';
-                document.querySelector('.users-container').style.display = 'none';
-                document.querySelector('.buttons-bar').style.display = 'none';
-                classicLogin.style.display = 'block';
-            });
-            
-            // 返回欢迎屏幕按钮点击事件
-            backToWelcomeButton.addEventListener('click', function() {
-                document.querySelector('.welcome-text').style.display = 'block';
-                document.querySelector('.users-container').style.display = 'flex';
-                document.querySelector('.buttons-bar').style.display = 'flex';
-                classicLogin.style.display = 'none';
-            });
-            
-            // 经典模式登录按钮点击事件
-            classicLogonButton.addEventListener('click', function() {
-                const username = classicUsername.value;
-                const password = classicPassword.value;
-                
-                if (!username) {
-                    alert('请输入用户名');
-                    return;
-                }
-                
-                // 显示加载屏幕
-                loadingScreen.style.display = 'flex';
-                
-                // 模拟加载进度
-                let progress = 0;
-                const loadingMessages = [
-                    '正在验证用户名和密码...',
-                    '正在加载个人设置...',
-                    '正在准备桌面...',
-                    '欢迎使用 Boogle XP'
-                ];
-                
-                const interval = setInterval(() => {
-                    progress += 5;
-                    progressBar.style.width = `${progress}%`;
-                    
-                    // 更新加载文本
-                    const messageIndex = Math.floor(progress / 25);
-                    if (messageIndex < loadingMessages.length) {
-                        loadingText.textContent = loadingMessages[messageIndex];
-                    }
-                    
-                    if (progress >= 100) {
-                        clearInterval(interval);
-                        // 模拟加载完成后跳转到指定网站
-                        setTimeout(() => {
-                            // 检查是否是Administrator用户
-                            if (username === 'Administrator') {
-                                // 跳转到指定网站
+                            // 跳转逻辑：Administrator 且密码为空
+                            if (selectedUser === 'Administrator' && inputPass === '') {
                                 window.location.href = 'https://chenyongze1956.github.io/Boogle.html';
                             } else {
-                                alert(`欢迎回来，${username}！\n\nWindows XP 登录界面模拟完成。`);
-                                loadingScreen.style.display = 'none';
+                                alert('✦ 灵识对接完成 ✦\n欢迎回来，' + selectedUser + '。');
+                                jumpgate.style.display = 'none';
+                                gateText.textContent = '✦ 正在穿越星门 ✦';
                             }
-                        }, 1000);
+                        }, 800);
                     }
-                }, 100);
+                }, 90);
             });
-            
-            // 关闭计算机按钮点击事件
-            shutdownButton.addEventListener('click', function() {
-                if (confirm('确定要关闭计算机吗？')) {
-                    alert('正在关闭计算机...');
-                    // 在实际应用中，这里可以添加关闭动画
-                }
-            });
-            
-            // 重新启动按钮点击事件
-            restartButton.addEventListener('click', function() {
-                if (confirm('确定要重新启动计算机吗？')) {
-                    alert('正在重新启动计算机...');
-                    // 在实际应用中，这里可以添加重启动画
-                }
-            });
-            
-            // 键盘事件处理
-            passwordInput.addEventListener('keypress', function(e) {
+
+            // ---- 键盘回车 ----
+            oraclePass.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
-                    confirmPasswordButton.click();
+                    btnConfirmOracle.click();
                 }
             });
-            
-            classicPassword.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    classicLogonButton.click();
-                }
-            });
+
+            // ---- 选中用户默认高亮 ----
+            // 已默认第一个 active
         });
     </script>
 </body>
