@@ -1,146 +1,418 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>奇趣修行补给站 · 彩虹版</title>
     <link rel="stylesheet" href="https://joy2.jstools.net/static/layui/css/layui.css">
     <style>
-        /* 全屏柔和渐变背景动画 */
-        body { 
-            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
-            background-size: 400% 400%;
-            animation: gradientBG 20s ease infinite;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        /* ===== 全局：彩虹渐变背景 + 粒子 ===== */
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            background-size: 400% 400%;
+            animation: rainbowBG 24s ease infinite;
+            overflow: hidden;
+            user-select: none;
+            position: relative;
             padding: 10px;
-            box-sizing: border-box;
-            overflow: hidden; 
-            user-select: none; 
         }
 
-        @keyframes gradientBG {
+        @keyframes rainbowBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        .donate-container { 
+        /* 粒子画布 - 半透明以显示彩虹背景 */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 550px; 
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 1.5rem 1rem;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-            text-align: center;
-            box-sizing: border-box;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* ===== 主卡片 - 玻璃拟态 ===== */
+        .donate-container {
+            position: relative;
             z-index: 10;
-        }
-
-        .donate-header h1 { color: #333; font-size: 1.4rem; margin-bottom: 5px; }
-        .gongde-display { font-size: 0.85rem; color: #555; margin-bottom: 10px; font-weight: bold; }
-        .donate-header p { color: #444; line-height: 1.4; font-size: 0.9rem; min-height: 2.5rem; transition: all 0.3s; padding: 0 5px; }
-
-        .qr-codes { 
-            display: flex; 
-            flex-direction: row; 
-            justify-content: space-around; 
-            align-items: flex-start;
-            flex-wrap: nowrap; 
-            margin-top: 10px;
-            gap: 15px; 
-        }
-
-        .qr-item { 
-            flex: 1; 
-            min-width: 0; 
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 32px;
+            padding: 1.5rem 1rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+                        0 0 0 1px rgba(255, 255, 255, 0.4) inset,
+                        0 0 30px rgba(255, 200, 100, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             text-align: center;
-            position: relative; /* 确保悬停效果的参考系 */
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: cardFloat 6s ease-in-out infinite;
         }
+        @keyframes cardFloat {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(0.3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* ===== 头部 ===== */
+        .donate-header h1 {
+            color: #2c3e50;
+            font-size: 1.6rem;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.3);
+            letter-spacing: 4px;
+            margin-bottom: 0.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .donate-header h1 span {
+            display: inline-block;
+            animation: spinSlow 12s linear infinite;
+        }
+        @keyframes spinSlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .gongde-display {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 6px 18px;
+            border-radius: 40px;
+            display: inline-block;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin: 6px 0 10px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .quote-box {
+            min-height: 2.8rem;
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 30px;
+            border-left: 3px solid rgba(255, 255, 255, 0.6);
+            border-right: 3px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
+            margin: 6px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            letter-spacing: 0.5px;
+            transition: all 0.5s ease;
+            word-break: break-word;
+        }
+
+        /* ===== 二维码区域 - 移动端优化 ===== */
+        .qr-codes {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: stretch;
+            gap: 10px;
+            margin: 15px 0 8px;
+        }
+
+        .qr-item {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            position: relative;
+            transition: transform 0.5s;
+        }
+        .qr-item:nth-child(1) { transform: rotate(-1deg); }
+        .qr-item:nth-child(2) { transform: rotate(1deg); }
+        .qr-item:nth-child(3) { transform: rotate(-0.5deg); }
 
         .qr-img-wrapper {
-            width: 100%; 
-            aspect-ratio: 1 / 1; 
-            background: #fff;
-            border-radius: 12px;
-            padding: 5px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 30% 70% 50% 50% / 50% 40% 60% 50%;
+            padding: 6px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.6) inset;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto;
             box-sizing: border-box;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.8);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            touch-action: manipulation; /* 优化触控 */
+        }
+        /* 每个卡片不同形状 */
+        .qr-item:nth-child(1) .qr-img-wrapper { border-radius: 40% 60% 30% 70% / 50% 40% 60% 50%; }
+        .qr-item:nth-child(2) .qr-img-wrapper { border-radius: 60% 40% 70% 30% / 40% 60% 40% 60%; }
+        .qr-item:nth-child(3) .qr-img-wrapper { border-radius: 30% 70% 60% 40% / 60% 30% 70% 40%; }
+
+        /* 移动端悬停改用点击效果，避免悬停遮挡 */
+        .qr-img-wrapper:active {
+            transform: scale(1.3) rotate(2deg) !important;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 30px rgba(255, 215, 0, 0.2);
+            background: rgba(255, 255, 255, 0.85);
         }
 
-        /* 重点：鼠标悬停放大效果 */
-        .qr-img-wrapper:hover {
-            transform: scale(1.6); /* 放大 1.6 倍 */
-            z-index: 100; /* 置于最顶层 */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        
-        .qr-img-wrapper:active { 
-            transform: scale(1.4); /* 点击时轻微回弹 */
+        /* 桌面端悬停效果 */
+        @media (hover: hover) {
+            .qr-img-wrapper:hover {
+                transform: scale(1.6) rotate(3deg) !important;
+                z-index: 200;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.15), 0 0 30px rgba(255, 215, 0, 0.2);
+                border-radius: 20% 80% 30% 70% / 50% 30% 70% 50%;
+                background: rgba(255, 255, 255, 0.85);
+            }
         }
 
-        .qr-item img { 
+        .qr-item img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
-            border-radius: 8px;
+            border-radius: 16px;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.05));
         }
 
+        /* 钱袋图标 */
         .crypto-icon {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: #9945FF;
+            text-shadow: 0 0 20px rgba(153, 69, 255, 0.3);
+            animation: pulseGlow 2s infinite alternate;
+            line-height: 1;
+        }
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 10px rgba(153, 69, 255, 0.2); transform: scale(0.95); }
+            100% { text-shadow: 0 0 30px rgba(153, 69, 255, 0.4); transform: scale(1.05); }
         }
 
-        .qr-item p { margin-top: 8px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
+        .qr-item p {
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 3px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            display: inline-block;
+            color: #2c3e50;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+        }
         .alipay { color: #1677ff; }
         .wechat { color: #07c160; }
-        .solana { color: #8e44ad; }
+        .solana { color: #9945FF; }
 
-        .footer-msg { margin-top: 15px; font-size: 0.75rem; color: #666; font-style: italic; }
-
-        @media (max-width: 375px) {
-            .donate-container { padding: 1rem 0.6rem; }
-            .qr-item p { font-size: 0.7rem; }
-            .qr-img-wrapper:hover { transform: scale(1.3); } /* 手机端放大倍数稍微调小，防止出屏 */
+        .footer-msg {
+            margin-top: 15px;
+            font-size: 0.7rem;
+            color: #2c3e50;
+            border-top: 1px dashed rgba(255, 255, 255, 0.5);
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .footer-msg p {
+            margin: 0;
         }
 
+        /* ===== 浮动特效 ===== */
         .float-text {
             position: absolute;
             pointer-events: none;
-            font-weight: bold;
-            color: #333;
-            font-size: 1rem;
-            z-index: 200;
-            animation: floatUp 1s ease-out forwards;
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            z-index: 300;
+            animation: floatUpWavy 1.2s ease-out forwards;
+        }
+        @keyframes floatUpWavy {
+            0% { opacity: 1; transform: translateY(0) scale(0.5) rotate(0deg); }
+            50% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(10deg); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.8) rotate(-10deg); }
         }
 
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-80px); opacity: 0; }
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffffff, #ffd700);
+            border-radius: 50%;
+            z-index: 50;
+            animation: sparkleFade 0.8s ease-out forwards;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        @keyframes sparkleFade {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1.8) rotate(180deg); opacity: 0; }
+        }
+
+        /* ===== 手机特别优化 ===== */
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+            
+            .donate-container {
+                padding: 1.2rem 0.8rem;
+                border-radius: 28px;
+                max-width: 100%;
+                animation: cardFloat 4s ease-in-out infinite;
+            }
+            
+            .donate-header h1 {
+                font-size: 1.3rem;
+                letter-spacing: 2px;
+                gap: 5px;
+            }
+            
+            .gongde-display {
+                font-size: 1rem;
+                padding: 4px 14px;
+            }
+            
+            .quote-box {
+                font-size: 0.85rem;
+                min-height: 2.4rem;
+                padding: 5px 10px;
+            }
+            
+            .qr-codes {
+                gap: 8px;
+                margin: 12px 0 6px;
+            }
+            
+            .qr-img-wrapper {
+                padding: 4px;
+                border-radius: 25% 65% 45% 55% / 45% 35% 65% 45%;
+            }
+            .qr-item:nth-child(1) .qr-img-wrapper { border-radius: 35% 55% 25% 65% / 45% 35% 55% 45%; }
+            .qr-item:nth-child(2) .qr-img-wrapper { border-radius: 55% 35% 65% 25% / 35% 55% 35% 55%; }
+            .qr-item:nth-child(3) .qr-img-wrapper { border-radius: 25% 65% 55% 35% / 55% 25% 65% 35%; }
+            
+            .qr-img-wrapper:active {
+                transform: scale(1.2) rotate(2deg) !important;
+            }
+            
+            .crypto-icon {
+                font-size: 2.2rem;
+            }
+            
+            .qr-item p {
+                font-size: 0.6rem;
+                margin-top: 6px;
+                padding: 2px 8px;
+            }
+            
+            .footer-msg {
+                font-size: 0.6rem;
+                margin-top: 12px;
+                padding-top: 10px;
+            }
+            
+            .float-text {
+                font-size: 1.2rem;
+            }
+            
+            .cosmic-deco {
+                display: none;
+            }
+        }
+
+        /* 超小屏设备 */
+        @media (max-width: 360px) {
+            .donate-container {
+                padding: 1rem 0.6rem;
+                border-radius: 24px;
+            }
+            
+            .donate-header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .gongde-display {
+                font-size: 0.9rem;
+                padding: 3px 12px;
+            }
+            
+            .quote-box {
+                font-size: 0.75rem;
+                min-height: 2rem;
+            }
+            
+            .qr-codes {
+                gap: 5px;
+            }
+            
+            .qr-item p {
+                font-size: 0.5rem;
+                padding: 2px 6px;
+            }
+        }
+
+        /* 桌面端装饰 */
+        .cosmic-deco {
+            position: fixed;
+            top: 10%;
+            right: 5%;
+            font-size: 8rem;
+            opacity: 0.06;
+            color: #2c3e50;
+            transform: rotate(15deg);
+            z-index: 0;
+            pointer-events: none;
+            font-family: 'Times New Roman', serif;
         }
     </style>
 </head>
 <body>
 
+<!-- 动态粒子背景 -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- 装饰 -->
+<div class="cosmic-deco">☯</div>
+
 <div class="donate-container">
     <div class="donate-header">
-        <h1>☕ 修行补给站</h1>
-        <div id="gongde-count" class="gongde-display">修行功德：0</div>
-        <p id="quote-text">每一份赞助，都是缘分的结交。</p>
+        <h1>
+            <span>🌀</span> 修行补给站 <span style="animation-duration: 8s;">☕</span>
+        </h1>
+        <div id="gongde-count" class="gongde-display">功德：0</div>
+        <div id="quote-box" class="quote-box">✨ 每一份赞助，都是缘分的结交 ✨</div>
     </div>
 
     <div class="qr-codes">
@@ -148,74 +420,264 @@
             <div class="qr-img-wrapper" onclick="addGongde(event, '支付宝', 1)">
                 <img src="https://i.ibb.co/LhdqqkhC/177025151674.jpg" alt="支付宝">
             </div>
-            <p class="alipay">支付宝</p>
+            <p><span class="alipay">🌈 支付宝</span></p>
         </div>
         
         <div class="qr-item">
             <div class="qr-img-wrapper" onclick="addGongde(event, '微信支付', 1)">
                 <img src="https://i.ibb.co/q3zY0VbK/image.png" alt="微信支付">
             </div>
-            <p class="wechat">微信支付</p>
+            <p><span class="wechat">🪷 微信</span></p>
         </div>
 
         <div class="qr-item">
             <div class="qr-img-wrapper" onclick="copyCrypto(event)">
                 <div class="crypto-icon">💰</div>
             </div>
-            <p class="solana">SOL (Solana)</p>
+            <p><span class="solana">⚡ SOL</span></p>
         </div>
     </div>
 
     <div class="footer-msg">
-        <p>* 捐助时请备注您的昵称，万分感谢。</p>
-        <p style="margin-top: 5px; font-size: 0.7rem; color: #777;">悬停放大二维码 | 点击钱袋复制 SOL 地址</p>
+        <p>* 捐助时请备注昵称，功德无量 *</p>
+        <p style="font-size: 0.6rem; opacity: 0.7;">🪄 点击放大 · 点钱袋复制地址 · 点空白修行</p>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    // ... 原有 JavaScript 逻辑保持不变 ...
-    const quotes = ["每一份赞助，都是缘分的结交。", "代码如禅", "咖啡，是为了明日更强大的逻辑。", "世界微尘里，吾宁爱与憎。", "善哉善哉，阁下道行又深了一层。", "万物皆虚，唯有咖啡是真。", "区块链也是一种修行。"];
+    // ===== 粒子背景 =====
+    (function initParticles() {
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        const particles = [];
+        const PARTICLE_COUNT = 50; // 减少粒子数提升移动端性能
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.speedY = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.color = `hsl(${Math.random() * 60 + 20}, 80%, 70%)`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = 'rgba(255, 200, 100, 0.2)';
+                ctx.shadowBlur = 10;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+        }
+
+        let animationId;
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            
+            // 只在桌面端画连接线，移动端省略以提升性能
+            if (window.innerWidth > 768) {
+                ctx.globalAlpha = 0.04;
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 100) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                ctx.globalAlpha = 1;
+            }
+            
+            animationId = requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // 窗口变化时重置画布
+        window.addEventListener('resize', () => {
+            resize();
+        });
+    })();
+
+    // ===== 核心逻辑 =====
+    const quotes = [
+        "🌀 一花一世界，一码一菩提。",
+        "☕ 咖啡在左，代码在右，功德在中间。",
+        "✨ 善哉善哉，阁下又悟了一层。",
+        "🌌 宇宙洪荒，皆是缘分。",
+        "⚡ 你赞助的不是金钱，而是你我的缘分",
+        "🍃 万物皆虚，唯有修行是真。",
+        "🔮 每一个铜板，都是彼此情感的连接",
+        "🎋 每一行代码，都是禅机。",
+        "🌈 感谢施主，道心稳固。",
+        "🌟 功德圆满，可换一杯琼浆仙酿。"
+    ];
     const solAddress = "Ex9XoJ25TwBNuKRHSAkUvobvW9bCTgwEW1ZGMhibjs9v";
     let count = parseInt(localStorage.getItem('my_gongde')) || 0;
     const countDisplay = document.getElementById('gongde-count');
-    const quoteDisplay = document.getElementById('quote-text');
-    countDisplay.innerText = `修行功德：${count}`;
+    const quoteBox = document.getElementById('quote-box');
+    countDisplay.innerText = `功德：${count}`;
+
+    function updateCountDisplay() {
+        countDisplay.innerText = `功德：${count}`;
+        countDisplay.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            countDisplay.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    function createSparkles(x, y, num = 10) {
+        for (let i = 0; i < num; i++) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            const size = Math.random() * 10 + 4;
+            sparkle.style.width = size + 'px';
+            sparkle.style.height = size + 'px';
+            sparkle.style.left = (x + (Math.random() - 0.5) * 50) + 'px';
+            sparkle.style.top = (y + (Math.random() - 0.5) * 50) + 'px';
+            sparkle.style.background = `radial-gradient(circle, #ffffff, #ffd700)`;
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 800);
+        }
+    }
 
     function addGongde(event, type, val = 1) {
         count += val;
         localStorage.setItem('my_gongde', count);
-        countDisplay.innerText = `修行功德：${count}`;
-        quoteDisplay.style.opacity = 0;
+        updateCountDisplay();
+
+        quoteBox.style.opacity = 0;
         setTimeout(() => {
-            quoteDisplay.innerText = quotes[Math.floor(Math.random() * quotes.length)];
-            quoteDisplay.style.opacity = 1;
-        }, 200);
+            quoteBox.innerText = quotes[Math.floor(Math.random() * quotes.length)];
+            quoteBox.style.opacity = 1;
+        }, 180);
+
+        // 获取点击位置
+        let x, y;
+        if (event.touches) {
+            x = event.touches[0].pageX;
+            y = event.touches[0].pageY;
+        } else if (event.pageX) {
+            x = event.pageX;
+            y = event.pageY;
+        } else {
+            x = window.innerWidth / 2;
+            y = window.innerHeight / 2;
+        }
+
         const floatText = document.createElement('div');
         floatText.className = 'float-text';
-        floatText.innerText = `功德 +${val} ☕`;
-        floatText.style.left = (event.pageX - 20) + 'px';
-        floatText.style.top = (event.pageY - 20) + 'px';
+        floatText.innerText = `+${val} 功德 ✨`;
+        floatText.style.left = (x - 25) + 'px';
+        floatText.style.top = (y - 20) + 'px';
         document.body.appendChild(floatText);
-        setTimeout(() => floatText.remove(), 1000);
+        setTimeout(() => floatText.remove(), 1200);
+
+        createSparkles(x, y, 12);
+
         confetti({
-            particleCount: 20 + (val * 2),
-            spread: 40,
-            origin: { x: event.pageX / window.innerWidth, y: event.pageY / window.innerHeight },
-            colors: ['#ff7e5f', '#feb47b', '#9b8eff', '#9945FF']
+            particleCount: 20 + val * 2,
+            spread: 60,
+            origin: { x: x / window.innerWidth, y: y / window.innerHeight },
+            colors: ['#ff7e5f', '#feb47b', '#ffed86', '#9feb8f', '#5fbfff', '#9b8eff', '#ffd700'],
+            startVelocity: 15,
+            gravity: 0.6
         });
     }
 
     function copyCrypto(event) {
+        event.stopPropagation();
+        if (event.cancelable) event.preventDefault();
+        
         navigator.clipboard.writeText(solAddress).then(() => {
             addGongde(event, 'Crypto', 10);
-            const oldText = quoteDisplay.innerText;
-            quoteDisplay.innerText = "✨ 地址已复制！善哉善哉。";
-            setTimeout(() => { if(quoteDisplay.innerText === "✨ 地址已复制！善哉善哉。") quoteDisplay.innerText = oldText; }, 2000);
+            const oldText = quoteBox.innerText;
+            quoteBox.innerText = "✨ 地址已复制！善哉善哉 ✨";
+            setTimeout(() => {
+                if (quoteBox.innerText === "✨ 地址已复制！善哉善哉 ✨") {
+                    quoteBox.innerText = oldText;
+                }
+            }, 2000);
+        }).catch(() => {
+            // 移动端降级方案
+            const input = document.createElement('input');
+            input.value = solAddress;
+            document.body.appendChild(input);
+            input.select();
+            try {
+                document.execCommand('copy');
+                addGongde(event, 'Crypto', 10);
+                const oldText = quoteBox.innerText;
+                quoteBox.innerText = "✨ 地址已复制！善哉善哉 ✨";
+                setTimeout(() => {
+                    if (quoteBox.innerText === "✨ 地址已复制！善哉善哉 ✨") {
+                        quoteBox.innerText = oldText;
+                    }
+                }, 2000);
+            } catch(e) {
+                alert(`📋 请手动复制地址：\n${solAddress}`);
+            }
+            document.body.removeChild(input);
         });
     }
 
-    document.body.onclick = function(e) { if(e.target === document.body) addGongde(e, '修行', 1); };
+    // 点击空白区域增加功德（菩提心）
+    document.body.addEventListener('click', function(e) {
+        if (e.target === document.body || e.target === document.getElementById('particle-canvas')) {
+            addGongde(e, '修行', 1);
+        }
+    });
+
+    // 触摸设备支持
+    document.body.addEventListener('touchstart', function(e) {
+        if (e.target === document.body || e.target === document.getElementById('particle-canvas')) {
+            addGongde(e, '修行', 1);
+        }
+    }, { passive: true });
+
+    document.querySelector('.donate-container').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    document.querySelector('.donate-container').addEventListener('touchstart', function(e) {
+        e.stopPropagation();
+    }, { passive: true });
+
+    console.log('🌈 奇趣修行补给站 (彩虹移动版) 已加载，功德无量。');
 </script>
 </body>
 </html>
