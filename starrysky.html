@@ -1,82 +1,720 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>古巴比伦星空</title>
+  <title>✨ 星空闪光宝可梦 ✨</title>
 
   <style>
-    * { box-sizing: border-box; }
-    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; touch-action: none; }
-    body {
-      background: #080b24;
-      color: #f7d98b;
-      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    * {
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
-    canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    .info {
-      position: fixed;
-      top: clamp(1rem, 4vh, 6vh);
-      left: clamp(1rem, 4vw, 6vw);
-      pointer-events: none;
-      text-shadow: 0 2px 18px rgba(245, 190, 76, .65);
-      animation: appear 2s ease-out both;
-      z-index: 10;
-    }
-    h1 {
+
+    html,
+    body {
       margin: 0;
-      font-size: clamp(1.2rem, 4vw, 4rem);
-      font-weight: 300;
-      letter-spacing: .2em;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      touch-action: none;
+      font-family: 'Comic Sans MS', 'Microsoft YaHei', cursive, sans-serif;
+      background: #080b24;
     }
-    p {
-      margin: 0.3rem 0 0;
-      color: #e8c77a;
-      font-size: clamp(0.6rem, 1.2vw, 1rem);
-      letter-spacing: .25em;
+
+    /* ===== 星空画布（底层） ===== */
+    #starfield {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 0;
+      display: block;
+      touch-action: none;
+    }
+
+    /* ===== 宝可梦容器（上层） ===== */
+    #catch_screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      user-select: none;
+      padding: 12px;
+      /* 半透明渐变遮罩，让宝可梦更清晰 */
+      background: radial-gradient(ellipse at center, rgba(8, 11, 36, 0.3) 0%, rgba(8, 11, 36, 0.6) 100%);
+    }
+
+    /* ===== 宝可梦容器 ===== */
+    #encounter {
+      position: relative;
+      display: inline-block;
+      width: min(200px, 50vw);
+      height: min(200px, 50vw);
+      margin: 0 auto;
+      flex-shrink: 0;
+      z-index: 2;
+    }
+
+    #pokemon,
+    #shiny {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      margin: 0 auto;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      display: block;
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      image-rendering: auto;
+      filter: drop-shadow(0 0 20px rgba(247, 217, 139, 0.3));
+    }
+
+    #pokemon {
+      display: block;
+    }
+
+    #shiny {
+      display: none;
+    }
+
+    #pokemon:active {
+      transform: translateX(-50%) scale(0.92);
+    }
+
+    #shiny,
+    #sparkle {
+      display: none;
+    }
+
+    /* ===== 闪光粒子 Canvas ===== */
+    #sparkles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* ===== 🎀 卖萌对话框 ===== */
+    #speech-bubble {
+      position: absolute;
+      top: -15%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: clamp(16px, 3vw, 24px);
+      padding: clamp(8px, 1.5vw, 14px) clamp(14px, 3vw, 24px);
+      min-width: clamp(50px, 15vw, 80px);
+      max-width: clamp(140px, 40vw, 260px);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 3px #ffd700;
+      pointer-events: none;
+      z-index: 10;
+      font-family: 'Comic Sans MS', 'Microsoft YaHei', cursive, sans-serif;
+      font-size: clamp(13px, 3vw, 19px);
+      font-weight: bold;
+      color: #333;
+      line-height: 1.3;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      transform: translateX(-50%) scale(0.8);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    #speech-bubble.show {
+      opacity: 1 !important;
+      transform: translateX(-50%) scale(1) !important;
+    }
+
+    #speech-tail {
+      position: absolute;
+      bottom: clamp(-10px, -2vw, -18px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: clamp(8px, 2vw, 14px) solid transparent;
+      border-right: clamp(8px, 2vw, 14px) solid transparent;
+      border-top: clamp(10px, 2.5vw, 18px) solid rgba(255, 255, 255, 0.95);
+    }
+
+    #speech-bubble.happy {
+      border-color: #ff6b9d;
+    }
+    #speech-bubble.happy #speech-tail {
+      border-top-color: rgba(255, 240, 245, 0.95);
+    }
+    #speech-bubble.happy {
+      background: rgba(255, 240, 245, 0.95);
+    }
+
+    #speech-bubble.excited {
+      border-color: #ffd700;
+    }
+    #speech-bubble.excited #speech-tail {
+      border-top-color: rgba(255, 255, 240, 0.95);
+    }
+    #speech-bubble.excited {
+      background: rgba(255, 255, 240, 0.95);
+    }
+
+    #speech-bubble.shy {
+      border-color: #87ceeb;
+    }
+    #speech-bubble.shy #speech-tail {
+      border-top-color: rgba(240, 248, 255, 0.95);
+    }
+    #speech-bubble.shy {
+      background: rgba(240, 248, 255, 0.95);
+    }
+
+    #speech-bubble.tsundere {
+      border-color: #ff4500;
+    }
+    #speech-bubble.tsundere #speech-tail {
+      border-top-color: rgba(255, 240, 240, 0.95);
+    }
+    #speech-bubble.tsundere {
+      background: rgba(255, 240, 240, 0.95);
+    }
+
+    #speech-bubble.sleepy {
+      border-color: #9b59b6;
+    }
+    #speech-bubble.sleepy #speech-tail {
+      border-top-color: rgba(245, 240, 255, 0.95);
+    }
+    #speech-bubble.sleepy {
+      background: rgba(245, 240, 255, 0.95);
+    }
+
+    /* ===== 😊 表情雨 ===== */
+    #emoji-rain {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 4;
+    }
+
+    .floating-emoji {
+      position: absolute;
+      font-size: clamp(20px, 5vw, 36px);
+      animation: floatUp 2.2s ease-out forwards;
+      pointer-events: none;
+      text-shadow: 0 2px 20px rgba(255, 215, 0, 0.5);
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.5) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-180px) scale(1.3) rotate(720deg);
+      }
+    }
+
+    /* ===== 宝可梦动画 ===== */
+    #shiny.happy {
+      animation: happyHop 0.6s ease-in-out;
+    }
+    #shiny.shy {
+      animation: shyWiggle 0.8s ease-in-out;
+    }
+
+    @keyframes happyHop {
+      0%,
+      100% {
+        transform: translateX(-50%) translateY(0) rotate(0deg);
+      }
+      25% {
+        transform: translateX(-50%) translateY(-18px) rotate(-8deg);
+      }
+      75% {
+        transform: translateX(-50%) translateY(-10px) rotate(8deg);
+      }
+    }
+
+    @keyframes shyWiggle {
+      0%,
+      100% {
+        transform: translateX(-50%) rotate(0deg) scale(1);
+      }
+      25% {
+        transform: translateX(-50%) rotate(-15deg) scale(0.9);
+      }
+      75% {
+        transform: translateX(-50%) rotate(15deg) scale(0.9);
+      }
+    }
+
+    /* ===== 下拉菜单 ===== */
+    #pokemons {
+      font-size: clamp(13px, 2.8vw, 17px);
+      -webkit-appearance: none;
+      appearance: none;
+      padding: clamp(8px, 1.5vw, 12px) clamp(30px, 6vw, 40px) clamp(8px, 1.5vw, 12px) clamp(14px, 3vw, 20px);
+      border-radius: 30px;
+      color: #f7d98b;
+      background: rgba(8, 11, 36, 0.8);
+      border: 1px solid rgba(247, 217, 139, 0.3);
+      outline: none;
+      margin: clamp(6px, 1.5vh, 12px) 0;
+      cursor: pointer;
+      font-family: inherit;
+      position: relative;
+      z-index: 5;
+      width: min(280px, 80vw);
+      max-width: 380px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    #pokemons option {
+      background: #0a0f2a;
+      color: #f7d98b;
+      font-size: 14px;
+    }
+
+    /* ===== 统计面板 ===== */
+    #stats {
+      color: #f7d98b;
+      font-family: 'Comic Sans MS', 'Microsoft YaHei', sans-serif;
+      font-weight: 100;
+      font-size: clamp(12px, 2.5vw, 15px);
+      line-height: 1.7;
+      margin: clamp(4px, 1vh, 8px) auto;
+      text-align: right;
+      position: relative;
+      z-index: 5;
+      width: min(300px, 85vw);
+      max-width: 380px;
+      background: rgba(8, 11, 36, 0.7);
+      border-radius: 16px;
+      padding: clamp(6px, 1.5vh, 10px) clamp(12px, 3vw, 20px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(247, 217, 139, 0.15);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    #stats td {
+      padding: clamp(1px, 0.3vh, 3px) clamp(3px, 0.8vw, 6px);
+    }
+
+    #stats td:last-child {
+      text-align: left;
+      width: clamp(40px, 12vw, 60px);
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    #stats td:first-child {
+      text-align: right;
+      padding-right: clamp(8px, 2vw, 14px);
       opacity: 0.7;
     }
-    .hint {
-      position: fixed;
-      right: clamp(0.8rem, 2vw, 2rem);
-      bottom: clamp(0.8rem, 2vh, 1.5rem);
-      color: rgba(232, 199, 122, .4);
-      font-size: clamp(0.5rem, 1vw, 0.8rem);
-      letter-spacing: .12em;
-      z-index: 10;
-      pointer-events: none;
+
+    /* ===== 控制按钮 ===== */
+    .controls {
+      margin-top: clamp(4px, 1vh, 8px);
+      display: flex;
+      gap: clamp(6px, 1.5vw, 12px);
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: min(320px, 88vw);
+      max-width: 400px;
+      position: relative;
+      z-index: 5;
     }
-    @keyframes appear { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-    
+
+    .controls label {
+      color: #f7d98b;
+      font-size: clamp(11px, 2.5vw, 14px);
+      font-family: inherit;
+      cursor: pointer;
+      background: rgba(8, 11, 36, 0.6);
+      padding: clamp(4px, 1vh, 8px) clamp(10px, 2.5vw, 16px);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(247, 217, 139, 0.15);
+      display: flex;
+      align-items: center;
+      gap: clamp(4px, 1vw, 8px);
+    }
+
+    .controls label input[type="checkbox"] {
+      width: clamp(16px, 3vw, 20px);
+      height: clamp(16px, 3vw, 20px);
+      cursor: pointer;
+      accent-color: #ffd700;
+    }
+
+    .controls button {
+      background: rgba(8, 11, 36, 0.6);
+      border: 1px solid rgba(247, 217, 139, 0.2);
+      border-radius: 30px;
+      color: #f7d98b;
+      padding: clamp(6px, 1.5vh, 10px) clamp(14px, 3vw, 22px);
+      font-family: inherit;
+      font-size: clamp(11px, 2.5vw, 14px);
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      min-height: clamp(34px, 6vh, 44px);
+      min-width: clamp(50px, 12vw, 70px);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .controls button:active {
+      transform: scale(0.92);
+      background: rgba(247, 217, 139, 0.2);
+    }
+
+    .controls button#resetBtn {
+      border-color: rgba(255, 100, 100, 0.3);
+    }
+
+    .controls button#resetBtn:active {
+      background: rgba(255, 100, 100, 0.2);
+    }
+
+    .controls button#testBtn {
+      border-color: rgba(255, 215, 0, 0.3);
+    }
+
+    .controls button#testBtn:active {
+      background: rgba(255, 215, 0, 0.2);
+    }
+
+    /* ===== 底部文字 ===== */
+    #fun-message {
+      color: rgba(247, 217, 139, 0.5);
+      font-size: clamp(10px, 2vw, 13px);
+      margin-top: clamp(6px, 1.5vh, 12px);
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8);
+      padding: 0 16px;
+      min-height: 24px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ===== 额外闪光粒子 ===== */
+    .sparkle-pop {
+      position: fixed;
+      pointer-events: none;
+      z-index: 999;
+      border-radius: 50%;
+      animation: sparklePop 0.9s ease-out forwards;
+    }
+
+    @keyframes sparklePop {
+      0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(3) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* ===== 屏幕震动 ===== */
+    #catch_screen.shake {
+      animation: screenShake 0.5s ease;
+    }
+
+    @keyframes screenShake {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      10% {
+        transform: translateX(-6px);
+      }
+      30% {
+        transform: translateX(6px);
+      }
+      50% {
+        transform: translateX(-4px);
+      }
+      70% {
+        transform: translateX(4px);
+      }
+      90% {
+        transform: translateX(-2px);
+      }
+    }
+
+    /* ===== 白色闪光 ===== */
+    #flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: white;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0;
+    }
+
+    /* ===== 超小屏优化 ===== */
     @media (max-width: 480px) {
-      .info { top: 2vh; left: 3vw; }
-      h1 { font-size: 1rem; letter-spacing: .15em; }
-      p { font-size: 0.5rem; margin-top: 0.1rem; }
-      .hint { display: none; }
+      #encounter {
+        width: min(150px, 45vw);
+        height: min(150px, 45vw);
+      }
+
+      #speech-bubble {
+        top: -12%;
+        font-size: 13px;
+        padding: 6px 12px;
+        max-width: 130px;
+        min-width: 40px;
+        border-width: 2.5px;
+      }
+
+      #speech-tail {
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 12px solid rgba(255, 255, 255, 0.95);
+      }
+
+      #stats {
+        padding: 4px 10px;
+        font-size: 11px;
+        line-height: 1.5;
+        width: min(260px, 90vw);
+      }
+
+      #stats td:last-child {
+        width: 35px;
+      }
+
+      .controls button {
+        font-size: 11px;
+        padding: 4px 10px;
+        min-height: 32px;
+        min-width: 44px;
+      }
+
+      .controls label {
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+
+      #pokemons {
+        font-size: 12px;
+        padding: 6px 24px 6px 12px;
+        width: min(220px, 85vw);
+      }
+
+      #fun-message {
+        font-size: 10px;
+        min-height: 18px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      #encounter {
+        width: 120px;
+        height: 120px;
+      }
+
+      #speech-bubble {
+        font-size: 11px;
+        padding: 4px 10px;
+        max-width: 100px;
+        min-width: 30px;
+        top: -10%;
+      }
+
+      #stats {
+        font-size: 10px;
+        padding: 3px 8px;
+        line-height: 1.4;
+      }
+
+      #pokemons {
+        font-size: 11px;
+        padding: 5px 20px 5px 10px;
+        width: min(180px, 90vw);
+      }
+
+      .controls button {
+        font-size: 10px;
+        padding: 3px 8px;
+        min-height: 28px;
+        min-width: 38px;
+      }
+
+      .controls label {
+        font-size: 10px;
+        padding: 3px 6px;
+      }
+    }
+
+    /* 横屏适配 */
+    @media (max-height: 500px) and (orientation: landscape) {
+      #encounter {
+        width: 100px;
+        height: 100px;
+      }
+
+      #stats {
+        font-size: 10px;
+        padding: 3px 8px;
+        line-height: 1.3;
+        width: min(240px, 60vw);
+      }
+
+      #pokemons {
+        font-size: 11px;
+        padding: 4px 20px 4px 12px;
+        margin: 4px 0;
+      }
+
+      .controls button {
+        font-size: 10px;
+        padding: 3px 8px;
+        min-height: 26px;
+      }
+
+      .controls {
+        gap: 4px;
+      }
+
+      #fun-message {
+        font-size: 9px;
+        margin-top: 4px;
+        min-height: 16px;
+      }
+
+      #speech-bubble {
+        font-size: 12px;
+        padding: 4px 10px;
+        max-width: 120px;
+        top: -15%;
+      }
     }
   </style>
 </head>
+
 <body>
-  <canvas id="sky" aria-label="黄道十二宫星环"></canvas>
-  <div class="info">
-  
+
+  <!-- ===== 星空背景（Canvas） ===== -->
+  <canvas id="starfield"></canvas>
+
+  <!-- ===== 宝可梦主界面 ===== -->
+  <div id="catch_screen">
+    <div id="encounter">
+      <img id="pokemon" />
+      <img id="shiny" />
+
+      <!-- 🎀 卖萌对话框 -->
+      <div id="speech-bubble">
+        <span id="speech-text"></span>
+        <div id="speech-tail"></div>
+      </div>
+
+      <!-- 😊 表情雨 -->
+      <div id="emoji-rain"></div>
+
+      <canvas id="sparkles" width="256" height="256"></canvas>
+      <img src="https://github.com/ZeChrales/PogoAssets/blob/master/static_assets/png/sparkle.png?raw=true" id="sparkle" style="display:none;" />
+    </div>
+
+    <select id="pokemons"></select>
+
+    <table id="stats">
+      <tr>
+        <td>✨ 遭遇数</td>
+        <td id="encounters_stat"></td>
+      </tr>
+      <tr>
+        <td>⭐ 闪光数</td>
+        <td id="shinies_stat"></td>
+      </tr>
+      <tr>
+        <td>🔥 当前连击</td>
+        <td id="streak_stat"></td>
+      </tr>
+      <tr>
+        <td>🏆 最佳连击</td>
+        <td id="best_streak_stat"></td>
+      </tr>
+      <tr>
+        <td>💀 最差连击</td>
+        <td id="worst_streak_stat"></td>
+      </tr>
+      <tr>
+        <td>🎯 闪光率</td>
+        <td id="rate_stat"></td>
+      </tr>
+    </table>
+
+    <div class="controls">
+      <label><input type="checkbox" id="noflash"> 🚫 闪光</label>
+      <button id="resetBtn">🔄 重置</button>
+      <button id="testBtn">🧪 测试</button>
+    </div>
+
+    <div id="fun-message">💫 点击宝可梦，在星空中寻找闪光！</div>
   </div>
-  <div class="hint"></div>
+
+  <div id="flash"></div>
+
   <script>
-    const canvas = document.getElementById('sky');
-    const ctx = canvas.getContext('2d');
-    let width, height, stars = [], shooting = [], pointer = { x: 0, y: 0 };
-    let isMobile = false;
-    const colors = ['#fff4c2', '#f7d98b', '#e8b94f', '#dca85c'];
+    // ============================================================
+    //  星空背景 (来自古巴比伦星空)
+    // ============================================================
+    (function initStarfield() {
+      const canvas = document.getElementById('starfield');
+      const ctx = canvas.getContext('2d');
+      let width, height, stars = [],
+        shooting = [],
+        pointer = { x: 0, y: 0 };
+      let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window
+        .innerWidth < 768;
+      const colors = ['#fff4c2', '#f7d98b', '#e8b94f', '#dca85c'];
 
-    function checkMobile() {
-      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-    }
-
-    // ===== 黄道十二宫 · 差异化星座 =====
-    const zodiacData = [
-      {
+      // 黄道十二宫数据（精简版，保留星座线条）
+      const zodiacData = [{
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 1.0],
           [cx - r * 0.8, cy + r * 0.4],
@@ -84,9 +722,14 @@
           [cx + r * 0.0, cy + r * 0.1],
           [cx + r * 0.0, cy + r * 0.6]
         ],
-        lines: [[0,1],[0,2],[1,2],[0,3],[3,4]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [0, 2],
+          [1, 2],
+          [0, 3],
+          [3, 4]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.7, cy - r * 0.4],
@@ -95,9 +738,16 @@
           [cx - r * 0.7, cy + r * 0.4],
           [cx - r * 0.7, cy - r * 0.4]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 0],
+          [0, 3]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx - r * 0.5, cy - r * 0.7],
           [cx - r * 0.5, cy + r * 0.7],
@@ -105,9 +755,15 @@
           [cx + r * 0.5, cy + r * 0.7],
           [cx + r * 0.0, cy + r * 0.0]
         ],
-        lines: [[0,1],[2,3],[0,2],[1,3],[0,4],[2,4]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [2, 3],
+          [0, 2],
+          [1, 3],
+          [0, 4],
+          [2, 4]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.7, cy + r * 0.0],
@@ -115,9 +771,15 @@
           [cx - r * 0.7, cy + r * 0.0],
           [cx + r * 0.0, cy + r * 0.0]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,0],[0,4],[2,4]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 0],
+          [0, 4],
+          [2, 4]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.9],
           [cx + r * 0.6, cy - r * 0.3],
@@ -126,9 +788,16 @@
           [cx - r * 0.8, cy + r * 0.4],
           [cx - r * 0.6, cy - r * 0.3]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 0],
+          [0, 3]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.3, cy - r * 0.3],
@@ -139,9 +808,18 @@
           [cx - r * 0.7, cy + r * 0.0],
           [cx - r * 0.3, cy - r * 0.3]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0],[1,7]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 7],
+          [7, 0],
+          [1, 7]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx - r * 0.6, cy - r * 0.3],
@@ -149,9 +827,14 @@
           [cx + r * 0.8, cy + r * 0.3],
           [cx + r * 0.6, cy - r * 0.3]
         ],
-        lines: [[0,1],[1,2],[3,4],[0,4],[2,3]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [3, 4],
+          [0, 4],
+          [2, 3]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.9],
           [cx + r * 0.5, cy - r * 0.3],
@@ -162,9 +845,18 @@
           [cx - r * 0.8, cy + r * 0.2],
           [cx - r * 0.5, cy - r * 0.3]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0],[2,6]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 7],
+          [7, 0],
+          [2, 6]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.6, cy - r * 0.2],
@@ -174,9 +866,17 @@
           [cx - r * 0.9, cy + r * 0.3],
           [cx - r * 0.6, cy - r * 0.2]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[1,5]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 0],
+          [1, 5]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.7],
           [cx + r * 0.5, cy - r * 0.2],
@@ -186,9 +886,17 @@
           [cx - r * 0.8, cy + r * 0.3],
           [cx - r * 0.5, cy - r * 0.2]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[0,3]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 0],
+          [0, 3]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.6, cy - r * 0.5],
@@ -198,9 +906,17 @@
           [cx - r * 0.8, cy + r * 0.1],
           [cx - r * 0.6, cy - r * 0.5]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[1,5]]
-      },
-      {
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 0],
+          [1, 5]
+        ]
+      }, {
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 0.8],
           [cx + r * 0.6, cy - r * 0.4],
@@ -210,245 +926,615 @@
           [cx - r * 0.8, cy + r * 0.2],
           [cx - r * 0.6, cy - r * 0.4]
         ],
-        lines: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0],[0,4]]
+        lines: [
+          [0, 1],
+          [1, 2],
+          [2, 3],
+          [3, 4],
+          [4, 5],
+          [5, 6],
+          [6, 0],
+          [0, 4]
+        ]
+      }];
+
+      const zodiacNames = ['白羊', '金牛', '双子', '巨蟹', '狮子', '处女', '天秤', '天蝎', '射手', '摩羯', '水瓶', '双鱼'];
+      let zodiacConstellations = [];
+
+      function generateZodiacRing() {
+        const constellations = [];
+        const isSmall = Math.min(width, height) < 600;
+        const ringRadius = isSmall ? 0.32 : 0.38;
+        const centerX = 0.5,
+          centerY = 0.5;
+        const sizeScale = isSmall ? 0.7 : 1.0;
+
+        for (let i = 0; i < zodiacData.length; i++) {
+          const angle = (i / zodiacData.length) * Math.PI * 2 - Math.PI / 2;
+          const cx = centerX + ringRadius * Math.cos(angle);
+          const cy = centerY + ringRadius * Math.sin(angle);
+          const r = (0.045 + 0.01 * Math.sin(i * 1.3)) * sizeScale;
+
+          const data = zodiacData[i];
+          const points = data.points(cx, cy, r);
+          const lines = data.lines;
+
+          constellations.push({
+            name: zodiacNames[i],
+            points: points,
+            lines: lines,
+            angle: angle
+          });
+        }
+        return constellations;
       }
-    ];
 
-    const zodiacNames = ['白羊', '金牛', '双子', '巨蟹', '狮子', '处女', '天秤', '天蝎', '射手', '摩羯', '水瓶', '双鱼'];
-
-    function generateZodiacRing() {
-      const constellations = [];
-      const isSmall = Math.min(width, height) < 600;
-      const ringRadius = isSmall ? 0.32 : 0.38;
-      const centerX = 0.5, centerY = 0.5;
-      const sizeScale = isSmall ? 0.7 : 1.0;
-
-      for (let i = 0; i < zodiacData.length; i++) {
-        const angle = (i / zodiacData.length) * Math.PI * 2 - Math.PI / 2;
-        const cx = centerX + ringRadius * Math.cos(angle);
-        const cy = centerY + ringRadius * Math.sin(angle);
-        const r = (0.045 + 0.01 * Math.sin(i * 1.3)) * sizeScale;
-
-        const data = zodiacData[i];
-        const points = data.points(cx, cy, r);
-        const lines = data.lines;
-
-        constellations.push({
-          name: zodiacNames[i],
-          points: points,
-          lines: lines,
-          angle: angle
-        });
+      function initConstellations() {
+        zodiacConstellations = generateZodiacRing();
       }
-      return constellations;
-    }
 
-    let zodiacConstellations = [];
-    let extraConstellations = [];
+      function resize() {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = innerWidth;
+        height = innerHeight;
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    function initConstellations() {
-      zodiacConstellations = generateZodiacRing();
-      
-      const isSmall = Math.min(width, height) < 600;
-      const extraCount = isSmall ? 3 : 5;
-      
-      const extraTemplates = [
-        { points: [[0.15,0.12],[0.20,0.08],[0.26,0.12],[0.22,0.18],[0.18,0.16]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
-        { points: [[0.12,0.55],[0.18,0.50],[0.24,0.54],[0.20,0.60],[0.16,0.58]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
-        { points: [[0.28,0.70],[0.34,0.65],[0.40,0.68],[0.36,0.74],[0.32,0.72]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
-        { points: [[0.78,0.15],[0.84,0.10],[0.90,0.14],[0.86,0.20],[0.82,0.18]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
-        { points: [[0.88,0.45],[0.92,0.40],[0.96,0.44],[0.94,0.50],[0.90,0.48]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] }
-      ];
-      
-      extraConstellations = extraTemplates.slice(0, extraCount);
-    }
+        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window
+          .innerWidth < 768;
 
-    const allConstellations = () => [...zodiacConstellations, ...extraConstellations];
+        const starCount = isMobile ?
+          Math.min(200, Math.floor(width * height / 6000)) :
+          Math.min(380, Math.floor(width * height / 4800));
 
-    function resize() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      width = innerWidth; height = innerHeight;
-      canvas.width = width * ratio; canvas.height = height * ratio;
-      canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
-      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      
-      isMobile = checkMobile();
-      
-      const starCount = isMobile ? 
-        Math.min(200, Math.floor(width * height / 6000)) : 
-        Math.min(380, Math.floor(width * height / 4800));
-      
-      stars = Array.from({ length: starCount }, () => ({
-        x: Math.random() * width, y: Math.random() * height,
-        r: Math.random() * 1.5 + .25, a: Math.random() * Math.PI * 2,
-        speed: Math.random() * .018 + .004,
-        twinkle: Math.random() * .7 + .3,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      }));
-      
-      initConstellations();
-    }
-
-    function addShootingStar() {
-      const rate = isMobile ? 0.008 : 0.012;
-      if (shooting.length < (isMobile ? 1 : 2) && Math.random() < rate) {
-        shooting.push({
-          x: Math.random() * width * .8 + width * .1,
-          y: Math.random() * height * .35,
-          vx: -(Math.random() * 7 + 8),
-          vy: Math.random() * 4 + 4,
-          life: 1
-        });
-      }
-    }
-
-    function drawAllConstellations() {
-      const offsetX = (pointer.x - width / 2) * .0015;
-      const offsetY = (pointer.y - height / 2) * .0015;
-
-      allConstellations().forEach((constellation, idx) => {
-        const isZodiac = idx < zodiacConstellations.length;
-        const points = constellation.points.map(([x, y]) => ({
-          x: x * width + offsetX,
-          y: y * height + offsetY
+        stars = Array.from({ length: starCount }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: Math.random() * 1.5 + .25,
+          a: Math.random() * Math.PI * 2,
+          speed: Math.random() * .018 + .004,
+          twinkle: Math.random() * .7 + .3,
+          color: colors[Math.floor(Math.random() * colors.length)]
         }));
 
-        const strokeColor = isZodiac ? 'rgba(247, 217, 139, .45)' : 'rgba(160, 180, 220, .2)';
-        const fillColor = isZodiac ? 'rgba(255, 244, 194, .9)' : 'rgba(180, 200, 240, .5)';
-        const shadowColor = isZodiac ? 'rgba(247, 217, 139, .7)' : 'rgba(160, 180, 220, .3)';
-        const pointRadius = isZodiac ? (isMobile ? 2.0 : 2.6) : (isMobile ? 1.2 : 1.6);
+        initConstellations();
+      }
 
-        ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = isZodiac ? (isMobile ? 1.0 : 1.3) : (isMobile ? 0.5 : 0.7);
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        constellation.lines.forEach(([a, b]) => {
-          ctx.moveTo(points[a].x, points[a].y);
-          ctx.lineTo(points[b].x, points[b].y);
-        });
-        ctx.stroke();
+      function addShootingStar() {
+        const rate = isMobile ? 0.008 : 0.012;
+        if (shooting.length < (isMobile ? 1 : 2) && Math.random() < rate) {
+          shooting.push({
+            x: Math.random() * width * .8 + width * .1,
+            y: Math.random() * height * .35,
+            vx: -(Math.random() * 7 + 8),
+            vy: Math.random() * 4 + 4,
+            life: 1
+          });
+        }
+      }
 
-        points.forEach(point => {
-          ctx.fillStyle = fillColor;
-          ctx.shadowColor = shadowColor;
-          ctx.shadowBlur = isZodiac ? (isMobile ? 6 : 10) : (isMobile ? 2 : 4);
+      function drawConstellations() {
+        const offsetX = (pointer.x - width / 2) * .0015;
+        const offsetY = (pointer.y - height / 2) * .0015;
+
+        zodiacConstellations.forEach((constellation, idx) => {
+          const points = constellation.points.map(([x, y]) => ({
+            x: x * width + offsetX,
+            y: y * height + offsetY
+          }));
+
+          const strokeColor = 'rgba(247, 217, 139, .35)';
+          const fillColor = 'rgba(255, 244, 194, .7)';
+          const shadowColor = 'rgba(247, 217, 139, .5)';
+          const pointRadius = isMobile ? 1.8 : 2.4;
+
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = isMobile ? 0.8 : 1.2;
+          ctx.shadowBlur = 0;
           ctx.beginPath();
-          ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2);
-          ctx.fill();
+          constellation.lines.forEach(([a, b]) => {
+            ctx.moveTo(points[a].x, points[a].y);
+            ctx.lineTo(points[b].x, points[b].y);
+          });
+          ctx.stroke();
+
+          points.forEach(point => {
+            ctx.fillStyle = fillColor;
+            ctx.shadowColor = shadowColor;
+            ctx.shadowBlur = isMobile ? 4 : 8;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.shadowBlur = 0;
+
+          if (!isMobile) {
+            const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
+            const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
+            ctx.fillStyle = 'rgba(247, 217, 139, .25)';
+            const fontSize = Math.min(width, height) * 0.012;
+            ctx.font = `${fontSize}px "Noto Sans SC", sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = 'rgba(247, 217, 139, .15)';
+            ctx.fillText(constellation.name || '', cx, cy + Math.min(width, height) * 0.025);
+            ctx.shadowBlur = 0;
+          }
         });
-        ctx.shadowBlur = 0;
 
-        if (isZodiac && !isMobile) {
-          const cx = points.reduce((s, p) => s + p.x, 0) / points.length;
-          const cy = points.reduce((s, p) => s + p.y, 0) / points.length;
-          ctx.fillStyle = 'rgba(247, 217, 139, .35)';
-          const fontSize = Math.min(width, height) * (isMobile ? 0.01 : 0.013);
-          ctx.font = `${fontSize}px "Noto Sans SC", sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.shadowBlur = 6;
-          ctx.shadowColor = 'rgba(247, 217, 139, .2)';
-          ctx.fillText(constellation.name || '', cx, cy + Math.min(width, height) * (isMobile ? 0.02 : 0.028));
-          ctx.shadowBlur = 0;
-        }
-      });
-
-      ctx.strokeStyle = isMobile ? 'rgba(247, 217, 139, .03)' : 'rgba(247, 217, 139, .06)';
-      ctx.lineWidth = isMobile ? 0.5 : 1;
-      ctx.setLineDash([4, 8]);
-      ctx.beginPath();
-      const ringRadius = isMobile ? 0.32 : 0.38;
-      const rx = ringRadius * width;
-      const ry = ringRadius * height;
-      ctx.ellipse(width * 0.5 + offsetX, height * 0.5 + offsetY, rx, ry, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    function draw() {
-      // ===== 使用与古巴比伦星空相同的背景渐变 =====
-      const gradient = ctx.createRadialGradient(
-        width * .55, height * .35, 0,
-        width * .5, height * .5,
-        Math.max(width, height)
-      );
-      gradient.addColorStop(0, '#293b78');
-      gradient.addColorStop(.45, '#111b4b');
-      gradient.addColorStop(1, '#080b24');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-
-      drawAllConstellations();
-
-      stars.forEach(s => {
-        s.a += s.speed;
-        const pulse = (Math.sin(s.a) + 1) / 2;
-        const alpha = .24 + pulse * (.68 * s.twinkle);
-        const radius = s.r * (.88 + pulse * .5);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = s.color;
-        if (pulse > .78 && s.r > 1) {
-          ctx.shadowColor = s.color;
-          ctx.shadowBlur = 8 + pulse * 12;
-        } else {
-          ctx.shadowBlur = 0;
-        }
+        // 星环
+        ctx.strokeStyle = isMobile ? 'rgba(247, 217, 139, .03)' : 'rgba(247, 217, 139, .06)';
+        ctx.lineWidth = isMobile ? 0.5 : 1;
+        ctx.setLineDash([4, 8]);
         ctx.beginPath();
-        ctx.arc(s.x + (pointer.x - width / 2) * .003, s.y + (pointer.y - height / 2) * .003, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      shooting.forEach((s, i) => {
-        const tail = isMobile ? 60 : 90;
-        const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
-        grad.addColorStop(0, 'rgba(255,244,194,' + s.life + ')');
-        grad.addColorStop(1, 'rgba(220,168,92,0)');
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = isMobile ? 1.5 : 2;
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
+        const ringRadius = isMobile ? 0.32 : 0.38;
+        const rx = ringRadius * width;
+        const ry = ringRadius * height;
+        ctx.ellipse(width * 0.5 + offsetX, height * 0.5 + offsetY, rx, ry, 0, 0, Math.PI * 2);
         ctx.stroke();
-        s.x += s.vx;
-        s.y += s.vy;
-        s.life -= isMobile ? 0.025 : 0.018;
-        if (s.life <= 0) shooting.splice(i, 1);
+        ctx.setLineDash([]);
+      }
+
+      function drawStars() {
+        stars.forEach(s => {
+          s.a += s.speed;
+          const pulse = (Math.sin(s.a) + 1) / 2;
+          const alpha = .24 + pulse * (.68 * s.twinkle);
+          const radius = s.r * (.88 + pulse * .5);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = s.color;
+          if (pulse > .78 && s.r > 1) {
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 8 + pulse * 12;
+          } else {
+            ctx.shadowBlur = 0;
+          }
+          ctx.beginPath();
+          ctx.arc(s.x + (pointer.x - width / 2) * .003, s.y + (pointer.y - height / 2) * .003, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
+
+      function drawShootingStars() {
+        shooting.forEach((s, i) => {
+          const tail = isMobile ? 60 : 90;
+          const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
+          grad.addColorStop(0, 'rgba(255,244,194,' + s.life + ')');
+          grad.addColorStop(1, 'rgba(220,168,92,0)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = isMobile ? 1.5 : 2;
+          ctx.shadowBlur = 0;
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y);
+          ctx.lineTo(s.x - s.vx * tail / 10, s.y - s.vy * tail / 10);
+          ctx.stroke();
+          s.x += s.vx;
+          s.y += s.vy;
+          s.life -= isMobile ? 0.025 : 0.018;
+          if (s.life <= 0) shooting.splice(i, 1);
+        });
+      }
+
+      function drawBackground() {
+        const gradient = ctx.createRadialGradient(
+          width * .55, height * .35, 0,
+          width * .5, height * .5,
+          Math.max(width, height)
+        );
+        gradient.addColorStop(0, '#293b78');
+        gradient.addColorStop(.45, '#111b4b');
+        gradient.addColorStop(1, '#080b24');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      function animate() {
+        drawBackground();
+        drawConstellations();
+        drawStars();
+        drawShootingStars();
+        addShootingStar();
+        requestAnimationFrame(animate);
+      }
+
+      function handlePointerMove(x, y) {
+        pointer.x = x;
+        pointer.y = y;
+      }
+
+      window.addEventListener('resize', resize);
+      window.addEventListener('mousemove', e => {
+        handlePointerMove(e.clientX, e.clientY);
       });
+      window.addEventListener('touchmove', e => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        if (touch) handlePointerMove(touch.clientX, touch.clientY);
+      }, { passive: false });
+      window.addEventListener('touchstart', e => {
+        const touch = e.touches[0];
+        if (touch) handlePointerMove(touch.clientX, touch.clientY);
+      }, { passive: true });
 
-      ctx.globalAlpha = 1;
-      addShootingStar();
-      requestAnimationFrame(draw);
-    }
+      resize();
+      animate();
+    })();
 
-    function handlePointerMove(x, y) {
-      pointer.x = x;
-      pointer.y = y;
-    }
 
-    addEventListener('resize', resize);
-    addEventListener('mousemove', e => {
-      handlePointerMove(e.clientX, e.clientY);
-    });
-    
-    addEventListener('touchmove', e => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      if (touch) {
-        handlePointerMove(touch.clientX, touch.clientY);
+    // ============================================================
+    //  宝可梦模拟器
+    // ============================================================
+    (function initPokemon() {
+      var pokemon_selector = document.getElementById("pokemons");
+      var pokemon = document.getElementById("pokemon");
+      var shiny = document.getElementById("shiny");
+      var encounters_stat = document.getElementById("encounters_stat");
+      var shinies_stat = document.getElementById("shinies_stat");
+      var streak_stat = document.getElementById("streak_stat");
+      var worst_streak_stat = document.getElementById("worst_streak_stat");
+      var best_streak_stat = document.getElementById("best_streak_stat");
+      var rate_stat = document.getElementById("rate_stat");
+      var flash = document.getElementById("flash");
+      var speechBubble = document.getElementById("speech-bubble");
+      var speechText = document.getElementById("speech-text");
+      var emojiRain = document.getElementById("emoji-rain");
+
+      var pokemons = {
+        1: ["Bulbasaur", 512],
+        4: ["Charmander", 512],
+        7: ["Squirtle", 512],
+        25: ["Pikachu", 512],
+        129: ["Magikarp", 512],
+        133: ["Eevee", 512],
+        150: ["Mewtwo", 16],
+      };
+
+      for (var p in pokemons) {
+        var option = document.createElement("option");
+        var number = p;
+        if (number < 10) number = "00" + number;
+        else if (number < 100) number = "0" + number;
+        option.textContent = number + " " + pokemons[p][0];
+        option.value = p;
+        pokemon_selector.appendChild(option);
       }
-    }, { passive: false });
-    
-    addEventListener('touchstart', e => {
-      const touch = e.touches[0];
-      if (touch) {
-        handlePointerMove(touch.clientX, touch.clientY);
-      }
-    }, { passive: true });
 
-    resize();
-    draw();
+      var current, odds, encounters, shinies, streak, worst_streak, best_streak;
+      var autochecking = false;
+      var autostarter = null;
+      var autochecker = null;
+      var sparkling = false;
+      var noflash = false;
+
+      // ===== 卖萌系统 =====
+      var shinyLines = {
+        happy: [
+          '✨ 哇！我超闪的！',
+          '🌟 我就是最亮的崽！',
+          '💖 被你发现了~ 好开心！',
+          '⭐ 今天运气真好呀！',
+          '🌈 我是不是很美？',
+          '🎀 人家好开心！',
+          '💫 闪亮登场！'
+        ],
+        excited: [
+          '🔥 好耶！出闪了！！',
+          '🎉 恭喜恭喜！！！',
+          '💥 我好兴奋啊！！',
+          '⚡ 电到你了没？',
+          '🎊 大吉大利！！',
+          '💎 我是钻石级闪亮！'
+        ],
+        shy: [
+          '😳 唔...被看到了...',
+          '🥺 请、请温柔一点...',
+          '💕 好害羞呀...',
+          '🌸 人家会不好意思的...',
+          '😊 谢谢你来抓我~'
+        ],
+        tsundere: [
+          '😤 才、才不是为你闪的呢！',
+          '🤭 哼！算你走运啦！',
+          '😏 怎么样？被我的光芒震撼了吧！',
+          '😌 也就一般般闪啦~'
+        ],
+        sleepy: [
+          '😴 好困...被你吵醒了...',
+          '💤 呼...zzz...什么？出闪了？',
+          '😪 我还没睡醒呢...'
+        ]
+      };
+
+      var specialLines = {
+        'Magikarp': ['🐟 我闪了！但还是条咸鱼...', '💦 我是最靓的鱼！'],
+        'Pikachu': ['⚡ 皮卡皮卡！！', '🌟 我就是主角！'],
+        'Mewtwo': ['🧬 我是完美的！', '💪 凡人，你配得上我吗？'],
+        'Eevee': ['💫 我要进化成什么好呢？', '🌈 我是幸运的化身！']
+      };
+
+      function getPokemonName() {
+        var id = pokemon_selector.value;
+        return pokemons[id] ? pokemons[id][0] : '宝可梦';
+      }
+
+      function getRandomLine(type) {
+        var lines = shinyLines[type] || shinyLines.happy;
+        return lines[Math.floor(Math.random() * lines.length)];
+      }
+
+      function getSpecialLine(name) {
+        if (specialLines[name]) {
+          var lines = specialLines[name];
+          return lines[Math.floor(Math.random() * lines.length)];
+        }
+        return null;
+      }
+
+      function showSpeechBubble(line, type) {
+        type = type || 'happy';
+        clearTimeout(window.bubbleHideTimer);
+        speechText.textContent = line;
+        speechBubble.className = 'show ' + type;
+        window.bubbleHideTimer = setTimeout(function() {
+          speechBubble.className = '';
+        }, 3500);
+      }
+
+      function spawnEmojiRain(count) {
+        count = count || 8;
+        var emojis = ['💖', '✨', '⭐', '🌈', '🎀', '💫', '🌸', '🎉', '💕', '😊', '🌟', '💗', '🌺', '🎊'];
+        for (var i = 0; i < count; i++) {
+          (function(index) {
+            setTimeout(function() {
+              var emoji = document.createElement('div');
+              emoji.className = 'floating-emoji';
+              emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+              emoji.style.left = (10 + Math.random() * 80) + '%';
+              emoji.style.top = (10 + Math.random() * 60) + '%';
+              emoji.style.fontSize = (24 + Math.random() * 30) + 'px';
+              emojiRain.appendChild(emoji);
+              setTimeout(function() {
+                if (emoji.parentNode) emoji.remove();
+              }, 2300);
+            }, index * 100);
+          })(i);
+        }
+      }
+
+      function createSparklePop() {
+        var colors = ['#ffd700', '#ff6b6b', '#ff9ff3', '#feca57', '#48dbfb', '#ff9ff3', '#ffd93d', '#6bcb77'];
+        for (var i = 0; i < 10; i++) {
+          (function(index) {
+            setTimeout(function() {
+              var el = document.createElement('div');
+              el.className = 'sparkle-pop';
+              var size = 8 + Math.random() * 25;
+              el.style.width = size + 'px';
+              el.style.height = size + 'px';
+              el.style.background = colors[Math.floor(Math.random() * colors.length)];
+              el.style.left = (Math.random() * window.innerWidth) + 'px';
+              el.style.top = (Math.random() * window.innerHeight) + 'px';
+              el.style.boxShadow = '0 0 20px ' + el.style.background;
+              document.body.appendChild(el);
+              setTimeout(function() {
+                if (el.parentNode) el.remove();
+              }, 900);
+            }, index * 60);
+          })(i);
+        }
+      }
+
+      function shinyCuteReveal() {
+        var name = getPokemonName();
+        var types = ['happy', 'excited', 'shy', 'tsundere', 'sleepy'];
+        var type = types[Math.floor(Math.random() * types.length)];
+        var line = getSpecialLine(name);
+        if (!line) line = getRandomLine(type);
+        if (line.indexOf('皮卡') === -1 && line.indexOf('超梦') === -1 &&
+          line.indexOf('鲤鱼') === -1) {
+          line = line.replace('我', name);
+        }
+        showSpeechBubble(line, type);
+        spawnEmojiRain(8);
+        createSparklePop();
+        shiny.className = type === 'shy' ? 'shy' : 'happy';
+        setTimeout(function() { shiny.className = ''; }, 1000);
+        var screen = document.getElementById('catch_screen');
+        screen.style.animation = 'none';
+        setTimeout(function() { screen.style.animation = 'screenShake 0.5s ease'; }, 10);
+        setTimeout(function() { screen.style.animation = ''; }, 600);
+      }
+
+      // ===== 测试按钮 =====
+      document.getElementById("testBtn").onclick = function() {
+        shiny.style.display = "block";
+        pokemon.style.display = "none";
+        shinyCuteReveal();
+        setTimeout(function() {
+          shiny.style.display = "none";
+          pokemon.style.display = "block";
+        }, 3500);
+      };
+
+      // ===== 核心功能 =====
+      pokemon.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (autostarter == null) autostarter = setTimeout(autocheck, 500);
+      }, { passive: false });
+
+      pokemon.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (!autochecking && !sparkling) {
+          flash.style.transition = "none";
+          if (!noflash) flash.style.opacity = 0.4;
+          setTimeout(reveal, 5);
+        }
+        autochecking = false;
+        clearTimeout(autostarter);
+        clearInterval(autochecker);
+        autostarter = null;
+      }, { passive: false });
+
+      pokemon.onmousedown = function(e) {
+        e.preventDefault();
+        if (autostarter == null) autostarter = setTimeout(autocheck, 500);
+      }
+
+      pokemon.onmouseup = function() {
+        if (!autochecking && !sparkling) {
+          flash.style.transition = "none";
+          if (!noflash) flash.style.opacity = 0.4;
+          setTimeout(reveal, 5);
+        }
+        autochecking = false;
+        clearTimeout(autostarter);
+        clearInterval(autochecker);
+        autostarter = null;
+      }
+
+      pokemon_selector.onchange = function() {
+        current = this.value;
+        odds = pokemons[current][1];
+        var displayNum = current;
+        if (displayNum < 10) displayNum = "00" + displayNum;
+        else if (displayNum < 100) displayNum = "0" + displayNum;
+        pokemon.src = "https://github.com/ZeChrales/PogoAssets/blob/master/pokemon_icons/pokemon_icon_" + displayNum +
+          "_00.png?raw=true";
+        shiny.src = "https://github.com/ZeChrales/PogoAssets/blob/master/pokemon_icons/pokemon_icon_" + displayNum +
+          "_00_shiny.png?raw=true";
+        encounters = shinies = streak = worst_streak = 0;
+        best_streak = "-";
+        updateStats();
+      }
+      pokemon_selector.onchange();
+
+      function autocheck() {
+        autochecking = true;
+        autochecker = setInterval(reveal, 5);
+      }
+
+      function updateStats() {
+        encounters_stat.textContent = encounters;
+        shinies_stat.textContent = shinies;
+        streak_stat.textContent = streak;
+        worst_streak_stat.textContent = worst_streak;
+        best_streak_stat.textContent = best_streak;
+        if (encounters > 0 && shinies > 0) {
+          rate_stat.textContent = (shinies / encounters * 100).toFixed(2) + '%';
+        } else if (encounters > 0) {
+          rate_stat.textContent = '0.00%';
+        } else {
+          rate_stat.textContent = '-';
+        }
+      }
+
+      function reveal() {
+        encounters++;
+        if (shiny.style.display == "block") streak = 0;
+        streak++;
+        if (streak > worst_streak) worst_streak = streak;
+        if (Math.ceil(Math.random() * odds) == odds) {
+          shinies++;
+          sparkling = true;
+          clearInterval(autochecker);
+          if (best_streak > streak || best_streak == "-") best_streak = streak;
+          pokemon.style.display = "none";
+          shiny.style.display = "block";
+          setTimeout(function() { shinyCuteReveal(); }, 300);
+          setTimeout(shine, 400);
+        } else {
+          pokemon.style.display = "block";
+          shiny.style.display = "none";
+        }
+        updateStats();
+        flash.style.transition = "opacity 0.4s";
+        flash.style.opacity = 0;
+      }
+
+      // ===== 闪光粒子 =====
+      var sparkle = document.getElementById("sparkle");
+      var sparkles = document.getElementById("sparkles");
+      var ctx = sparkles.getContext("2d");
+      var particles = [];
+      var drawer;
+
+      function addSparkles() {
+        for (var i = 0; i < 8; i++) particles.push({ "scale": 1, "radius": 60, "angle": 45 * i });
+      }
+
+      function drawSparkles() {
+        ctx.clearRect(0, 0, 256, 256);
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          var x = 128 + p.radius * Math.cos(p.angle * Math.PI / 180);
+          var y = 128 + p.radius * Math.sin(p.angle * Math.PI / 180);
+          var scaled = Math.max(32 * p.scale, 0);
+          ctx.drawImage(sparkle, x - scaled / 2, y - scaled / 2, scaled, scaled);
+          if (p.scale > 0.6) p.scale -= 0.2;
+          else p.scale -= 0.05;
+          p.angle -= 5;
+          p.radius += 5;
+        }
+      }
+
+      function stopDrawing() {
+        clearInterval(drawer);
+        particles = [];
+        sparkling = false;
+      }
+
+      function shine() {
+        if (!particles.length) {
+          for (var i = 0; i < 5; i++) {
+            (function(index) {
+              setTimeout(addSparkles, index * 100);
+            })(i);
+          }
+          drawer = setInterval(drawSparkles, 50);
+          setTimeout(stopDrawing, 1000);
+        }
+      }
+
+      // ===== 控制 =====
+      document.getElementById("noflash").onchange = function() {
+        noflash = this.checked;
+      }
+
+      document.getElementById("resetBtn").onclick = function() {
+        encounters = shinies = streak = worst_streak = 0;
+        best_streak = "-";
+        updateStats();
+        shiny.style.display = "none";
+        pokemon.style.display = "block";
+        speechBubble.className = '';
+        emojiRain.innerHTML = '';
+      }
+
+      document.body.onkeydown = function(e) {
+        if (e.keyCode == 32 && !sparkling) {
+          e.preventDefault();
+          reveal();
+        }
+      }
+
+      pokemon.oncontextmenu = function(e) {
+        e.preventDefault();
+        return false;
+      }
+
+      window.shinyCuteReveal = shinyCuteReveal;
+      window.showSpeechBubble = showSpeechBubble;
+
+      console.log('✨ 星空闪光宝可梦已启动！');
+      console.log('💫 在星空中寻找你的闪光宝可梦吧！');
+    })();
   </script>
+
 </body>
+
 </html>
