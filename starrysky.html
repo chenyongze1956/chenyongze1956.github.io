@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>✨ 星空闪光宝可梦 ✨</title>
+  <title>✨ AI星空闪光宝可梦 ✨</title>
 
   <style>
     * {
@@ -24,7 +24,6 @@
       background: #080b24;
     }
 
-    /* ===== 星空画布（底层） ===== */
     #starfield {
       position: fixed;
       top: 0;
@@ -37,7 +36,6 @@
       touch-action: none;
     }
 
-    /* ===== 宝可梦容器（上层） ===== */
     #catch_screen {
       position: fixed;
       top: 0;
@@ -53,11 +51,9 @@
       text-align: center;
       user-select: none;
       padding: 12px;
-      /* 半透明渐变遮罩，让宝可梦更清晰 */
       background: radial-gradient(ellipse at center, rgba(8, 11, 36, 0.3) 0%, rgba(8, 11, 36, 0.6) 100%);
     }
 
-    /* ===== 宝可梦容器 ===== */
     #encounter {
       position: relative;
       display: inline-block;
@@ -91,7 +87,6 @@
     #pokemon {
       display: block;
     }
-
     #shiny {
       display: none;
     }
@@ -105,7 +100,6 @@
       display: none;
     }
 
-    /* ===== 闪光粒子 Canvas ===== */
     #sparkles {
       position: absolute;
       width: 100%;
@@ -161,52 +155,38 @@
 
     #speech-bubble.happy {
       border-color: #ff6b9d;
+      background: rgba(255, 240, 245, 0.95);
     }
     #speech-bubble.happy #speech-tail {
       border-top-color: rgba(255, 240, 245, 0.95);
     }
-    #speech-bubble.happy {
-      background: rgba(255, 240, 245, 0.95);
-    }
-
     #speech-bubble.excited {
       border-color: #ffd700;
+      background: rgba(255, 255, 240, 0.95);
     }
     #speech-bubble.excited #speech-tail {
       border-top-color: rgba(255, 255, 240, 0.95);
     }
-    #speech-bubble.excited {
-      background: rgba(255, 255, 240, 0.95);
-    }
-
     #speech-bubble.shy {
       border-color: #87ceeb;
+      background: rgba(240, 248, 255, 0.95);
     }
     #speech-bubble.shy #speech-tail {
       border-top-color: rgba(240, 248, 255, 0.95);
     }
-    #speech-bubble.shy {
-      background: rgba(240, 248, 255, 0.95);
-    }
-
     #speech-bubble.tsundere {
       border-color: #ff4500;
+      background: rgba(255, 240, 240, 0.95);
     }
     #speech-bubble.tsundere #speech-tail {
       border-top-color: rgba(255, 240, 240, 0.95);
     }
-    #speech-bubble.tsundere {
-      background: rgba(255, 240, 240, 0.95);
-    }
-
     #speech-bubble.sleepy {
       border-color: #9b59b6;
+      background: rgba(245, 240, 255, 0.95);
     }
     #speech-bubble.sleepy #speech-tail {
       border-top-color: rgba(245, 240, 255, 0.95);
-    }
-    #speech-bubble.sleepy {
-      background: rgba(245, 240, 255, 0.95);
     }
 
     /* ===== 😊 表情雨 ===== */
@@ -274,7 +254,6 @@
       }
     }
 
-    /* ===== 下拉菜单 ===== */
     #pokemons {
       font-size: clamp(13px, 2.8vw, 17px);
       -webkit-appearance: none;
@@ -303,7 +282,6 @@
       font-size: 14px;
     }
 
-    /* ===== 统计面板 ===== */
     #stats {
       color: #f7d98b;
       font-family: 'Comic Sans MS', 'Microsoft YaHei', sans-serif;
@@ -328,14 +306,12 @@
     #stats td {
       padding: clamp(1px, 0.3vh, 3px) clamp(3px, 0.8vw, 6px);
     }
-
     #stats td:last-child {
       text-align: left;
       width: clamp(40px, 12vw, 60px);
       font-weight: bold;
       color: #ffd700;
     }
-
     #stats td:first-child {
       text-align: right;
       padding-right: clamp(8px, 2vw, 14px);
@@ -405,17 +381,47 @@
     .controls button#resetBtn {
       border-color: rgba(255, 100, 100, 0.3);
     }
-
     .controls button#resetBtn:active {
       background: rgba(255, 100, 100, 0.2);
     }
-
     .controls button#testBtn {
       border-color: rgba(255, 215, 0, 0.3);
     }
-
     .controls button#testBtn:active {
       background: rgba(255, 215, 0, 0.2);
+    }
+    .controls button#luckyBtn {
+      border-color: rgba(0, 255, 200, 0.3);
+      color: #7fffd4;
+    }
+    .controls button#luckyBtn:active {
+      background: rgba(0, 255, 200, 0.15);
+    }
+    .controls button#autoBtn {
+      border-color: rgba(255, 150, 255, 0.3);
+      color: #ff99ff;
+    }
+    .controls button#autoBtn.active {
+      background: rgba(255, 150, 255, 0.2);
+      border-color: #ff99ff;
+    }
+    .controls button#autoBtn:active {
+      background: rgba(255, 150, 255, 0.15);
+    }
+
+    /* ===== 🆕 AI 按钮 ===== */
+    .controls button#aiBtn {
+      border-color: rgba(100, 200, 255, 0.4);
+      color: #87cefa;
+      background: rgba(0, 100, 200, 0.2);
+    }
+    .controls button#aiBtn:active {
+      background: rgba(0, 100, 200, 0.35);
+    }
+    .controls button#aiBtn.active {
+      background: rgba(0, 150, 255, 0.25);
+      border-color: #87cefa;
+      box-shadow: 0 0 30px rgba(100, 200, 255, 0.2);
     }
 
     /* ===== 底部文字 ===== */
@@ -430,9 +436,36 @@
       padding: 0 16px;
       min-height: 24px;
       letter-spacing: 0.1em;
+      transition: all 0.5s;
+      cursor: pointer;
+    }
+    #fun-message.pop {
+      color: #ffd700;
+      animation: msgPop 0.5s ease;
+    }
+    #fun-message.ai-thinking {
+      color: #87cefa;
+      animation: msgPulse 1s ease infinite;
+    }
+    @keyframes msgPop {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+    @keyframes msgPulse {
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 1;
+      }
     }
 
-    /* ===== 额外闪光粒子 ===== */
     .sparkle-pop {
       position: fixed;
       pointer-events: none;
@@ -452,7 +485,6 @@
       }
     }
 
-    /* ===== 屏幕震动 ===== */
     #catch_screen.shake {
       animation: screenShake 0.5s ease;
     }
@@ -479,7 +511,6 @@
       }
     }
 
-    /* ===== 白色闪光 ===== */
     #flash {
       position: fixed;
       top: 0;
@@ -493,13 +524,231 @@
       opacity: 0;
     }
 
-    /* ===== 超小屏优化 ===== */
+    /* ===== 🆕 AI 对话面板 ===== */
+    #ai-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(8, 11, 36, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 2px solid rgba(100, 200, 255, 0.3);
+      padding: clamp(8px, 1.5vh, 16px) clamp(12px, 3vw, 24px);
+      z-index: 300;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      max-height: 50vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #ai-panel.open {
+      transform: translateY(0);
+    }
+
+    #ai-panel .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #87cefa;
+      font-size: clamp(12px, 2vw, 16px);
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+    #ai-panel .header .close-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 8px;
+    }
+    #ai-panel .header .close-btn:hover {
+      color: #fff;
+    }
+
+    #ai-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+      max-height: 30vh;
+      min-height: 80px;
+      scroll-behavior: smooth;
+    }
+    #ai-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+    #ai-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    #ai-messages::-webkit-scrollbar-thumb {
+      background: rgba(100, 200, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    .ai-msg {
+      margin: 4px 0;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: clamp(12px, 1.8vw, 15px);
+      line-height: 1.5;
+      max-width: 90%;
+      word-wrap: break-word;
+      animation: msgSlideIn 0.3s ease;
+    }
+    .ai-msg.user {
+      background: rgba(100, 200, 255, 0.15);
+      color: #87cefa;
+      margin-left: auto;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+    }
+    .ai-msg.ai {
+      background: rgba(255, 215, 0, 0.1);
+      color: #f7d98b;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+    .ai-msg.ai .label {
+      color: rgba(255, 215, 0, 0.5);
+      font-size: 0.7em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .ai-msg .typing {
+      display: inline-block;
+      animation: typingDots 1.2s infinite;
+    }
+    @keyframes typingDots {
+      0%,
+      20% {
+        content: '.';
+      }
+      40% {
+        content: '..';
+      }
+      60%,
+      100% {
+        content: '...';
+      }
+    }
+    @keyframes msgSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    #ai-input-area {
+      display: flex;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+    #ai-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: clamp(6px, 1vh, 10px) clamp(12px, 2vw, 16px);
+      color: #f7d98b;
+      font-family: inherit;
+      font-size: clamp(12px, 1.8vw, 15px);
+      outline: none;
+      min-height: 36px;
+    }
+    #ai-input:focus {
+      border-color: rgba(100, 200, 255, 0.4);
+    }
+    #ai-input::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+    #ai-send-btn {
+      background: rgba(100, 200, 255, 0.15);
+      border: 1px solid rgba(100, 200, 255, 0.2);
+      border-radius: 20px;
+      color: #87cefa;
+      padding: clamp(6px, 1vh, 10px) clamp(14px, 2vw, 20px);
+      font-family: inherit;
+      font-size: clamp(12px, 1.8vw, 15px);
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    #ai-send-btn:active {
+      transform: scale(0.92);
+      background: rgba(100, 200, 255, 0.25);
+    }
+    #ai-send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ===== 星星计数器 ===== */
+    #star-counter {
+      position: fixed;
+      top: clamp(6px, 1.5vh, 12px);
+      right: clamp(8px, 2vw, 16px);
+      color: rgba(247, 217, 139, 0.3);
+      font-size: clamp(10px, 1.5vw, 13px);
+      font-family: 'Comic Sans MS', sans-serif;
+      z-index: 10;
+      pointer-events: none;
+      text-align: right;
+      line-height: 1.4;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+    #star-counter span {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    /* ===== 🆕 成就徽章 ===== */
+    #achievement {
+      position: fixed;
+      bottom: 50%;
+      left: 50%;
+      transform: translate(-50%, 50%) scale(0);
+      background: rgba(8, 11, 36, 0.92);
+      border: 2px solid #ffd700;
+      border-radius: 20px;
+      padding: clamp(12px, 2vh, 20px) clamp(20px, 4vw, 40px);
+      color: #ffd700;
+      font-family: 'Comic Sans MS', sans-serif;
+      font-size: clamp(16px, 3vw, 24px);
+      z-index: 200;
+      pointer-events: none;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 60px rgba(255, 215, 0, 0.2);
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      opacity: 0;
+      min-width: 200px;
+    }
+    #achievement.show {
+      transform: translate(-50%, 50%) scale(1);
+      opacity: 1;
+    }
+    #achievement .sub {
+      font-size: clamp(11px, 1.5vw, 14px);
+      color: rgba(247, 217, 139, 0.6);
+      margin-top: 4px;
+    }
+
+    /* ===== 响应式 ===== */
     @media (max-width: 480px) {
       #encounter {
         width: min(150px, 45vw);
         height: min(150px, 45vw);
       }
-
       #speech-bubble {
         top: -12%;
         font-size: 13px;
@@ -508,45 +757,72 @@
         min-width: 40px;
         border-width: 2.5px;
       }
-
       #speech-tail {
         border-left: 8px solid transparent;
         border-right: 8px solid transparent;
         border-top: 12px solid rgba(255, 255, 255, 0.95);
       }
-
       #stats {
         padding: 4px 10px;
         font-size: 11px;
         line-height: 1.5;
         width: min(260px, 90vw);
       }
-
       #stats td:last-child {
         width: 35px;
       }
-
       .controls button {
         font-size: 11px;
         padding: 4px 10px;
         min-height: 32px;
         min-width: 44px;
       }
-
       .controls label {
         font-size: 11px;
         padding: 4px 8px;
       }
-
       #pokemons {
         font-size: 12px;
         padding: 6px 24px 6px 12px;
         width: min(220px, 85vw);
       }
-
       #fun-message {
         font-size: 10px;
         min-height: 18px;
+      }
+      #star-counter {
+        font-size: 9px;
+        top: 4px;
+        right: 6px;
+      }
+      #achievement {
+        font-size: 14px;
+        padding: 10px 16px;
+        min-width: 150px;
+      }
+      #achievement .sub {
+        font-size: 10px;
+      }
+      #ai-panel {
+        padding: 6px 10px;
+        max-height: 45vh;
+      }
+      #ai-messages {
+        max-height: 25vh;
+        min-height: 60px;
+      }
+      .ai-msg {
+        font-size: 12px;
+        padding: 4px 10px;
+      }
+      #ai-input {
+        font-size: 12px;
+        padding: 4px 10px;
+        min-height: 30px;
+      }
+      #ai-send-btn {
+        font-size: 12px;
+        padding: 4px 12px;
       }
     }
 
@@ -555,7 +831,6 @@
         width: 120px;
         height: 120px;
       }
-
       #speech-bubble {
         font-size: 11px;
         padding: 4px 10px;
@@ -563,73 +838,65 @@
         min-width: 30px;
         top: -10%;
       }
-
       #stats {
         font-size: 10px;
         padding: 3px 8px;
         line-height: 1.4;
       }
-
       #pokemons {
         font-size: 11px;
         padding: 5px 20px 5px 10px;
         width: min(180px, 90vw);
       }
-
       .controls button {
         font-size: 10px;
         padding: 3px 8px;
         min-height: 28px;
         min-width: 38px;
       }
-
       .controls label {
         font-size: 10px;
         padding: 3px 6px;
       }
     }
 
-    /* 横屏适配 */
     @media (max-height: 500px) and (orientation: landscape) {
       #encounter {
         width: 100px;
         height: 100px;
       }
-
       #stats {
         font-size: 10px;
         padding: 3px 8px;
         line-height: 1.3;
         width: min(240px, 60vw);
       }
-
       #pokemons {
         font-size: 11px;
         padding: 4px 20px 4px 12px;
         margin: 4px 0;
       }
-
       .controls button {
         font-size: 10px;
         padding: 3px 8px;
         min-height: 26px;
       }
-
       .controls {
         gap: 4px;
       }
-
       #fun-message {
         font-size: 9px;
         margin-top: 4px;
         min-height: 16px;
       }
-
       #speech-bubble {
         font-size: 12px;
         padding: 4px 10px;
         max-width: 120px;
         top: -15%;
+      }
+      #ai-panel {
+        max-height: 40vh;
       }
     }
   </style>
@@ -637,24 +904,27 @@
 
 <body>
 
-  <!-- ===== 星空背景（Canvas） ===== -->
   <canvas id="starfield"></canvas>
 
-  <!-- ===== 宝可梦主界面 ===== -->
+  <div id="star-counter">
+    ⭐ <span id="starCount">0</span><br>
+    ✨ <span id="shinyStarCount">0</span>
+  </div>
+
+  <div id="achievement">
+    <div id="achTitle">🏆 成就解锁！</div>
+    <div class="sub" id="achSub">继续加油！</div>
+  </div>
+
   <div id="catch_screen">
     <div id="encounter">
       <img id="pokemon" />
       <img id="shiny" />
-
-      <!-- 🎀 卖萌对话框 -->
       <div id="speech-bubble">
         <span id="speech-text"></span>
         <div id="speech-tail"></div>
       </div>
-
-      <!-- 😊 表情雨 -->
       <div id="emoji-rain"></div>
-
       <canvas id="sparkles" width="256" height="256"></canvas>
       <img src="https://github.com/ZeChrales/PogoAssets/blob/master/static_assets/png/sparkle.png?raw=true" id="sparkle" style="display:none;" />
     </div>
@@ -662,36 +932,21 @@
     <select id="pokemons"></select>
 
     <table id="stats">
-      <tr>
-        <td>✨ 遭遇数</td>
-        <td id="encounters_stat"></td>
-      </tr>
-      <tr>
-        <td>⭐ 闪光数</td>
-        <td id="shinies_stat"></td>
-      </tr>
-      <tr>
-        <td>🔥 当前连击</td>
-        <td id="streak_stat"></td>
-      </tr>
-      <tr>
-        <td>🏆 最佳连击</td>
-        <td id="best_streak_stat"></td>
-      </tr>
-      <tr>
-        <td>💀 最差连击</td>
-        <td id="worst_streak_stat"></td>
-      </tr>
-      <tr>
-        <td>🎯 闪光率</td>
-        <td id="rate_stat"></td>
-      </tr>
+      <tr><td>✨ 遭遇数</td><td id="encounters_stat"></td></tr>
+      <tr><td>⭐ 闪光数</td><td id="shinies_stat"></td></tr>
+      <tr><td>🔥 当前连击</td><td id="streak_stat"></td></tr>
+      <tr><td>🏆 最佳连击</td><td id="best_streak_stat"></td></tr>
+      <tr><td>💀 最差连击</td><td id="worst_streak_stat"></td></tr>
+      <tr><td>🎯 闪光率</td><td id="rate_stat"></td></tr>
     </table>
 
     <div class="controls">
       <label><input type="checkbox" id="noflash"> 🚫 闪光</label>
       <button id="resetBtn">🔄 重置</button>
       <button id="testBtn">🧪 测试</button>
+      <button id="luckyBtn">🍀 幸运日</button>
+      <button id="autoBtn">🤖 自动</button>
+      <button id="aiBtn">🧠 AI</button>
     </div>
 
     <div id="fun-message">💫 点击宝可梦，在星空中寻找闪光！</div>
@@ -699,9 +954,29 @@
 
   <div id="flash"></div>
 
+  <!-- ===== 🆕 AI 对话面板 ===== -->
+  <div id="ai-panel">
+    <div class="header">
+      <span>🧠 DeepSeek AI · 闪光占卜师</span>
+      <button class="close-btn" id="aiCloseBtn">✕</button>
+    </div>
+    <div id="ai-messages">
+      <div class="ai-msg ai">
+        <span class="label">🧠 AI 占卜师</span>
+        👋 你好！我是你的闪光占卜师！<br>
+        告诉我你的情况，我可以帮你分析运气、预测出闪、或者陪你聊天！<br>
+        <span style="color:rgba(255,255,255,0.3);font-size:0.8em;">💡 试试问："我什么时候能出闪？" 或 "给我一点鼓励"</span>
+      </div>
+    </div>
+    <div id="ai-input-area">
+      <input id="ai-input" placeholder="输入你的问题..." />
+      <button id="ai-send-btn">发送</button>
+    </div>
+  </div>
+
   <script>
     // ============================================================
-    //  星空背景 (来自古巴比伦星空)
+    //  星空背景 (同上)
     // ============================================================
     (function initStarfield() {
       const canvas = document.getElementById('starfield');
@@ -713,7 +988,6 @@
         .innerWidth < 768;
       const colors = ['#fff4c2', '#f7d98b', '#e8b94f', '#dca85c'];
 
-      // 黄道十二宫数据（精简版，保留星座线条）
       const zodiacData = [{
         points: (cx, cy, r) => [
           [cx + r * 0.0, cy - r * 1.0],
@@ -1000,6 +1274,7 @@
           color: colors[Math.floor(Math.random() * colors.length)]
         }));
 
+        document.getElementById('starCount').textContent = stars.length;
         initConstellations();
       }
 
@@ -1066,7 +1341,6 @@
           }
         });
 
-        // 星环
         ctx.strokeStyle = isMobile ? 'rgba(247, 217, 139, .03)' : 'rgba(247, 217, 139, .06)';
         ctx.lineWidth = isMobile ? 0.5 : 1;
         ctx.setLineDash([4, 8]);
@@ -1167,9 +1441,10 @@
 
 
     // ============================================================
-    //  宝可梦模拟器
+    //  宝可梦模拟器 + AI
     // ============================================================
     (function initPokemon() {
+      // ===== DOM 引用 =====
       var pokemon_selector = document.getElementById("pokemons");
       var pokemon = document.getElementById("pokemon");
       var shiny = document.getElementById("shiny");
@@ -1183,7 +1458,18 @@
       var speechBubble = document.getElementById("speech-bubble");
       var speechText = document.getElementById("speech-text");
       var emojiRain = document.getElementById("emoji-rain");
+      var funMessage = document.getElementById("fun-message");
 
+      // ===== AI 面板 =====
+      var aiPanel = document.getElementById('ai-panel');
+      var aiMessages = document.getElementById('ai-messages');
+      var aiInput = document.getElementById('ai-input');
+      var aiSendBtn = document.getElementById('ai-send-btn');
+      var aiCloseBtn = document.getElementById('aiCloseBtn');
+      var aiBtn = document.getElementById('aiBtn');
+      var isAIOpen = false;
+
+      // ===== 宝可梦数据 =====
       var pokemons = {
         1: ["Bulbasaur", 512],
         4: ["Charmander", 512],
@@ -1193,6 +1479,8 @@
         133: ["Eevee", 512],
         150: ["Mewtwo", 16],
       };
+
+      var wildPool = [1, 4, 7, 10, 16, 19, 23, 25, 27, 41, 43, 48, 50, 52, 54, 56, 58, 60];
 
       for (var p in pokemons) {
         var option = document.createElement("option");
@@ -1211,43 +1499,39 @@
       var sparkling = false;
       var noflash = false;
 
-      // ===== 卖萌系统 =====
+      // ===== 自动模式 =====
+      var autoMode = false;
+      var autoTimer = null;
+
+      // ===== 幸运日 =====
+      var luckyDay = false;
+      var luckyTimer = null;
+
+      // ===== 成就 =====
+      var achievements = {
+        firstShiny: false,
+        tenShinies: false,
+        hundredEncounters: false,
+        thousandEncounters: false,
+        fiftyStreak: false,
+        hundredStreak: false,
+        luckyDayUsed: false,
+      };
+      var totalShinyStars = 0;
+
+      // ===== AI 对话历史 =====
+      var aiHistory = [];
+      var isThinking = false;
+
+      // ===== 卖萌台词 =====
       var shinyLines = {
-        happy: [
-          '✨ 哇！我超闪的！',
-          '🌟 我就是最亮的崽！',
-          '💖 被你发现了~ 好开心！',
-          '⭐ 今天运气真好呀！',
-          '🌈 我是不是很美？',
-          '🎀 人家好开心！',
+        happy: ['✨ 哇！我超闪的！', '🌟 我就是最亮的崽！', '💖 被你发现了~ 好开心！', '⭐ 今天运气真好呀！', '🌈 我是不是很美？', '🎀 人家好开心！',
           '💫 闪亮登场！'
         ],
-        excited: [
-          '🔥 好耶！出闪了！！',
-          '🎉 恭喜恭喜！！！',
-          '💥 我好兴奋啊！！',
-          '⚡ 电到你了没？',
-          '🎊 大吉大利！！',
-          '💎 我是钻石级闪亮！'
-        ],
-        shy: [
-          '😳 唔...被看到了...',
-          '🥺 请、请温柔一点...',
-          '💕 好害羞呀...',
-          '🌸 人家会不好意思的...',
-          '😊 谢谢你来抓我~'
-        ],
-        tsundere: [
-          '😤 才、才不是为你闪的呢！',
-          '🤭 哼！算你走运啦！',
-          '😏 怎么样？被我的光芒震撼了吧！',
-          '😌 也就一般般闪啦~'
-        ],
-        sleepy: [
-          '😴 好困...被你吵醒了...',
-          '💤 呼...zzz...什么？出闪了？',
-          '😪 我还没睡醒呢...'
-        ]
+        excited: ['🔥 好耶！出闪了！！', '🎉 恭喜恭喜！！！', '💥 我好兴奋啊！！', '⚡ 电到你了没？', '🎊 大吉大利！！', '💎 我是钻石级闪亮！'],
+        shy: ['😳 唔...被看到了...', '🥺 请、请温柔一点...', '💕 好害羞呀...', '🌸 人家会不好意思的...', '😊 谢谢你来抓我~'],
+        tsundere: ['😤 才、才不是为你闪的呢！', '🤭 哼！算你走运啦！', '😏 怎么样？被我的光芒震撼了吧！', '😌 也就一般般闪啦~'],
+        sleepy: ['😴 好困...被你吵醒了...', '💤 呼...zzz...什么？出闪了？', '😪 我还没睡醒呢...']
       };
 
       var specialLines = {
@@ -1256,6 +1540,12 @@
         'Mewtwo': ['🧬 我是完美的！', '💪 凡人，你配得上我吗？'],
         'Eevee': ['💫 我要进化成什么好呢？', '🌈 我是幸运的化身！']
       };
+
+      var randomComments = [
+        '😅 还没闪呢...加油！', '💪 坚持就是胜利！', '🌟 下一把一定！',
+        '🎯 瞄准！', '😴 好累...再点一下嘛', '🌈 彩虹就在前方！',
+        '🍀 幸运草在等你！', '💫 相信我，快了！', '😢 我心疼你...', '🎲 命运在转动！'
+      ];
 
       function getPokemonName() {
         var id = pokemon_selector.value;
@@ -1329,6 +1619,311 @@
         }
       }
 
+      // ===== 成就系统 =====
+      function showAchievement(title, sub) {
+        var ach = document.getElementById('achievement');
+        document.getElementById('achTitle').textContent = '🏆 ' + title;
+        document.getElementById('achSub').textContent = sub || '✨ 太厉害了！';
+        ach.className = 'show';
+        clearTimeout(window.achTimer);
+        window.achTimer = setTimeout(function() {
+          ach.className = '';
+        }, 3000);
+      }
+
+      function checkAchievements() {
+        if (shinies >= 1 && !achievements.firstShiny) {
+          achievements.firstShiny = true;
+          showAchievement('初次闪光！', '⭐ 你抓住了第一只闪光宝可梦！');
+        }
+        if (shinies >= 10 && !achievements.tenShinies) {
+          achievements.tenShinies = true;
+          showAchievement('闪光大师！', '🌟 你已经抓到 10 只闪光了！');
+        }
+        if (encounters >= 100 && !achievements.hundredEncounters) {
+          achievements.hundredEncounters = true;
+          showAchievement('百次遭遇！', '💫 你已经遭遇了 100 次！');
+        }
+        if (encounters >= 1000 && !achievements.thousandEncounters) {
+          achievements.thousandEncounters = true;
+          showAchievement('千次遭遇！', '🌌 你已经遭遇了 1000 次！太执着了吧！');
+        }
+        if (streak >= 50 && !achievements.fiftyStreak) {
+          achievements.fiftyStreak = true;
+          showAchievement('五十连击！', '🔥 连续 50 次没有断！');
+        }
+        if (streak >= 100 && !achievements.hundredStreak) {
+          achievements.hundredStreak = true;
+          showAchievement('百连击传说！', '⚡ 连续 100 次！你是魔鬼吗？！');
+        }
+      }
+
+      // ===== 幸运日 =====
+      function activateLuckyDay() {
+        if (luckyDay) {
+          funMessage.textContent = '🍀 幸运日已激活！不要贪心哦~';
+          return;
+        }
+        if (achievements.luckyDayUsed) {
+          funMessage.textContent = '💫 幸运日只能用一次哦！继续加油吧！';
+          return;
+        }
+        luckyDay = true;
+        achievements.luckyDayUsed = true;
+        funMessage.textContent = '🍀 幸运日降临！30秒内出闪概率翻3倍！！';
+        funMessage.className = 'pop';
+        setTimeout(function() { funMessage.className = ''; }, 500);
+
+        for (var i = 0; i < 30; i++) {
+          setTimeout(function() {
+            var colors2 = ['#ffd700', '#ffec8b', '#ffd700', '#fff8dc'];
+            var el = document.createElement('div');
+            el.className = 'sparkle-pop';
+            var size = 5 + Math.random() * 20;
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.background = colors2[Math.floor(Math.random() * colors2.length)];
+            el.style.left = (Math.random() * window.innerWidth) + 'px';
+            el.style.top = (Math.random() * window.innerHeight) + 'px';
+            el.style.boxShadow = '0 0 30px #ffd700';
+            document.body.appendChild(el);
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 900);
+          }, i * 80);
+        }
+
+        clearTimeout(luckyTimer);
+        luckyTimer = setTimeout(function() {
+          luckyDay = false;
+          funMessage.textContent = '🌙 幸运日结束了...继续努力吧！';
+          funMessage.className = 'pop';
+          setTimeout(function() { funMessage.className = ''; }, 500);
+        }, 30000);
+      }
+
+      // ===== 自动模式 =====
+      function toggleAutoMode() {
+        var btn = document.getElementById('autoBtn');
+        if (autoMode) {
+          autoMode = false;
+          btn.textContent = '🤖 自动';
+          btn.className = '';
+          clearInterval(autoTimer);
+          funMessage.textContent = '⏸️ 自动模式已暂停';
+          return;
+        }
+        autoMode = true;
+        btn.textContent = '⏹️ 停止';
+        btn.className = 'active';
+        funMessage.textContent = '🤖 自动模式启动！每秒自动点击...';
+        autoTimer = setInterval(function() {
+          if (!sparkling) {
+            flash.style.transition = "none";
+            if (!noflash) flash.style.opacity = 0.4;
+            setTimeout(reveal, 5);
+          }
+        }, 800);
+      }
+
+      // ===== 随机遭遇 =====
+      function randomEncounter() {
+        var id = wildPool[Math.floor(Math.random() * wildPool.length)];
+        for (var i = 0; i < pokemon_selector.options.length; i++) {
+          if (pokemon_selector.options[i].value == id) {
+            pokemon_selector.selectedIndex = i;
+            pokemon_selector.onchange();
+            funMessage.textContent = '🌿 草丛中跳出了 ' + getPokemonName() + '！';
+            funMessage.className = 'pop';
+            setTimeout(function() { funMessage.className = ''; }, 500);
+            break;
+          }
+        }
+      }
+
+      // ============================================================
+      //  🧠 AI 功能 (模拟 DeepSeek 风格)
+      // ============================================================
+
+      // AI 回应库 (本地模拟，可替换为真实API)
+      var aiResponses = {
+        // 运气相关
+        luck: [
+          '🔮 根据星象显示，你的宝可梦命格正在上升！继续坚持，闪光就在不远处！',
+          '🌟 我感受到一股强大的欧气在你周围流动！今天是个好日子！',
+          '☯️ 运气就像潮水，有起有落。你现在正处于上升期，加油！',
+          '🎲 命运之轮在转动...我预测你在接下来的100次内必有闪光！',
+          '✨ 你的努力星星都看在眼里！继续点击，奇迹会发生！'
+        ],
+        // 鼓励
+        encourage: [
+          '💪 你一定可以的！每一只非闪都在为闪光铺路！',
+          '🌈 不要灰心，彩虹总在风雨后！你离闪光越来越近了！',
+          '🌟 你是最棒的训练家！坚持下去，闪光在等你！',
+          '🔥 燃烧吧！你的热情终将感动命运！',
+          '💖 我相信你！继续加油，好运就在前方！'
+        ],
+        // 预测
+        predict: [
+          '🔮 我看到...你在未来不久将遇到一只闪光！',
+          '⭐ 星象显示，你的下一次闪光即将到来！准备好你的精灵球！',
+          '🌙 满月之夜，闪光的概率会提升！今晚试试看！',
+          '☀️ 太阳正在为你闪耀！好运就在眼前！'
+        ],
+        // 宝可梦知识
+        trivia: [
+          '📚 你知道吗？闪光宝可梦的出现概率大约是 1/4096！你真的很幸运！',
+          '📖 第一只被发现的闪光宝可梦是红色暴鲤龙！',
+          '🧬 闪光宝可梦的颜色变化是随机的，有些变化很大，有些几乎看不出来！',
+          '🌟 在宝可梦GO中，社区日活动时闪光概率会大幅提升！'
+        ],
+        // 闲聊
+        chat: [
+          '😊 今天天气不错！适合出去抓宝可梦！',
+          '🎵 你听说了吗？最近有新的宝可梦游戏要发布了！',
+          '🤗 和你聊天真开心！你是最棒的训练家！',
+          '💫 你知道吗？宝可梦世界里有超过900种不同的宝可梦！',
+          '🌍 宝可梦的世界真的很大！你最喜欢哪个地区？'
+        ],
+        // 默认
+        default: [
+          '🤔 这个问题有点难...让我想想...不过我相信你一定能找到答案！',
+          '😅 宝可梦不知道什么时候造电脑？她所出的系统一定很特别吧，收集收集',
+          '🌟 不管怎样，保持好心情！好运会眷顾乐观的人！'
+        ]
+      };
+
+      function getAIResponse(input) {
+        var lower = input.toLowerCase();
+
+        // 关键词匹配
+        if (lower.includes('运气') || lower.includes('欧') || lower.includes('非') || lower.includes('气') || lower.includes(
+            '概率') || lower.includes('几率')) {
+          return aiResponses.luck[Math.floor(Math.random() * aiResponses.luck.length)];
+        }
+        if (lower.includes('鼓励') || lower.includes('加油') || lower.includes('坚持') || lower.includes('累') || lower.includes(
+            '放弃') || lower.includes('想哭')) {
+          return aiResponses.encourage[Math.floor(Math.random() * aiResponses.encourage.length)];
+        }
+        if (lower.includes('预测') || lower.includes('什么时候') || lower.includes('多久') || lower.includes('未来') || lower
+          .includes('将会')) {
+          return aiResponses.predict[Math.floor(Math.random() * aiResponses.predict.length)];
+        }
+        if (lower.includes('知识') || lower.includes('知道') || lower.includes('历史') || lower.includes('传说') || lower
+          .includes('背景') || lower.includes('故事')) {
+          return aiResponses.trivia[Math.floor(Math.random() * aiResponses.trivia.length)];
+        }
+        if (lower.includes('你好') || lower.includes('嗨') || lower.includes('hi') || lower.includes('hello') || lower
+          .includes('在吗') || lower.includes('聊')) {
+          return aiResponses.chat[Math.floor(Math.random() * aiResponses.chat.length)];
+        }
+
+        // 特殊处理：询问当前状态
+        if (lower.includes('闪了多少') || lower.includes('多少闪') || lower.includes('统计')) {
+          return '📊 目前你已经遭遇了 ' + encounters + ' 只宝可梦，其中 ' + shinies +
+            ' 只是闪光的！闪光率是 ' + (encounters > 0 ? (shinies / encounters * 100).toFixed(2) : '0.00') +
+            '%。继续加油！';
+        }
+
+        // 随机默认回复
+        return aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)];
+      }
+
+      // ===== AI 对话 =====
+      function addAIMessage(text, sender) {
+        var div = document.createElement('div');
+        div.className = 'ai-msg ' + (sender === 'user' ? 'user' : 'ai');
+        if (sender === 'ai') {
+          div.innerHTML = '<span class="label">🧠 AI 占卜师</span>' + text;
+        } else {
+          div.textContent = text;
+        }
+        aiMessages.appendChild(div);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+      }
+
+      function toggleAI() {
+        isAIOpen = !isAIOpen;
+        aiPanel.className = isAIOpen ? 'open' : '';
+        aiBtn.textContent = isAIOpen ? '🧠 AI ✕' : '🧠 AI';
+        aiBtn.className = isAIOpen ? 'active' : '';
+        if (isAIOpen) {
+          aiInput.focus();
+        }
+      }
+
+      function sendAIMessage() {
+        var text = aiInput.value.trim();
+        if (!text || isThinking) return;
+
+        addAIMessage(text, 'user');
+        aiInput.value = '';
+        aiInput.disabled = true;
+        aiSendBtn.disabled = true;
+        isThinking = true;
+
+        // 显示思考状态
+        var thinkingDiv = document.createElement('div');
+        thinkingDiv.className = 'ai-msg ai';
+        thinkingDiv.id = 'thinking-msg';
+        thinkingDiv.innerHTML = '<span class="label">🧠 AI 占卜师</span>思考中<span class="typing">...</span>';
+        aiMessages.appendChild(thinkingDiv);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+
+        // 模拟 AI 思考延迟 (0.5-1.5秒)
+        var delay = 500 + Math.random() * 1000;
+        setTimeout(function() {
+          // 移除思考提示
+          var thinkingEl = document.getElementById('thinking-msg');
+          if (thinkingEl) thinkingEl.remove();
+
+          var response = getAIResponse(text);
+          addAIMessage(response, 'ai');
+
+          isThinking = false;
+          aiInput.disabled = false;
+          aiSendBtn.disabled = false;
+          aiInput.focus();
+        }, delay);
+      }
+
+      // ===== AI 面板事件 =====
+      aiBtn.onclick = toggleAI;
+      aiCloseBtn.onclick = toggleAI;
+
+      aiSendBtn.onclick = sendAIMessage;
+
+      aiInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendAIMessage();
+        }
+      });
+
+      // ===== 点击底部文字触发 AI 快捷问 =====
+      funMessage.onclick = function() {
+        var msgClickCount = parseInt(funMessage.dataset.clickCount) || 0;
+        msgClickCount++;
+        funMessage.dataset.clickCount = msgClickCount;
+
+        if (msgClickCount >= 5) {
+          msgClickCount = 0;
+          funMessage.dataset.clickCount = 0;
+          // 打开AI并自动问一个问题
+          if (!isAIOpen) toggleAI();
+          setTimeout(function() {
+            var questions = ['我什么时候能出闪？', '给我一点鼓励！', '今天的运气怎么样？', '告诉我一个宝可梦知识'];
+            aiInput.value = questions[Math.floor(Math.random() * questions.length)];
+            sendAIMessage();
+          }, 300);
+        } else {
+          var msgs = ['👀 再点 ' + (5 - msgClickCount) + ' 次，AI会帮你占卜！', '😏 想知道运气？点我！', '🔮 点击5次召唤AI占卜师！'];
+          funMessage.textContent = msgs[msgClickCount % msgs.length] || '继续点...';
+        }
+      };
+
+      // ============================================================
+      //  核心功能
+      // ============================================================
+
       function shinyCuteReveal() {
         var name = getPokemonName();
         var types = ['happy', 'excited', 'shy', 'tsundere', 'sleepy'];
@@ -1348,6 +1943,23 @@
         screen.style.animation = 'none';
         setTimeout(function() { screen.style.animation = 'screenShake 0.5s ease'; }, 10);
         setTimeout(function() { screen.style.animation = ''; }, 600);
+
+        totalShinyStars++;
+        document.getElementById('shinyStarCount').textContent = totalShinyStars;
+        checkAchievements();
+
+        // AI 自动触发：出闪时AI会祝贺（如果AI面板开着）
+        if (isAIOpen) {
+          var congrats = [
+            '🎉 恭喜你抓到闪光 ' + name + '！太幸运了！',
+            '✨ 哇！是 ' + name + ' 的闪光形态！好美！',
+            '⭐ 你做到了！' + name + ' 正在向你闪耀！',
+            '💖 太棒了！' + name + ' 选择了你！'
+          ];
+          setTimeout(function() {
+            addAIMessage(congrats[Math.floor(Math.random() * congrats.length)], 'ai');
+          }, 1000);
+        }
       }
 
       // ===== 测试按钮 =====
@@ -1361,10 +1973,22 @@
         }, 3500);
       };
 
+      // ===== 幸运日按钮 =====
+      document.getElementById("luckyBtn").onclick = activateLuckyDay;
+
+      // ===== 自动模式按钮 =====
+      document.getElementById("autoBtn").onclick = toggleAutoMode;
+
       // ===== 核心功能 =====
       pokemon.addEventListener('touchstart', function(e) {
         e.preventDefault();
         if (autostarter == null) autostarter = setTimeout(autocheck, 500);
+        if (Math.random() < 0.08 && !sparkling) {
+          var comment = randomComments[Math.floor(Math.random() * randomComments.length)];
+          funMessage.textContent = comment;
+          funMessage.className = 'pop';
+          setTimeout(function() { funMessage.className = ''; }, 500);
+        }
       }, { passive: false });
 
       pokemon.addEventListener('touchend', function(e) {
@@ -1383,6 +2007,12 @@
       pokemon.onmousedown = function(e) {
         e.preventDefault();
         if (autostarter == null) autostarter = setTimeout(autocheck, 500);
+        if (Math.random() < 0.08 && !sparkling) {
+          var comment = randomComments[Math.floor(Math.random() * randomComments.length)];
+          funMessage.textContent = comment;
+          funMessage.className = 'pop';
+          setTimeout(function() { funMessage.className = ''; }, 500);
+        }
       }
 
       pokemon.onmouseup = function() {
@@ -1409,6 +2039,8 @@
           "_00_shiny.png?raw=true";
         encounters = shinies = streak = worst_streak = 0;
         best_streak = "-";
+        totalShinyStars = 0;
+        document.getElementById('shinyStarCount').textContent = '0';
         updateStats();
       }
       pokemon_selector.onchange();
@@ -1435,23 +2067,35 @@
 
       function reveal() {
         encounters++;
+
         if (shiny.style.display == "block") streak = 0;
         streak++;
         if (streak > worst_streak) worst_streak = streak;
-        if (Math.ceil(Math.random() * odds) == odds) {
+
+        var currentOdds = odds;
+        if (luckyDay) {
+          currentOdds = Math.floor(odds / 3);
+        }
+
+        if (Math.ceil(Math.random() * currentOdds) == currentOdds) {
           shinies++;
           sparkling = true;
           clearInterval(autochecker);
           if (best_streak > streak || best_streak == "-") best_streak = streak;
+
           pokemon.style.display = "none";
           shiny.style.display = "block";
+
           setTimeout(function() { shinyCuteReveal(); }, 300);
           setTimeout(shine, 400);
+
         } else {
           pokemon.style.display = "block";
           shiny.style.display = "none";
         }
+
         updateStats();
+
         flash.style.transition = "opacity 0.4s";
         flash.style.opacity = 0;
       }
@@ -1508,17 +2152,48 @@
       document.getElementById("resetBtn").onclick = function() {
         encounters = shinies = streak = worst_streak = 0;
         best_streak = "-";
+        totalShinyStars = 0;
+        document.getElementById('shinyStarCount').textContent = '0';
+        achievements = {
+          firstShiny: false,
+          tenShinies: false,
+          hundredEncounters: false,
+          thousandEncounters: false,
+          fiftyStreak: false,
+          hundredStreak: false,
+          luckyDayUsed: achievements.luckyDayUsed || false
+        };
         updateStats();
         shiny.style.display = "none";
         pokemon.style.display = "block";
         speechBubble.className = '';
         emojiRain.innerHTML = '';
+        if (autoMode) {
+          autoMode = false;
+          document.getElementById('autoBtn').textContent = '🤖 自动';
+          document.getElementById('autoBtn').className = '';
+          clearInterval(autoTimer);
+        }
+        funMessage.textContent = '🔄 已重置！重新开始吧！';
+        // 清空AI对话
+        aiMessages.innerHTML =
+          '<div class="ai-msg ai"><span class="label">🧠 AI 占卜师</span>👋 重置了！让我们重新开始吧！<br>告诉我你的情况，我可以帮你分析运气、预测出闪！</div>';
       }
 
       document.body.onkeydown = function(e) {
         if (e.keyCode == 32 && !sparkling) {
           e.preventDefault();
           reveal();
+        }
+        if (e.keyCode == 76) { activateLuckyDay(); }
+        if (e.keyCode == 65) { toggleAutoMode(); }
+        if (e.keyCode == 82) { randomEncounter(); }
+        if (e.keyCode == 73) { // I 键打开AI
+          e.preventDefault();
+          toggleAI();
+        }
+        if (e.keyCode == 27 && isAIOpen) { // ESC 关闭AI
+          toggleAI();
         }
       }
 
@@ -1527,11 +2202,20 @@
         return false;
       }
 
+      // ===== 暴露全局 =====
       window.shinyCuteReveal = shinyCuteReveal;
       window.showSpeechBubble = showSpeechBubble;
+      window.activateLuckyDay = activateLuckyDay;
+      window.toggleAutoMode = toggleAutoMode;
+      window.randomEncounter = randomEncounter;
+      window.toggleAI = toggleAI;
+      window.sendAIMessage = sendAIMessage;
 
-      console.log('✨ 星空闪光宝可梦已启动！');
+      console.log('✨ 星空闪光宝可梦 + AI 已启动！');
       console.log('💫 在星空中寻找你的闪光宝可梦吧！');
+      console.log('🧠 点击 "AI" 按钮与闪光占卜师对话！');
+      console.log('⌨️  快捷键: [L]幸运日 [A]自动 [R]随机遭遇 [I]打开AI [ESC]关闭AI');
+      console.log('💡 点击底部文字5次快速召唤AI占卜师！');
     })();
   </script>
 
