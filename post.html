@@ -39,6 +39,9 @@
 
 
 
+
+
+
 <!--
  *
  * Title:       Twitter Clone
@@ -268,7 +271,7 @@
                                             <span class="tweet-username">@luigi</span>
                                             <span class="tweet-time">· 2h</span>
                             </div>
-                            <p>世界杯声频直播，我擦，这个网页面都是免费小游戏</p>
+                            <p>世界杯声频直播，我擦，这个网页面都是免费小游戏滴</p>
                             <iframe src="https://www.opendrive.com/player/NDBfMTM5NzM5ODY3X2xqRjdI" height="25" width="297" style="border:0" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
                                                         <div class="post-media">
 
@@ -537,43 +540,78 @@
                                 </div>
                             </article>
 
-                              <!-- Chained reply tweet -->
-                            <article class="tweet reply">
-                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
-                                <div class="tweet-content">
-                                    <div class="tweet-header">
-                                        <div class="tweet-author-info">
-                                            <span class="tweet-name">CC</span>
-                                            <i class="fas fa-check-circle verified-badge-blue"></i>
-                                            <span class="tweet-username">@yoshi</span>
-                                            <span class="tweet-time">· 15m</span>
-                                        </div>
-                                    </div>
-                                   <div class="replied-to">
-                                        Replying to <a href="/toda">@toda</a>
-                                    </div>
-                                          <img src="https://i.ibb.co/2YRKYzfN/Screenshot-3.png"   
+                             <!-- ===== 推文卡片（游戏嵌入其中） ===== -->
+    <article class="tweet reply">
+        <!-- 头像 -->
+        <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
 
-                                    alt="Post image"  class="post-image">  
-                                    <div class="tweet-actions-list">
-                                        <button class="tweet-action-button" onclick="handleReply(this)">
-                                            <i class="far fa-comment"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-retweet"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
-                                            <i class="far fa-heart"></i>
-                                            <span>100</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-rocket"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </article>
+        <div class="tweet-content">
+            <!-- 推文头部 -->
+            <div class="tweet-header">
+                <div class="tweet-author-info">
+                    <span class="tweet-name">CC</span>
+                    <i class="fas fa-check-circle verified-badge-blue"></i>
+                    <span class="tweet-username">@yoshi</span>
+                    <span class="tweet-time">· 15m</span>
+                </div>
+            </div>
+
+            <div class="replied-to">
+                Replying to <a href="/toda">@toda</a>
+            </div>
+
+            <!-- ========== 游戏嵌入区域 ========== -->
+            <div class="game-embedded">
+                <div class="game-inner">
+                    <!-- 游戏信息栏（迷你） -->
+                    <div class="game-header">
+                        <div class="score">🏆 <span id="scoreDisplay">0</span></div>
+                        <div class="level" id="levelDisplay">第 1 关</div>
+                        <div class="lives" id="livesDisplay">
+                            <span class="heart">❤️</span>
+                            <span class="heart">❤️</span>
+                            <span class="heart">❤️</span>
+                        </div>
+                    </div>
+
+                    <!-- 游戏画布 -->
+                    <canvas id="kkCanvas" width="780" height="400"></canvas>
+
+                    <!-- 游戏控制按钮 -->
+                    <div class="game-controls">
+                        <button class="primary" id="restartBtn">🔄 重开</button>
+                        <button id="pauseBtn">⏸️ 暂停</button>
+                        <span class="hint">
+                            <kbd>←</kbd><kbd>→</kbd> &nbsp;·&nbsp; <kbd>空格</kbd> 发射
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <!-- ===== 游戏嵌入结束 ===== -->
+
+            <!-- 推文操作按钮 -->
+            <div class="tweet-actions-list">
+                <button class="tweet-action-button" onclick="handleReply(this)">
+                    <i class="far fa-comment"></i>
+                    <span>0</span>
+                </button>
+                <button class="tweet-action-button">
+                    <i class="fas fa-retweet"></i>
+                    <span>0</span>
+                </button>
+                <button class="tweet-action-button" onclick="handleLike(this)">
+                    <i class="far fa-heart"></i>
+                    <span>100</span>
+                </button>
+                <button class="tweet-action-button">
+                    <i class="fas fa-rocket"></i>
+                </button>
+            </div>
+        </div>
+    </article>
+
+
+                            
 
                             <!-- Another VIP Reply -->
                                <!-- Chained reply tweet -->
@@ -5341,3 +5379,912 @@ document.querySelectorAll('.rps-container label').forEach(label => {
 
 })();
 </script>
+
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>✨ 霓虹打砖块 · 推文内嵌</title>
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ---------- 全局 ---------- */
+        
+
+        /* ---------- 游戏区域（嵌入推文正文） ---------- */
+        .game-embedded {
+            width: 100%;
+            margin: 6px 0 10px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0b0e1a;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        /* 游戏内部布局 — 紧凑版 */
+        .game-inner {
+            padding: 12px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 信息栏（迷你） */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #c8d0e6;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .game-header .score span {
+            color: #f7e05e;
+            font-size: 20px;
+            font-weight: 700;
+            min-width: 40px;
+            display: inline-block;
+            text-align: right;
+        }
+
+        .game-header .lives {
+            display: flex;
+            gap: 4px;
+            font-size: 18px;
+        }
+        .game-header .lives .heart {
+            color: #ff5e7a;
+            transition: all 0.2s;
+        }
+        .game-header .lives .heart.lost {
+            opacity: 0.2;
+            transform: scale(0.8);
+        }
+        .game-header .level {
+            background: rgba(255,255,255,0.06);
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #8892b0;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        /* 画布 — 自适应宽度 */
+        .game-embedded canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 780 / 400; /* 稍微扁一些以适应卡片 */
+            border-radius: 12px;
+            background: #0b0e1a;
+            cursor: none;
+            touch-action: none;
+        }
+
+        /* 控制按钮（小型） */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .game-controls button {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #c8d0e6;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .game-controls button:hover {
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .game-controls button.primary {
+            background: #5b7cfa;
+            border-color: #5b7cfa;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(91, 124, 250, 0.25);
+        }
+
+        .game-controls button.primary:hover {
+            background: #6f8cff;
+            border-color: #6f8cff;
+            box-shadow: 0 6px 24px rgba(91, 124, 250, 0.35);
+        }
+
+        .game-controls .hint {
+            color: #4a5478;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .game-controls .hint kbd {
+            background: rgba(255,255,255,0.06);
+            padding: 1px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #8892b0;
+        }
+
+        /* ---------- 推文操作按钮 ---------- */
+        .tweet-actions-list {
+            display: flex;
+            justify-content: space-between;
+            max-width: 380px;
+            margin-top: 8px;
+        }
+
+        .tweet-action-button {
+            background: transparent;
+            border: none;
+            color: #6a7498;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px 6px 8px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .tweet-action-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #c8d0e6;
+        }
+
+        .tweet-action-button i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .tweet-action-button span {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 14px;
+        }
+
+        .tweet-action-button.liked {
+            color: #ff5e7a;
+        }
+        .tweet-action-button.liked i {
+            color: #ff5e7a;
+        }
+
+        /* ---------- 响应式 ---------- */
+        @media (max-width: 500px) {
+            .tweet {
+                padding: 12px 14px 10px;
+            }
+            .game-inner {
+                padding: 8px 6px 10px;
+            }
+            .game-header {
+                font-size: 12px;
+            }
+            .game-header .score span {
+                font-size: 18px;
+                min-width: 30px;
+            }
+            .game-header .lives {
+                font-size: 16px;
+            }
+            .game-header .level {
+                font-size: 11px;
+                padding: 1px 10px;
+            }
+            .game-controls button {
+                font-size: 11px;
+                padding: 4px 12px;
+            }
+            .game-controls .hint {
+                font-size: 10px;
+            }
+            .tweet-action-button {
+                font-size: 13px;
+                padding: 4px 8px 4px 6px;
+            }
+            .tweet-action-button i {
+                font-size: 14px;
+                width: 16px;
+            }
+        }
+
+        /* Toast (复用) */
+        .custom-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 22, 42, 0.92);
+            color: #e6edff;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 1px solid rgba(91,124,250,0.25);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            transform: translateX(-50%) translateY(12px);
+            pointer-events: none;
+        }
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+
+
+    <!-- ===== 推文卡片（游戏嵌入其中） ===== -->
+  
+
+    <script>
+        // ============================================================
+        //  🎮  霓 虹 打 砖 块  —  游 戏 逻 辑 (适配推文内嵌)
+        // ============================================================
+
+        // ---------- DOM ----------
+        const canvas = document.getElementById('kkCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreSpan = document.getElementById('scoreDisplay');
+        const livesDiv = document.getElementById('livesDisplay');
+        const levelDiv = document.getElementById('levelDisplay');
+        const restartBtn = document.getElementById('restartBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        // ---------- 尺寸 (画布固定 780x400) ----------
+        const W = 780,
+            H = 400;
+
+        // ---------- 配置 (适配更扁的屏幕) ----------
+        const CONFIG = {
+            paddleWidth: 110,
+            paddleHeight: 14,
+            paddleRadius: 7,
+            paddleY: 370,
+            paddleSpeed: 7,
+            ballRadius: 8,
+            ballSpeed: 4.5,
+            maxBallSpeed: 7.0,
+            brickRows: 5,
+            brickCols: 10,
+            brickWidth: 62,
+            brickHeight: 20,
+            brickGap: 5,
+            brickOffsetTop: 35,
+            brickOffsetLeft: 10,
+            lives: 3,
+            rowColors: [
+                { fill: '#ff5e7a', glow: '#ff5e7a', points: 50 },
+                { fill: '#ff9f5e', glow: '#ff9f5e', points: 40 },
+                { fill: '#f7e05e', glow: '#f7e05e', points: 30 },
+                { fill: '#5ef7a0', glow: '#5ef7a0', points: 20 },
+                { fill: '#5ea8f7', glow: '#5ea8f7', points: 10 },
+            ]
+        };
+
+        // ---------- 状态 ----------
+        let state = {
+            paddle: { x: W / 2 - CONFIG.paddleWidth / 2, y: CONFIG.paddleY },
+            ball: { x: W / 2, y: CONFIG.paddleY - CONFIG.ballRadius, r: CONFIG.ballRadius, dx: 0, dy: 0 },
+            bricks: [],
+            particles: [],
+            score: 0,
+            lives: CONFIG.lives,
+            level: 1,
+            status: 'idle',
+            running: true,
+            animId: null,
+        };
+
+        // ---------- 辅助 ----------
+        function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+        // ---------- 砖块生成 ----------
+        function buildBricks(level) {
+            const bricks = [];
+            const rows = CONFIG.brickRows;
+            const cols = CONFIG.brickCols;
+            const bw = CONFIG.brickWidth;
+            const bh = CONFIG.brickHeight;
+            const gap = CONFIG.brickGap;
+            const offX = CONFIG.brickOffsetLeft;
+            const offY = CONFIG.brickOffsetTop;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = offX + c * (bw + gap);
+                    const y = offY + r * (bh + gap);
+                    const color = CONFIG.rowColors[r];
+                    let hp = 1;
+                    if (level > 2 && Math.random() < 0.15 + level * 0.01) hp = 2;
+                    if (level > 4 && Math.random() < 0.10) hp = 3;
+                    bricks.push({
+                        x, y, w: bw, h: bh,
+                        hp, maxHp: hp,
+                        fill: color.fill, glow: color.glow,
+                        points: color.points,
+                        alive: true,
+                    });
+                }
+            }
+            return bricks;
+        }
+
+        // ---------- 重置 ----------
+        function resetGame() {
+            if (state.animId) cancelAnimationFrame(state.animId);
+            state.score = 0;
+            state.lives = CONFIG.lives;
+            state.level = 1;
+            state.particles = [];
+            state.status = 'idle';
+            state.running = true;
+            state.paddle.x = W / 2 - CONFIG.paddleWidth / 2;
+            state.paddle.y = CONFIG.paddleY;
+            resetBall();
+            state.bricks = buildBricks(state.level);
+            updateUI();
+            pauseBtn.textContent = '⏸️ 暂停';
+            draw();
+            gameLoop();
+        }
+
+        function resetBall() {
+            const p = state.paddle;
+            state.ball.x = p.x + CONFIG.paddleWidth / 2;
+            state.ball.y = p.y - CONFIG.ballRadius;
+            state.ball.dx = 0;
+            state.ball.dy = 0;
+            state.ball.r = CONFIG.ballRadius;
+            state.status = 'idle';
+        }
+
+        function launchBall() {
+            if (state.status === 'idle' || state.status === 'launching') {
+                const angle = -Math.PI / 2 + (Math.random() - 0.5) * 0.8;
+                const speed = CONFIG.ballSpeed + (state.level - 1) * 0.25;
+                state.ball.dx = Math.cos(angle) * speed;
+                state.ball.dy = Math.sin(angle) * speed;
+                state.status = 'playing';
+            }
+        }
+
+        function nextLevel() {
+            state.level++;
+            state.bricks = buildBricks(state.level);
+            state.particles = [];
+            resetBall();
+            state.status = 'idle';
+            updateUI();
+            const p = state.paddle;
+            state.ball.x = p.x + CONFIG.paddleWidth / 2;
+            state.ball.y = p.y - CONFIG.ballRadius;
+            state.ball.dx = 0;
+            state.ball.dy = 0;
+            draw();
+        }
+
+        // ---------- 粒子 ----------
+        function spawnParticles(x, y, color, count = 22) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const speed = 1.2 + Math.random() * 3.5;
+                const size = 3 + Math.random() * 5;
+                state.particles.push({
+                    x: x + (Math.random() - 0.5) * 8,
+                    y: y + (Math.random() - 0.5) * 8,
+                    dx: Math.cos(angle) * speed,
+                    dy: Math.sin(angle) * speed - 0.8,
+                    life: 1.0,
+                    decay: 0.012 + Math.random() * 0.015,
+                    size,
+                    color,
+                    gravity: 0.06,
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.dx;
+                p.y += p.dy;
+                p.dy += p.gravity;
+                p.life -= p.decay;
+                if (p.life <= 0) state.particles.splice(i, 1);
+            }
+        }
+
+        // ---------- 碰撞 ----------
+        function circleRectCollision(cx, cy, cr, rx, ry, rw, rh) {
+            const nearX = clamp(cx, rx, rx + rw);
+            const nearY = clamp(cy, ry, ry + rh);
+            const dx = cx - nearX;
+            const dy = cy - nearY;
+            return (dx * dx + dy * dy) < (cr * cr);
+        }
+
+        // ---------- 更新 ----------
+        function update() {
+            if (state.status === 'paused' || state.status === 'gameover' || state.status === 'win') return;
+            if (state.status === 'idle' || state.status === 'launching') {
+                const p = state.paddle;
+                state.ball.x = p.x + CONFIG.paddleWidth / 2;
+                state.ball.y = p.y - CONFIG.ballRadius;
+                return;
+            }
+
+            const ball = state.ball;
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            if (ball.x - ball.r < 0) { ball.x = ball.r;
+                ball.dx = -ball.dx; } else if (ball.x + ball.r > W) { ball.x = W - ball.r;
+                ball.dx = -ball.dx; }
+            if (ball.y - ball.r < 0) { ball.y = ball.r;
+                ball.dy = -ball.dy; }
+            if (ball.y + ball.r > H) { loseLife(); return; }
+
+            // 挡板
+            const p = state.paddle;
+            const px = p.x,
+                py = p.y,
+                pw = CONFIG.paddleWidth,
+                ph = CONFIG.paddleHeight;
+            if (ball.dy > 0 && ball.y + ball.r >= py && ball.y + ball.r <= py + ph + 6) {
+                if (ball.x >= px - ball.r && ball.x <= px + pw + ball.r) {
+                    let hitPos = clamp((ball.x - px) / pw, 0, 1);
+                    const angle = (hitPos - 0.5) * 1.8;
+                    const speed = Math.min(Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy) + 0.15, CONFIG.maxBallSpeed);
+                    ball.dx = Math.sin(angle) * speed;
+                    ball.dy = -Math.cos(angle) * speed;
+                    if (Math.abs(ball.dx) < 0.5) ball.dx = (ball.dx > 0 ? 1 : -1) * 0.5;
+                    ball.y = py - ball.r;
+                }
+            }
+
+            // 砖块
+            for (const brick of state.bricks) {
+                if (!brick.alive) continue;
+                if (circleRectCollision(ball.x, ball.y, ball.r, brick.x, brick.y, brick.w, brick.h)) {
+                    const cx = brick.x + brick.w / 2;
+                    const cy = brick.y + brick.h / 2;
+                    const dx = ball.x - cx;
+                    const dy = ball.y - cy;
+                    const overlapX = brick.w / 2 + ball.r - Math.abs(dx);
+                    const overlapY = brick.h / 2 + ball.r - Math.abs(dy);
+                    if (overlapX < overlapY) ball.dx = -ball.dx;
+                    else ball.dy = -ball.dy;
+
+                    brick.hp--;
+                    if (brick.hp <= 0) {
+                        brick.alive = false;
+                        state.score += brick.points;
+                        spawnParticles(brick.x + brick.w / 2, brick.y + brick.h / 2, brick.fill, 28);
+                        spawnParticles(brick.x + brick.w / 2, brick.y + brick.h / 2, '#ffffff', 6);
+                    } else {
+                        spawnParticles(brick.x + brick.w / 2, brick.y + brick.h / 2, brick.fill, 8);
+                    }
+                    const spd = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                    if (spd > CONFIG.maxBallSpeed) {
+                        const ratio = CONFIG.maxBallSpeed / spd;
+                        ball.dx *= ratio;
+                        ball.dy *= ratio;
+                    }
+                    if (ball.dy === 0) ball.dy = -0.5;
+                    updateUI();
+                    break;
+                }
+            }
+
+            const remaining = state.bricks.filter(b => b.alive).length;
+            if (remaining === 0 && state.status === 'playing') {
+                state.status = 'win';
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        spawnParticles(
+                            Math.random() * W,
+                            Math.random() * H * 0.6,
+                            ['#ff5e7a','#ff9f5e','#f7e05e','#5ef7a0','#5ea8f7','#b87cf7'][Math.floor(Math.random()*6)],
+                            30
+                        );
+                    }, i * 100);
+                }
+                updateUI();
+            }
+
+            updateParticles();
+        }
+
+        function loseLife() {
+            state.lives--;
+            updateUI();
+            if (state.lives <= 0) {
+                state.status = 'gameover';
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        spawnParticles(Math.random() * W, Math.random() * H * 0.5, '#ff5e7a', 25);
+                    }, i * 80);
+                }
+                return;
+            }
+            resetBall();
+            state.status = 'idle';
+            state.paddle.x = W / 2 - CONFIG.paddleWidth / 2;
+        }
+
+        // ---------- 绘制 ----------
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            const grad = ctx.createRadialGradient(400, 200, 80, 400, 200, 400);
+            grad.addColorStop(0, '#1a1f3a');
+            grad.addColorStop(1, '#070a14');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // 网格
+            ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < W; i += 40) { ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, H);
+                ctx.stroke(); }
+            for (let i = 0; i < H; i += 40) { ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(W, i);
+                ctx.stroke(); }
+
+            // 砖块
+            for (const brick of state.bricks) {
+                if (!brick.alive) continue;
+                const { x, y, w, h, fill, glow, hp, maxHp } = brick;
+                ctx.shadowColor = glow;
+                ctx.shadowBlur = 18;
+                ctx.beginPath();
+                ctx.roundRect(x, y, w, h, 4);
+                ctx.fillStyle = fill;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.20)';
+                ctx.beginPath();
+                ctx.roundRect(x + 4, y + 3, w - 8, h * 0.3, 3);
+                ctx.fill();
+                if (hp > 1 && hp < maxHp) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⚡' + hp, x + w/2, y + h/2 + 1);
+                }
+                ctx.shadowBlur = 0;
+            }
+
+            // 挡板
+            const p = state.paddle;
+            const pw = CONFIG.paddleWidth, ph = CONFIG.paddleHeight;
+            ctx.shadowColor = '#5b7cfa';
+            ctx.shadowBlur = 24;
+            ctx.beginPath();
+            ctx.roundRect(p.x, p.y, pw, ph, CONFIG.paddleRadius);
+            const gradP = ctx.createLinearGradient(p.x, p.y, p.x, p.y + ph);
+            gradP.addColorStop(0, '#7a96ff');
+            gradP.addColorStop(1, '#3d5ed9');
+            ctx.fillStyle = gradP;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.25)';
+            ctx.beginPath();
+            ctx.roundRect(p.x + 10, p.y + 3, pw - 20, ph * 0.35, 4);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(p.x, p.y, pw, ph, CONFIG.paddleRadius);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // 球
+            const ball = state.ball;
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = 22;
+            const gradB = ctx.createRadialGradient(ball.x - 3, ball.y - 3, 2, ball.x, ball.y, ball.r);
+            gradB.addColorStop(0, '#ffffff');
+            gradB.addColorStop(0.4, '#c8d0ff');
+            gradB.addColorStop(1, '#5b7cfa');
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = gradB;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath();
+            ctx.arc(ball.x - 3, ball.y - 4, ball.r * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // 粒子
+            for (const pt of state.particles) {
+                ctx.globalAlpha = pt.life;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = pt.color;
+                ctx.fillStyle = pt.color;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, pt.size * pt.life * 0.8 + 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+
+            // 状态文字
+            if (state.status === 'idle' || state.status === 'launching') {
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.font = '600 18px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#5b7cfa';
+                ctx.fillText('🔼 空格 / 点击发射', W/2, H/2 + 50);
+                ctx.shadowBlur = 0;
+                const pulse = Math.sin(Date.now()/400)*0.2+0.8;
+                ctx.fillStyle = `rgba(255,255,255,${pulse*0.3})`;
+                ctx.font = '28px sans-serif';
+                ctx.fillText('▲', W/2, H/2 + 12);
+            }
+
+            if (state.status === 'gameover') {
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#ff5e7a';
+                ctx.font = '700 44px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = '#ff5e7a';
+                ctx.fillText('💔 游戏结束', W/2, H/2 - 20);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#c8d0e6';
+                ctx.font = '18px "Segoe UI", sans-serif';
+                ctx.fillText('得分: ' + state.score, W/2, H/2 + 40);
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.font = '14px "Segoe UI", sans-serif';
+                ctx.fillText('点击「重开」再来一局', W/2, H/2 + 78);
+            }
+
+            if (state.status === 'win') {
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#f7e05e';
+                ctx.font = '700 44px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = '#f7e05e';
+                ctx.fillText('🎉 过关!', W/2, H/2 - 20);
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#c8d0e6';
+                ctx.font = '18px "Segoe UI", sans-serif';
+                ctx.fillText('得分: ' + state.score, W/2, H/2 + 40);
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.font = '14px "Segoe UI", sans-serif';
+                ctx.fillText('即将进入下一关...', W/2, H/2 + 78);
+            }
+
+            if (state.status === 'paused') {
+                ctx.fillStyle = 'rgba(0,0,0,0.50)';
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = '#8892b0';
+                ctx.font = '600 34px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('⏸ 已暂停', W/2, H/2);
+            }
+        }
+
+        // roundRect polyfill
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, radii) {
+                const r = typeof radii === 'number' ? radii : (radii || 0);
+                this.moveTo(x + r, y);
+                this.arcTo(x + w, y, x + w, y + h, r);
+                this.arcTo(x + w, y + h, x, y + h, r);
+                this.arcTo(x, y + h, x, y, r);
+                this.arcTo(x, y, x + w, y, r);
+                return this;
+            };
+        }
+
+        // ---------- UI ----------
+        function updateUI() {
+            scoreSpan.textContent = state.score;
+            levelDiv.textContent = `第 ${state.level} 关`;
+            let html = '';
+            for (let i = 0; i < CONFIG.lives; i++) {
+                html += `<span class="heart ${i >= state.lives ? 'lost' : ''}">❤️</span>`;
+            }
+            livesDiv.innerHTML = html;
+        }
+
+        // ---------- 循环 ----------
+        function gameLoop() {
+            if (!state.running) return;
+            update();
+            draw();
+            if (state.status === 'win') {
+                if (!state._winTimer) {
+                    state._winTimer = setTimeout(() => {
+                        state._winTimer = null;
+                        if (state.status === 'win') {
+                            nextLevel();
+                            state.status = 'idle';
+                            const p = state.paddle;
+                            state.ball.x = p.x + CONFIG.paddleWidth / 2;
+                            state.ball.y = p.y - CONFIG.ballRadius;
+                            state.ball.dx = 0;
+                            state.ball.dy = 0;
+                            draw();
+                            updateUI();
+                        }
+                    }, 1800);
+                }
+            }
+            state.animId = requestAnimationFrame(gameLoop);
+        }
+
+        // ---------- 事件 ----------
+        const keys = { left: false, right: false };
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') { keys.left = true;
+                e.preventDefault(); }
+            if (e.key === 'ArrowRight') { keys.right = true;
+                e.preventDefault(); }
+            if (e.key === ' ') { e.preventDefault(); if (state.status === 'idle' || state.status === 'launching') launchBall(); }
+            if (e.key === 'p' || e.key === 'P') togglePause();
+            if (e.key === 'r' || e.key === 'R') resetGame();
+        });
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') { keys.left = false;
+                e.preventDefault(); }
+            if (e.key === 'ArrowRight') { keys.right = false;
+                e.preventDefault(); }
+        });
+
+        function handleMove(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const canvasX = (clientX - rect.left) * scaleX;
+            const half = CONFIG.paddleWidth / 2;
+            state.paddle.x = clamp(canvasX - half, 0, W - CONFIG.paddleWidth);
+            if (state.status === 'idle' || state.status === 'launching') {
+                state.ball.x = state.paddle.x + CONFIG.paddleWidth / 2;
+                state.ball.y = state.paddle.y - CONFIG.ballRadius;
+            }
+        }
+
+        canvas.addEventListener('mousemove', (e) => handleMove(e.clientX));
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (e.touches[0]) handleMove(e.touches[0].clientX); }, { passive: false });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (e.touches[0]) handleMove(e.touches[0].clientX); if (state.status === 'idle' || state.status === 'launching') launchBall(); }, { passive: false });
+        canvas.addEventListener('click', () => { if (state.status === 'idle' || state.status === 'launching') launchBall(); });
+
+        restartBtn.addEventListener('click', resetGame);
+        pauseBtn.addEventListener('click', togglePause);
+
+        function togglePause() {
+            if (state.status === 'gameover' || state.status === 'win') return;
+            if (state.status === 'paused') {
+                state.status = 'playing';
+                state.running = true;
+                pauseBtn.textContent = '⏸️ 暂停';
+                if (!state.animId) gameLoop();
+            } else {
+                state.status = 'paused';
+                state.running = false;
+                pauseBtn.textContent = '▶️ 继续';
+                if (state.animId) { cancelAnimationFrame(state.animId);
+                    state.animId = null; }
+                draw();
+            }
+        }
+
+        // 键盘控制挡板 (覆盖)
+        const origUpdate = update;
+        update = function() {
+            if (state.status !== 'gameover' && state.status !== 'win' && state.status !== 'paused') {
+                const speed = CONFIG.paddleSpeed;
+                if (keys.left) {
+                    state.paddle.x = Math.max(0, state.paddle.x - speed);
+                    if (state.status === 'idle' || state.status === 'launching') {
+                        state.ball.x = state.paddle.x + CONFIG.paddleWidth / 2;
+                        state.ball.y = state.paddle.y - CONFIG.ballRadius;
+                    }
+                }
+                if (keys.right) {
+                    state.paddle.x = Math.min(W - CONFIG.paddleWidth, state.paddle.x + speed);
+                    if (state.status === 'idle' || state.status === 'launching') {
+                        state.ball.x = state.paddle.x + CONFIG.paddleWidth / 2;
+                        state.ball.y = state.paddle.y - CONFIG.ballRadius;
+                    }
+                }
+            }
+            origUpdate.call(this);
+        };
+
+        // ============================================================
+        //  💬  推 文 交 互
+        // ============================================================
+        function handleReply(btn) {
+            const span = btn.querySelector('span');
+            const current = parseInt(span.textContent, 10) || 0;
+            span.textContent = current + 1;
+            btn.style.color = '#5b7cfa';
+            setTimeout(() => btn.style.color = '', 400);
+            const name = btn.closest('.tweet').querySelector('.tweet-name')?.textContent || '玩家';
+            showToast(`💬 回复了 @${name} 的帖子`);
+        }
+
+        function handleLike(btn) {
+            const isLiked = btn.classList.contains('liked');
+            const icon = btn.querySelector('i');
+            const span = btn.querySelector('span');
+            let count = parseInt(span.textContent, 10) || 0;
+            if (isLiked) {
+                btn.classList.remove('liked');
+                icon.className = 'far fa-heart';
+                count = Math.max(0, count - 1);
+            } else {
+                btn.classList.add('liked');
+                icon.className = 'fas fa-heart';
+                count++;
+                showToast('❤️ 感谢点赞！');
+            }
+            span.textContent = count;
+        }
+
+        // Toast
+        function showToast(msg) {
+            const container = document.getElementById('toastContainer');
+            const existing = container.querySelector('.custom-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.textContent = msg;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 2000);
+        }
+
+        // ---------- 启动 ----------
+        resetGame();
+
+        console.log('🎮 霓虹打砖块已嵌入推文！');
+        console.log('🕹️  ← → 移动 | 空格发射 | P暂停 | R重开');
+    </script>
+
