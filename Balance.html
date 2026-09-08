@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5" />
+    <title>财务预算表</title>
+    <style>
+        /* ===== 全局重置 & 变量 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        :root {
+            --primary: #2a7de1;
+            --primary-light: #e8f0fe;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --radius: 12px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.10);
+            --transition: 0.2s ease;
+        }
+
+        body {
+    background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);}
+        color: var(--gray-800);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* ===== 主容器 ===== */
+        .app {
+            max-width: 880px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 12px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 span {
+            background: var(--primary);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 2px 12px;
+            border-radius: 40px;
+            letter-spacing: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 按钮 ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+            background: #fff;
+            color: var(--gray-700);
+            box-shadow: var(--shadow);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #1a6ac9;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #128a3a;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-outline {
+            background: transparent;
+            box-shadow: none;
+            border: 1.5px solid var(--gray-300);
+        }
+        .btn-outline:hover {
+            border-color: var(--gray-400);
+            background: var(--gray-100);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        .btn-icon {
+            padding: 8px 10px;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* ===== 汇总卡片 ===== */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--gray-300);
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .summary-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .summary-card .value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .summary-card .value.income {
+            color: var(--success);
+        }
+        .summary-card .value.expense {
+            color: var(--danger);
+        }
+        .summary-card .value.balance {
+            color: var(--primary);
+        }
+
+        .summary-card.income-card {
+            border-left-color: var(--success);
+        }
+        .summary-card.expense-card {
+            border-left-color: var(--danger);
+        }
+        .summary-card.balance-card {
+            border-left-color: var(--primary);
+        }
+
+        /* ===== 表格区域 ===== */
+        .table-section {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .table-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            gap: 10px;
+        }
+
+        .table-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .table-header .filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .table-header .filters .filter-btn {
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1.5px solid var(--gray-300);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .table-header .filters .filter-btn:hover {
+            border-color: var(--gray-400);
+        }
+        .table-header .filters .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        /* ===== 响应式表格 ===== */
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 4px 4px 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+            min-width: 480px;
+        }
+
+        thead {
+            background: var(--gray-100);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        thead th {
+            text-align: left;
+            padding: 14px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--gray-500);
+            white-space: nowrap;
+        }
+
+        thead th:last-child,
+        tbody td:last-child {
+            text-align: right;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--gray-100);
+            transition: background var(--transition);
+        }
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            color: var(--gray-700);
+        }
+
+        tbody td .type-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        .type-badge.income {
+            background: #dcfce7;
+            color: var(--success);
+        }
+        .type-badge.expense {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        tbody td .amount {
+            font-weight: 600;
+        }
+        tbody td .amount.income {
+            color: var(--success);
+        }
+        tbody td .amount.expense {
+            color: var(--danger);
+        }
+
+        .td-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .td-actions .btn {
+            padding: 4px 10px;
+            font-size: 13px;
+            box-shadow: none;
+            border-radius: 30px;
+        }
+        .td-actions .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 1.5px solid transparent;
+        }
+        .td-actions .btn-danger:hover {
+            background: #fee2e2;
+            border-color: var(--danger);
+            transform: none;
+        }
+        .td-actions .btn-success {
+            background: transparent;
+            color: var(--success);
+            border: 1.5px solid transparent;
+        }
+        .td-actions .btn-success:hover {
+            background: #dcfce7;
+            border-color: var(--success);
+            transform: none;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--gray-400);
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        /* ===== 添加表单 ===== */
+        .form-section {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px 24px 24px 24px;
+            margin-bottom: 28px;
+        }
+
+        .form-section .form-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--gray-800);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1 1 160px;
+            min-width: 130px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 15px;
+            background: #fff;
+            transition: border var(--transition), box-shadow var(--transition);
+            color: var(--gray-800);
+            appearance: auto;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 125, 225, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: var(--gray-400);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            flex: 0 0 auto;
+            align-items: center;
+            padding-bottom: 2px;
+        }
+
+        /* ===== 底部 ===== */
+        .footer {
+            text-align: center;
+            padding: 20px 0 8px;
+            color: var(--gray-400);
+            font-size: 13px;
+            border-top: 1px solid var(--gray-200);
+            margin-top: 8px;
+        }
+
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+            .header h1 span {
+                font-size: 13px;
+                padding: 0 10px;
+            }
+
+            .summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .summary-card {
+                padding: 14px 16px;
+            }
+            .summary-card .value {
+                font-size: 22px;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 12px 16px;
+            }
+            .table-header .filters {
+                justify-content: flex-start;
+            }
+
+            table {
+                font-size: 14px;
+                min-width: 420px;
+            }
+            thead th,
+            tbody td {
+                padding: 10px 12px;
+            }
+
+            .form-section {
+                padding: 16px 16px 20px 16px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .form-group {
+                flex: 1 1 auto;
+                min-width: 100%;
+            }
+            .form-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+            .form-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .td-actions .btn {
+                padding: 2px 8px;
+                font-size: 12px;
+            }
+            .td-actions .btn span {
+                display: none;
+            }
+            .td-actions .btn::after {
+                content: "✕";
+            }
+            .td-actions .btn-success::after {
+                content: "✓";
+            }
+            .td-actions .btn-danger::after {
+                content: "✕";
+            }
+            .td-actions .btn-success span,
+            .td-actions .btn-danger span {
+                display: none;
+            }
+
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .summary {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .summary-card .value {
+                font-size: 18px;
+            }
+            .summary-card .label {
+                font-size: 11px;
+            }
+            .summary-card {
+                padding: 10px 12px;
+            }
+            table {
+                font-size: 13px;
+                min-width: 340px;
+            }
+            thead th,
+            tbody td {
+                padding: 8px 10px;
+            }
+        }
+
+        /* ===== 工具类 ===== */
+        .hidden {
+            display: none !important;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+
+        <!-- 头部 -->
+        <header class="header">
+            <h1>
+                📊 财务预算
+                <span>v1</span>
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-outline btn-sm" id="resetBtn" title="重置示例数据">
+                    🔄 重置
+                </button>
+                <button class="btn btn-danger btn-sm" id="clearBtn" title="清空所有数据">
+                    🗑️ 清空
+                </button>
+            </div>
+        </header>
+
+        <!-- 汇总卡片 -->
+        <section class="summary" id="summarySection">
+            <div class="summary-card income-card">
+                <div class="label">总收入</div>
+                <div class="value income" id="totalIncome">¥0</div>
+            </div>
+            <div class="summary-card expense-card">
+                <div class="label">总支出</div>
+                <div class="value expense" id="totalExpense">¥0</div>
+            </div>
+            <div class="summary-card balance-card">
+                <div class="label">结余</div>
+                <div class="value balance" id="balance">¥0</div>
+            </div>
+        </section>
+
+        <!-- 表格 -->
+        <section class="table-section">
+            <div class="table-header">
+                <h2>📋 明细记录</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="income">收入</button>
+                    <button class="filter-btn" data-filter="expense">支出</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>分类</th>
+                            <th>描述</th>
+                            <th>类型</th>
+                            <th>金额</th>
+                            <th style="text-align:right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 由 JavaScript 动态渲染 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state hidden">
+                <div class="icon">📭</div>
+                <p>还没有记录，添加一笔吧！</p>
+            </div>
+        </section>
+
+        <!-- 添加表单 -->
+        <section class="form-section">
+            <div class="form-title">✏️ 添加新记录</div>
+            <form id="addForm" autocomplete="off">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="descInput">描述</label>
+                        <input type="text" id="descInput" placeholder="例如：工资、午餐" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="amountInput">金额 (¥)</label>
+                        <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="typeSelect">类型</label>
+                        <select id="typeSelect">
+                            <option value="income">收入</option>
+                            <option value="expense">支出</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">➕ 添加</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <footer class="footer">
+            💰 收支平衡 · 数据仅保存在本地
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== 数据层 =====
+            const STORAGE_KEY = 'budget_data';
+            let transactions = [];
+            let currentFilter = 'all';
+
+            // ===== DOM 引用 =====
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            const totalIncomeEl = document.getElementById('totalIncome');
+            const totalExpenseEl = document.getElementById('totalExpense');
+            const balanceEl = document.getElementById('balance');
+
+            const addForm = document.getElementById('addForm');
+            const descInput = document.getElementById('descInput');
+            const amountInput = document.getElementById('amountInput');
+            const typeSelect = document.getElementById('typeSelect');
+
+            const resetBtn = document.getElementById('resetBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+
+            // ===== 工具 =====
+            function formatCurrency(val) {
+                return '¥' + Number(val).toFixed(2);
+            }
+
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+            }
+
+            // ===== 数据持久化 =====
+            function loadData() {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    try {
+                        transactions = JSON.parse(raw);
+                        return;
+                    } catch (_) { /* ignore */ }
+                }
+                // 默认示例数据
+                transactions = [{
+                    id: '1',
+                    description: '工资',
+                    amount: 0,
+                    type: 'income'
+                }, {
+                    id: '2',
+                    description: '房租',
+                    amount: 0,
+                    type: 'expense'
+                }, {
+                    id: '3',
+                    description: '餐饮',
+                    amount: 0,
+                    type: 'expense'
+                }, {
+                    id: '4',
+                    description: '兼职收入',
+                    amount: 0,
+                    type: 'income'
+                }, {
+                    id: '5',
+                    description: '交通',
+                    amount: 0,
+                    type: 'expense'
+                }];
+                saveData();
+            }
+
+            function saveData() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+            }
+
+            // ===== 计算汇总 =====
+            function calcSummary() {
+                let totalIncome = 0,
+                    totalExpense = 0;
+                transactions.forEach(t => {
+                    if (t.type === 'income') totalIncome += t.amount;
+                    else totalExpense += t.amount;
+                });
+                const balance = totalIncome - totalExpense;
+                return { totalIncome, totalExpense, balance };
+            }
+
+            // ===== 渲染 =====
+            function render() {
+                // 过滤
+                let filtered = transactions;
+                if (currentFilter === 'income') {
+                    filtered = transactions.filter(t => t.type === 'income');
+                } else if (currentFilter === 'expense') {
+                    filtered = transactions.filter(t => t.type === 'expense');
+                }
+
+                // 空状态
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    // 但仍显示汇总
+                } else {
+                    emptyState.classList.add('hidden');
+                    let html = '';
+                    filtered.forEach(t => {
+                        const typeLabel = t.type === 'income' ? '收入' : '支出';
+                        const typeClass = t.type;
+                        const amountClass = t.type;
+                        html += `
+                                <tr>
+                                    <td>
+                                        <span class="type-badge ${typeClass}">${typeLabel}</span>
+                                    </td>
+                                    <td>${escapeHtml(t.description)}</td>
+                                    <td>${typeLabel}</td>
+                                    <td class="amount ${amountClass}">${formatCurrency(t.amount)}</td>
+                                    <td>
+                                        <div class="td-actions">
+                                            <button class="btn btn-success btn-sm" data-action="toggle" data-id="${t.id}" title="切换类型">
+                                                <span>切换</span>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-action="delete" data-id="${t.id}" title="删除">
+                                                <span>删除</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                    });
+                    tbody.innerHTML = html;
+                }
+
+                // 更新汇总
+                const { totalIncome, totalExpense, balance } = calcSummary();
+                totalIncomeEl.textContent = formatCurrency(totalIncome);
+                totalExpenseEl.textContent = formatCurrency(totalExpense);
+                balanceEl.textContent = formatCurrency(balance);
+
+                // 更新过滤按钮状态
+                filterBtns.forEach(btn => {
+                    const filter = btn.dataset.filter;
+                    btn.classList.toggle('active', filter === currentFilter);
+                });
+
+                // 绑定行内操作事件 (委托)
+                // 直接在 tbody 上监听
+            }
+
+            // 简单的转义防止 XSS
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // ===== 操作处理 (委托) =====
+            function handleTableAction(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+                const action = target.dataset.action;
+                const id = target.dataset.id;
+                if (!id) return;
+
+                if (action === 'delete') {
+                    if (confirm('确定要删除这条记录吗？')) {
+                        transactions = transactions.filter(t => t.id !== id);
+                        saveData();
+                        render();
+                    }
+                } else if (action === 'toggle') {
+                    const item = transactions.find(t => t.id === id);
+                    if (item) {
+                        item.type = item.type === 'income' ? 'expense' : 'income';
+                        saveData();
+                        render();
+                    }
+                }
+            }
+
+            // ===== 添加记录 =====
+            function addTransaction(e) {
+                e.preventDefault();
+                const desc = descInput.value.trim();
+                const amount = parseFloat(amountInput.value);
+                const type = typeSelect.value;
+
+                if (!desc) {
+                    alert('请输入描述');
+                    descInput.focus();
+                    return;
+                }
+                if (!amount || amount <= 0) {
+                    alert('请输入有效的金额 (大于0)');
+                    amountInput.focus();
+                    return;
+                }
+
+                transactions.push({
+                    id: generateId(),
+                    description: desc,
+                    amount: amount,
+                    type: type
+                });
+
+                saveData();
+                render();
+
+                // 清空表单
+                descInput.value = '';
+                amountInput.value = '';
+                descInput.focus();
+            }
+
+            // ===== 重置 =====
+            function resetData() {
+                if (confirm('重置将恢复示例数据，确定吗？')) {
+                    transactions = [{
+                        id: '1',
+                        description: '工资',
+                        amount: 0,
+                        type: 'income'
+                    }, {
+                        id: '2',
+                        description: '房租',
+                        amount: 0,
+                        type: 'expense'
+                    }, {
+                        id: '3',
+                        description: '餐饮',
+                        amount: 0,
+                        type: 'expense'
+                    }, {
+                        id: '4',
+                        description: '兼职收入',
+                        amount: 0,
+                        type: 'income'
+                    }, {
+                        id: '5',
+                        description: '交通',
+                        amount: 0,
+                        type: 'expense'
+                    }];
+                    saveData();
+                    currentFilter = 'all';
+                    render();
+                }
+            }
+
+            // ===== 清空 =====
+            function clearData() {
+                if (transactions.length === 0) {
+                    alert('已经是空数据了');
+                    return;
+                }
+                if (confirm('确定要删除所有记录吗？此操作不可撤销！')) {
+                    transactions = [];
+                    saveData();
+                    render();
+                }
+            }
+
+            // ===== 过滤切换 =====
+            function setFilter(filter) {
+                currentFilter = filter;
+                render();
+            }
+
+            // ===== 初始化 =====
+            function init() {
+                loadData();
+
+                // 事件绑定
+                addForm.addEventListener('submit', addTransaction);
+
+                // 表格操作委托
+                tbody.addEventListener('click', handleTableAction);
+
+                // 过滤按钮
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const filter = this.dataset.filter;
+                        setFilter(filter);
+                    });
+                });
+
+                // 重置 & 清空
+                resetBtn.addEventListener('click', resetData);
+                clearBtn.addEventListener('click', clearData);
+
+                // 首次渲染
+                render();
+            }
+
+            // 启动
+            init();
+
+        })();
+    </script>
+</body>
+</html>
