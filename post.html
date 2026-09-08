@@ -42,6 +42,7 @@
 
 
 
+
 <!--
  *
  * Title:       Twitter Clone
@@ -271,7 +272,7 @@
                                             <span class="tweet-username">@luigi</span>
                                             <span class="tweet-time">· 2h</span>
                             </div>
-                            <p>世界杯声频直播，我擦，这个网页面都是免费小游戏滴</p>
+                            <p>世界杯声频直播，我擦，这个网页面都是免费小游戏滴，有趣的编写</p>
                             <iframe src="https://www.opendrive.com/player/NDBfMTM5NzM5ODY3X2xqRjdI" height="25" width="297" style="border:0" scrolling="no" frameborder="0" allowtransparency="true"></iframe>
                                                         <div class="post-media">
 
@@ -378,7 +379,6 @@
                         <span>2</span>
                     </button>
                     <button class="tweet-action-button">
-                        <i class="fas fa-retweet"></i>
                         <span>1</span>
                     </button>
                     <button class="tweet-action-button" id="likeBtn">
@@ -612,44 +612,111 @@
 
 
                             
+<!-- ===== 推文卡片 ===== -->
+    <article class="tweet reply">
+        <!-- 头像 -->
+        <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Tower" alt="TowerMaster">
 
-                            <!-- Another VIP Reply -->
-                               <!-- Chained reply tweet -->
-                            <article class="tweet reply">
-                                <img class="avatar" src="https://api.dicebear.com/6.x/fun-emoji/svg?seed=Peach" alt="Yoshi">
-                                <div class="tweet-content">
-                                    <div class="tweet-header">
-                                        <div class="tweet-author-info">
-                                            <span class="tweet-name">CC</span>
-                                            <i class="fas fa-check-circle verified-badge-blue"></i>
-                                            <span class="tweet-username">@yoshi</span>
-                                            <span class="tweet-time">· 15m</span>
-                                        </div>
-                                    </div>
-                                   <div class="replied-to">
-                                        Replying to <a href="/toda">@toda</a>
-                                    </div>
-<img src="https://i.ibb.co/Gf5xWZ14/Screenshot-5.png"   
+        <div class="tweet-content">
+            <!-- 推文头部 -->
+            <div class="tweet-header">
+                <div class="tweet-author-info">
+                    <span class="tweet-name">LogicMaster</span>
+                    <i class="fas fa-check-circle verified-badge-blue"></i>
+                    <span class="tweet-username">@towergeek</span>
+                    <span class="tweet-time">· 8m</span>
+                </div>
+            </div>
 
-                                    alt="Post image"  class="post-image">                                      <div class="tweet-actions-list">
-                                        <button class="tweet-action-button" onclick="handleReply(this)">
-                                            <i class="far fa-comment"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-retweet"></i>
-                                            <span>0</span>
-                                        </button>
-                                        <button class="tweet-action-button" onclick="this.classList.toggle('liked'); this.querySelector('i').classList.toggle('far'); this.querySelector('i').classList.toggle('fas'); let count = this.querySelector('span'); count.textContent = this.classList.contains('liked') ? parseInt(count.textContent) + 1 : parseInt(count.textContent) - 1;">
-                                            <i class="far fa-heart"></i>
-                                            <span>100</span>
-                                        </button>
-                                        <button class="tweet-action-button">
-                                            <i class="fas fa-rocket"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </article>
+            <div class="replied-to">
+                Replying to <a href="/puzzle">@puzzle</a>
+            </div>
+
+            <!-- ========== 汉诺塔游戏嵌入 ========== -->
+            <div class="game-embedded">
+                <div class="game-inner">
+
+                    <!-- 游戏头部 -->
+                    <div class="game-header">
+                        <div class="title-mini">
+                            <span class="emoji">🗼</span> 汉诺塔
+                        </div>
+                        <div class="controls-mini">
+                            <label>
+                                🧩
+                                <select id="diskCountSelectMini">
+                                    <option value="3">3</option>
+                                    <option value="4" selected>4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 统计栏 -->
+                    <div class="stats-mini">
+                        <div class="stat">
+                            👣 步数 <span class="value" id="moveCountMini">0</span>
+                        </div>
+                        <div class="stat">
+                            📦 <span class="value gold" id="diskMovedMini">0</span>/<span id="totalDisksMini">4</span>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn" id="resetBtnMini">🔄 重置</button>
+                            <button class="btn btn-primary" id="solveBtnMini">⚡ 求解</button>
+                        </div>
+                    </div>
+
+                    <!-- 游戏区域 -->
+                    <div class="game-area-mini" id="gameAreaMini">
+                        <div class="towers-mini" id="towersContainerMini">
+                            <!-- 由JS生成 -->
+                        </div>
+
+                        <!-- 胜利遮罩 -->
+                        <div class="victory-overlay-mini" id="victoryOverlayMini">
+                            <div class="victory-content-mini">
+                                <span class="trophy">🏆</span>
+                                <h3>🎉 通关！</h3>
+                                <p id="victoryMsgMini">0 步完成</p>
+                                <button class="btn btn-primary" id="victoryResetBtnMini">🔄 再来一局</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 消息 -->
+                    <div class="msg-mini" id="messageMini">&nbsp;</div>
+
+                </div>
+            </div>
+            <!-- ===== 游戏嵌入结束 ===== -->
+
+            <!-- 推文操作按钮 -->
+            <div class="tweet-actions-list">
+                <button class="tweet-action-button" onclick="handleReply(this)">
+                    <i class="far fa-comment"></i>
+                    <span>3</span>
+                </button>
+                <button class="tweet-action-button">
+                    <i class="fas fa-retweet"></i>
+                    <span>2</span>
+                </button>
+                <button class="tweet-action-button" onclick="handleLike(this)">
+                    <i class="far fa-heart"></i>
+                    <span>42</span>
+                </button>
+                <button class="tweet-action-button">
+                    <i class="fas fa-rocket"></i>
+                </button>
+            </div>
+        </div>
+    </article>
+
+    <!-- Toast 容器 -->
+    <div id="toastContainer"></div>
+
 
   <!-- Chained reply tweet -->
                             <article class="tweet reply">
@@ -6288,3 +6355,1078 @@ document.querySelectorAll('.rps-container label').forEach(label => {
         console.log('🕹️  ← → 移动 | 空格发射 | P暂停 | R重开');
     </script>
 
+
+
+
+    
+    <style>
+        /* ===== 全局 ===== */
+       
+
+        /* ===== 游戏嵌入区域 ===== */
+        .game-embedded {
+            width: 100%;
+            margin: 6px 0 10px 0;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #0f0d20;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .game-inner {
+            padding: 12px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 游戏头部（迷你） */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+        }
+
+        .game-header .title-mini {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-header .title-mini .emoji {
+            -webkit-text-fill-color: initial;
+            font-size: 20px;
+        }
+
+        .game-header .controls-mini {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .game-header .controls-mini label {
+            color: #b0aecf;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .game-header .controls-mini select {
+            background: #1f1d3d;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e8e6ff;
+            padding: 2px 26px 2px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b0aecf' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        .game-header .controls-mini select:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-header .controls-mini select:focus {
+            border-color: #f6d365;
+            box-shadow: 0 0 0 3px rgba(246, 211, 101, 0.15);
+        }
+
+        /* 统计栏（迷你） */
+        .stats-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            flex-wrap: wrap;
+            gap: 4px 12px;
+        }
+
+        .stats-mini .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #c8c6e8;
+            font-size: 13px;
+        }
+
+        .stats-mini .stat .value {
+            font-weight: 700;
+            color: #fff;
+            font-size: 15px;
+            min-width: 20px;
+        }
+
+        .stats-mini .stat .value.gold {
+            color: #f6d365;
+        }
+
+        .stats-mini .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .stats-mini .btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #d0cef0;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+
+        .stats-mini .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .stats-mini .btn:active {
+            transform: scale(0.96);
+        }
+
+        .stats-mini .btn-primary {
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            color: #1a1833;
+            border-color: transparent;
+            font-weight: 700;
+        }
+
+        .stats-mini .btn-primary:hover {
+            background: linear-gradient(135deg, #f8db7a, #fea88e);
+            box-shadow: 0 4px 16px rgba(253, 160, 133, 0.25);
+            border-color: transparent;
+        }
+
+        /* 游戏区域（缩小版） */
+        .game-area-mini {
+            position: relative;
+            width: 100%;
+            background: #0f0d20;
+            border-radius: 14px;
+            min-height: 220px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .towers-mini {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 200px;
+            padding: 0 6px;
+            position: relative;
+        }
+
+        .tower-mini {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s;
+            padding-bottom: 4px;
+        }
+
+        .tower-mini:hover {
+            transform: translateY(-2px);
+        }
+
+        .tower-pole-mini {
+            width: 6px;
+            height: 82%;
+            background: linear-gradient(180deg, #6a6790, #3d3a66);
+            border-radius: 8px 8px 0 0;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 20px rgba(106, 103, 144, 0.12);
+        }
+
+        .tower-pole-mini::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 6px;
+            background: radial-gradient(ellipse, #8a87b0, #4d4a72);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        .tower-base-mini {
+            width: 85%;
+            height: 8px;
+            background: linear-gradient(180deg, #4d4a72, #2d2a50);
+            border-radius: 10px;
+            margin-top: -2px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tower-base-mini::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+        }
+
+        /* 盘子容器 */
+        .disks-container-mini {
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            height: 82%;
+            z-index: 2;
+            pointer-events: none;
+            padding-bottom: 2px;
+        }
+
+        .disk-mini {
+            height: 18px;
+            border-radius: 10px;
+            margin-bottom: 3px;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            position: relative;
+            flex-shrink: 0;
+            width: 0;
+        }
+
+        .disk-mini::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 12%;
+            right: 12%;
+            height: 28%;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            filter: blur(1px);
+        }
+
+        .disk-mini.selected {
+            box-shadow: 0 0 0 2px #f6d365, 0 0 20px rgba(246, 211, 101, 0.3);
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        .disk-mini.hint {
+            animation: hintPulse 0.5s ease 2;
+        }
+
+        @keyframes hintPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(246, 211, 101, 0.4);
+            }
+        }
+
+        .disk-mini.drop-in {
+            animation: dropInMini 0.3s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+        }
+
+        @keyframes dropInMini {
+            0% {
+                transform: translateY(-50px) scale(0.8);
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 胜利遮罩（迷你） */
+        .victory-overlay-mini {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            z-index: 10;
+            animation: fadeInMini 0.5s ease;
+        }
+
+        .victory-overlay-mini.show {
+            display: flex;
+        }
+
+        @keyframes fadeInMini {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .victory-content-mini {
+            text-align: center;
+            padding: 12px;
+        }
+
+        .victory-content-mini .trophy {
+            font-size: 44px;
+            display: block;
+            margin-bottom: 2px;
+            animation: bounceMini 1s ease infinite;
+        }
+
+        @keyframes bounceMini {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .victory-content-mini h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f6d365;
+            margin-bottom: 2px;
+        }
+
+        .victory-content-mini p {
+            color: #c8c6e8;
+            font-size: 14px;
+        }
+
+        .victory-content-mini .btn {
+            margin-top: 10px;
+            font-size: 13px;
+            padding: 6px 22px;
+        }
+
+        /* 消息 */
+        .msg-mini {
+            text-align: center;
+            color: #a09fc0;
+            font-size: 12px;
+            padding: 4px 0 0;
+            min-height: 22px;
+            transition: all 0.3s;
+        }
+        .msg-mini.success {
+            color: #7ddfa0;
+        }
+        .msg-mini.error {
+            color: #f57c7c;
+        }
+        .msg-mini.info {
+            color: #7cb8f5;
+        }
+
+        /* ===== 推文操作按钮 ===== */
+        .tweet-actions-list {
+            display: flex;
+            justify-content: space-between;
+            max-width: 380px;
+            margin-top: 8px;
+        }
+
+        .tweet-action-button {
+            background: transparent;
+            border: none;
+            color: #6a7498;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px 6px 8px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .tweet-action-button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #c8d0e6;
+        }
+
+        .tweet-action-button i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .tweet-action-button span {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 14px;
+        }
+
+        .tweet-action-button.liked {
+            color: #ff5e7a;
+        }
+        .tweet-action-button.liked i {
+            color: #ff5e7a;
+        }
+
+        /* ===== Toast ===== */
+        .custom-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 22, 42, 0.92);
+            color: #e6edff;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 500;
+            border: 1px solid rgba(246, 211, 101, 0.25);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            transform: translateX(-50%) translateY(12px);
+            pointer-events: none;
+        }
+        .custom-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 500px) {
+            .tweet {
+                padding: 12px 14px 10px;
+            }
+            .game-inner {
+                padding: 8px 6px 10px;
+            }
+            .game-header .title-mini {
+                font-size: 15px;
+            }
+            .game-header .controls-mini label {
+                font-size: 11px;
+            }
+            .game-header .controls-mini select {
+                font-size: 11px;
+                padding: 1px 22px 1px 8px;
+            }
+            .stats-mini .stat {
+                font-size: 11px;
+            }
+            .stats-mini .stat .value {
+                font-size: 13px;
+            }
+            .stats-mini .btn {
+                font-size: 10px;
+                padding: 3px 10px;
+            }
+            .towers-mini {
+                height: 160px;
+            }
+            .disk-mini {
+                height: 15px;
+                border-radius: 8px;
+                margin-bottom: 2px;
+            }
+            .tower-pole-mini {
+                width: 5px;
+            }
+            .victory-content-mini .trophy {
+                font-size: 34px;
+            }
+            .victory-content-mini h3 {
+                font-size: 17px;
+            }
+            .tweet-action-button {
+                font-size: 13px;
+                padding: 4px 8px 4px 6px;
+            }
+            .tweet-action-button i {
+                font-size: 14px;
+                width: 16px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .game-header .title-mini {
+                font-size: 13px;
+            }
+            .game-header .controls-mini select {
+                font-size: 10px;
+                padding: 1px 18px 1px 6px;
+            }
+            .stats-mini .stat {
+                font-size: 10px;
+            }
+            .stats-mini .stat .value {
+                font-size: 12px;
+            }
+            .towers-mini {
+                height: 130px;
+            }
+            .disk-mini {
+                height: 12px;
+                border-radius: 6px;
+                margin-bottom: 2px;
+            }
+            .tower-pole-mini {
+                width: 4px;
+            }
+        }
+    </style>
+
+
+
+    
+    <script>
+        // ================================================================
+        //  🗼  汉诺塔游戏 — 推文内嵌版 (完整逻辑)
+        // ================================================================
+
+        (() => {
+            'use strict';
+
+            // ----- DOM 引用 (mini) -----
+            const towersContainer = document.getElementById('towersContainerMini');
+            const moveCountEl = document.getElementById('moveCountMini');
+            const diskMovedEl = document.getElementById('diskMovedMini');
+            const totalDisksEl = document.getElementById('totalDisksMini');
+            const messageEl = document.getElementById('messageMini');
+            const victoryOverlay = document.getElementById('victoryOverlayMini');
+            const victoryMsg = document.getElementById('victoryMsgMini');
+            const resetBtn = document.getElementById('resetBtnMini');
+            const solveBtn = document.getElementById('solveBtnMini');
+            const victoryResetBtn = document.getElementById('victoryResetBtnMini');
+            const diskCountSelect = document.getElementById('diskCountSelectMini');
+
+            // ----- 游戏状态 -----
+            let state = {
+                disks: [],
+                towerCount: 3,
+                diskCount: 4,
+                moves: 0,
+                selected: null,
+                isAnimating: false,
+                isSolving: false,
+                victory: false,
+            };
+
+            // ----- 颜色 -----
+            const COLORS = [
+                '#f94144', '#f3722c', '#f8961e', '#f9c74f',
+                '#90be6d', '#43aa8b', '#4d908e', '#577590',
+                '#277da1', '#5e4b8a', '#9b5de5', '#f15bb5',
+            ];
+
+            function getDiskColor(size, total) {
+                const idx = Math.floor((size - 1) / (total - 1) * (COLORS.length - 1));
+                return COLORS[Math.min(idx, COLORS.length - 1)];
+            }
+
+            function getDiskWidth(size, total, containerWidth) {
+                const minPct = 0.20;
+                const maxPct = 0.80;
+                const pct = minPct + (size - 1) / (total - 1) * (maxPct - minPct);
+                return pct * containerWidth;
+            }
+
+            function getTowerDisks(towerIndex) {
+                return state.disks.filter(d => d.tower === towerIndex);
+            }
+
+            function getTopDisk(towerIndex) {
+                const disks = getTowerDisks(towerIndex);
+                if (disks.length === 0) return null;
+                return disks.reduce((a, b) => a.size < b.size ? a : b);
+            }
+
+            function getTowerHeight() {
+                const tower = towersContainer.querySelector('.tower-mini');
+                if (!tower) return 180;
+                return tower.clientHeight - 10;
+            }
+
+            // ----- 渲染 -----
+            function renderTowers() {
+                towersContainer.innerHTML = '';
+                const containerWidth = towersContainer.clientWidth || 500;
+                const towerWidth = containerWidth / state.towerCount;
+
+                for (let i = 0; i < state.towerCount; i++) {
+                    const tower = document.createElement('div');
+                    tower.className = 'tower-mini';
+                    tower.dataset.towerIndex = i;
+                    tower.style.width = `${towerWidth * 0.82}px`;
+
+                    const pole = document.createElement('div');
+                    pole.className = 'tower-pole-mini';
+                    tower.appendChild(pole);
+
+                    const base = document.createElement('div');
+                    base.className = 'tower-base-mini';
+                    tower.appendChild(base);
+
+                    const diskContainer = document.createElement('div');
+                    diskContainer.className = 'disks-container-mini';
+                    diskContainer.dataset.towerIndex = i;
+                    tower.appendChild(diskContainer);
+
+                    tower.addEventListener('click', () => handleTowerClick(i));
+
+                    towersContainer.appendChild(tower);
+                }
+
+                renderDisks();
+            }
+
+            function renderDisks() {
+                document.querySelectorAll('.disks-container-mini').forEach(el => {
+                    el.innerHTML = '';
+                });
+
+                const containerWidth = towersContainer.clientWidth || 500;
+                const towerWidth = containerWidth / state.towerCount;
+                const diskHeight = Math.max(12, Math.min(20, (getTowerHeight() - 12) / (state.diskCount + 2)));
+
+                const groups = {};
+                for (let i = 0; i < state.towerCount; i++) groups[i] = [];
+                state.disks.forEach(d => { groups[d.tower].push(d); });
+
+                for (let i = 0; i < state.towerCount; i++) {
+                    groups[i].sort((a, b) => a.size - b.size);
+                }
+
+                state.disks.forEach((disk, idx) => {
+                    const towerIdx = disk.tower;
+                    const container = document.querySelector(`.disks-container-mini[data-tower-index="${towerIdx}"]`);
+                    if (!container) return;
+
+                    const el = document.createElement('div');
+                    el.className = 'disk-mini';
+                    el.dataset.diskIndex = idx;
+
+                    const width = getDiskWidth(disk.size, state.diskCount, towerWidth * 0.82);
+                    el.style.width = `${width}px`;
+                    el.style.height = `${diskHeight}px`;
+                    el.style.borderRadius = `${diskHeight / 2}px`;
+
+                    const color = getDiskColor(disk.size, state.diskCount);
+                    el.style.background =
+                    `linear-gradient(145deg, ${color}, ${adjustColor(color, -20)})`;
+
+                    if (state.selected === idx) {
+                        el.classList.add('selected');
+                    }
+
+                    disk.element = el;
+                    container.appendChild(el);
+
+                    if (state.moves > 0 || state.disks.some(d => d.tower === 2)) {
+                        el.classList.add('drop-in');
+                        setTimeout(() => el.classList.remove('drop-in'), 350);
+                    }
+                });
+
+                updateStats();
+            }
+
+            function adjustColor(hex, amount) {
+                let r = parseInt(hex.slice(1, 3), 16);
+                let g = parseInt(hex.slice(3, 5), 16);
+                let b = parseInt(hex.slice(5, 7), 16);
+                r = Math.max(0, Math.min(255, r + amount));
+                g = Math.max(0, Math.min(255, g + amount));
+                b = Math.max(0, Math.min(255, b + amount));
+                return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+            }
+
+            // ----- 更新统计 -----
+            function updateStats() {
+                moveCountEl.textContent = state.moves;
+                const moved = state.disks.filter(d => d.tower === 2).length;
+                diskMovedEl.textContent = moved;
+                totalDisksEl.textContent = state.diskCount;
+
+                if (moved === state.diskCount && state.diskCount > 0) {
+                    if (!state.victory) {
+                        state.victory = true;
+                        showVictory();
+                    }
+                } else {
+                    state.victory = false;
+                    victoryOverlay.classList.remove('show');
+                }
+            }
+
+            function setMessage(text, type = 'info') {
+                messageEl.textContent = text;
+                messageEl.className = 'msg-mini ' + type;
+                if (text === '') messageEl.innerHTML = '&nbsp;';
+            }
+
+            function showVictory() {
+                victoryMsg.textContent = `✨ ${state.moves} 步完成！`;
+                victoryOverlay.classList.add('show');
+                setMessage('🎉 太棒了！', 'success');
+                // 触发庆祝 Toast
+                showToast('🏆 汉诺塔通关！');
+            }
+
+            // ----- 核心移动 -----
+            function tryMove(fromTower, toTower) {
+                if (state.isAnimating || state.isSolving) return false;
+                if (fromTower === toTower) {
+                    if (state.selected !== null) {
+                        clearSelected();
+                        setMessage('已取消选择', 'info');
+                    }
+                    return false;
+                }
+
+                const fromDisks = getTowerDisks(fromTower);
+                if (fromDisks.length === 0) {
+                    setMessage('❌ 柱子上没有盘子', 'error');
+                    return false;
+                }
+
+                const topFrom = getTopDisk(fromTower);
+                if (!topFrom) return false;
+
+                const toDisks = getTowerDisks(toTower);
+                const topTo = getTopDisk(toTower);
+
+                if (topTo && topFrom.size > topTo.size) {
+                    setMessage('❌ 大盘不能压小盘', 'error');
+                    if (topTo.element) {
+                        topTo.element.classList.add('hint');
+                        setTimeout(() => topTo.element.classList.remove('hint'), 600);
+                    }
+                    return false;
+                }
+
+                executeMove(topFrom, fromTower, toTower);
+                return true;
+            }
+
+            function executeMove(disk, fromTower, toTower) {
+                state.isAnimating = true;
+
+                disk.tower = toTower;
+                state.moves++;
+                if (state.selected !== null) clearSelected();
+
+                renderDisks();
+                updateStats();
+
+                setMessage(`✅ 移动了 ${disk.size} 号盘`, 'success');
+                state.isAnimating = false;
+
+                if (state.disks.filter(d => d.tower === 2).length === state.diskCount) {
+                    // victory handled in updateStats
+                }
+            }
+
+            function clearSelected() {
+                if (state.selected !== null) {
+                    const prev = state.disks[state.selected];
+                    if (prev && prev.element) {
+                        prev.element.classList.remove('selected');
+                    }
+                    state.selected = null;
+                }
+            }
+
+            function selectDisk(diskIndex) {
+                clearSelected();
+                state.selected = diskIndex;
+                const disk = state.disks[diskIndex];
+                if (disk && disk.element) {
+                    disk.element.classList.add('selected');
+                    setMessage(`选中了 ${disk.size} 号盘，点击目标柱子`, 'info');
+                }
+            }
+
+            // ----- 点击柱子 -----
+            function handleTowerClick(towerIndex) {
+                if (state.isAnimating || state.isSolving) return;
+                if (state.victory) {
+                    setMessage('🏆 已通关！点击「重置」再玩一局', 'info');
+                    return;
+                }
+
+                if (state.selected !== null) {
+                    const selectedDisk = state.disks[state.selected];
+                    if (!selectedDisk) { clearSelected(); return; }
+                    const fromTower = selectedDisk.tower;
+                    if (fromTower === towerIndex) {
+                        clearSelected();
+                        setMessage('已取消选择', 'info');
+                        return;
+                    }
+                    const top = getTopDisk(fromTower);
+                    if (!top || top.size !== selectedDisk.size) {
+                        clearSelected();
+                        setMessage('⚠️ 选中的盘子已变化', 'error');
+                        return;
+                    }
+                    tryMove(fromTower, towerIndex);
+                    return;
+                }
+
+                const top = getTopDisk(towerIndex);
+                if (!top) {
+                    setMessage('📭 该柱子上没有盘子', 'info');
+                    return;
+                }
+                const idx = state.disks.indexOf(top);
+                if (idx !== -1) selectDisk(idx);
+            }
+
+            // ----- 初始化 -----
+            function initGame(diskCount) {
+                if (state.isSolving) state.isSolving = false;
+
+                state.diskCount = diskCount;
+                state.moves = 0;
+                state.selected = null;
+                state.isAnimating = false;
+                state.victory = false;
+                victoryOverlay.classList.remove('show');
+                setMessage('');
+
+                state.disks = [];
+                for (let i = 1; i <= diskCount; i++) {
+                    state.disks.push({ size: i, tower: 0, element: null });
+                }
+
+                renderTowers();
+                updateStats();
+                setMessage(`🎯 将 ${diskCount} 个盘子从 A 移到 C`, 'info');
+            }
+
+            function resetGame() {
+                const count = parseInt(diskCountSelect.value, 10);
+                initGame(count);
+            }
+
+            // ----- 自动求解 -----
+            function solveHanoi() {
+                if (state.isSolving) return;
+                if (state.victory) {
+                    setMessage('🏆 已通关！点击「重置」再玩', 'info');
+                    return;
+                }
+
+                const allOnFirst = state.disks.every(d => d.tower === 0);
+                if (!allOnFirst) {
+                    setMessage('⚠️ 请先重置到初始状态', 'error');
+                    return;
+                }
+
+                state.isSolving = true;
+                setMessage('⚡ 自动求解中...', 'info');
+
+                const steps = [];
+
+                function hanoi(n, from, to, aux) {
+                    if (n === 0) return;
+                    hanoi(n - 1, from, aux, to);
+                    steps.push({ from, to });
+                    hanoi(n - 1, aux, to, from);
+                }
+                hanoi(state.diskCount, 0, 2, 1);
+
+                let stepIndex = 0;
+                const interval = Math.min(280, Math.max(90, 600 / (state.diskCount * state.diskCount + 1)));
+
+                function doStep() {
+                    if (!state.isSolving || stepIndex >= steps.length) {
+                        state.isSolving = false;
+                        if (stepIndex >= steps.length) {
+                            setMessage('✅ 自动求解完成！', 'success');
+                            showToast('⚡ 自动求解完成！');
+                        }
+                        return;
+                    }
+
+                    const { from, to } = steps[stepIndex];
+                    const fromDisks = getTowerDisks(from);
+                    if (fromDisks.length === 0) {
+                        state.isSolving = false;
+                        setMessage('⚠️ 求解中断，请重置', 'error');
+                        return;
+                    }
+                    const topFrom = getTopDisk(from);
+                    if (!topFrom) {
+                        state.isSolving = false;
+                        setMessage('⚠️ 求解中断', 'error');
+                        return;
+                    }
+
+                    const toDisks = getTowerDisks(to);
+                    const topTo = getTopDisk(to);
+                    if (topTo && topFrom.size > topTo.size) {
+                        state.isSolving = false;
+                        setMessage('⚠️ 求解冲突', 'error');
+                        return;
+                    }
+
+                    executeMove(topFrom, from, to);
+                    stepIndex++;
+
+                    if (state.disks.filter(d => d.tower === 2).length === state.diskCount) {
+                        state.isSolving = false;
+                        setMessage('✅ 自动求解完成！', 'success');
+                        return;
+                    }
+
+                    setTimeout(doStep, interval);
+                }
+
+                setTimeout(doStep, 300);
+            }
+
+            // ----- 事件绑定 -----
+            resetBtn.addEventListener('click', resetGame);
+            victoryResetBtn.addEventListener('click', resetGame);
+            solveBtn.addEventListener('click', solveHanoi);
+
+            diskCountSelect.addEventListener('change', () => {
+                if (state.isSolving) state.isSolving = false;
+                resetGame();
+            });
+
+            // 窗口尺寸变化重绘
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    if (!state.isSolving) renderDisks();
+                }, 200);
+            });
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'r' || e.key === 'R') { resetGame();
+                    e.preventDefault(); }
+                if (e.key === 's' || e.key === 'S') { solveHanoi();
+                    e.preventDefault(); }
+                if (e.key === 'Escape') { clearSelected();
+                    setMessage('已取消选择', 'info');
+                    e.preventDefault(); }
+                if (['1', '2', '3'].includes(e.key)) {
+                    const idx = parseInt(e.key, 10) - 1;
+                    if (idx < state.towerCount) { handleTowerClick(idx);
+                        e.preventDefault(); }
+                }
+            });
+
+            // ================================================================
+            //  💬  推文交互 (复用)
+            // ================================================================
+
+            function handleReply(btn) {
+                const span = btn.querySelector('span');
+                const current = parseInt(span.textContent, 10) || 0;
+                span.textContent = current + 1;
+                btn.style.color = '#f6d365';
+                setTimeout(() => btn.style.color = '', 400);
+                const name = btn.closest('.tweet').querySelector('.tweet-name')?.textContent || '玩家';
+                showToast(`💬 回复了 @${name}`);
+            }
+
+            function handleLike(btn) {
+                const isLiked = btn.classList.contains('liked');
+                const icon = btn.querySelector('i');
+                const span = btn.querySelector('span');
+                let count = parseInt(span.textContent, 10) || 0;
+                if (isLiked) {
+                    btn.classList.remove('liked');
+                    icon.className = 'far fa-heart';
+                    count = Math.max(0, count - 1);
+                } else {
+                    btn.classList.add('liked');
+                    icon.className = 'fas fa-heart';
+                    count++;
+                    showToast('❤️ 感谢点赞！');
+                }
+                span.textContent = count;
+            }
+
+            function showToast(msg) {
+                const container = document.getElementById('toastContainer');
+                const existing = container.querySelector('.custom-toast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast';
+                toast.textContent = msg;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('show'));
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 400);
+                }, 2000);
+            }
+
+            // 暴露
+            window.__hanoiMini = { state, resetGame, solveHanoi };
+
+            // ----- 启动 -----
+            initGame(4);
+            diskCountSelect.value = '4';
+
+            console.log('🗼 汉诺塔游戏已嵌入推文！');
+            console.log('💡 快捷键: [1][2][3] 选柱子, [R] 重置, [S] 求解, [ESC] 取消选中');
+
+        })();
+    </script>
