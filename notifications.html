@@ -4,10 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通知 / X</title>
 <style>
   :root{
-    --blue:#0a0b14;
-    --blue-dark:#0a0b14;
+    --blue:#1d9bf0;
+    --blue-dark:#1a8cd8;
     --pink:#f91880;
     --green:#00ba7c;
     --text:#0f1419;
@@ -25,7 +26,7 @@
       --border:#2f3336;
       --bg:#0a0b14;
       --hover:rgba(255,255,255,.05);
-      --unread:#0a0b14;
+      --unread:rgba(29,155,240,.13);
       --glass:rgba(0,0,0,.8);
     }
   }
@@ -39,115 +40,21 @@
     color:var(--text);
     -webkit-font-smoothing:antialiased;
     text-rendering:optimizeLegibility;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;   /* 水平居中 */
+    align-items:flex-start;
   }
   button{ font-family:inherit; }
 
-  /* ============ 布局 ============ */
-  .app{
-    display:flex;
-    max-width:1240px;
-    margin:0 auto;
-    min-height:100vh;
-  }
-
-  /* ============ 左侧导航 ============ */
-  .sidebar{
-    width:275px;
-    flex:0 0 275px;
-    position:sticky;
-    top:0;
-    height:100vh;
-    padding:0 12px;
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-  }
-  .logo{
-    width:52px;height:52px;
-    display:grid;place-items:center;
-    border-radius:50%;
-    cursor:pointer;
-    margin-top:4px;
-    transition:background .2s;
-  }
-  .logo:hover{ background:var(--hover); }
-  .logo svg{ width:28px;height:28px;fill:var(--text); }
-
-  .nav{ display:flex; flex-direction:column; gap:2px; margin-top:4px; }
-  .nav-item{
-    position:relative;
-    display:flex;
-    align-items:center;
-    gap:16px;
-    padding:12px;
-    border-radius:999px;
-    color:var(--text);
-    text-decoration:none;
-    font-size:19px;
-    line-height:1;
-    transition:background .18s;
-  }
-  .nav-item:hover{ background:var(--hover); }
-  .nav-item svg{ width:26px;height:26px;flex:0 0 26px; }
-  .nav-item.active{ font-weight:700; }
-  .badge{
-    position:absolute;
-    top:2px; left:26px;
-    min-width:19px; height:19px;
-    padding:0 5px;
-    border-radius:10px;
-    background:var(--blue);
-    color:#fff;
-    font-size:11px;
-    font-weight:700;
-    display:grid;
-    place-items:center;
-    border:2px solid var(--bg);
-  }
-
-  .post-btn{
-    margin-top:16px;
-    width:90%;
-    height:52px;
-    border:none;
-    border-radius:999px;
-    background:var(--blue);
-    color:#fff;
-    font-size:17px;
-    font-weight:700;
-    cursor:pointer;
-    transition:background .2s, transform .1s;
-  }
-  .post-btn:hover{ background:var(--blue-dark); }
-  .post-btn:active{ transform:scale(.97); }
-
-  .profile-chip{
-    margin-top:auto;
-    margin-bottom:12px;
-    width:100%;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px;
-    border-radius:999px;
-    cursor:pointer;
-    transition:background .2s;
-  }
-  .profile-chip:hover{ background:var(--hover); }
-  .profile-chip .avatar{ width:40px;height:40px;font-size:15px; }
-  .profile-chip .info{ min-width:0; flex:1; }
-  .profile-chip .info b{ display:block; font-size:15px; }
-  .profile-chip .info span{ display:block; font-size:14px; color:var(--muted); }
-  .profile-chip .dots{ color:var(--text); font-size:18px; line-height:1; }
-
-  /* ============ 主内容区 ============ */
+  /* ============ 主内容区（居中） ============ */
   .main{
-    flex:1 1 auto;
-    max-width:600px;
-    min-width:0;
+    width:100%;
+    max-width:600px;           /* 桌面最大宽度 */
+    min-height:100vh;
     border-left:1px solid var(--border);
     border-right:1px solid var(--border);
-    min-height:100vh;
+    background:var(--bg);
   }
 
   .header-sticky{
@@ -291,109 +198,31 @@
     line-height:22px;
   }
 
-  /* ============ 右侧栏 ============ */
-  .rightbar{
-    width:320px;
-    flex:0 0 320px;
-    padding:8px 0 0 24px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-  }
-  .search-box{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    height:44px;
-    padding:0 16px;
-    border-radius:999px;
-    background:var(--hover);
-    border:1px solid transparent;
-    transition:border-color .2s, background .2s;
-  }
-  .search-box:focus-within{
-    border-color:var(--blue);
-    background:var(--bg);
-  }
-  .search-box svg{ width:18px;height:18px;color:var(--muted);flex:0 0 18px; }
-  .search-box input{
-    flex:1;
-    border:none;
-    outline:none;
-    background:transparent;
-    color:var(--text);
-    font-size:15px;
-  }
-  .search-box input::placeholder{ color:var(--muted); }
-
-  .card{
-    border-radius:16px;
-    background:var(--hover);
-    padding:16px;
-  }
-  .card h3{ margin:0 0 6px; font-size:19px; font-weight:800; }
-  .card p{ margin:0 0 14px; font-size:14px; line-height:19px; color:var(--muted); }
-  .card button{
-    height:36px;
-    padding:0 18px;
-    border:none;
-    border-radius:999px;
-    background:var(--blue);
-    color:#fff;
-    font-size:15px;
-    font-weight:700;
-    cursor:pointer;
-    transition:background .2s;
-  }
-  .card button:hover{ background:var(--blue-dark); }
-
   /* ============ 响应式 ============ */
-  @media (max-width:1100px){
-    .rightbar{ display:none; }
-    .app{ max-width:900px; }
+  /* 平板：略微收窄，仍然居中 */
+  @media (max-width:900px){
+    .main{ max-width:100%; border-left:none; border-right:none; }
   }
-  @media (max-width:700px){
-    .app{ max-width:100%; }
-    .sidebar{
-      width:68px;
-      flex:0 0 68px;
-      padding:0 6px;
-      align-items:center;
-    }
-    .nav-item{ padding:12px; }
-    .nav-item .label{ display:none; }
-    .logo{ width:46px;height:46px; }
-    .post-btn{
-      width:48px; height:48px;
-      font-size:0;
-      padding:0;
-    }
-    .post-btn::after{ content:"✎"; font-size:20px; }
-    .profile-chip{ justify-content:center; padding:8px; }
-    .profile-chip .info,
-    .profile-chip .dots{ display:none; }
-    .main{ border-left:none; }
+
+  /* 手机：铺满，去掉边框 */
+  @media (max-width:600px){
+    .main{ max-width:100%; }
+    .topbar{ padding:6px 12px; }
+    .tab{ font-size:14px; padding:14px 4px; }
+  }
+
+  /* 超小屏：隐藏通知图标列，节省空间 */
+  @media (max-width:480px){
+    .notif{ grid-template-columns:1fr; padding:10px 12px; }
+    .notif-icon{ display:none; }
+    .notif-main{ gap:10px; }
+    .avatar{ width:36px; height:36px; flex:0 0 36px; font-size:14px; }
+    .notif-body .line,
+    .notif-preview{ font-size:14px; line-height:19px; }
   }
 </style>
 </head>
 <body>
-
-<div class="app">
-
-  <!-- ================= 左侧导航 ================= -->
-  <header class="sidebar">
-    <div class="logo" title="X">
- 
-    
-    </div>
-
-   
-     
-
-    
-
-   
-  </header>
 
   <!-- ================= 主内容 ================= -->
   <main class="main">
@@ -547,34 +376,16 @@
     </div>
   </main>
 
-
-    
-
-</div>
-
 <script>
   const list       = document.getElementById('list');
   const notifs     = Array.from(document.querySelectorAll('.notif'));
-  const navBadge   = document.getElementById('navBadge');
 
   /* ---------- 点击通知 → 标记为已读 ---------- */
   notifs.forEach(el => {
     el.addEventListener('click', () => {
       el.classList.remove('unread');
-      updateBadge();
     });
   });
-
-  /* ---------- 更新侧边栏未读角标 ---------- */
-  function updateBadge(){
-    const n = document.querySelectorAll('.notif.unread').length;
-    if (n > 0){
-      navBadge.textContent = n;
-      navBadge.style.display = '';
-    } else {
-      navBadge.style.display = 'none';
-    }
-  }
 
   /* ---------- 标签页筛选 ---------- */
   document.querySelectorAll('.tab').forEach(tab => {
@@ -596,7 +407,6 @@
         el.hidden = !show;
         if (show){
           visible++;
-          // 重新播放入场动画
           el.style.animation = 'none';
           void el.offsetWidth;
           el.style.animation = `fadeIn .3s ease both`;
@@ -623,9 +433,6 @@
       empty.remove();
     }
   }
-
-  /* ---------- 初始化 ---------- */
-  updateBadge();
 </script>
 
 </body>
