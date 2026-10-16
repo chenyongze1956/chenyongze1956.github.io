@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,189 +6,203 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/live2d-widget@3.1.4/lib/L2Dwidget.min.js"></script>
     <style>
-        :root { --gold: #fff; --glass: rgba(15, 23, 42, 0.98); }
-        body {             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff); ; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: "Noto Serif SC", serif; }
-        .camera-box { position: relative; width: 85vw; max-width: 380px; aspect-ratio: 3/4; margin-top: 5vh; border-radius: 25px; overflow: hidden; z-index: 5; border: 2px solid var(--gold); }
+        :root { --gold: #fbcfe8; --glass: rgba(15, 23, 42, 0.96); }
+        body { 
+              background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);
+            margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; align-items: center; font-family: "Noto Serif SC", serif; 
+        }
+        .camera-box { position: relative; width: 85vw; max-width: 380px; aspect-ratio: 3/4; margin-top: 3vh; border-radius: 25px; overflow: hidden; z-index: 5; border: 2px solid #fbbf24; box-shadow: 0 0 20px rgba(251,191,36,0.3); }
         #video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
         
-        #fpp-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--glass); border-top: 2px solid var(--gold); border-radius: 25px 25px 0 0; padding: 20px; color: #f8fafc; z-index: 99999; transition: transform 0.4s ease; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        #fpp-panel.collapsed { transform: translateY(calc(100% - 60px)); }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; cursor: pointer; border-bottom: 1px solid rgba(251,191,36,0.3); }
-        #toggle-btn { background: var(--gold); color: #000; border: none; padding: 5px 15px; border-radius: 8px; font-weight: bold; }
+        #fpp-panel { position: fixed; bottom: 0; left: 0; right: 0; background: var(--glass); border-top: 2px solid #fbbf24; border-radius: 25px 25px 0 0; padding: 15px 20px; color: #f8fafc; z-index: 99999; transition: transform 0.4s ease; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); max-height: 55vh; display: none; }
+        #fpp-panel.collapsed { transform: translateY(calc(100% - 55px)); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; cursor: pointer; border-bottom: 1px solid rgba(251,191,36,0.3); }
+        #toggle-btn { background: #fbbf24; color: #000; border: none; padding: 4px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; }
 
-        .grid-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .data-cell { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; }
-        .data-cell span { color: var(--gold); font-size: 14px; font-weight: bold; }
-        .score-display { grid-column: span 3; background: rgba(251,191,36,0.1); padding: 15px; }
-        .ancient-scroll { max-height: 180px; overflow-y: auto; margin-top: 15px; }
-        .ancient-item { background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid var(--gold); }
-        .ancient-item b { color: var(--gold); display: block; font-size: 14px; }
-        .ancient-item p { margin: 0; font-size: 12px; color: #cbd5e1; }
+        .grid-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .data-cell { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; text-align: center; border: 1px solid rgba(251,191,36,0.1); }
+        .data-cell span { color: #fbbf24; font-size: 13px; font-weight: bold; }
+        .data-cell label { font-size: 11px; color: #94a3b8; }
+        .score-display { grid-column: span 3; background: rgba(251,191,36,0.1); padding: 8px !important; }
+        
+        .ancient-scroll { max-height: 140px; overflow-y: auto; margin-top: 10px; padding-right: 4px; }
+        .ancient-scroll::-webkit-scrollbar { width: 4px; }
+        .ancient-scroll::-webkit-scrollbar-thumb { background: rgba(251,191,36,0.3); border-radius: 2px; }
+        .ancient-item { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #fbbf24; }
+        .ancient-item b { color: #fbbf24; display: block; font-size: 13px; margin-bottom: 2px; }
+        .ancient-item p { margin: 0; font-size: 11px; color: #cbd5e1; line-height: 1.4; }
 
-        .hud { position: fixed; inset: 0;             background: linear-gradient(45deg, #ff7e5f, #feb47b, #ffed86, #9feb8f, #5fbfff, #9b8eff);  display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100000; color: #fff; }
-        #startBtn { margin-top: 20px; padding: 15px 60px; background: var(--gold); color: #000; border: none; border-radius: 30px; font-weight: bold; font-size: 18px; }
-
-        /* 解决点击穿透的关键 */
+        .hud { position: fixed; inset: 0; background: linear-gradient(45deg, #1a1c29, #2c3e50, #0f172a); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100000; color: #fff; }
+        #startBtn { margin-top: 25px; padding: 12px 50px; background: #fbbf24; color: #000; border: none; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(251,191,36,0.4); cursor: pointer; }
+        
         #live2dcanvas { pointer-events: none !important; }
     </style>
 </head>
 <body>
-
-    <div id="fpp-panel">
+    <div id="fpp-panel">        
         <div class="panel-header" onclick="document.getElementById('fpp-panel').classList.toggle('collapsed')">
-            <span style="font-weight:bold;">📜 考究·神相全书</span>
-            <button id="toggle-btn">折叠</button>
+            <span style="font-weight:bold; color:#fbbf24;">📜 《神相全编》正义秘断</span>
+            <button id="toggle-btn">折叠 / 展开</button>
         </div>
         <div class="grid-info">
-            <div class="data-cell score-display"><label>精准评分</label><br><span id="f-score">0.0</span></div>
-            <div class="data-cell"><label>命格</label><br><span id="f-gender">-</span></div>
-            <div class="data-cell"><label>气色</label><br><span id="f-emotion">-</span></div>
-            <div class="data-cell"><label>天寿</label><br><span id="f-age">-</span></div>
+            <div class="data-cell score-display"><label>相格评分（骨相与气色综合）</label><br><span id="f-score">0.0</span></div>
+            <div class="data-cell"><label>命造</label><br><span id="f-gender">-</span></div>
+            <div class="data-cell"><label>气色气机</label><br><span id="f-emotion">-</span></div>
+            <div class="data-cell"><label>行年岁数</label><br><span id="f-age">-</span></div>
         </div>
         <div class="ancient-scroll">
-            <div class="ancient-item"><b>【眼相】</b><p id="p-eye">等待感应...</p></div>
-            <div class="ancient-item"><b>【鼻相】</b><p id="p-nose">等待感应...</p></div>
-            <div class="ancient-item"><b>【骨相】</b><p id="p-bone">等待感应...</p></div>
-        </div>
+            <div class="ancient-item"><b>【监察官·眼相】</b><p id="p-eye">《神相全编》云：目为监察之官，黑白分明主高明。</p></div>
+            <div class="ancient-item"><b>【审辨官·鼻相】</b><p id="p-nose">《神相全编》云：鼻主财帛与中停，隆高端正主富贵。</p></div>
+            <div class="ancient-item"><b>【三停骨相·根基】</b><p id="p-bone">《神相全编》云：三停平伏，额阔面方，主早岁荣华。</p></div>
+            <div class="ancient-item"><b>【万金气色·流年】</b><p id="p-color">《万金气色篇》云：印堂黄明，加官进职；准头红黄，财帛广聚。</p></div>
+        </div>    
     </div>
 
     <div class="hud" id="main-hud">
-        <h1 style="color:var(--gold);">古籍神相</h1>
-        <button id="startBtn">开启法眼</button>
+        <h2 style="color:#fbbf24; letter-spacing: 2px;">陈抟老祖·神相全编正义</h2>
+        <p style="color: #94a3b8; font-size: 13px; text-align: center; max-width: 80vw; margin: 0;">秉承宋代陈抟秘传、明代袁忠彻订正之相学古义，结合现代人脸识别开启 AI 相法</p>
+        <button id="startBtn">开启法眼测算</button>
     </div>
 
-    <div class="camera-box">
+    <div class="camera-box">        
         <video id="video" playsinline muted autoplay></video>
         <canvas id="captureCanvas" style="display:none;"></canvas>
     </div>
 
-    <script>
+    <script>        
         const API_KEY = "Hpmt9Yim0zlRYwkhGllCMFkLama9vxNu";
         const API_SECRET = "PhCtY0gKGC6Ys6k80vTdYQ7SVcHvH_o9";
         let isActive = false;
         let lastPos = { x: 0.5, y: 0.5 };
 
-        L2Dwidget.init({
-            "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },
-            "display": { "position": "right", "width": 140, "height": 220, "vOffset": -20 },
-            "mobile": { "show": true, "scale": 0.5 },
-            "react": { "opacity": 1 }
+        L2Dwidget.init({            
+            "model": { "jsonPath": "https://unpkg.com/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json" },            
+            "display": { "position": "right", "width": 120, "height": 180, "vOffset": -20 },            
+            "mobile": { "show": true, "scale": 0.4 },            
+            "react": { "opacity": 1 }        
         });
 
-        // --- 深度坐标同步引擎 ---
-        function syncCat(x, y) {
-            // 1. 灵敏度增益计算 (将 0.3-0.7 范围拉伸到 0-1)
+        function syncCat(x, y) {            
             let gainX = (x - 0.5) * 2.5 + 0.5;
-            let gainY = (y - 0.5) * 2.5 + 0.5;
-            
-            // 边界检查
+            let gainY = (y - 0.5) * 2.5 + 0.5;                        
             gainX = Math.max(0, Math.min(1, gainX));
             gainY = Math.max(0, Math.min(1, gainY));
 
-            // 2. 获取猫猫画布的实际位置
-            const l2d = document.getElementById('live2dcanvas');
-            if (!l2d) return;
+            const l2d = document.getElementById('live2dcanvas');            
+            if (!l2d) return;            
             const rect = l2d.getBoundingClientRect();
-
-            // 3. 计算“视觉焦点”绝对坐标
             const targetX = rect.left + (gainX * rect.width);
             const targetY = rect.top + (gainY * rect.height);
 
-            // 4. 三路并发事件驱动 (确保引擎捕捉到信号)
-            const eventProps = { clientX: targetX, clientY: targetY, bubbles: true, cancelable: true };
-            const moveEvent = new MouseEvent('mousemove', eventProps);
-            
-            l2d.dispatchEvent(moveEvent);       // 向画布发送
-            window.dispatchEvent(moveEvent);    // 向全局发送
-            document.dispatchEvent(moveEvent);  // 向文档发送
+            const eventProps = { clientX: targetX, clientY: targetY, bubbles: true, cancelable: true };            
+            const moveEvent = new MouseEvent('mousemove', eventProps);                        
+            l2d.dispatchEvent(moveEvent);       
+            window.dispatchEvent(moveEvent);    
+            document.dispatchEvent(moveEvent);  
         }
 
-        async function initSystem() {
-            document.getElementById('main-hud').style.display = 'none';
-            document.getElementById('fpp-panel').style.display = 'block';
+        async function initSystem() {            
+            document.getElementById('main-hud').style.display = 'none';            
+            document.getElementById('fpp-panel').style.display = 'block';            
             const video = document.getElementById('video');
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            try {                
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });                
                 video.srcObject = stream;
 
-                const faceMesh = new FaceMesh({
-                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-                });
+                const faceMesh = new FaceMesh({                    
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`                });
+                
+                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });                
+                faceMesh.onResults(results => {                    
+                    if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {                        
+                        if (!isActive) { isActive = true; startDataLoop(); }                        
+                        const nose = results.multiFaceLandmarks[0][1];                        
+                        lastPos = { x: 1 - nose.x, y: nose.y };                        
+                        syncCat(lastPos.x, lastPos.y);                    
+                    }                });
 
-                faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true });
-                faceMesh.onResults(results => {
-                    if (results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-                        if (!isActive) { isActive = true; startDataLoop(); }
-                        const nose = results.multiFaceLandmarks[0][1];
-                        // 保存最后位置用于平滑
-                        lastPos = { x: 1 - nose.x, y: nose.y };
-                        syncCat(lastPos.x, lastPos.y);
-                    }
-                });
+                faceMesh.initialize().then(() => {                    
+                    const loop = async () => {                        
+                        if (video.readyState >= 2) await faceMesh.send({ image: video });                        
+                        requestAnimationFrame(loop);                    
+                    };                    
+                    loop();                }).catch(() => { if(!isActive) triggerCloudOnly(); });
 
-                faceMesh.initialize().then(() => {
-                    const loop = async () => {
-                        if (video.readyState >= 2) await faceMesh.send({ image: video });
-                        requestAnimationFrame(loop);
-                    };
-                    loop();
-                }).catch(() => { if(!isActive) triggerCloudOnly(); });
-
-                setTimeout(() => { if(!isActive) triggerCloudOnly(); }, 5000);
-            } catch (err) { alert("权限拒绝"); }
-        }
+                setTimeout(() => { if(!isActive) triggerCloudOnly(); }, 5000);            } 
+            catch (err) { alert("摄像头权限被拒绝，请允许后重试。"); }        }
 
         function triggerCloudOnly() { isActive = true; startDataLoop(); }
 
-        async function startDataLoop() {
+        async function startDataLoop() {            
             const video = document.getElementById('video');
             const canvas = document.getElementById('captureCanvas');
             if (video.videoWidth === 0) { setTimeout(startDataLoop, 1000); return; }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+            canvas.width = video.videoWidth;            
+            canvas.height = video.videoHeight;            
+            const ctx = canvas.getContext('2d');            
+            ctx.save(); ctx.translate(canvas.width, 0); ctx.scale(-1, 1);            
             ctx.drawImage(video, 0, 0); ctx.restore();
 
-            try {
-                const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.8));
-                const formData = new FormData();
-                formData.append('api_key', API_KEY);
-                formData.append('api_secret', API_SECRET);
-                formData.append('image_file', blob);
+            try {                
+                const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.8));                
+                const formData = new FormData();                
+                formData.append('api_key', API_KEY);                
+                formData.append('api_secret', API_SECRET);                
+                formData.append('image_file', blob);                
                 formData.append('return_attributes', 'gender,age,emotion,beauty,skinstatus');
 
-                const response = await fetch('https://api-cn.faceplusplus.com/facepp/v3/detect', { method: 'POST', body: formData });
+                const response = await fetch('https://api-cn.faceplusplus.com/facepp/v3/detect', { method: 'POST', body: formData });                
                 const data = await response.json();
 
-                if (data.faces && data.faces[0]) {
-                    const attrs = data.faces[0].attributes;
-                    const b = (attrs.beauty.male_score + attrs.beauty.female_score) / 2;
+                if (data.faces && data.faces[0]) {                    
+                    const attrs = data.faces[0].attributes;                    
+                    const score = (attrs.beauty.male_score + attrs.beauty.female_score) / 2;                                        
                     
-                    document.getElementById('f-score').innerText = b.toFixed(1);
-                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '乾造' : '坤造';
-                    document.getElementById('f-age').innerText = Math.round(attrs.age.value);
-                    document.getElementById('f-emotion').innerText = "和润";
-                    document.getElementById('p-eye').innerText = b > 75 ? "凤目藏神，贵不可言。" : "目秀气清，平生顺遂。";
-                    document.getElementById('p-nose').innerText = "准头圆满，财富根深。";
-                    document.getElementById('p-bone').innerText = "额角峥嵘，事业有成。";
+                    document.getElementById('f-score').innerText = score.toFixed(1) + " 分";
+                    document.getElementById('f-gender').innerText = attrs.gender.value === 'Male' ? '乾造（男）' : '坤造（女）';
+                    document.getElementById('f-age').innerText = Math.round(attrs.age.value) + " 岁";
+                    
+                    // 气色与情绪转化古文对照
+                    let emotionStr = "和润平稳";
+                    let colorText = "《万金气色篇》云：印堂黄明光润，主七日内有喜气或进职之兆。";
+                    if(attrs.emotion.happiness > 50) {
+                        emotionStr = "喜气盈门";
+                        colorText = "《神相全编》云：面部黄气如酥，主财帛广聚，百事称心。";
+                    } else if(attrs.emotion.sadness > 30) {
+                        emotionStr = "内敛深沉";
+                        colorText = "《万金气色篇》云：山根若带微青，主心有所忧，宜静不宜动。";
+                    }
+                    document.getElementById('f-emotion').innerText = emotionStr;
+                    document.getElementById('p-color').innerText = colorText;
 
-                    // 云端保底坐标
-                    const r = data.faces[0].face_rectangle;
-                    syncCat(1 - (r.left + r.width/2)/canvas.width, (r.top + r.height/2)/canvas.height);
-                }
-            } catch (err) {}
-            setTimeout(startDataLoop, 10000);
-        }
+                    // 古籍五官进阶断语
+                    if (score > 78) {
+                        document.getElementById('p-eye').innerText = "《神相全编·目相篇》：凤目长入发，黑白清高，主才华横溢，贵气天成。";
+                        document.getElementById('p-nose').innerText = "《神相全编·鼻相篇》：截筒悬胆鼻，准头圆满，兰台廷尉相应，主一生巨富、财库充盈。";
+                        document.getElementById('p-bone').innerText = "《神相全编·骨相篇》：天庭饱满，地阁方圆，三停相称，主晚景荣华、福禄双全。";
+                    } else if (score > 65) {
+                        document.getElementById('p-eye').innerText = "《神相全编·目相篇》：眼神清秀，虽非极贵，亦主平生衣禄无亏、性情聪慧。";
+                        document.getElementById('p-nose').innerText = "《神相全编·鼻相篇》：鼻梁正直，虽无大贵，中中年自有一番事业可成。";
+                        document.getElementById('p-bone').innerText = "《神相全编·骨相篇》：中停正直，为人刚毅果决，凭手艺与勤勉白手兴家。";
+                    } else {
+                        document.getElementById('p-eye').innerText = "《神相全编·目相篇》：眼神宜藏不宜露，目秀神足，行事当以稳健为上。";
+                        document.getElementById('p-nose').innerText = "《神相全编·鼻相篇》：鼻虽小巧，固守理财，若得修心积德，自然福泽绵长。";
+                        document.getElementById('p-bone').innerText = "《神相全编·骨相篇》：骨骼清奇，虽起伏平平，但主一生性格坚韧、历练自成。";
+                    }
+
+                    const r = data.faces[0].face_rectangle;                    
+                    syncCat(1 - (r.left + r.width/2)/canvas.width, (r.top + r.height/2)/canvas.height);                
+                }            } 
+            catch (err) { console.error("相术数据同步中...", err); }            
+            
+            setTimeout(startDataLoop, 12000);        }
 
         document.getElementById('startBtn').onclick = initSystem;
 
-        // 强行保持激活：每隔 100ms 微微抖动坐标，防止 Live2D 休眠
-        setInterval(() => {
-            if(isActive) syncCat(lastPos.x + (Math.random()*0.01-0.005), lastPos.y);
-        }, 100);
+        setInterval(() => {            
+            if(isActive) syncCat(lastPos.x + (Math.random()*0.01-0.005), lastPos.y);        }, 100);    
     </script>
 </body>
 </html>
